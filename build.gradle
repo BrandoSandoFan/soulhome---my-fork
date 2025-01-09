@@ -1,3 +1,14 @@
+
+import com.modrinth.minotaur.TaskModrinthUpload
+import com.modrinth.minotaur.dependencies.ModDependency
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+import net.darkhax.curseforgegradle.UploadArtifact
+import net.minecraftforge.gradle.common.util.RunConfig
+import net.minecraftforge.gradle.userdev.tasks.RenameJarInPlace
+
+
 buildscript {
     repositories {
         maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
@@ -8,12 +19,13 @@ buildscript {
 }
 
 plugins {
-    id "com.matthewprenger.cursegradle" version '1.4.0'
+    id 'net.darkhax.curseforgegradle' version '1.1.16'
+    id "com.modrinth.minotaur" version "2.+"
     id 'java'
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'org.parchmentmc.librarian.forgegradle' version '1.+'
     id 'org.spongepowered.mixin' version '0.7.+'
 }
@@ -119,11 +131,11 @@ repositories {
     }
     maven {
         //curio
-        url = "https://maven.theillusivec4.top/"
+        url "https://maven.theillusivec4.top/"
     }
     maven {
-        //HWYLA
-        url "https://maven.tehnut.info"
+        //curios
+        url 'https://modmaven.dev/'
     }
     maven {
         url "https://www.cursemaven.com"
@@ -131,7 +143,6 @@ repositories {
             includeGroup "curse.maven"
         }
     }
-    mavenCentral()
 
     whenObjectAdded {
 //ForgeGradle adds these in an afterEvaluate, so we need to catch them as they're added and exclude mod artifacts/groups
@@ -162,10 +173,16 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
 
-    runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${minecraft_version}-${curios_version}")
-    compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:${minecraft_version}-${curios_version}:api")
+    compileOnly fg.deobf("curse.maven:jade-api-324717:${jade_api_id}")
+    runtimeOnly fg.deobf("curse.maven:jade-324717:${jade_id}")
 
-    implementation fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
+    //runtimeOnly fg.deobf("curse.maven:soulhome-574511:${soulhome_id}")
+
+    runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
+    compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}:api")
+
+    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}-FORGE:api")
+    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}-FORGE")
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
@@ -279,27 +296,31 @@ def changeLogResolver = { ->
 
 if (System.getenv("CURSEFORGE_API_TOKEN") != null || project.hasProperty('curseforge_api_token')) {
     println "Enabling Curseforge config"
-    tasks.named('curseforge').configure { dependsOn(jar) }
-    curseforge {
+    tasks.register("curseforge", TaskPublishCurseForge, { task ->
+        setGroup("publishing")
+        setDescription("Upload to CurseForge")
         //https://authors.curseforge.com/account/api-tokens
-        apiKey = System.getenv("CURSEFORGE_API_TOKEN") ?: project.findProperty("curseforge_api_token")
+        apiToken = System.getenv("CURSEFORGE_API_TOKEN") ?: project.findProperty("curseforge_api_token")
 
-        //Main - Cosmere
-        project {
-            id = '574511'
-            changelogType = "html"
-            changelog = changeLogResolver
-            releaseType = "${release_type}"
-            mainArtifact(jar) {
-                relations {
-                    optionalDependency "jei"
-                    optionalDependency "patchouli"
-                }
-            }
-            //addArtifact apiJar.get()
-            addGameVersion "Java ${java_version}"
-            addGameVersion "${minecraft_version}"
+        def changelog = changeLogResolver.call()
+
+        task.upload(574511, jar) { main ->
+            setGenericCurseArtifactData(main, changelog, release_type)
+            //Add optional deps
+            addOptional(
+                    //'curios',
+                    'patchouli',
+                    'jei',
+            )
         }
-    }
+    })
+}
+
+void setGenericCurseArtifactData(UploadArtifact artifact, String changelog, String release_type)
+{
+    artifact.changelog = changelog
+    artifact.changelogType = 'text'
+    artifact.releaseType = "${release_type}"
+    artifact.addModLoader("Forge")
 }
 
