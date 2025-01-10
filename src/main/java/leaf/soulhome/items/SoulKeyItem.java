@@ -68,7 +68,7 @@ public class SoulKeyItem extends BaseItem
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity livingEntity)
     {
-        if (!livingEntity.level.isClientSide && livingEntity instanceof Player player)
+        if (!livingEntity.level().isClientSide && livingEntity instanceof Player player)
         {
             //find all creatures in range
             DimensionHelper.FlipDimension(
@@ -86,7 +86,7 @@ public class SoulKeyItem extends BaseItem
     @OnlyIn(Dist.CLIENT)
     public void onUseTick(Level world, LivingEntity livingEntity, ItemStack stack, int count)
     {
-        if (livingEntity.level.isClientSide)
+        if (livingEntity.level().isClientSide)
         {
             float percentage = MathUtils.clamp01((USE_TICKS_REQUIRED - count) / (float) USE_TICKS_REQUIRED);
             int particlesToCreate = Mth.floor((percentage * percentage * percentage) * USE_TICKS_REQUIRED);
@@ -99,7 +99,7 @@ public class SoulKeyItem extends BaseItem
             {
                 float ang = (bits * i);// + (Math.random() * 10);
 
-                livingEntity.level.addParticle(
+                livingEntity.level().addParticle(
                         ParticleTypes.POOF,
                         livingEntity.getX() + Mth.sin(Mth.wrapDegrees(ang)) * radius,
                         livingEntity.getY(),

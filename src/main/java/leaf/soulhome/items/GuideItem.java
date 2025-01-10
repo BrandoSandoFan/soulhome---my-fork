@@ -66,9 +66,8 @@ public class GuideItem extends BaseItem
     public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn)
     {
         ItemStack stack = playerIn.getItemInHand(handIn);
-        if (playerIn instanceof ServerPlayer)
+        if (playerIn instanceof ServerPlayer serverPlayer)
         {
-            ServerPlayer serverPlayer = (ServerPlayer) playerIn;
             if (PatchouliCompat.PatchouliIsPresent())
             {
                 PatchouliAPI.get().openBookGUI(serverPlayer, ItemsRegistry.GUIDE.getId());

@@ -39,5 +39,6 @@
     "loot": [
       "soulhome:guide"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

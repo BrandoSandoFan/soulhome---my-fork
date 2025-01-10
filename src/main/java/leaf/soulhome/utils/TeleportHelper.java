@@ -24,7 +24,7 @@ public class TeleportHelper
 {
     public static void teleportEntity(Entity entity, ServerLevel destinationDimension, double x, double y, double z, float yRot, float xRot)
     {
-        if (entity == null || entity.level.isClientSide || !entity.canChangeDimensions())
+        if (entity == null || entity.level().isClientSide || !entity.canChangeDimensions())
         {
             return;
         }
@@ -52,7 +52,7 @@ public class TeleportHelper
         //This section is mostly copied and then modified from TeleportCommand.performTeleport()
         if (entityIsPlayer)
         {
-            ChunkPos chunkPos = new ChunkPos(new BlockPos(x, y, z));
+	        ChunkPos chunkPos = new ChunkPos(new BlockPos((int)x, (int)y, (int)z));
             destinationDimension.getChunkSource().addRegionTicket(TicketType.POST_TELEPORT, chunkPos, 1, entity.getId());
             entity.stopRiding();
             if (serverPlayerEntity.isSleeping())
@@ -77,7 +77,7 @@ public class TeleportHelper
                 serverPlayerEntity.connection.send(new ClientboundUpdateMobEffectPacket(serverPlayerEntity.getId(), effectinstance));
             }
 
-            LevelData worldInfo = serverPlayerEntity.level.getLevelData();
+            LevelData worldInfo = serverPlayerEntity.level().getLevelData();
             //I'd always wondered what the deal was with xp not showing properly.
             serverPlayerEntity.connection.send(new ClientboundPlayerAbilitiesPacket(serverPlayerEntity.getAbilities()));
             serverPlayerEntity.connection.send(new ClientboundChangeDifficultyPacket(worldInfo.getDifficulty(), worldInfo.isDifficultyLocked()));

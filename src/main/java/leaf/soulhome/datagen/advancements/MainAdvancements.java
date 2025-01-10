@@ -11,6 +11,7 @@ import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.FrameType;
 import net.minecraft.advancements.critereon.*;
 import net.minecraft.commands.CommandFunction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -97,7 +98,7 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
                         true, //showToast
                         true, //announce
                         false)//hidden
-                .addCriterion("entered_soul", PlayerTrigger.TriggerInstance.located(LocationPredicate.inBiome(ResourceKey.create(Registry.BIOME_REGISTRY, SoulHome.SOULHOME_LOC))))
+                .addCriterion("entered_soul", PlayerTrigger.TriggerInstance.located(LocationPredicate.inBiome(ResourceKey.create(Registries.BIOME, SoulHome.SOULHOME_LOC))))
                 .rewards(new AdvancementRewards(5, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, enteredSoulDimension));
 

@@ -7,6 +7,7 @@ package leaf.soulhome.handlers;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.commands.SoulCommand;
 import leaf.soulhome.utils.DimensionHelper;
+import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.damagesource.DamageSource;
@@ -36,7 +37,7 @@ public class CommonEvents
             event.setCanceled(true);
             entityLiving.fallDistance = 0;
 
-            if (event.getSource() == DamageSource.OUT_OF_WORLD)
+            if (event.getSource() == entityLiving.damageSources().fellOutOfWorld())
             {
                 DimensionHelper.FlipDimension((Player) entityLiving, entityLiving.getServer(), null, entityLiving.getUUID());
             }

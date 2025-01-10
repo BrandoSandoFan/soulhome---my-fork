@@ -15,6 +15,7 @@
 
   "advancements_tab": "soulhome:core/root",
   "advancement_namespaces": ["soulhome"],
+  "use_resource_pack": true,
 
   "i18n": true,
 

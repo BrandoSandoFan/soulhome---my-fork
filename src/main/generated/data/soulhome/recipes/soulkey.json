@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "key": {
     "E": {
       "item": "minecraft:ender_pearl"
@@ -15,5 +16,6 @@
   ],
   "result": {
     "item": "soulhome:soulkey"
-  }
+  },
+  "show_notification": true
 }

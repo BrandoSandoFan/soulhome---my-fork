@@ -30,5 +30,6 @@
     "recipes": [
       "soulhome:guide"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

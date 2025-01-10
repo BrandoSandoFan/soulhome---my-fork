@@ -11,10 +11,8 @@ package leaf.soulhome.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.commands.subcommands.SoulHomeCommand;
-import leaf.soulhome.commands.subcommands.TestCommand;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-
 
 public class SoulCommand
 {
@@ -22,7 +20,6 @@ public class SoulCommand
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
     {
         dispatcher.register(Commands.literal(SoulHome.MODID)
-                .then(TestCommand.register(dispatcher))
                 .then(SoulHomeCommand.register(dispatcher))
         );
     }

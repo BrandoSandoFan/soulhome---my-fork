@@ -42,8 +42,10 @@ public class SoulHome
         MinecraftForge.EVENT_BUS.register(this);
 
         //Register our deferred registries
-        BlocksRegistry.BLOCKS.register(modBus);
         ItemsRegistry.ITEMS.register(modBus);
+        CreativeTabsRegistry.CREATIVE_TABS.register(modBus);
+        BiomeRegistry.BIOMES.register(modBus);
+        DimensionRegistry.CHUNK_GENERATORS.register(modBus);
         //EffectsRegistry.EFFECTS.register(modBus);
         //LootModifierRegistry.LOOT_MODIFIERS.register(modBus);
         //AttributesRegistry.ATTRIBUTES.register(modBus);
@@ -66,9 +68,6 @@ public class SoulHome
         {
             //FeatureRegistry.registerConfiguredFeatures();
             //EntityRegistry.PrepareEntityAttributes();
-
-            BiomeRegistry.registerBiomeKeys();
-            DimensionRegistry.registerChunkGenerators();
         });
 
         //Entity Caps

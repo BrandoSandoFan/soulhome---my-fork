@@ -21,7 +21,7 @@
   "spawners": {},
   "spawn_costs": {},
   "player_spawn_friendly": true,
-  "precipitation": "none",
+  "has_precipitation": false,
   "temperature": 0.5,
   "downfall": 0.4,
   "category": "none",

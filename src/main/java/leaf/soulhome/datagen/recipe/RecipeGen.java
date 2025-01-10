@@ -4,9 +4,11 @@
 
 package leaf.soulhome.datagen.recipe;
 
+import leaf.soulhome.SoulHome;
 import leaf.soulhome.registry.ItemsRegistry;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.data.*;
+import net.minecraft.data.recipes.*;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -14,28 +16,24 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
+import net.minecraftforge.common.data.ExistingFileHelper;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
-import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.data.recipes.ShapelessRecipeBuilder;
-import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
-
 public class RecipeGen extends RecipeProvider implements IConditionBuilder
 {
-    public RecipeGen(DataGenerator generatorIn)
+
+    public RecipeGen(PackOutput output)
     {
-        super(generatorIn);
+        super(output);
     }
 
     @Override
-    protected void buildCraftingRecipes(Consumer<FinishedRecipe> consumer)
+    protected void buildRecipes(Consumer<FinishedRecipe> consumer)
     {
         ShapedRecipeBuilder
-                .shaped(ItemsRegistry.SOUL_KEY.get()) //output
+                .shaped(RecipeCategory.TRANSPORTATION,ItemsRegistry.SOUL_KEY.get()) //output
                 .define('I', Items.IRON_INGOT)
                 .define('E', Items.ENDER_PEARL)
                 .pattern("I  ") //top row
@@ -45,14 +43,14 @@ public class RecipeGen extends RecipeProvider implements IConditionBuilder
                 .save(consumer);
 
         ShapelessRecipeBuilder
-                .shapeless(ItemsRegistry.GUIDE.get())
+                .shapeless(RecipeCategory.MISC,ItemsRegistry.GUIDE.get())
                 .requires(Items.BOOK)
                 .requires(ItemsRegistry.SOUL_KEY.get())
                 .unlockedBy("has_soul_key", has(ItemsRegistry.SOUL_KEY.get()))
                 .save(consumer);
 
         ShapedRecipeBuilder
-                .shaped(ItemsRegistry.PERSONAL_SOUL_KEY.get()) //output
+                .shaped(RecipeCategory.TRANSPORTATION, ItemsRegistry.PERSONAL_SOUL_KEY.get()) //output
                 .define('I', Items.IRON_INGOT)
                 .define('E', Items.ENDER_EYE)
                 .pattern("I  ") //top row

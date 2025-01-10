@@ -17,7 +17,7 @@ public class EntityHelper
         AABB areaOfEffect = new AABB(selfEntity.blockPosition());
         areaOfEffect = areaOfEffect.inflate(range, range, range);
 
-        List<LivingEntity> entitiesFound = selfEntity.level.getEntitiesOfClass(LivingEntity.class, areaOfEffect);
+        List<LivingEntity> entitiesFound = selfEntity.level().getEntitiesOfClass(LivingEntity.class, areaOfEffect);
 
         if (!includeSelf)
         {
@@ -34,7 +34,7 @@ public class EntityHelper
         AABB areaOfEffect = new AABB(entity.blockPosition());
         areaOfEffect = areaOfEffect.inflate(range, range, range);
 
-        List<Entity> entitiesFound = entity.level.getEntitiesOfClass(Entity.class, areaOfEffect);
+        List<Entity> entitiesFound = entity.level().getEntitiesOfClass(Entity.class, areaOfEffect);
 
         if (!includeSelf)
         {

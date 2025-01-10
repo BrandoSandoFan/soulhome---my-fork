@@ -7,10 +7,10 @@ package leaf.soulhome.datagen.language;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.items.BoundSoulkey;
-import leaf.soulhome.items.SoulHomeItemGroups;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import leaf.soulhome.utils.StringHelper;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
@@ -19,12 +19,12 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public class EngLangGen extends LanguageProvider
 {
-    private final DataGenerator generator;
+    private final PackOutput packOutput;
 
-    public EngLangGen(DataGenerator gen)
+    public EngLangGen(PackOutput packOutput)
     {
-        super(gen, SoulHome.MODID, "en_us");
-        this.generator = gen;
+        super(packOutput, SoulHome.MODID, "en_us");
+        this.packOutput = packOutput;
     }
 
     @Override
@@ -78,7 +78,7 @@ public class EngLangGen extends LanguageProvider
         }
 
         //ItemGroups/Tabs
-        add("itemGroup." + SoulHomeItemGroups.ITEMS.getRecipeFolderName(), "SoulHome Items");
+        add("tabs." + SoulHome.MODID + ".items", "SoulHome");
 
         //Damage Sources
 

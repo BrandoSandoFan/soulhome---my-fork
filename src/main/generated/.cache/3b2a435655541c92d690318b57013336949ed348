@@ -1,9 +1,9 @@
-// 1.19.2	2023-08-06T16:39:02.9894023	PatchouliGeneration
-55b5193e14f138c8e2468487ae9da7bc7326b1cc data/soulhome/patchouli_books/guide/en_us/categories/basics.json
-db5bb6a06983718ae01af7ea5c075d3ddd9a7ef2 data/soulhome/patchouli_books/guide/en_us/categories/multiblocks.json
-91618b91a5051a1389623842e2d94333f42fb3e7 data/soulhome/patchouli_books/guide/en_us/entries/basics/guide.json
-a2002a2664cabc3e0047e9ee390cea7c86cd3212 data/soulhome/patchouli_books/guide/en_us/entries/basics/personal_soul_key.json
-387c324464ba5f07f79fe7e6066eda27b13baad9 data/soulhome/patchouli_books/guide/en_us/entries/basics/soul.json
-f35aed1ca9ddd062958f3f1738b7324687c06ebd data/soulhome/patchouli_books/guide/en_us/entries/basics/soul_key.json
-da95e45faeb8c5fccb4ab638166118bafedd7170 data/soulhome/patchouli_books/guide/en_us/entries/basics/welcome.json
-fadce5773a382989d85203850a5f542751490796 data/soulhome/patchouli_books/guide/en_us/entries/multiblocks/blank.json
+// 1.20.1	2025-01-10T18:36:01.0231884	PatchouliGeneration
+55b5193e14f138c8e2468487ae9da7bc7326b1cc assets/soulhome/patchouli_books/guide/en_us/categories/basics.json
+db5bb6a06983718ae01af7ea5c075d3ddd9a7ef2 assets/soulhome/patchouli_books/guide/en_us/categories/multiblocks.json
+91618b91a5051a1389623842e2d94333f42fb3e7 assets/soulhome/patchouli_books/guide/en_us/entries/basics/guide.json
+a2002a2664cabc3e0047e9ee390cea7c86cd3212 assets/soulhome/patchouli_books/guide/en_us/entries/basics/personal_soul_key.json
+387c324464ba5f07f79fe7e6066eda27b13baad9 assets/soulhome/patchouli_books/guide/en_us/entries/basics/soul.json
+f35aed1ca9ddd062958f3f1738b7324687c06ebd assets/soulhome/patchouli_books/guide/en_us/entries/basics/soul_key.json
+da95e45faeb8c5fccb4ab638166118bafedd7170 assets/soulhome/patchouli_books/guide/en_us/entries/basics/welcome.json
+fadce5773a382989d85203850a5f542751490796 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/blank.json

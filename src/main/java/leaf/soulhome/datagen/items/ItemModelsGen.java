@@ -8,6 +8,7 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.registry.ItemsRegistry;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.resources.ResourceLocation;
@@ -22,9 +23,9 @@ import java.util.function.Supplier;
 public class ItemModelsGen extends ItemModelProvider
 {
 
-    public ItemModelsGen(DataGenerator generator, ExistingFileHelper existingFileHelper)
+    public ItemModelsGen(PackOutput packOutput, ExistingFileHelper existingFileHelper)
     {
-        super(generator, SoulHome.MODID, existingFileHelper);
+        super(packOutput, SoulHome.MODID, existingFileHelper);
     }
 
     @Override

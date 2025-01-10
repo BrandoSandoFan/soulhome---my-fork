@@ -9,7 +9,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.registry.BiomeRegistry;
 import leaf.soulhome.utils.DimensionHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.WorldGenRegion;
@@ -34,27 +36,17 @@ import java.util.concurrent.Executor;
 
 public class SoulChunkGenerator extends ChunkGenerator
 {
-    public static final Codec<SoulChunkGenerator> providerCodec = RecordCodecBuilder.create(builder -> builder.group(
-            RegistryOps.retrieveRegistry(Registry.STRUCTURE_SET_REGISTRY).forGetter(SoulChunkGenerator::getStructureSetRegistry),
-            RegistryOps.retrieveRegistry(Registry.BIOME_REGISTRY).forGetter(SoulChunkGenerator::getBiomeRegistry)
-    ).apply(builder, SoulChunkGenerator::new));
+    public static final Codec<SoulChunkGenerator> providerCodec =
+            RecordCodecBuilder.create(builder ->
+                    builder.group(RegistryOps.retrieveElement(BiomeRegistry.SOUL_BIOME_KEY))
+                            .apply(builder, builder.stable(SoulChunkGenerator::new)));
 
-    private final Registry<Biome> biomeRegistry;
-    private final Registry<StructureSet> structureSets;
 
-    public SoulChunkGenerator(MinecraftServer server)
+    public SoulChunkGenerator(Holder.Reference<Biome> p_255723_)
     {
-        this(server.registryAccess().registryOrThrow(Registry.STRUCTURE_SET_REGISTRY),
-                server.registryAccess() // get dynamic registry
-                        .registryOrThrow(Registry.BIOME_REGISTRY));
+        super(new FixedBiomeSource(p_255723_));
     }
 
-
-    public SoulChunkGenerator(Registry<StructureSet> structureSets, Registry<Biome> biomes){
-        super(structureSets, Optional.empty(), new FixedBiomeSource(biomes.getHolderOrThrow(BiomeRegistry.SOUL_BIOME_KEY)));
-        this.structureSets = structureSets;
-        this.biomeRegistry = biomes;
-    }
 
 
     @Override
@@ -69,10 +61,6 @@ public class SoulChunkGenerator extends ChunkGenerator
 
     }
 
-    public Registry<Biome> getBiomeRegistry()
-    {
-        return this.biomeRegistry;
-    }
 
     @Override
     public int getGenDepth()
@@ -126,8 +114,4 @@ public class SoulChunkGenerator extends ChunkGenerator
         //??
     }
 
-    public Registry<StructureSet> getStructureSetRegistry()
-    {
-        return this.structureSets;
-    }
 }

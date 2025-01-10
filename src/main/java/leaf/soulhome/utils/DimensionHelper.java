@@ -6,6 +6,7 @@ package leaf.soulhome.utils;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.registry.DimensionRegistry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -42,7 +43,7 @@ public class DimensionHelper
     {
         // I think it has to be done this way since the soul dimension is not
         // shared between players like it is in random things SpectreKey dimension
-        DimensionType type = world.registryAccess().registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY).get(dimTypeKey);
+        DimensionType type = world.registryAccess().registryOrThrow(Registries.DIMENSION_TYPE).get(dimTypeKey);
         return type != null && type.equals(world.dimensionType());
     }
 
@@ -68,7 +69,7 @@ public class DimensionHelper
             //get the dimension key, based on the info we saved.
             ResourceKey<Level> destinationKey =
                     ResourceKey.create(
-                            Registry.DIMENSION_REGISTRY,
+                            Registries.DIMENSION,
                             new ResourceLocation(
                                     soulNBT.getString(LAST_DIMENSION_MOD_ID),
                                     soulNBT.getString(LAST_DIMENSION_MOD_DIMENSION))
@@ -148,7 +149,7 @@ public class DimensionHelper
 
         //the key used in the map, Map<key,world>
         //if we've already made the dimension, we can grab it straight from server.getLevel
-        ResourceKey<Level> worldKey = ResourceKey.create(Registry.DIMENSION_REGISTRY, loc);
+        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, loc);
 
         //check to find our special dimension
         ServerLevel soulDimensionForPlayer = server.getLevel(worldKey);

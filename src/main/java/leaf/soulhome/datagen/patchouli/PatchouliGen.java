@@ -9,15 +9,16 @@ import leaf.soulhome.datagen.patchouli.categories.PatchouliBasics;
 import leaf.soulhome.datagen.patchouli.categories.PatchouliMultiblocks;
 import leaf.soulhome.datagen.patchouli.categories.data.PatchouliProvider;
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 
 //
 //  In-Game Documentation generator
 //
 public class PatchouliGen extends PatchouliProvider
 {
-    public PatchouliGen(DataGenerator generatorIn)
+    public PatchouliGen(PackOutput packOutput)
     {
-        super(generatorIn, SoulHome.MODID);
+        super(packOutput, SoulHome.MODID);
     }
 
 

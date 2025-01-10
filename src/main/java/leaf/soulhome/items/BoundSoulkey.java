@@ -63,7 +63,7 @@ public class BoundSoulkey extends SoulKeyItem
 	@Override
 	public ItemStack finishUsingItem(ItemStack stack, Level world, LivingEntity livingEntity)
 	{
-		if (!livingEntity.level.isClientSide && livingEntity instanceof Player player)
+		if (!livingEntity.level().isClientSide && livingEntity instanceof Player player)
 		{
 			//fix creative mode keys
 			final CompoundTag tag = stack.getOrCreateTag();

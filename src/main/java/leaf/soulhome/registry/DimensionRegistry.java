@@ -5,6 +5,7 @@
 package leaf.soulhome.registry;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.dimensions.SoulChunkGenerator;
@@ -13,22 +14,16 @@ import leaf.soulhome.network.SyncDimensionListMessage;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.mixin.DefrostedRegistry;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.ResourceKeyArgument;
 import net.minecraft.core.*;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.progress.ChunkProgressListener;
-import net.minecraft.server.packs.resources.Resource;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.RandomSequences;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
@@ -37,12 +32,6 @@ import net.minecraft.world.level.border.BorderChangeListener;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
-import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
-import net.minecraft.world.level.levelgen.WorldGenSettings;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraft.world.level.levelgen.structure.StructureStart;
-import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
@@ -51,6 +40,8 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.WorldData;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Map;
 import java.util.Optional;
@@ -61,22 +52,23 @@ import java.util.function.BiFunction;
 
 public class DimensionRegistry
 {
+	public static final DeferredRegister<Codec<? extends ChunkGenerator>> CHUNK_GENERATORS = DeferredRegister.create(Registries.CHUNK_GENERATOR, SoulHome.MODID);
+	public static final ResourceKey<Biome> SOULHOME_BIOME = ResourceKey.create(Registries.BIOME, new ResourceLocation(SoulHome.MODID, SoulHome.MODID));
+	public static final RegistryObject<Codec<? extends ChunkGenerator>> CHUNK_GENERATOR = CHUNK_GENERATORS.register(SoulHome.MODID, () -> SoulChunkGenerator.providerCodec);
+
+
 	public static class DimensionTypes
 	{
-		public static final ResourceKey<DimensionType> SOUL_DIMENSION_TYPE = ResourceKey.create(Registry.DIMENSION_TYPE_REGISTRY, SoulHome.SOULHOME_LOC);
+		public static final ResourceKey<DimensionType> SOUL_DIMENSION_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, SoulHome.SOULHOME_LOC);
 	}
 
-	public static void registerChunkGenerators()
-	{
-		Registry.register(Registry.CHUNK_GENERATOR, SoulHome.SOULHOME_LOC, SoulChunkGenerator.providerCodec);
-	}
 
 	public static LevelStem soulDimensionBuilder(MinecraftServer server, ResourceKey<LevelStem> dimensionKey)
 	{
 		RegistryAccess registries = server.registryAccess(); // get dynamic registries
 		return new LevelStem(
-				registries.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY).getHolderOrThrow(DimensionTypes.SOUL_DIMENSION_TYPE),
-				new SoulChunkGenerator(server));
+				registries.registryOrThrow(Registries.DIMENSION_TYPE).getHolderOrThrow(DimensionTypes.SOUL_DIMENSION_TYPE),
+				new SoulChunkGenerator(registries.registryOrThrow(Registries.BIOME).getHolderOrThrow(BiomeRegistry.SOUL_BIOME_KEY)));
 	}
 
 
@@ -85,7 +77,7 @@ public class DimensionRegistry
 	// https://gitlab.com/Spectre0987/TardisMod-1-14/-/tree/1.16
 	public static ServerLevel createSoulDimension(MinecraftServer server, ResourceKey<Level> worldKey, String userUUID)
 	{
-		ResourceKey<LevelStem> dimensionKey = ResourceKey.create(Registry.LEVEL_STEM_REGISTRY, worldKey.location());
+		ResourceKey<LevelStem> dimensionKey = ResourceKey.create(Registries.LEVEL_STEM, worldKey.location());
 
 		BiFunction<MinecraftServer, ResourceKey<LevelStem>, LevelStem> dimensionFactory = DimensionRegistry::soulDimensionBuilder;
 		LevelStem dimension = dimensionFactory.apply(server, dimensionKey);
@@ -97,10 +89,9 @@ public class DimensionRegistry
 
 		//configs
 		WorldData serverConfiguration = server.getWorldData();
-		WorldGenSettings worldGenSettings = serverConfiguration.worldGenSettings();
 
 		// register the dimension
-		Registry<LevelStem> dimensionRegistry = worldGenSettings.dimensions();
+		Registry<LevelStem> dimensionRegistry = server.registryAccess().registryOrThrow(Registries.LEVEL_STEM);
 		if (dimensionRegistry instanceof WritableRegistry)
 		{
 			final WritableRegistry<LevelStem> writableRegistry = (WritableRegistry<LevelStem>) dimensionRegistry;
@@ -108,8 +99,10 @@ public class DimensionRegistry
 			((DefrostedRegistry) writableRegistry).setFrozen(false);
 			writableRegistry.register(dimensionKey, dimension, Lifecycle.stable());
 
-			if(wasFrozen)
+			if (wasFrozen)
+			{
 				((DefrostedRegistry) writableRegistry).setFrozen(true);
+			}
 		}
 		else
 		{
@@ -119,6 +112,8 @@ public class DimensionRegistry
 		//base the world info on overworld? Not actually sure if that's what I want for soul dimensions
 		//todo revisit this later. Don't just forget about it.
 		// ^ LOL
+		// ^ it's the year 2025 and I still haven't revisited this
+
 		DerivedLevelData derivedWorldInfo = new DerivedLevelData(serverConfiguration, serverConfiguration.overworldData());
 
 		ServerLevel newSoulWorld = new ServerLevel(
@@ -129,10 +124,11 @@ public class DimensionRegistry
 				worldKey,
 				dimension,
 				chunkProgressListener,
-				worldGenSettings.isDebug(),
-				BiomeManager.obfuscateSeed(worldGenSettings.seed()),
+				serverConfiguration.isDebugWorld(),
+				BiomeManager.obfuscateSeed(serverConfiguration.worldGenOptions().seed()),
 				ImmutableList.of(),
-				false);
+				false,
+				(RandomSequences) null);
 
 
 		// pay attention to borders?
