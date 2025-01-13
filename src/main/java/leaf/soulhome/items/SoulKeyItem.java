@@ -97,10 +97,10 @@ public class SoulKeyItem extends BaseItem
 
             for (int i = particlesToCreate; i >= 0; --i)
             {
-                float ang = (bits * i);// + (Math.random() * 10);
+                float ang = (bits * i);
 
                 livingEntity.level().addParticle(
-                        ParticleTypes.POOF,
+                        ParticleTypes.SOUL_FIRE_FLAME,
                         livingEntity.getX() + Mth.sin(Mth.wrapDegrees(ang)) * radius,
                         livingEntity.getY(),
                         livingEntity.getZ() + Mth.cos(Mth.wrapDegrees(ang)) * radius,

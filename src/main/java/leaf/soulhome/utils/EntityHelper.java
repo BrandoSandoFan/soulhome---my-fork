@@ -5,10 +5,13 @@
 package leaf.soulhome.utils;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.phys.AABB;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 public class EntityHelper
 {
@@ -29,6 +32,12 @@ public class EntityHelper
         return entitiesFound;
     }
 
+    private static final Predicate<Entity> ALLOWED_TO_TELEPORT =
+            EntitySelector.NO_SPECTATORS
+                    .and(EntitySelector.LIVING_ENTITY_STILL_ALIVE)
+                    .and(Entity::canChangeDimensions)
+                    .and((entity)->!(entity instanceof Enemy));
+
     public static List<Entity> getEntitiesInRange(Entity entity, double range, boolean includeSelf)
     {
         AABB areaOfEffect = new AABB(entity.blockPosition());
@@ -36,9 +45,14 @@ public class EntityHelper
 
         List<Entity> entitiesFound = entity.level().getEntitiesOfClass(Entity.class, areaOfEffect);
 
-        if (!includeSelf)
+        for (Entity ent : entitiesFound)
         {
-            entitiesFound.remove(entity);
+            final boolean removeSelf = ent == entity && !includeSelf;
+            if (removeSelf || !ALLOWED_TO_TELEPORT.test(ent))
+            {
+                entitiesFound.remove(ent);
+                break;
+            }
         }
 
         return entitiesFound;
