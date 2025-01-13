@@ -31,8 +31,23 @@ public class CommonEvents
     public static void onLivingHurt(LivingHurtEvent event)
     {
         final LivingEntity entityLiving = event.getEntity();
-        if (entityLiving instanceof Player
-                && DimensionHelper.isInSoulDimension(entityLiving))
+        final boolean inSoulDimension = DimensionHelper.isInSoulDimension(entityLiving);
+
+        if (!inSoulDimension)
+        {
+            return;
+        }
+
+        //no fall damage in soul homes for any entity
+        if (event.getSource() == entityLiving.damageSources().fall())
+        {
+            entityLiving.fallDistance = 0;
+            event.setCanceled(true);
+            return;
+        }
+
+
+        if (entityLiving instanceof Player)
         {
             event.setCanceled(true);
             entityLiving.fallDistance = 0;
