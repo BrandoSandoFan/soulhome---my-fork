@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
+import leaf.soulhome.buffs.SoulBuffEffects;
 import leaf.soulhome.structures.core.ArchetypeClassifier;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.ArchetypeSignals;
@@ -112,6 +113,7 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
                 continue;
             }
 
+            warnAboutUnknownBuffs(definition);
             accepted.put(id, definition);
         }
 
@@ -120,6 +122,24 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
         LogHelper.info("Loaded " + accepted.size() + " soulhome archetype(s)"
                 + (rejected > 0 ? ", skipped " + rejected + " that failed to load" : "")
                 + ": " + accepted.keySet());
+    }
+
+    /**
+     * A warning rather than a rejection: an archetype may legitimately grant a buff type added by
+     * another mod that is not installed. But a typo in a buff id would otherwise produce a room
+     * that classifies perfectly and then does nothing at all, which is a miserable thing to debug.
+     */
+    private static void warnAboutUnknownBuffs(ArchetypeDefinition definition)
+    {
+        for (ArchetypeDefinition.BuffSpec buff : definition.buffs())
+        {
+            if (!SoulBuffEffects.isKnown(buff.type()))
+            {
+                LogHelper.warn("Soulhome archetype " + definition.id() + " grants '" + buff.type()
+                        + "', which nothing is registered to apply. Known buff types: "
+                        + SoulBuffEffects.knownTypes());
+            }
+        }
     }
 
     /**

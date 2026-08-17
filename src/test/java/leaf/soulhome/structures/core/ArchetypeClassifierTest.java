@@ -9,7 +9,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,6 +58,42 @@ class ArchetypeClassifierTest
             assertEquals(1, archetype.tierFor(archetype.tiers().get(0).minScore()),
                     archetype.id() + " should award tier 1 at its own first threshold");
         }
+    }
+
+    @Test
+    @DisplayName("every shipped archetype grants a buff something is registered to apply")
+    void shippedBuffTypesAreImplemented()
+    {
+        // a buff id is a string in the archetype JSON and again in the effect that applies it.
+        // Get one of them wrong and the room classifies perfectly and then does nothing at all,
+        // which is a miserable thing to debug from a bug report.
+        for (ArchetypeDefinition archetype : shipped)
+        {
+            for (ArchetypeDefinition.BuffSpec buff : archetype.buffs())
+            {
+                assertTrue(SoulBuffTypes.BUILT_IN.contains(buff.type()),
+                        archetype.id() + " grants '" + buff.type()
+                                + "', which is not one of " + SoulBuffTypes.BUILT_IN);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("every built-in buff is reachable from some shipped archetype")
+    void everyBuiltInBuffIsGrantedBySomething()
+    {
+        Set<String> granted = new HashSet<>();
+
+        for (ArchetypeDefinition archetype : shipped)
+        {
+            for (ArchetypeDefinition.BuffSpec buff : archetype.buffs())
+            {
+                granted.add(buff.type());
+            }
+        }
+
+        assertEquals(SoulBuffTypes.BUILT_IN, granted,
+                "an implemented buff nothing can grant is dead code");
     }
 
     @Test
