@@ -45,15 +45,10 @@ public class EntityHelper
 
         List<Entity> entitiesFound = entity.level().getEntitiesOfClass(Entity.class, areaOfEffect);
 
-        for (Entity ent : entitiesFound)
-        {
-            final boolean removeSelf = ent == entity && !includeSelf;
-            if (removeSelf || !ALLOWED_TO_TELEPORT.test(ent))
-            {
-                entitiesFound.remove(ent);
-                break;
-            }
-        }
+        // removeIf rather than remove-inside-a-for-each: the latter needs a break to dodge
+        // ConcurrentModificationException, which meant only the *first* disallowed entity was
+        // ever dropped and every one after it still got teleported along with the player.
+        entitiesFound.removeIf(ent -> (ent == entity && !includeSelf) || !ALLOWED_TO_TELEPORT.test(ent));
 
         return entitiesFound;
     }

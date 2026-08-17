@@ -56,6 +56,10 @@ public class DimensionRegistry
 	public static final ResourceKey<Biome> SOULHOME_BIOME = ResourceKey.create(Registries.BIOME, new ResourceLocation(SoulHome.MODID, SoulHome.MODID));
 	public static final RegistryObject<Codec<? extends ChunkGenerator>> CHUNK_GENERATOR = CHUNK_GENERATORS.register(SoulHome.MODID, () -> SoulChunkGenerator.providerCodec);
 
+	// Number of soul_island<n> structure templates that ship with the mod.
+	// TODO: add more islands, bump this as more are added.
+	private static final int ISLAND_STYLE_COUNT = 3;
+
 
 	public static class DimensionTypes
 	{
@@ -156,7 +160,10 @@ public class DimensionRegistry
 		// Use the UUID of the player to choose an island structure, different players will get different islands representitive of their 'souls'
 		UUID soul = UUID.fromString(userUUID);
 		Random rand = new Random(soul.getLeastSignificantBits() ^ soul.getMostSignificantBits());
-		int islandStyle = rand.nextInt() % 3; // TODO: add more islands, need to change this value as more islands are added
+		// nextInt(bound) rather than nextInt() % bound: the latter returns the full int range,
+		// so a third of players got a negative style and a soul_island-1 / soul_island-2 that
+		// does not exist, silently falling through to the legacy platform below.
+		int islandStyle = rand.nextInt(ISLAND_STYLE_COUNT);
 		ResourceLocation soulIslandLocation = new ResourceLocation(SoulHome.MODID, "soul_island" + islandStyle);
 
 		Optional<StructureTemplate> templateOptional = manager.get(soulIslandLocation);

@@ -81,12 +81,15 @@ public class DimensionHelper
             z = soulNBT.getDouble(LAST_DIMENSION_Z);
 
             //then get the destination dimension by using that key.
-            try
+            //MinecraftServer#getLevel is @Nullable and returns null for an unknown dimension key,
+            //it does not throw - so this has to be a null check. Sometimes people remove mods;
+            //protect against an unknown dimension by sending them to overworld spawn instead of
+            //leaving them stranded in their soulhome with an NPE on the way out.
+            destination = server.getLevel(destinationKey);
+
+            if (destination == null)
             {
-                destination = server.getLevel(destinationKey);
-            }
-            catch (Exception e)//sometimes people remove mods. Protect against unknown by sending them to overworld spawn.
-            {
+                LogHelper.warn("Soulhome exit dimension " + destinationKey.location() + " no longer exists, falling back to overworld spawn.");
                 destination = server.overworld();
 
                 final BlockPos sharedSpawnPos = destination.getSharedSpawnPos();
@@ -126,16 +129,20 @@ public class DimensionHelper
             }
 
 
+            //everyone keeps their horizontal offset from the teleporting player, but arrives on the
+            //same Y. Deliberate: the destination Y is a known-good floor, and preserving relative Y
+            //would drop anyone who was above the player into the air (or below it, into the void).
             Vec3 posRelativeToTeleporter = ent.position().subtract(playerEntity.position());
-            Vec3 newPosByDestination = new Vec3(x,y,z).add(posRelativeToTeleporter);
+            double destinationX = x + posRelativeToTeleporter.x;
+            double destinationZ = z + posRelativeToTeleporter.z;
 
 
             TeleportHelper.teleportEntity(
                     ent,
                     destination,
-                    newPosByDestination.x,
+                    destinationX,
                     y,
-                    newPosByDestination.z,
+                    destinationZ,
                     playerEntity.getYHeadRot(),
                     playerEntity.getXRot());
         }
