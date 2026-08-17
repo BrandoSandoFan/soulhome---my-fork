@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:banners",
+    "minecraft:iron_block",
+    "minecraft:iron_bars",
+    "minecraft:chain",
+    "minecraft:cauldron",
+    "minecraft:target"
+  ]
+}

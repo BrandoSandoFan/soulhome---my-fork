@@ -1,0 +1,33 @@
+{
+  "display_name": "archetype.soulhome.library",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "tag": "minecraft:bookshelves" }, "min_count": 16 }
+  ],
+
+  "signals": [
+    { "match": { "tag": "minecraft:bookshelves" },  "weight": 3.0,  "role": "core",    "cap": 32 },
+    { "match": { "block": "minecraft:lectern" },    "weight": 5.0,  "role": "core",    "cap": 4  },
+    { "match": { "tag": "soulhome:seating" },       "weight": 1.5,  "role": "comfort", "cap": 8  },
+    { "match": { "tag": "soulhome:lighting" },      "weight": 0.5,  "role": "light",   "cap": 16 },
+    { "match": { "tag": "soulhome:storage" },       "weight": 0.75, "role": "storage", "cap": 8  },
+    { "match": { "block": "minecraft:cartography_table" }, "weight": 2.0, "role": "study", "cap": 2 }
+  ],
+
+  "detractors": [
+    { "match": { "block": "minecraft:enchanting_table" }, "weight": -3.0 },
+    { "match": { "tag": "soulhome:smithing" },            "weight": -2.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:xp_gain", "per_tier": 0.10, "max": 0.30 }
+  ]
+}

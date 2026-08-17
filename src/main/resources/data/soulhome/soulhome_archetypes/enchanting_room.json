@@ -1,0 +1,30 @@
+{
+  "display_name": "archetype.soulhome.enchanting_room",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:enchanting_table" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:enchanting_table" }, "weight": 8.0, "role": "core",   "cap": 2  },
+    { "match": { "tag": "minecraft:bookshelves" },        "weight": 2.0, "role": "power",  "cap": 24 },
+    { "match": { "tag": "soulhome:arcane" },              "weight": 1.5, "role": "arcane", "cap": 16 },
+    { "match": { "tag": "soulhome:lighting" },            "weight": 1.0, "role": "light",  "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "block": "minecraft:lectern" }, "weight": -2.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:enchantment_power", "per_tier": 2.0, "max": 6.0 }
+  ]
+}

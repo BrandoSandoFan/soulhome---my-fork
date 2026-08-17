@@ -1,0 +1,31 @@
+{
+  "display_name": "archetype.soulhome.armoury",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "tag": "soulhome:smithing" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "tag": "soulhome:smithing" },  "weight": 5.0,  "role": "forge",     "cap": 4  },
+    { "match": { "tag": "soulhome:armament" },  "weight": 2.0,  "role": "armament",  "cap": 24 },
+    { "match": { "tag": "minecraft:anvil" },    "weight": 3.0,  "role": "forge",     "cap": 3  },
+    { "match": { "tag": "soulhome:storage" },   "weight": 1.5,  "role": "storage",   "cap": 8  },
+    { "match": { "tag": "soulhome:lighting" },  "weight": 0.5,  "role": "light",     "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:bookshelves" }, "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:sword_damage", "per_tier": 0.10, "max": 0.30 }
+  ]
+}
