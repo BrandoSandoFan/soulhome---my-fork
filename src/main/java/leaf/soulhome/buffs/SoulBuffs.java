@@ -21,8 +21,10 @@ import net.minecraftforge.common.util.FakePlayer;
  * <ul>
  *   <li>a null or fake player is always zero. Fake players are machines: an autocrafter should not
  *       inherit the sword damage of whoever placed it</li>
- *   <li>the magnitude is clamped to the configured global ceiling on the way out, so a datapack
- *       cannot hand an effect a number it was never designed to receive</li>
+ *   <li>the magnitude is clamped to that buff type's configured ceiling on the way out, so
+ *       neither a datapack nor a value saved under a more generous config can hand an effect a
+ *       number it was never designed to receive</li>
+ *   <li>everything is zero while the feature is switched off in the config</li>
  *   <li>never negative, and never null</li>
  * </ul>
  */

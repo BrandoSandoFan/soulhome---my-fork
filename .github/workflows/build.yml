@@ -54,17 +54,22 @@ jobs:
       - name: Check generated resources are up to date
         run: ./gradlew runData --no-daemon --stacktrace
 
+      # src/main/generated/.cache is excluded: those files carry the time the generators last ran,
+      # so they differ after every run no matter what. They are the generator's own bookkeeping,
+      # not content the mod ships.
       - name: Fail if data generation changed anything
+        env:
+          GENERATED: "src/main/generated :(exclude)src/main/generated/.cache"
         run: |
-          if ! git diff --quiet --exit-code -- src/main/generated; then
+          if ! git diff --quiet --exit-code -- $GENERATED; then
             echo "::error::src/main/generated is out of date. Run './gradlew runData' and commit the result."
-            git --no-pager diff --stat -- src/main/generated
-            git --no-pager diff -- src/main/generated
+            git --no-pager diff --stat -- $GENERATED
+            git --no-pager diff -- $GENERATED
             exit 1
           fi
-          if [ -n "$(git status --porcelain --untracked-files=all -- src/main/generated)" ]; then
+          if [ -n "$(git status --porcelain --untracked-files=all -- $GENERATED)" ]; then
             echo "::error::Data generation produced files that are not committed."
-            git status --porcelain --untracked-files=all -- src/main/generated
+            git status --porcelain --untracked-files=all -- $GENERATED
             exit 1
           fi
 
