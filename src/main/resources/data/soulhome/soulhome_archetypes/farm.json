@@ -1,0 +1,32 @@
+{
+  "display_name": "archetype.soulhome.farm",
+
+  "region_types": ["open", "enclosed"],
+  "min_volume": 9,
+
+  "requirements": [
+    { "match": { "tag": "minecraft:crops" }, "min_count": 9 }
+  ],
+
+  "signals": [
+    { "match": { "tag": "minecraft:crops" },        "weight": 2.0,  "role": "core",    "cap": 64 },
+    { "match": { "block": "minecraft:farmland" },   "weight": 0.75, "role": "growth",  "cap": 64 },
+    { "match": { "block": "minecraft:water" },      "weight": 3.0,  "role": "water",   "cap": 4  },
+    { "match": { "block": "minecraft:composter" },  "weight": 4.0,  "role": "tending", "cap": 2  },
+    { "match": { "block": ["minecraft:beehive", "minecraft:bee_nest"] }, "weight": 4.0, "role": "tending", "cap": 2 },
+    { "match": { "block": "minecraft:hay_block" },  "weight": 1.5,  "role": "harvest", "cap": 8  },
+    { "match": { "tag": "soulhome:storage" },       "weight": 1.5,  "role": "storage", "cap": 4  }
+  ],
+
+  "detractors": [],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:saturation", "per_tier": 0.15, "max": 0.45 }
+  ]
+}

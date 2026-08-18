@@ -183,6 +183,35 @@ dependencies {
 
     compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}-FORGE:api")
     runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}-FORGE")
+
+    // Unit tests. The soulhome structure detection and archetype scoring in
+    // leaf.soulhome.structures.core deliberately depend on nothing from Minecraft, so they can be
+    // exercised against synthetic worlds without booting the game. Gson comes from the Minecraft
+    // classpath rather than being declared here, to avoid two copies on the test classpath.
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// The test source set can see everything main can, so tests that do need game types later are not
+// blocked on rewiring this.
+sourceSets {
+    test {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+
+test {
+    useJUnitPlatform()
+
+    // ArchetypeClassifierTest reads the archetype definitions the mod actually ships, by path,
+    // so that a typo in a shipped weight fails a test rather than becoming a gameplay bug
+    workingDir = project.projectDir
+
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

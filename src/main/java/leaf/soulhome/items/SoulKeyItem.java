@@ -82,14 +82,22 @@ public class SoulKeyItem extends BaseItem
         return stack;
     }
 
+    //deliberately not @OnlyIn(Dist.CLIENT): vanilla calls onUseTick on both sides, so annotating an
+    //override of a common-side method is a crash hazard. The body is already side-guarded below.
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void onUseTick(Level world, LivingEntity livingEntity, ItemStack stack, int count)
     {
         if (livingEntity.level().isClientSide)
         {
             float percentage = MathUtils.clamp01((USE_TICKS_REQUIRED - count) / (float) USE_TICKS_REQUIRED);
             int particlesToCreate = Mth.floor((percentage * percentage * percentage) * USE_TICKS_REQUIRED);
+
+            //on the first use tick count == USE_TICKS_REQUIRED, so there is nothing to draw yet.
+            //without this, 360f / 0 is Infinity and the angle below becomes NaN.
+            if (particlesToCreate <= 0)
+            {
+                return;
+            }
 
             final float maxRadius = 5;
             float bits = 360f / particlesToCreate;

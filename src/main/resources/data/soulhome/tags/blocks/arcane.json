@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:obsidian",
+    "minecraft:crying_obsidian",
+    "minecraft:lapis_block",
+    "minecraft:amethyst_block",
+    "minecraft:budding_amethyst",
+    "minecraft:end_stone",
+    "minecraft:end_stone_bricks"
+  ]
+}

@@ -4,6 +4,8 @@
 
 package leaf.soulhome;
 
+import leaf.soulhome.buffs.PlayerSoulBuffs;
+import leaf.soulhome.buffs.SoulBuffEffects;
 import leaf.soulhome.compat.patchouli.PatchouliCompat;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.registry.*;
@@ -11,6 +13,7 @@ import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -33,6 +36,7 @@ public class SoulHome
 
         modBus.addListener(this::commonSetup);
         modBus.addListener(this::loadComplete);
+        modBus.addListener(this::registerCapabilities);
 
         //DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::init));
         //DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::registerIconTextures));
@@ -74,7 +78,15 @@ public class SoulHome
 
         DataSerializersRegistry.register();
 
+        //each buff type subscribes its own hook; see SoulBuffEffect
+        SoulBuffEffects.init();
+
         LogHelper.info("Common setup complete!");
+    }
+
+    private void registerCapabilities(RegisterCapabilitiesEvent event)
+    {
+        event.register(PlayerSoulBuffs.class);
     }
 
     private void loadComplete(FMLLoadCompleteEvent event)
