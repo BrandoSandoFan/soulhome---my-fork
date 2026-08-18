@@ -4,9 +4,9 @@
 
 package leaf.soulhome.buffs;
 
+import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncSoulBuffsMessage;
-import leaf.soulhome.structures.core.BuffSettings;
 import leaf.soulhome.structures.core.SoulBuffSet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -50,6 +50,11 @@ public final class SoulBuffs
      */
     public static double magnitude(Player player, String buffType)
     {
+        if (!SoulHomeConfig.enabled())
+        {
+            return 0d;
+        }
+
         final double raw = of(player).magnitude(buffType);
 
         if (raw <= 0d)
@@ -57,7 +62,7 @@ public final class SoulBuffs
             return 0d;
         }
 
-        return Math.min(raw, BuffSettings.DEFAULTS.globalMaxMagnitude());
+        return Math.min(raw, SoulHomeConfig.buffSettings().capFor(buffType));
     }
 
     public static boolean has(Player player, String buffType)

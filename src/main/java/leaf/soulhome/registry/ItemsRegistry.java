@@ -12,6 +12,7 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.items.GuideItem;
 import leaf.soulhome.items.BoundSoulkey;
 import leaf.soulhome.items.SoulKeyItem;
+import leaf.soulhome.items.SoulLensItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -26,6 +27,9 @@ public class ItemsRegistry
     public static final RegistryObject<Item> SOUL_KEY = ITEMS.register("soulkey", () -> createItem(new SoulKeyItem()));
     public static final RegistryObject<Item> PERSONAL_SOUL_KEY = ITEMS.register("personal_soulkey", () -> createItem(new BoundSoulkey()));
     public static final RegistryObject<net.minecraft.world.item.Item> GUIDE = ITEMS.register("guide", () -> createItem(new GuideItem()));
+
+    /** Shows what the structure classifier can see. See {@link SoulLensItem}. */
+    public static final RegistryObject<Item> SOUL_LENS = ITEMS.register("soul_lens", () -> createItem(new SoulLensItem()));
 
 
     private static <T extends net.minecraft.world.item.Item> T createItem(T item)

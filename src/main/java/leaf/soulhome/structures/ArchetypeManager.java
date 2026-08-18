@@ -9,11 +9,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import leaf.soulhome.buffs.SoulBuffEffects;
+import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.structures.core.ArchetypeClassifier;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.ArchetypeSignals;
 import leaf.soulhome.structures.core.BlockSignature;
-import leaf.soulhome.structures.core.ScoringSettings;
 import leaf.soulhome.utils.LogHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -76,6 +76,16 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
     public static void replaceAll(Collection<ArchetypeDefinition> archetypes)
     {
         loaded = Loaded.of(archetypes);
+    }
+
+    /**
+     * Rebuild the classifier after the scoring config changed. The classifier holds its settings
+     * rather than reading them per region, so a config reload has to be pushed rather than
+     * waited for.
+     */
+    public static void onScoringSettingsChanged()
+    {
+        loaded = Loaded.of(loaded.archetypes());
     }
 
     @Override
@@ -177,7 +187,7 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
             List<ArchetypeDefinition> frozen = List.copyOf(archetypes);
             return new Loaded(
                     frozen,
-                    new ArchetypeClassifier(frozen, ScoringSettings.DEFAULTS),
+                    new ArchetypeClassifier(frozen, SoulHomeConfig.scoringSettings()),
                     ArchetypeSignals.filterFor(frozen));
         }
     }

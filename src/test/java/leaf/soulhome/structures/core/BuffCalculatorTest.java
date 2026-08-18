@@ -189,6 +189,91 @@ class BuffCalculatorTest
     }
 
     @Test
+    @DisplayName("a per-archetype config multiplier scales everything that archetype grants")
+    void archetypeMultiplierApplies()
+    {
+        BuffSettings halved = new BuffSettings(0.5d, 3, 1.0d, Map.of("soulhome:library", 0.5d));
+
+        SoulBuffSet buffs = BuffCalculator.compute(
+                List.of(awarded("soulhome:library", 2, 60d), awarded("soulhome:farm", 2, 60d)),
+                List.of(
+                        archetype("soulhome:library", XP, 0.10d, 0.30d),
+                        archetype("soulhome:farm", SATURATION, 0.15d, 0.45d)),
+                halved);
+
+        assertEquals(0.10d, buffs.magnitude(XP), 1e-9, "the library is turned down");
+        assertEquals(0.30d, buffs.magnitude(SATURATION), 1e-9, "an archetype not listed is untouched");
+    }
+
+    @Test
+    @DisplayName("an archetype multiplied to zero grants nothing at all")
+    void archetypeMultiplierOfZeroSwitchesItOff()
+    {
+        BuffSettings off = new BuffSettings(0.5d, 3, 1.0d, Map.of("soulhome:library", 0d));
+
+        BuffBreakdown breakdown = BuffCalculator.explain(
+                List.of(new AwardedRoom("soulhome:library", 3, 100d)),
+                List.of(archetype("soulhome:library", XP, 0.10d, 0.30d)),
+                off);
+
+        assertTrue(breakdown.totals().isEmpty());
+        assertTrue(breakdown.sources().isEmpty(), "a switched-off archetype is not a source worth naming");
+    }
+
+    @Test
+    @DisplayName("a buff type measured in levels is capped in levels, not as a fraction")
+    void perTypeCapsOverrideTheGlobalOne()
+    {
+        // the global default of 1.0 is a doubling for a proportional buff, and would be almost
+        // nothing at an enchanting table - so enchanting power carries its own ceiling
+        final String enchanting = SoulBuffTypes.ENCHANTMENT_POWER;
+
+        SoulBuffSet buffs = BuffCalculator.compute(
+                List.of(awarded("soulhome:enchanting_room", 3, 100d)),
+                List.of(archetype("soulhome:enchanting_room", enchanting, 2.0d, 6.0d)),
+                BuffSettings.DEFAULTS);
+
+        assertEquals(6.0d, buffs.magnitude(enchanting), 1e-9);
+    }
+
+    @Test
+    @DisplayName("the breakdown names the rooms behind each buff, and says when the cap is biting")
+    void breakdownExplainsWhereBuffsCameFrom()
+    {
+        BuffSettings tightCap = new BuffSettings(0.5d, 3, 0.40d);
+
+        BuffBreakdown breakdown = BuffCalculator.explain(
+                List.of(
+                        new AwardedRoom("soulhome:library", 3, 100d),
+                        new AwardedRoom("soulhome:scriptorium", 3, 90d)),
+                List.of(
+                        archetype("soulhome:library", XP, 0.10d, 0.30d),
+                        archetype("soulhome:scriptorium", XP, 0.10d, 0.30d)),
+                tightCap);
+
+        assertEquals(0.40d, breakdown.totals().magnitude(XP), 1e-9);
+        assertEquals(2, breakdown.sourcesOf(XP).size(), "both rooms are named");
+        assertTrue(breakdown.isCapped(XP), "0.30 + 0.30 was held to 0.40, and a player should be told");
+    }
+
+    @Test
+    @DisplayName("the breakdown's totals are the buffs actually granted")
+    void breakdownAgreesWithTheBuffsGranted()
+    {
+        // what a player is told and what a player is given come from one call, so that they
+        // cannot drift apart as the rules change
+        List<AwardedRoom> rooms = List.of(
+                new AwardedRoom("soulhome:library", 2, 60d),
+                new AwardedRoom("soulhome:library", 1, 30d));
+
+        List<ArchetypeDefinition> archetypes = List.of(archetype("soulhome:library", XP, 0.10d, 0.30d));
+
+        assertEquals(
+                BuffCalculator.computeFromAwarded(rooms, archetypes, BuffSettings.DEFAULTS),
+                BuffCalculator.explain(rooms, archetypes, BuffSettings.DEFAULTS).totals());
+    }
+
+    @Test
     @DisplayName("a zero magnitude is dropped rather than carried around")
     void zeroMagnitudesAreDropped()
     {

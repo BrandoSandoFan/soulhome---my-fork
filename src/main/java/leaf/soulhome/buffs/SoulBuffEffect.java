@@ -4,6 +4,7 @@
 
 package leaf.soulhome.buffs;
 
+import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -30,6 +31,16 @@ public interface SoulBuffEffect
      * fifth of a level.
      */
     String describeMagnitude();
+
+    /**
+     * Whether this effect's magnitude is a fraction of something rather than a flat amount. The
+     * feedback UX has to decide between showing "+20%" and "+2", and guessing from the number
+     * would eventually show a player the wrong unit for their own buff.
+     */
+    default boolean isFraction()
+    {
+        return SoulBuffTypes.isFraction(type());
+    }
 
     /** Subscribe this effect's hooks. Called once, during common setup. */
     default void register()

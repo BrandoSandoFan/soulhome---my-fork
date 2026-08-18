@@ -38,6 +38,7 @@ public class Network
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncDimensionListMessage.CODEC, SyncDimensionListMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncArchetypesMessage.CODEC, SyncArchetypesMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulBuffsMessage.CODEC, SyncSoulBuffsMessage.INVALID);
+        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulRegionsMessage.CODEC, SyncSoulRegionsMessage.INVALID);
     }
 
     public static <PACKET extends Consumer<NetworkEvent.Context>> void registerCodecPacket(int id, SimpleChannel channel, Codec<PACKET> codec, PACKET defaultPacket)

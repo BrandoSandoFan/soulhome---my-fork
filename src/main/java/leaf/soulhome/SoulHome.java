@@ -4,9 +4,11 @@
 
 package leaf.soulhome;
 
+import leaf.soulhome.advancements.SoulAdvancements;
 import leaf.soulhome.buffs.PlayerSoulBuffs;
 import leaf.soulhome.buffs.SoulBuffEffects;
 import leaf.soulhome.compat.patchouli.PatchouliCompat;
+import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.registry.*;
 import leaf.soulhome.utils.LogHelper;
@@ -58,9 +60,11 @@ public class SoulHome
         //FeatureRegistry.FEATURES.register(modBus);
         //RecipeRegistry.SPECIAL_RECIPES.register(modBus);
 
-        //AdvancementTriggerRegistry.init();
-
         Network.init();
+
+        // every number the structure buffs are tuned by; registered here so the file exists before
+        // a world is loaded
+        SoulHomeConfig.register();
 
         // init cross mod compatibility stuff, if relevant
         PatchouliCompat.init();
@@ -77,6 +81,9 @@ public class SoulHome
         //Entity Caps
 
         DataSerializersRegistry.register();
+
+        //must happen before any datapack is read, or advancements naming these triggers are dropped
+        SoulAdvancements.register();
 
         //each buff type subscribes its own hook; see SoulBuffEffect
         SoulBuffEffects.init();
