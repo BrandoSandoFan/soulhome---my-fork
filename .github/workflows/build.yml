@@ -47,6 +47,27 @@ jobs:
       - name: Build and test
         run: ./gradlew build --no-daemon --stacktrace
 
+      # The generated resources under src/main/generated are committed, and they are what the mod
+      # actually ships - a book entry or an advancement that was edited by hand rather than
+      # regenerated is a file that silently disagrees with the generator that owns it. Running the
+      # generators and failing on a diff is the only way that stays true.
+      - name: Check generated resources are up to date
+        run: ./gradlew runData --no-daemon --stacktrace
+
+      - name: Fail if data generation changed anything
+        run: |
+          if ! git diff --quiet --exit-code -- src/main/generated; then
+            echo "::error::src/main/generated is out of date. Run './gradlew runData' and commit the result."
+            git --no-pager diff --stat -- src/main/generated
+            git --no-pager diff -- src/main/generated
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain --untracked-files=all -- src/main/generated)" ]; then
+            echo "::error::Data generation produced files that are not committed."
+            git status --porcelain --untracked-files=all -- src/main/generated
+            exit 1
+          fi
+
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v4

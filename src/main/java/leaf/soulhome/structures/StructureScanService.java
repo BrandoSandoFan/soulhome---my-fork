@@ -105,15 +105,6 @@ public final class StructureScanService
     }
 
     /**
-     * The last thing the scanner worked out about this soulhome, if it has been scanned since the
-     * level loaded.
-     */
-    public static Optional<SoulAnalysis> latestAnalysis(ServerLevel level)
-    {
-        return Optional.ofNullable(ANALYSES.get(level.dimension()));
-    }
-
-    /**
      * Hand the caller a current analysis of this soulhome.
      *
      * <p>Answers straight from the cache when nothing has changed since the last scan, and
