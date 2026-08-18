@@ -45,7 +45,48 @@ jobs:
       # 'build' covers both halves of what this workflow is for: it compiles main and test, and
       # 'check' runs the JUnit suite over the Minecraft-free detection and scoring core.
       - name: Build and test
+        # build.gradle reads BUILD_NUMBER into the version, so each run's jar is named after the
+        # run that produced it rather than every download being called b1.
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
         run: ./gradlew build --no-daemon --stacktrace
+
+      # 'jar' is finalised by 'reobfJar', so what lands in build/libs is the reobfuscated jar that
+      # can be dropped straight into a mods folder - which makes every run of this workflow a
+      # build someone can actually go and play.
+      - name: Upload the mod jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: soulhome-mod-jar
+          path: build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 30
+
+      # The generated resources under src/main/generated are committed, and they are what the mod
+      # actually ships - a book entry or an advancement that was edited by hand rather than
+      # regenerated is a file that silently disagrees with the generator that owns it. Running the
+      # generators and failing on a diff is the only way that stays true.
+      - name: Check generated resources are up to date
+        run: ./gradlew runData --no-daemon --stacktrace
+
+      # src/main/generated/.cache is excluded: those files carry the time the generators last ran,
+      # so they differ after every run no matter what. They are the generator's own bookkeeping,
+      # not content the mod ships.
+      - name: Fail if data generation changed anything
+        env:
+          GENERATED: "src/main/generated :(exclude)src/main/generated/.cache"
+        run: |
+          if ! git diff --quiet --exit-code -- $GENERATED; then
+            echo "::error::src/main/generated is out of date. Run './gradlew runData' and commit the result."
+            git --no-pager diff --stat -- $GENERATED
+            git --no-pager diff -- $GENERATED
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain --untracked-files=all -- $GENERATED)" ]; then
+            echo "::error::Data generation produced files that are not committed."
+            git status --porcelain --untracked-files=all -- $GENERATED
+            exit 1
+          fi
 
       - name: Upload test report
         if: always()

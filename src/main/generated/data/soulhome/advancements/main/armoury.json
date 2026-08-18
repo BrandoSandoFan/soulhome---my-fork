@@ -1,0 +1,37 @@
+{
+  "parent": "soulhome:main/first_room",
+  "criteria": {
+    "classified_room": {
+      "conditions": {
+        "archetype": "soulhome:armoury",
+        "min_tier": 1
+      },
+      "trigger": "soulhome:classified_room"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.soulhome.armoury.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "minecraft:iron_sword",
+      "nbt": "{Damage:0}"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.soulhome.armoury.title"
+    }
+  },
+  "requirements": [
+    [
+      "classified_room"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

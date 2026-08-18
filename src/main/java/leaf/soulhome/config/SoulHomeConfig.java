@@ -1,0 +1,409 @@
+/*
+ * File created ~ 18 - 8 - 2026
+ */
+
+package leaf.soulhome.config;
+
+import leaf.soulhome.SoulHome;
+import leaf.soulhome.structures.ArchetypeManager;
+import leaf.soulhome.structures.core.BuffSettings;
+import leaf.soulhome.structures.core.ScanDebouncer;
+import leaf.soulhome.structures.core.ScanSettings;
+import leaf.soulhome.structures.core.ScoringSettings;
+import leaf.soulhome.utils.LogHelper;
+import org.apache.commons.lang3.tuple.Pair;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * Every number the structure-buff feature can be tuned by, in one server-side config file.
+ *
+ * <p><b>Server, not common.</b> Magnitudes, thresholds and scan limits are all computed on the
+ * server; the client copy of a player's buffs is for display only. Putting these in a common
+ * config would let a client's file disagree with the server's and produce a interface that
+ * confidently reports the wrong numbers.
+ *
+ * <p>The settings records in {@code structures.core} stay the source of truth for <i>meaning</i> -
+ * this class only decides which values go into them. That split is what keeps the scoring and
+ * aggregation rules unit-testable without a Forge config in the way.
+ *
+ * <p>Values are read into an immutable snapshot rather than being queried per block: a scan asks
+ * for its settings once and then walks a few hundred thousand positions, and
+ * {@code ForgeConfigSpec} lookups are map reads, not field reads.
+ */
+@Mod.EventBusSubscriber(modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+public final class SoulHomeConfig
+{
+    public static final ForgeConfigSpec SPEC;
+    public static final Server SERVER;
+
+    /**
+     * Rebuilt on load and on reload. Volatile because a scan running on a worker may read it while
+     * the config thread replaces it - readers get either the old snapshot or the new one, and both
+     * are internally consistent.
+     */
+    private static volatile Snapshot snapshot = Snapshot.DEFAULTS;
+
+    static
+    {
+        final Pair<Server, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(Server::new);
+
+        SERVER = pair.getLeft();
+        SPEC = pair.getRight();
+    }
+
+    private SoulHomeConfig()
+    {
+    }
+
+    /** Called from the mod constructor, before anything can ask for a value. */
+    public static void register()
+    {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, SPEC);
+    }
+
+    /**
+     * Whether the whole feature is switched on. Checked at the entrances - scanning and buff
+     * lookup - rather than inside every effect.
+     */
+    public static boolean enabled()
+    {
+        return snapshot.enabled();
+    }
+
+    public static ScanSettings scanSettings()
+    {
+        return snapshot.scan();
+    }
+
+    public static ScoringSettings scoringSettings()
+    {
+        return snapshot.scoring();
+    }
+
+    public static BuffSettings buffSettings()
+    {
+        return snapshot.buffs();
+    }
+
+    public static long quietPeriodMillis()
+    {
+        return snapshot.quietPeriodMillis();
+    }
+
+    public static long maxScanDelayMillis()
+    {
+        return snapshot.maxScanDelayMillis();
+    }
+
+    public static int checkIntervalTicks()
+    {
+        return snapshot.checkIntervalTicks();
+    }
+
+    @SubscribeEvent
+    public static void onLoad(ModConfigEvent.Loading event)
+    {
+        refresh(event.getConfig());
+    }
+
+    @SubscribeEvent
+    public static void onReload(ModConfigEvent.Reloading event)
+    {
+        refresh(event.getConfig());
+    }
+
+    private static void refresh(ModConfig config)
+    {
+        //every mod's config events come through this bus, and reading ours while another mod's
+        //file is being loaded would throw
+        if (config.getType() != ModConfig.Type.SERVER || !SoulHome.MODID.equals(config.getModId()))
+        {
+            return;
+        }
+
+        snapshot = Snapshot.read();
+
+        // the classifier is built over the scoring settings, so it has to be rebuilt when they
+        // change rather than picking the new values up on the next scan
+        ArchetypeManager.onScoringSettingsChanged();
+    }
+
+    /**
+     * One consistent set of values, read once. Reading each field separately at the point of use
+     * would let a reload land halfway through a scan and mix old and new settings.
+     */
+    private record Snapshot(
+            boolean enabled,
+            ScanSettings scan,
+            ScoringSettings scoring,
+            BuffSettings buffs,
+            long quietPeriodMillis,
+            long maxScanDelayMillis,
+            int checkIntervalTicks)
+    {
+        private static final Snapshot DEFAULTS = new Snapshot(
+                true,
+                ScanSettings.DEFAULTS,
+                ScoringSettings.DEFAULTS,
+                BuffSettings.DEFAULTS,
+                ScanDebouncer.DEFAULT_QUIET_PERIOD_MILLIS,
+                ScanDebouncer.DEFAULT_MAX_DELAY_MILLIS,
+                20);
+
+        private static Snapshot read()
+        {
+            try
+            {
+                return new Snapshot(
+                        SERVER.enabled.get(),
+                        new ScanSettings(
+                                SERVER.maxRoomVolume.get(),
+                                SERVER.clusterRadius.get(),
+                                SERVER.minClusterSize.get(),
+                                SERVER.maxRegions.get(),
+                                SERVER.maxScannedCells.get()),
+                        new ScoringSettings(
+                                SERVER.diversityBonusPerRole.get(),
+                                SERVER.densityFloor.get(),
+                                SERVER.minDensityFactor.get(),
+                                SERVER.ambiguityMargin.get()),
+                        new BuffSettings(
+                                SERVER.repeatedRoomFalloff.get(),
+                                SERVER.maxRoomsPerArchetype.get(),
+                                SERVER.globalMaxMagnitude.get(),
+                                readPairs(SERVER.archetypeMultipliers.get(), "archetype multiplier"),
+                                readPairs(SERVER.buffTypeCaps.get(), "buff type cap")),
+                        SERVER.quietPeriodMillis.get(),
+                        SERVER.maxScanDelayMillis.get(),
+                        SERVER.checkIntervalTicks.get());
+            }
+            catch (RuntimeException e)
+            {
+                // a hand-edited file can hold a combination the settings records reject; the
+                // defaults are a far better outcome than a server that will not start
+                LogHelper.error("Could not read the soulhome config, falling back to defaults: " + e);
+                return DEFAULTS;
+            }
+        }
+
+        /**
+         * Parses {@code soulhome:library=0.5} lines. A malformed line is skipped with a log rather
+         * than failing the whole config - the same "one bad entry does not take the pack down"
+         * rule the archetype loader follows.
+         *
+         * @param what what these pairs are, for the log line a packmaker will have to act on
+         */
+        private static Map<String, Double> readPairs(List<? extends String> entries, String what)
+        {
+            Map<String, Double> values = new LinkedHashMap<>();
+
+            for (String entry : entries)
+            {
+                if (entry == null || entry.isBlank() || entry.startsWith("#"))
+                {
+                    continue;
+                }
+
+                final int separator = entry.indexOf('=');
+
+                if (separator <= 0 || separator == entry.length() - 1)
+                {
+                    LogHelper.warn("Ignoring soulhome " + what + " '" + entry
+                            + "': expected the form 'namespace:name=1.0'");
+                    continue;
+                }
+
+                final String id = entry.substring(0, separator).trim().toLowerCase(Locale.ROOT);
+
+                try
+                {
+                    final double value = Double.parseDouble(entry.substring(separator + 1).trim());
+
+                    if (value < 0)
+                    {
+                        LogHelper.warn("Ignoring soulhome " + what + " for " + id
+                                + ": a negative value would grant a negative buff");
+                        continue;
+                    }
+
+                    values.put(id, value);
+                }
+                catch (NumberFormatException e)
+                {
+                    LogHelper.warn("Ignoring soulhome " + what + " '" + entry
+                            + "': the value after '=' is not a number");
+                }
+            }
+
+            return values;
+        }
+    }
+
+    /** The spec itself. Comments here become the comments in the generated toml. */
+    public static final class Server
+    {
+        /** Held out as fields so each list's element type is unambiguous at the define site. */
+        private static final List<String> NO_MULTIPLIERS = List.of();
+
+        /** Enchanting power is levels rather than a proportion; see {@link BuffSettings}. */
+        private static final List<String> DEFAULT_TYPE_CAPS = List.of("soulhome:enchantment_power=6.0");
+
+        public final ForgeConfigSpec.BooleanValue enabled;
+
+        public final ForgeConfigSpec.DoubleValue repeatedRoomFalloff;
+        public final ForgeConfigSpec.IntValue maxRoomsPerArchetype;
+        public final ForgeConfigSpec.DoubleValue globalMaxMagnitude;
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> archetypeMultipliers;
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> buffTypeCaps;
+
+        public final ForgeConfigSpec.DoubleValue diversityBonusPerRole;
+        public final ForgeConfigSpec.DoubleValue densityFloor;
+        public final ForgeConfigSpec.DoubleValue minDensityFactor;
+        public final ForgeConfigSpec.DoubleValue ambiguityMargin;
+
+        public final ForgeConfigSpec.IntValue maxRoomVolume;
+        public final ForgeConfigSpec.IntValue clusterRadius;
+        public final ForgeConfigSpec.IntValue minClusterSize;
+        public final ForgeConfigSpec.IntValue maxRegions;
+        public final ForgeConfigSpec.LongValue maxScannedCells;
+
+        public final ForgeConfigSpec.LongValue quietPeriodMillis;
+        public final ForgeConfigSpec.LongValue maxScanDelayMillis;
+        public final ForgeConfigSpec.IntValue checkIntervalTicks;
+
+        private Server(ForgeConfigSpec.Builder builder)
+        {
+            builder.comment("Structures built inside a soulhome, and the buffs they grant.").push("structure_buffs");
+
+            this.enabled = builder
+                    .comment(
+                            "Whether soulhome structures grant buffs at all.",
+                            "Turning this off stops all scanning and zeroes every player's buffs; nothing is deleted,",
+                            "so turning it back on restores what everyone had built.")
+                    .define("enabled", true);
+
+            builder.comment("How classified rooms turn into magnitudes.").push("buffs");
+
+            this.repeatedRoomFalloff = builder
+                    .comment(
+                            "What each additional room of the same archetype is worth relative to the one before it.",
+                            "0.5 means a second library counts half and a third a quarter, so one good library beats",
+                            "a corridor of identical cupboards. 1.0 disables the falloff entirely.")
+                    .defineInRange("repeated_room_falloff", 0.5d, 0d, 1d);
+
+            this.maxRoomsPerArchetype = builder
+                    .comment("Hard cap on how many rooms of one archetype contribute at all.")
+                    .defineInRange("max_rooms_per_archetype", 3, 1, 64);
+
+            this.globalMaxMagnitude = builder
+                    .comment(
+                            "Default ceiling on a buff type, however it was accumulated.",
+                            "Magnitudes are unitless: for soulhome:xp_gain 1.0 is +100% experience, for",
+                            "soulhome:enchantment_power it is one extra effective level at the table.",
+                            "Types that are not proportions need their own ceiling below.")
+                    .defineInRange("global_max_magnitude", 1.0d, 0d, 100d);
+
+            this.buffTypeCaps = builder
+                    .comment(
+                            "Per-buff-type ceilings, as 'namespace:buff=magnitude', overriding global_max_magnitude.",
+                            "One number cannot cap every buff, because magnitudes mean different things:",
+                            "1.0 doubles experience gain, and would be a rounding error at an enchanting table.",
+                            "Anything not listed here uses global_max_magnitude.")
+                    .defineListAllowEmpty(
+                            List.of("buff_type_caps"),
+                            () -> DEFAULT_TYPE_CAPS,
+                            entry -> entry instanceof String);
+
+            this.archetypeMultipliers = builder
+                    .comment(
+                            "Per-archetype magnitude multipliers, as 'namespace:archetype=multiplier'.",
+                            "Applied to everything that archetype grants, after its own cap and before the global one.",
+                            "Archetypes not listed here are left at 1.0, and an unknown id is simply never used,",
+                            "so a pack can be tuned down without editing its archetype files.",
+                            "Example: [\"soulhome:library=0.5\", \"soulhome:farm=1.25\"]")
+                    .defineListAllowEmpty(
+                            List.of("archetype_multipliers"),
+                            () -> NO_MULTIPLIERS,
+                            entry -> entry instanceof String);
+
+            builder.pop();
+
+            builder.comment("How a room is scored against an archetype.").push("scoring");
+
+            this.diversityBonusPerRole = builder
+                    .comment(
+                            "Score multiplier added for each distinct signal role beyond the first.",
+                            "This is the lever that rewards a room with books, seating, lighting and a lectern",
+                            "over a room with nothing but books. Set to 0 to score on volume alone.")
+                    .defineInRange("diversity_bonus_per_role", 0.15d, 0d, 10d);
+
+            this.densityFloor = builder
+                    .comment("Signal blocks per cell of volume below which a region is penalised for being mostly empty.")
+                    .defineInRange("density_floor", 0.02d, 0d, 1d);
+
+            this.minDensityFactor = builder
+                    .comment("Floor on that penalty, so a sparse room is weakened rather than erased.")
+                    .defineInRange("min_density_factor", 0.25d, 0d, 1d);
+
+            this.ambiguityMargin = builder
+                    .comment(
+                            "How far ahead the winning archetype must be before the room is assigned to it.",
+                            "1.15 means '15% clear of the runner-up'; anything closer is reported as ambiguous",
+                            "rather than being assigned by a coin toss.")
+                    .defineInRange("ambiguity_margin", 1.15d, 1d, 10d);
+
+            builder.pop();
+
+            builder.comment("Limits on what a scan will look at.").push("scanning");
+
+            this.maxRoomVolume = builder
+                    .comment("Interior cells above which an enclosed pocket is treated as outdoors rather than a room.")
+                    .defineInRange("max_room_volume", 4096, 8, 1_000_000);
+
+            this.clusterRadius = builder
+                    .comment("Distance within which two signal blocks join the same open-air cluster, such as a field.")
+                    .defineInRange("cluster_radius", 4, 1, 32);
+
+            this.minClusterSize = builder
+                    .comment("Signal blocks an open-air cluster needs before it counts, so one planted flower is not a farm.")
+                    .defineInRange("min_cluster_size", 4, 1, 4096);
+
+            this.maxRegions = builder
+                    .comment("Hard cap on regions considered per soulhome, which bounds the cost of classification.")
+                    .defineInRange("max_regions", 64, 1, 1024);
+
+            this.maxScannedCells = builder
+                    .comment("Refuse to scan a soulhome whose populated area is larger than this many block positions.")
+                    .defineInRange("max_scanned_cells", 4_000_000L, 4096L, 512_000_000L);
+
+            builder.pop();
+
+            builder.comment("When a scan happens. Classification is a chunk sweep, so it never runs on a tick loop.").push("scheduling");
+
+            this.quietPeriodMillis = builder
+                    .comment("How long a soulhome must go unedited before it is rescanned, in milliseconds.")
+                    .defineInRange("quiet_period_millis", 5_000L, 0L, 600_000L);
+
+            this.maxScanDelayMillis = builder
+                    .comment("Longest a continuously-edited soulhome will go without a scan, in milliseconds.")
+                    .defineInRange("max_scan_delay_millis", 30_000L, 0L, 3_600_000L);
+
+            this.checkIntervalTicks = builder
+                    .comment("How often the pending set is checked, in ticks. Far finer than the debounce; rarely worth changing.")
+                    .defineInRange("check_interval_ticks", 20, 1, 1200);
+
+            builder.pop();
+            builder.pop();
+        }
+    }
+}

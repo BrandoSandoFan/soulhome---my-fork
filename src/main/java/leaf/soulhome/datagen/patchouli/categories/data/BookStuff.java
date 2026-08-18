@@ -23,6 +23,13 @@ public class BookStuff
 		public Integer sortnum = 0;
 		public boolean secret = false;
 
+		/**
+		 * Title shown in the book, when it should differ from the name the file is written under.
+		 * Lets a category be renamed for readers without moving its file and orphaning every
+		 * entry that points at it.
+		 */
+		public String displayTitle = "";
+
 		public Category(String name, String description, String icon)
 		{
 			this.name = name.toLowerCase();
@@ -30,11 +37,18 @@ public class BookStuff
 			this.icon = icon;
 		}
 
+		public Category setDisplayTitle(String title)
+		{
+			this.displayTitle = title;
+			return this;
+		}
+
 		public JsonElement serialize()
 		{
 			JsonObject jsonobject = new JsonObject();
 
-			jsonobject.addProperty("name", StringHelper.fixCapitalisation(this.name));//Convert to people readable text
+			final String displayTitleName = this.displayTitle.isEmpty() ? this.name : this.displayTitle;
+			jsonobject.addProperty("name", StringHelper.fixCapitalisation(displayTitleName));//Convert to people readable text
 			jsonobject.addProperty("description", this.description);
 			jsonobject.addProperty("icon", this.icon);
 

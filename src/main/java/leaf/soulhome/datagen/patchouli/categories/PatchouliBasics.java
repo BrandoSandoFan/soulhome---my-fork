@@ -37,8 +37,8 @@ public class PatchouliBasics
         bookEntry.sortnum = 2;
         bookEntry.pages = new BookStuff.Page[]
                 {
-                        new BookStuff.TextPage("Your guide to everything in the mod! There isn't much at the moment, but future versions will allow you to build structures within your soul in order to gain benefits when you're outside of it. "),
-                        new BookStuff.TextPage("For example, building a farm in a specific multiblock structure might mean that you get more saturation out of each thing that you eat.  Or maybe you'd build an armoury in order to gain a buff to toughness. At this point in time though, there's only the $(l:soulhome:category.basics/entry.soul_key)$(item)SoulKey$(0) $(/l)"),
+                        new BookStuff.TextPage("Your guide to everything in the mod! The heart of it is this: what you build inside your soul changes what you can do outside of it."),
+                        new BookStuff.TextPage("Grow a farm in there and every meal goes further. Build an armoury and your sword bites harder.$(p)There are no blueprints to copy - build what you think a farm looks like, and it is judged on its own merits. See $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."),
                 };
         entries.add(bookEntry);
 
@@ -72,7 +72,7 @@ public class PatchouliBasics
         enteredSoul.advancement = "soulhome:main/obtained_soul_key";
         enteredSoul.pages = new BookStuff.Page[]
                 {
-                        new BookStuff.TextPage("Woo! Welcome to your soul. $(p)Kinda empty, isn't it? I wonder what that says about you, huh. $(p)For now, that's all there is to the mod. Look out for future updates that will let you build multiblock structures to give yourself buffs."),
+                        new BookStuff.TextPage("Woo! Welcome to your soul. $(p)Kinda empty, isn't it? I wonder what that says about you, huh. $(p)So fill it. Build rooms in here and you'll carry what they mean out there - see $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."),
                 };
         entries.add(enteredSoul);
 

@@ -37,4 +37,18 @@ public final class SoulBuffTypes
     private SoulBuffTypes()
     {
     }
+
+    /**
+     * Whether a magnitude of this type is a proportion rather than a flat amount.
+     *
+     * <p>Magnitudes are unitless in the data, so anything that shows one to a player has to decide
+     * between "+20%" and "+2". Kept here, next to the ids, so the book, the chat report and the
+     * ceiling in the config all read the same value the same way. An effect may override this for
+     * a type this mod does not ship - see {@code SoulBuffEffect#isFraction}.
+     */
+    public static boolean isFraction(String buffType)
+    {
+        //everything built in is a proportion except enchanting, which is measured in levels
+        return !ENCHANTMENT_POWER.equals(buffType);
+    }
 }

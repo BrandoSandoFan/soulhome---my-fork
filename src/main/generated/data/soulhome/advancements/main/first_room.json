@@ -1,0 +1,35 @@
+{
+  "parent": "soulhome:main/entered_soul_dimension",
+  "criteria": {
+    "classified_room": {
+      "conditions": {
+        "min_tier": 1
+      },
+      "trigger": "soulhome:classified_room"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.soulhome.first_room.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "soulhome:soul_lens"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.soulhome.first_room.title"
+    }
+  },
+  "requirements": [
+    [
+      "classified_room"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

@@ -5,6 +5,7 @@
 package leaf.soulhome.datagen.advancements;
 
 import leaf.soulhome.SoulHome;
+import leaf.soulhome.advancements.ClassifiedRoomTrigger;
 import leaf.soulhome.registry.ItemsRegistry;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
@@ -17,6 +18,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
 
 import java.util.function.Consumer;
 
@@ -102,22 +105,57 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
                 .rewards(new AdvancementRewards(5, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, enteredSoulDimension));
 
-        final String blank = "blank";
-        Advancement advancement4 = Advancement.Builder.advancement()
-                .parent(advancement2)
+        // The soulhome structure buffs. 'blank' used to sit here as a placeholder for exactly this
+        // feature, gated behind an impossible trigger so nothing could ever unlock the book entry
+        // it guarded. It is now the real thing.
+        final String firstRoom = "first_room";
+        Advancement roomAdvancement = Advancement.Builder.advancement()
+                .parent(advancement3)
                 .display(
-                        ItemsRegistry.GUIDE.get(),
-                        Component.translatable(String.format(titleFormat, blank)),
-                        Component.translatable(String.format(descriptionFormat, blank)),
+                        ItemsRegistry.SOUL_LENS.get(),
+                        Component.translatable(String.format(titleFormat, firstRoom)),
+                        Component.translatable(String.format(descriptionFormat, firstRoom)),
                         (ResourceLocation)null,
                         FrameType.TASK,
                         true, //showToast
                         true, //announce
-                        true)//hidden
-                .addCriterion("impossible", new ImpossibleTrigger.TriggerInstance())
-                .rewards(new AdvancementRewards(5, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
-                .save(advancementConsumer, String.format(achievementPathFormat, tabName, blank));
+                        false)//hidden
+                .addCriterion("classified_room", ClassifiedRoomTrigger.Instance.any())
+                .rewards(new AdvancementRewards(10, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
+                .save(advancementConsumer, String.format(achievementPathFormat, tabName, firstRoom));
 
+        // One per shipped archetype. Named after the archetype id so that the advancement, the
+        // book entry and the datapack file all agree without anything mapping between them.
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "farm", Items.WHEAT);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "armoury", Items.IRON_SWORD);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "library", Items.BOOKSHELF);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "enchanting_room", Items.ENCHANTING_TABLE);
+    }
 
+    /**
+     * "You built a library." Awarded the first time a room is classified as this archetype, at any
+     * tier - the first one is the moment worth marking, and asking for tier 3 up front would hide
+     * the advancement behind the balance pass.
+     */
+    private static void archetypeAdvancement(
+            Consumer<Advancement> advancementConsumer,
+            Advancement parent,
+            String archetype,
+            ItemLike icon)
+    {
+        Advancement.Builder.advancement()
+                .parent(parent)
+                .display(
+                        icon,
+                        Component.translatable("advancements.soulhome." + archetype + ".title"),
+                        Component.translatable("advancements.soulhome." + archetype + ".description"),
+                        (ResourceLocation)null,
+                        FrameType.TASK,
+                        true, //showToast
+                        true, //announce
+                        false)//hidden
+                .addCriterion("classified_room", ClassifiedRoomTrigger.Instance.of(SoulHome.MODID + ":" + archetype))
+                .rewards(new AdvancementRewards(10, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
+                .save(advancementConsumer, "soulhome:main/" + archetype);
     }
 }

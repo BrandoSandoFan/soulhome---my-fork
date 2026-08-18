@@ -1,7 +1,7 @@
 {
-  "description": "Structures you can build within your soul that will grant you power.",
-  "icon": "soulhome:guide",
-  "name": "Multiblocks",
+  "description": "Rooms you can build within your soul that will grant you power. Not blueprints - build your own.",
+  "icon": "soulhome:soul_lens",
+  "name": "Soul Rooms",
   "secret": false,
-  "sortnum": 0
+  "sortnum": 1
 }

@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Turns a soulhome's classified rooms into the buffs its owner walks around with.
  *
- * <p>Three rules, applied in order:
+ * <p>Four rules, applied in order:
  *
  * <ol>
  *   <li><b>Repeated rooms fall off.</b> The best library counts fully, the second half as much,
@@ -24,13 +24,20 @@ import java.util.Map;
  *       stack-one-thing failure the scoring curve exists to prevent, one level up.</li>
  *   <li><b>Each archetype is capped at its own declared ceiling.</b> {@code max} in the archetype
  *       JSON is the most that archetype can ever be worth, however many rooms feed it.</li>
+ *   <li><b>Each archetype is then scaled by its config multiplier</b>, so a pack can turn one
+ *       archetype down without editing a file it does not own.</li>
  *   <li><b>Every buff type is capped globally.</b> Two archetypes granting the same buff cannot
- *       between them exceed {@link BuffSettings#globalMaxMagnitude}.</li>
+ *       between them exceed that type's ceiling - see {@link BuffSettings#capFor}.</li>
  * </ol>
  *
  * <p>Ambiguous and unclassified regions contribute nothing - they are not buffs a player has not
  * noticed, they are buffs a player has not earned yet, and the feedback work is what tells them
  * the difference.
+ *
+ * <p>Every path here goes through {@link #explain}, which computes the totals and the "where did
+ * this come from" attribution together. Working them out separately would let the number a player
+ * is told differ from the number they are given, which is exactly the class of bug the feedback
+ * work exists to prevent.
  */
 public final class BuffCalculator
 {
@@ -54,6 +61,17 @@ public final class BuffCalculator
             Collection<ArchetypeDefinition> archetypes,
             BuffSettings settings)
     {
+        return explain(awarded, archetypes, settings).totals();
+    }
+
+    /**
+     * The totals, and what each archetype contributed to them.
+     */
+    public static BuffBreakdown explain(
+            List<AwardedRoom> awarded,
+            Collection<ArchetypeDefinition> archetypes,
+            BuffSettings settings)
+    {
         Map<String, ArchetypeDefinition> byId = new HashMap<>();
 
         for (ArchetypeDefinition archetype : archetypes)
@@ -61,6 +79,7 @@ public final class BuffCalculator
             byId.put(archetype.id(), archetype);
         }
 
+        List<BuffBreakdown.Source> sources = new ArrayList<>();
         Map<String, Double> totals = new LinkedHashMap<>();
 
         for (Map.Entry<String, List<AwardedRoom>> group : groupByArchetype(awarded).entrySet())
@@ -73,15 +92,15 @@ public final class BuffCalculator
                 continue;
             }
 
-            accumulate(totals, archetype, group.getValue(), settings);
+            accumulate(totals, sources, archetype, group.getValue(), settings);
         }
 
         for (Map.Entry<String, Double> entry : totals.entrySet())
         {
-            entry.setValue(Math.min(entry.getValue(), settings.globalMaxMagnitude()));
+            entry.setValue(Math.min(entry.getValue(), settings.capFor(entry.getKey())));
         }
 
-        return SoulBuffSet.of(totals);
+        return new BuffBreakdown(SoulBuffSet.of(totals), sources);
     }
 
     /**
@@ -107,11 +126,13 @@ public final class BuffCalculator
 
     private static void accumulate(
             Map<String, Double> totals,
+            List<BuffBreakdown.Source> sources,
             ArchetypeDefinition archetype,
             List<AwardedRoom> awarded,
             BuffSettings settings)
     {
         final int contributing = Math.min(awarded.size(), settings.maxRoomsPerArchetype());
+        final double multiplier = settings.multiplierFor(archetype.id());
 
         // subtotal per buff type for this archetype alone, so its own 'max' can be applied before
         // anything is mixed in from elsewhere
@@ -121,10 +142,14 @@ public final class BuffCalculator
         // the tighter ceiling wins, and the type is still only capped once
         Map<String, Double> ceilings = new LinkedHashMap<>();
 
+        int bestTier = 0;
+
         for (int room = 0; room < contributing; room++)
         {
             final double falloff = Math.pow(settings.repeatedRoomFalloff(), room);
             final int tier = awarded.get(room).tier();
+
+            bestTier = Math.max(bestTier, tier);
 
             for (ArchetypeDefinition.BuffSpec spec : archetype.buffs())
             {
@@ -136,7 +161,22 @@ public final class BuffCalculator
         for (Map.Entry<String, Double> subtotal : subtotals.entrySet())
         {
             final double ceiling = ceilings.getOrDefault(subtotal.getKey(), Double.MAX_VALUE);
-            totals.merge(subtotal.getKey(), Math.min(subtotal.getValue(), ceiling), Double::sum);
+            final double granted = Math.min(subtotal.getValue(), ceiling) * multiplier;
+
+            if (granted <= 0d)
+            {
+                // an archetype multiplied to zero is switched off, not a source worth listing
+                continue;
+            }
+
+            totals.merge(subtotal.getKey(), granted, Double::sum);
+            sources.add(new BuffBreakdown.Source(
+                    subtotal.getKey(),
+                    archetype.id(),
+                    archetype.displayName(),
+                    contributing,
+                    bestTier,
+                    granted));
         }
     }
 }

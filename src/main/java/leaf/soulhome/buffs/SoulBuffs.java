@@ -4,9 +4,9 @@
 
 package leaf.soulhome.buffs;
 
+import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncSoulBuffsMessage;
-import leaf.soulhome.structures.core.BuffSettings;
 import leaf.soulhome.structures.core.SoulBuffSet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -21,8 +21,10 @@ import net.minecraftforge.common.util.FakePlayer;
  * <ul>
  *   <li>a null or fake player is always zero. Fake players are machines: an autocrafter should not
  *       inherit the sword damage of whoever placed it</li>
- *   <li>the magnitude is clamped to the configured global ceiling on the way out, so a datapack
- *       cannot hand an effect a number it was never designed to receive</li>
+ *   <li>the magnitude is clamped to that buff type's configured ceiling on the way out, so
+ *       neither a datapack nor a value saved under a more generous config can hand an effect a
+ *       number it was never designed to receive</li>
+ *   <li>everything is zero while the feature is switched off in the config</li>
  *   <li>never negative, and never null</li>
  * </ul>
  */
@@ -50,6 +52,11 @@ public final class SoulBuffs
      */
     public static double magnitude(Player player, String buffType)
     {
+        if (!SoulHomeConfig.enabled())
+        {
+            return 0d;
+        }
+
         final double raw = of(player).magnitude(buffType);
 
         if (raw <= 0d)
@@ -57,7 +64,7 @@ public final class SoulBuffs
             return 0d;
         }
 
-        return Math.min(raw, BuffSettings.DEFAULTS.globalMaxMagnitude());
+        return Math.min(raw, SoulHomeConfig.buffSettings().capFor(buffType));
     }
 
     public static boolean has(Player player, String buffType)

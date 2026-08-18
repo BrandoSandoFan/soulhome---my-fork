@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Woo! Welcome to your soul. $(p)Kinda empty, isn't it? I wonder what that says about you, huh. $(p)For now, that's all there is to the mod. Look out for future updates that will let you build multiblock structures to give yourself buffs."
+      "text": "Woo! Welcome to your soul. $(p)Kinda empty, isn't it? I wonder what that says about you, huh. $(p)So fill it. Build rooms in here and you'll carry what they mean out there - see $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."
     }
   ],
   "priority": false,
