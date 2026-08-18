@@ -60,9 +60,9 @@ public class EnchantmentPowerEffect implements SoulBuffEffect
     @SubscribeEvent
     public void onEnchantmentLevelSet(EnchantmentLevelSetEvent event)
     {
-        // getLevel() is typed as a LevelAccessor in some Forge builds; the instanceof both narrows
-        // it and keeps this compiling either way
-        if (!(event.getLevel() instanceof Level level) || level.isClientSide)
+        final Level level = event.getLevel();
+
+        if (level.isClientSide)
         {
             return;
         }
