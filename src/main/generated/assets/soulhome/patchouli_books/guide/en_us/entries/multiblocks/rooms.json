@@ -1,0 +1,25 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "soulhome:soul_lens",
+  "name": "Rooms",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Build a room in your soul and the world outside starts to treat you differently. A library sharpens what you learn; a farm makes every meal go further.$(p)There is no blueprint. Nothing here is a structure to copy block for block."
+    },
+    {
+      "type": "text",
+      "text": "Your soul is looked over now and then, and each enclosed room - and each dense patch of open ground - is judged on what it is made of. Two libraries that look nothing alike can both be libraries.$(p)Variety counts for more than volume. A hundred bookshelves in a box is not a library; shelves, a lectern, somewhere to sit and something to read by is."
+    },
+    {
+      "type": "text",
+      "text": "If a room does not count, ask. $(l)/soulhome analyse$() tells you what was seen in every room, what was missing, and what it nearly was.$(p)The $(item)Soul Lens$(0) does the same, and draws the edges of what it found - which is worth seeing, because a wall you thought was there might not be.",
+      "title": "When it does not work"
+    }
+  ],
+  "priority": true,
+  "read_by_default": true,
+  "secret": false,
+  "sortnum": -10
+}

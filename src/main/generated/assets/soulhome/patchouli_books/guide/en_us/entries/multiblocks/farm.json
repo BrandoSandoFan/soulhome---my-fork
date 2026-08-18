@@ -1,0 +1,21 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:farmland",
+  "name": "Farm",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Works as a room or as open ground. At least 9 blocks of space.$(p)Grants:$(li)saturation, growing with the tier, up to +45%.$(p)Tiers begin at a score of 20."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)9 of any crops$(p)Rewards, most first:$(li)Composter$(li)Beehive or Bee Nest$(li)Water$(li)any crops$(li)Hay Block",
+      "title": "What counts"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 2
+}

@@ -49,6 +49,18 @@ public class RecipeGen extends RecipeProvider implements IConditionBuilder
                 .unlockedBy("has_soul_key", has(ItemsRegistry.SOUL_KEY.get()))
                 .save(consumer);
 
+        //a magnifying glass: amethyst for the lens, nuggets for the rim, a stick for the handle
+        ShapedRecipeBuilder
+                .shaped(RecipeCategory.TOOLS, ItemsRegistry.SOUL_LENS.get()) //output
+                .define('N', Items.IRON_NUGGET)
+                .define('A', Items.AMETHYST_SHARD)
+                .define('S', Items.STICK)
+                .pattern(" N ") //top row
+                .pattern("NAN") //middle row
+                .pattern("S  ") //bottom row
+                .unlockedBy("has_material", has(Items.AMETHYST_SHARD))
+                .save(consumer);
+
         ShapedRecipeBuilder
                 .shaped(RecipeCategory.TRANSPORTATION, ItemsRegistry.PERSONAL_SOUL_KEY.get()) //output
                 .define('I', Items.IRON_INGOT)
