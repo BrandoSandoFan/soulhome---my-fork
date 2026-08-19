@@ -1,0 +1,34 @@
+{
+  "display_name": "archetype.soulhome.mine",
+
+  "region_types": ["enclosed", "open"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "tag": "forge:ores" }, "min_count": 4 }
+  ],
+
+  "signals": [
+    { "match": { "tag": "forge:ores" },            "weight": 3.0, "role": "core",    "cap": 24 },
+    { "match": { "tag": "minecraft:rails" },       "weight": 2.5, "role": "haulage", "cap": 16 },
+    { "match": { "block": "minecraft:ladder" },    "weight": 2.0, "role": "access",  "cap": 12 },
+    { "match": { "tag": "forge:storage_blocks" },  "weight": 1.5, "role": "trove",   "cap": 8  },
+    { "match": { "tag": "soulhome:lighting" },     "weight": 1.0, "role": "light",   "cap": 16 },
+    { "match": { "tag": "soulhome:storage" },      "weight": 1.0, "role": "storage", "cap": 8  }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:crops" },   "weight": -1.0 },
+    { "match": { "tag": "soulhome:smithing" }, "weight": -1.5 }
+  ],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:mining_speed", "per_tier": 0.10, "max": 0.30 }
+  ]
+}

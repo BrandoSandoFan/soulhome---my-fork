@@ -49,7 +49,8 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(4, shipped.size(), "farm, armoury, library, enchanting room");
+        assertEquals(7, shipped.size(),
+                "alchemy lab, armoury, bedchamber, enchanting room, farm, library, mine");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -230,6 +231,64 @@ class ArchetypeClassifierTest
         assertEquals(ClassificationResult.Status.CLASSIFIED, result.status());
         assertEquals("soulhome:farm", result.awardedArchetypeId().orElseThrow());
         assertTrue(result.awardedTier() >= 1);
+    }
+
+    @Test
+    @DisplayName("a brewing room classifies as an alchemy lab")
+    void canonicalAlchemyLabClassifies()
+    {
+        ClassificationResult result = classifyOnly(alchemyLab());
+
+        assertEquals(ClassificationResult.Status.CLASSIFIED, result.status());
+        assertEquals("soulhome:alchemy_lab", result.awardedArchetypeId().orElseThrow());
+        assertTrue(result.awardedTier() >= 1, "should reach at least tier 1");
+    }
+
+    @Test
+    @DisplayName("a room built to sleep in classifies as a bedchamber")
+    void canonicalBedchamberClassifies()
+    {
+        ClassificationResult result = classifyOnly(bedchamber());
+
+        assertEquals(ClassificationResult.Status.CLASSIFIED, result.status());
+        assertEquals("soulhome:bedchamber", result.awardedArchetypeId().orElseThrow());
+        assertTrue(result.awardedTier() >= 1, "should reach at least tier 1");
+    }
+
+    @Test
+    @DisplayName("a worked-out ore face classifies as a mine")
+    void canonicalMineClassifies()
+    {
+        ClassificationResult result = classifyOnly(mine());
+
+        assertEquals(ClassificationResult.Status.CLASSIFIED, result.status());
+        assertEquals("soulhome:mine", result.awardedArchetypeId().orElseThrow());
+        assertTrue(result.awardedTier() >= 1, "should reach at least tier 1");
+    }
+
+    @Test
+    @DisplayName("a bedchamber is not mistaken for the library it borrows its seating from")
+    void bedchamberIsNotALibrary()
+    {
+        // beds and carpets are both in soulhome:seating, so a bedchamber genuinely trips one of
+        // the library's signals. The requirement gate is what keeps that from mattering.
+        ClassificationResult result = classifyOnly(bedchamber());
+
+        ArchetypeScore libraryScore = scoreFor(result, "soulhome:library");
+
+        assertEquals(0d, libraryScore.score(), 1e-9);
+        assertFalse(libraryScore.failedRequirements().isEmpty(), "and it should say which gate it failed");
+    }
+
+    @Test
+    @DisplayName("a mine full of iron is still not an armoury")
+    void mineIsNotAnArmoury()
+    {
+        ClassificationResult result = classifyOnly(mine());
+
+        ArchetypeScore armouryScore = scoreFor(result, "soulhome:armoury");
+
+        assertEquals(0d, armouryScore.score(), 1e-9, "no forge, no armoury");
     }
 
     // endregion
@@ -493,6 +552,99 @@ class ArchetypeClassifierTest
                 "BBBBBBB"};
 
         return GridVolume.of(shelfSlab, shelfWalls, shelfWalls, shelfWalls, shelfSlab);
+    }
+
+    private static GridVolume alchemyLab()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#sssss#",
+                        "#u...u#",
+                        "#.....#",
+                        "#..p..#",
+                        "#.....#",
+                        "#u...b#",
+                        "#sssss#"},
+                new String[]{
+                        "#sssss#",
+                        "#c...c#",
+                        "#.rrr.#",
+                        "#.rrr.#",
+                        "#.rrr.#",
+                        "#c...c#",
+                        "#sssss#"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    private static GridVolume bedchamber()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#WWWWW#",
+                        "#d...d#",
+                        "#.....#",
+                        "#..j..#",
+                        "#.....#",
+                        "#b...x#",
+                        "#WWWWW#"},
+                new String[]{
+                        "#WWWWW#",
+                        "#c...c#",
+                        "#.xxx.#",
+                        "#.xxx.#",
+                        "#.xxx.#",
+                        "#c...c#",
+                        "#WWWWW#"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    private static GridVolume mine()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#OOOOO#",
+                        "#l...l#",
+                        "#.....#",
+                        "#..Y..#",
+                        "#.....#",
+                        "#b...l#",
+                        "#OOOOO#"},
+                new String[]{
+                        "#OOOOO#",
+                        "#t...t#",
+                        "#.===.#",
+                        "#.===.#",
+                        "#.===.#",
+                        "#t...t#",
+                        "#OOOOO#"},
+                new String[]{
+                        "#######",
+                        "#t...t#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#t...t#",
+                        "#######"},
+                SLAB);
     }
 
     private static GridVolume farm()

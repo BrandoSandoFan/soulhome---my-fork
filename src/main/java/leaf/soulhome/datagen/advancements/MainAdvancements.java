@@ -130,6 +130,9 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
         archetypeAdvancement(advancementConsumer, roomAdvancement, "armoury", Items.IRON_SWORD);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "library", Items.BOOKSHELF);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "enchanting_room", Items.ENCHANTING_TABLE);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "alchemy_lab", Items.BREWING_STAND);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "bedchamber", Items.RED_BED);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "mine", Items.RAIL);
     }
 
     /**

@@ -1,0 +1,31 @@
+{
+  "display_name": "archetype.soulhome.bedchamber",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "tag": "minecraft:beds" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "tag": "minecraft:beds" },       "weight": 6.0, "role": "core",       "cap": 3  },
+    { "match": { "block": "minecraft:jukebox" },  "weight": 2.5, "role": "music",      "cap": 2  },
+    { "match": { "tag": "soulhome:furnishing" },  "weight": 2.0, "role": "furnishing", "cap": 24 },
+    { "match": { "tag": "soulhome:lighting" },    "weight": 1.5, "role": "light",      "cap": 12 },
+    { "match": { "tag": "soulhome:storage" },     "weight": 1.0, "role": "storage",    "cap": 6  }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "soulhome:smithing" }, "weight": -2.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:healing", "per_tier": 0.10, "max": 0.30 }
+  ]
+}

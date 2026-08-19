@@ -1,0 +1,21 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:ladder",
+  "name": "Mine",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)mining speed, growing with the tier, up to +30%.$(p)Tiers begin at a score of 20."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)4 of any ores$(p)Rewards, most first:$(li)any ores$(li)any rails$(li)Ladder$(li)any storage blocks$(li)any lighting$(p)Counts against it:$(li)any crops$(li)any smithing",
+      "title": "What counts"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 6
+}

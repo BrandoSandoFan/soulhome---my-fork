@@ -144,12 +144,18 @@ public class EngLangGen extends LanguageProvider
         add("buff.soulhome.sword_damage", "Sword damage");
         add("buff.soulhome.xp_gain", "Experience gain");
         add("buff.soulhome.enchantment_power", "Enchanting levels");
+        add("buff.soulhome.potion_duration", "Potion duration");
+        add("buff.soulhome.healing", "Healing");
+        add("buff.soulhome.mining_speed", "Mining speed");
 
         //Archetypes. These are the 'display_name' keys the shipped archetype JSON names
         add("archetype.soulhome.farm", "Farm");
         add("archetype.soulhome.armoury", "Armoury");
         add("archetype.soulhome.library", "Library");
         add("archetype.soulhome.enchanting_room", "Enchanting Room");
+        add("archetype.soulhome.alchemy_lab", "Alchemy Lab");
+        add("archetype.soulhome.bedchamber", "Bedchamber");
+        add("archetype.soulhome.mine", "Mine");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -196,6 +202,15 @@ public class EngLangGen extends LanguageProvider
 
         add("advancements.soulhome.enchanting_room.title", "Arcane Interior");
         add("advancements.soulhome.enchanting_room.description", "Build a room in your soul worthy of an enchanting table.");
+
+        add("advancements.soulhome.alchemy_lab.title", "Bottled Up");
+        add("advancements.soulhome.alchemy_lab.description", "Set a room in your soul up for brewing.");
+
+        add("advancements.soulhome.bedchamber.title", "Sound Asleep");
+        add("advancements.soulhome.bedchamber.description", "Make a room in your soul you could actually rest in.");
+
+        add("advancements.soulhome.mine.title", "Deep Down");
+        add("advancements.soulhome.mine.description", "Dig a working mine out of your own soul.");
 
         //misc
 
