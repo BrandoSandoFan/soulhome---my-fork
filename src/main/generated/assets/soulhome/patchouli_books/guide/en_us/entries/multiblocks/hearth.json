@@ -1,0 +1,21 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:furnace",
+  "name": "Hearth",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)fire aspect, growing with the tier, up to +6.$(p)Tiers begin at a score of 20."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)1 of Furnace or Campfire or Soul Campfire$(p)Rewards, most first:$(li)Furnace or Campfire or Soul Campfire$(li)Lava$(li)Magma Block$(li)Netherrack$(li)any lighting$(p)Counts against it:$(li)Water$(li)any crops",
+      "title": "What counts"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 5
+}

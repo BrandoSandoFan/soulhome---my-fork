@@ -1,0 +1,33 @@
+{
+  "display_name": "archetype.soulhome.training_yard",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:slime_block" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:slime_block" }, "weight": 6.0, "role": "core",    "cap": 4  },
+    { "match": { "block": "minecraft:scaffolding" }, "weight": 2.0, "role": "climb",   "cap": 24 },
+    { "match": { "block": "minecraft:ladder" },      "weight": 1.0, "role": "climb",   "cap": 12 },
+    { "match": { "block": "minecraft:hay_block" },   "weight": 1.5, "role": "cushion", "cap": 8  },
+    { "match": { "tag": "soulhome:lighting" },       "weight": 0.5, "role": "light",   "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "soulhome:smithing" }, "weight": -1.5 },
+    { "match": { "tag": "minecraft:crops" },   "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:double_jump",     "per_tier": 1.0,  "max": 3.0  },
+    { "type": "soulhome:fall_protection", "per_tier": 0.15, "max": 0.45 }
+  ]
+}

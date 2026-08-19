@@ -255,8 +255,17 @@ public final class SoulHomeConfig
         /** Held out as fields so each list's element type is unambiguous at the define site. */
         private static final List<String> NO_MULTIPLIERS = List.of();
 
-        /** Enchanting power is levels rather than a proportion; see {@link BuffSettings}. */
-        private static final List<String> DEFAULT_TYPE_CAPS = List.of("soulhome:enchantment_power=6.0");
+        /**
+         * Must be kept in sync with {@link BuffSettings#DEFAULT_TYPE_CAPS}: this list, not that
+         * map, is what a fresh server actually reads. {@code Snapshot.read()} builds
+         * {@link BuffSettings} entirely from {@link #buffTypeCaps} below, so a non-fraction type
+         * missing here falls back to {@code global_max_magnitude} the moment a config file is
+         * generated - silently capping, say, three jumps down to one.
+         */
+        private static final List<String> DEFAULT_TYPE_CAPS = List.of(
+                "soulhome:enchantment_power=6.0",
+                "soulhome:double_jump=3.0",
+                "soulhome:fire_aspect=6.0");
 
         public final ForgeConfigSpec.BooleanValue enabled;
 
@@ -310,7 +319,7 @@ public final class SoulHomeConfig
                             "Default ceiling on a buff type, however it was accumulated.",
                             "Magnitudes are unitless: for soulhome:xp_gain 1.0 is +100% experience, for",
                             "soulhome:enchantment_power it is one extra effective level at the table.",
-                            "Types that are not proportions need their own ceiling below.")
+                            "Types that are not proportions - jumps, seconds, levels - need their own ceiling below.")
                     .defineInRange("global_max_magnitude", 1.0d, 0d, 100d);
 
             this.buffTypeCaps = builder

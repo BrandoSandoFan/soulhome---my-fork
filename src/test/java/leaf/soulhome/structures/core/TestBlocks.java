@@ -71,6 +71,20 @@ public final class TestBlocks
     public static final TestBlock GOLD_BLOCK = block("minecraft:gold_block", Passability.BLOCKING, "forge:storage_blocks");
     public static final TestBlock TORCH = block("minecraft:torch", Passability.PASSABLE, "soulhome:lighting");
 
+    // track
+    public static final TestBlock FENCE = block("minecraft:oak_fence", Passability.BLOCKING, "minecraft:fences");
+    public static final TestBlock ICE = block("minecraft:ice", Passability.BLOCKING);
+
+    // training yard
+    public static final TestBlock SLIME_BLOCK = block("minecraft:slime_block", Passability.BLOCKING);
+    public static final TestBlock SCAFFOLDING = block("minecraft:scaffolding", Passability.PASSABLE);
+
+    // hearth
+    public static final TestBlock FURNACE = block("minecraft:furnace", Passability.BLOCKING);
+    public static final TestBlock LAVA = block("minecraft:lava", Passability.PASSABLE);
+    public static final TestBlock MAGMA = block("minecraft:magma_block", Passability.BLOCKING);
+    public static final TestBlock NETHERRACK = block("minecraft:netherrack", Passability.BLOCKING);
+
     private TestBlocks()
     {
     }

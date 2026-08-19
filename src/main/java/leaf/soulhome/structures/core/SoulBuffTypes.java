@@ -40,9 +40,29 @@ public final class SoulBuffTypes
     /** Mine: faster block breaking, as a fraction of the speed. */
     public static final String MINING_SPEED = "soulhome:mining_speed";
 
+    /** Track: extra movement speed, as a fraction of the player's own. */
+    public static final String SPEED = "soulhome:speed";
+
+    /** Training yard: extra jumps available while airborne. */
+    public static final String DOUBLE_JUMP = "soulhome:double_jump";
+
+    /** Training yard: less fall damage, as a fraction of the fall. */
+    public static final String FALL_PROTECTION = "soulhome:fall_protection";
+
+    /** Hearth: seconds the target is set on fire by a sword hit. */
+    public static final String FIRE_ASPECT = "soulhome:fire_aspect";
+
     public static final Set<String> BUILT_IN =
             Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
-                    POTION_DURATION, HEALING, MINING_SPEED);
+                    POTION_DURATION, HEALING, MINING_SPEED,
+                    SPEED, DOUBLE_JUMP, FALL_PROTECTION, FIRE_ASPECT);
+
+    /**
+     * Types measured as a flat amount rather than a proportion: a count of jumps, a number of
+     * seconds, a number of effective levels. Held as a set rather than a single special case now
+     * that enchanting power is no longer the only one.
+     */
+    private static final Set<String> NON_FRACTION = Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT);
 
     private SoulBuffTypes()
     {
@@ -58,7 +78,6 @@ public final class SoulBuffTypes
      */
     public static boolean isFraction(String buffType)
     {
-        //everything built in is a proportion except enchanting, which is measured in levels
-        return !ENCHANTMENT_POWER.equals(buffType);
+        return !NON_FRACTION.contains(buffType);
     }
 }

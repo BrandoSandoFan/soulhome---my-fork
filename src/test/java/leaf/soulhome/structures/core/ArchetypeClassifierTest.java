@@ -49,8 +49,9 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(7, shipped.size(),
-                "alchemy lab, armoury, bedchamber, enchanting room, farm, library, mine");
+        assertEquals(10, shipped.size(),
+                "alchemy lab, armoury, bedchamber, enchanting room, farm, hearth, library, mine, "
+                        + "track, training yard");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -289,6 +290,52 @@ class ArchetypeClassifierTest
         ArchetypeScore armouryScore = scoreFor(result, "soulhome:armoury");
 
         assertEquals(0d, armouryScore.score(), 1e-9, "no forge, no armoury");
+    }
+
+    @Test
+    @DisplayName("a looping rail line classifies as a track")
+    void canonicalTrackClassifies()
+    {
+        ClassificationResult result = classifyOnly(track());
+
+        assertEquals(ClassificationResult.Status.CLASSIFIED, result.status());
+        assertEquals("soulhome:track", result.awardedArchetypeId().orElseThrow());
+        assertTrue(result.awardedTier() >= 1, "should reach at least tier 1");
+    }
+
+    @Test
+    @DisplayName("a slime-block practice room classifies as a training yard")
+    void canonicalTrainingYardClassifies()
+    {
+        ClassificationResult result = classifyOnly(trainingYard());
+
+        assertEquals(ClassificationResult.Status.CLASSIFIED, result.status());
+        assertEquals("soulhome:training_yard", result.awardedArchetypeId().orElseThrow());
+        assertTrue(result.awardedTier() >= 1, "should reach at least tier 1");
+    }
+
+    @Test
+    @DisplayName("a furnace ringed with netherrack classifies as a hearth")
+    void canonicalHearthClassifies()
+    {
+        ClassificationResult result = classifyOnly(hearth());
+
+        assertEquals(ClassificationResult.Status.CLASSIFIED, result.status());
+        assertEquals("soulhome:hearth", result.awardedArchetypeId().orElseThrow());
+        assertTrue(result.awardedTier() >= 1, "should reach at least tier 1");
+    }
+
+    @Test
+    @DisplayName("a track full of rails is not mistaken for a mine")
+    void trackIsNotAMine()
+    {
+        // both value the rails tag, but the mine's hard requirement is ore, which a track has none of
+        ClassificationResult result = classifyOnly(track());
+
+        ArchetypeScore mineScore = scoreFor(result, "soulhome:mine");
+
+        assertEquals(0d, mineScore.score(), 1e-9);
+        assertFalse(mineScore.failedRequirements().isEmpty(), "and it should say which gate it failed");
     }
 
     // endregion
@@ -643,6 +690,99 @@ class ArchetypeClassifierTest
                         "#.....#",
                         "#.....#",
                         "#t...t#",
+                        "#######"},
+                SLAB);
+    }
+
+    private static GridVolume track()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#FFFFF#",
+                        "#=====#",
+                        "#.....#",
+                        "#=====#",
+                        "#.....#",
+                        "#=====#",
+                        "#FFFFF#"},
+                new String[]{
+                        "#FFFFF#",
+                        "#I...I#",
+                        "#.....#",
+                        "#..h..#",
+                        "#.....#",
+                        "#I...I#",
+                        "#FFFFF#"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    private static GridVolume trainingYard()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#hhhhh#",
+                        "#l...l#",
+                        "#.....#",
+                        "#..M..#",
+                        "#.....#",
+                        "#l...l#",
+                        "#hhhhh#"},
+                new String[]{
+                        "#hhhhh#",
+                        "#c...c#",
+                        "#.aaa.#",
+                        "#.aaa.#",
+                        "#.aaa.#",
+                        "#c...c#",
+                        "#hhhhh#"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    private static GridVolume hearth()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#kkkkk#",
+                        "#v...v#",
+                        "#.....#",
+                        "#..N..#",
+                        "#.....#",
+                        "#v...v#",
+                        "#kkkkk#"},
+                new String[]{
+                        "#kkkkk#",
+                        "#c...c#",
+                        "#.mmm.#",
+                        "#.mmm.#",
+                        "#.mmm.#",
+                        "#c...c#",
+                        "#kkkkk#"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
                         "#######"},
                 SLAB);
     }
