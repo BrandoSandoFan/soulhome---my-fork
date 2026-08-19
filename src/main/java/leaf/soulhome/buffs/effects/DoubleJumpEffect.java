@@ -21,7 +21,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Training yard: an extra jump, or several, while already in the air.
+ * Training yard: one extra jump while already in the air - a real double jump, not a triple or
+ * quadruple one. The magnitude here is a plain count, so nothing stops an archetype from asking
+ * for more, but the shipped training yard and the shipped config default both cap it at one.
  *
  * <h2>Reading the jump key from the server</h2>
  *

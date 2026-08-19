@@ -260,11 +260,11 @@ public final class SoulHomeConfig
          * map, is what a fresh server actually reads. {@code Snapshot.read()} builds
          * {@link BuffSettings} entirely from {@link #buffTypeCaps} below, so a non-fraction type
          * missing here falls back to {@code global_max_magnitude} the moment a config file is
-         * generated - silently capping, say, three jumps down to one.
+         * generated - silently capping, say, six seconds of fire down to one.
          */
         private static final List<String> DEFAULT_TYPE_CAPS = List.of(
                 "soulhome:enchantment_power=6.0",
-                "soulhome:double_jump=3.0",
+                "soulhome:double_jump=1.0",
                 "soulhome:fire_aspect=6.0");
 
         public final ForgeConfigSpec.BooleanValue enabled;
