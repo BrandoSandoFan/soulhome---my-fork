@@ -133,6 +133,9 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
         archetypeAdvancement(advancementConsumer, roomAdvancement, "alchemy_lab", Items.BREWING_STAND);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "bedchamber", Items.RED_BED);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "mine", Items.RAIL);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "track", Items.MINECART);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "training_yard", Items.SLIME_BALL);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "hearth", Items.BLAZE_POWDER);
     }
 
     /**

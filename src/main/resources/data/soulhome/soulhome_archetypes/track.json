@@ -1,0 +1,33 @@
+{
+  "display_name": "archetype.soulhome.track",
+
+  "region_types": ["open", "enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "tag": "minecraft:rails" }, "min_count": 8 }
+  ],
+
+  "signals": [
+    { "match": { "tag": "minecraft:rails" },  "weight": 3.0, "role": "track",    "cap": 32 },
+    { "match": { "tag": "minecraft:fences" }, "weight": 1.5, "role": "boundary", "cap": 24 },
+    { "match": { "block": "minecraft:hay_block" }, "weight": 2.0, "role": "surface", "cap": 16 },
+    { "match": { "block": ["minecraft:ice", "minecraft:packed_ice", "minecraft:blue_ice"] }, "weight": 1.5, "role": "surface", "cap": 16 },
+    { "match": { "tag": "soulhome:lighting" }, "weight": 0.5, "role": "light",    "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "soulhome:smithing" }, "weight": -1.0 },
+    { "match": { "tag": "minecraft:crops" },   "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:speed", "per_tier": 0.08, "max": 0.24 }
+  ]
+}

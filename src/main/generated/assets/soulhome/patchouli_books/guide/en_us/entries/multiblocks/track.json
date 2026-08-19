@@ -1,0 +1,21 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:hay_block",
+  "name": "Track",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)speed, growing with the tier, up to +24%.$(p)Tiers begin at a score of 20."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)8 of any rails$(p)Rewards, most first:$(li)any rails$(li)Hay Block$(li)any fences$(li)Ice or Packed Ice or Blue Ice$(li)any lighting$(p)Counts against it:$(li)any smithing$(li)any crops",
+      "title": "What counts"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 8
+}

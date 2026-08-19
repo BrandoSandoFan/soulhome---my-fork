@@ -147,6 +147,10 @@ public class EngLangGen extends LanguageProvider
         add("buff.soulhome.potion_duration", "Potion duration");
         add("buff.soulhome.healing", "Healing");
         add("buff.soulhome.mining_speed", "Mining speed");
+        add("buff.soulhome.speed", "Movement speed");
+        add("buff.soulhome.double_jump", "Extra jumps");
+        add("buff.soulhome.fall_protection", "Fall damage reduction");
+        add("buff.soulhome.fire_aspect", "Fire on hit");
 
         //Archetypes. These are the 'display_name' keys the shipped archetype JSON names
         add("archetype.soulhome.farm", "Farm");
@@ -156,6 +160,9 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.alchemy_lab", "Alchemy Lab");
         add("archetype.soulhome.bedchamber", "Bedchamber");
         add("archetype.soulhome.mine", "Mine");
+        add("archetype.soulhome.track", "Track");
+        add("archetype.soulhome.training_yard", "Training Yard");
+        add("archetype.soulhome.hearth", "Hearth");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -211,6 +218,15 @@ public class EngLangGen extends LanguageProvider
 
         add("advancements.soulhome.mine.title", "Deep Down");
         add("advancements.soulhome.mine.description", "Dig a working mine out of your own soul.");
+
+        add("advancements.soulhome.track.title", "Built For Speed");
+        add("advancements.soulhome.track.description", "Lay out a track in your soul worth racing on.");
+
+        add("advancements.soulhome.training_yard.title", "Spring Loaded");
+        add("advancements.soulhome.training_yard.description", "Build a training yard in your soul that teaches you to jump twice.");
+
+        add("advancements.soulhome.hearth.title", "Playing With Fire");
+        add("advancements.soulhome.hearth.description", "Build a hearth in your soul hot enough to temper a blade.");
 
         //misc
 

@@ -4,12 +4,16 @@
 
 package leaf.soulhome.buffs;
 
+import leaf.soulhome.buffs.effects.DoubleJumpEffect;
 import leaf.soulhome.buffs.effects.EnchantmentPowerEffect;
+import leaf.soulhome.buffs.effects.FallProtectionEffect;
+import leaf.soulhome.buffs.effects.FireAspectEffect;
 import leaf.soulhome.buffs.effects.MiningSpeedEffect;
 import leaf.soulhome.buffs.effects.PotionDurationEffect;
 import leaf.soulhome.buffs.effects.SaturationEffect;
 import leaf.soulhome.buffs.effects.SwordDamageEffect;
 import leaf.soulhome.buffs.effects.HealingEffect;
+import leaf.soulhome.buffs.effects.SpeedEffect;
 import leaf.soulhome.buffs.effects.XpGainEffect;
 import leaf.soulhome.utils.LogHelper;
 
@@ -48,6 +52,10 @@ public final class SoulBuffEffects
         register(new PotionDurationEffect());
         register(new HealingEffect());
         register(new MiningSpeedEffect());
+        register(new SpeedEffect());
+        register(new DoubleJumpEffect());
+        register(new FallProtectionEffect());
+        register(new FireAspectEffect());
 
         LogHelper.info("Registered " + BY_TYPE.size() + " soul buff effect(s): " + BY_TYPE.keySet());
     }

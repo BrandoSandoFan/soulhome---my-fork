@@ -1,0 +1,32 @@
+{
+  "display_name": "archetype.soulhome.hearth",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": ["minecraft:furnace", "minecraft:campfire", "minecraft:soul_campfire"] }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": ["minecraft:furnace", "minecraft:campfire", "minecraft:soul_campfire"] }, "weight": 6.0, "role": "core", "cap": 3 },
+    { "match": { "block": "minecraft:lava" },        "weight": 3.0, "role": "heat",     "cap": 4  },
+    { "match": { "block": "minecraft:magma_block" }, "weight": 1.5, "role": "heat",     "cap": 8  },
+    { "match": { "block": "minecraft:netherrack" },  "weight": 1.0, "role": "material", "cap": 16 },
+    { "match": { "tag": "soulhome:lighting" },       "weight": 0.5, "role": "light",    "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "block": "minecraft:water" }, "weight": -2.0 },
+    { "match": { "tag": "minecraft:crops" },   "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:fire_aspect", "per_tier": 2.0, "max": 6.0 }
+  ]
+}

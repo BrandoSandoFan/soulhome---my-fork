@@ -36,13 +36,18 @@ public record BuffSettings(
         Map<String, Double> buffTypeCaps)
 {
     /**
-     * Enchanting power is measured in effective levels rather than as a proportion, so it is
-     * capped in levels. Six is two thirds of the fifteen-bookshelf bonus vanilla already gives,
-     * which is a meaningful reward for a whole room without making the table's own furniture
-     * pointless.
+     * Ceilings for the buff types that are not proportions, so {@code globalMaxMagnitude} - a
+     * fraction by default - never becomes their cap by accident. Enchanting power is measured in
+     * effective levels: six is two thirds of the fifteen-bookshelf bonus vanilla already gives.
+     * Double jump is a count of extra jumps, and three is a full second use of the ability per
+     * fall. Fire aspect is seconds of burn, and six is a long, deliberate punish for a sword
+     * rather than a graze.
      */
     public static final Map<String, Double> DEFAULT_TYPE_CAPS =
-            Map.of(SoulBuffTypes.ENCHANTMENT_POWER, 6.0d);
+            Map.of(
+                    SoulBuffTypes.ENCHANTMENT_POWER, 6.0d,
+                    SoulBuffTypes.DOUBLE_JUMP, 3.0d,
+                    SoulBuffTypes.FIRE_ASPECT, 6.0d);
 
     public static final BuffSettings DEFAULTS =
             new BuffSettings(0.5d, 3, 1.0d, Map.of(), DEFAULT_TYPE_CAPS);
