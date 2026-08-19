@@ -31,8 +31,18 @@ public final class SoulBuffTypes
     /** Enchanting room: extra effective enchanting levels. */
     public static final String ENCHANTMENT_POWER = "soulhome:enchantment_power";
 
+    /** Alchemy lab: longer potions, as a fraction of the duration drunk. */
+    public static final String POTION_DURATION = "soulhome:potion_duration";
+
+    /** Bedchamber: faster healing, as a fraction of the health restored. */
+    public static final String HEALING = "soulhome:healing";
+
+    /** Mine: faster block breaking, as a fraction of the speed. */
+    public static final String MINING_SPEED = "soulhome:mining_speed";
+
     public static final Set<String> BUILT_IN =
-            Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER);
+            Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
+                    POTION_DURATION, HEALING, MINING_SPEED);
 
     private SoulBuffTypes()
     {

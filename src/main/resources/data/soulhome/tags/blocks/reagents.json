@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:nether_wart",
+    "minecraft:soul_sand",
+    "minecraft:soul_soil",
+    "minecraft:sugar_cane",
+    "minecraft:brown_mushroom",
+    "minecraft:red_mushroom",
+    "minecraft:redstone_block",
+    "minecraft:honey_block"
+  ]
+}

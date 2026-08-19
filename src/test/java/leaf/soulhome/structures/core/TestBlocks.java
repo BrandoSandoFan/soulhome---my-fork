@@ -38,7 +38,7 @@ public final class TestBlocks
     public static final TestBlock ANVIL = block("minecraft:anvil", Passability.BLOCKING, "minecraft:anvil", "soulhome:smithing");
     public static final TestBlock GRINDSTONE = block("minecraft:grindstone", Passability.BLOCKING, "soulhome:smithing");
     public static final TestBlock BANNER = block("minecraft:white_banner", Passability.PASSABLE, "minecraft:banners", "soulhome:armament");
-    public static final TestBlock IRON_BLOCK = block("minecraft:iron_block", Passability.BLOCKING, "soulhome:armament");
+    public static final TestBlock IRON_BLOCK = block("minecraft:iron_block", Passability.BLOCKING, "soulhome:armament", "forge:storage_blocks");
 
     // enchanting
     public static final TestBlock ENCHANTING_TABLE = block("minecraft:enchanting_table", Passability.BLOCKING);
@@ -51,6 +51,25 @@ public final class TestBlocks
     public static final TestBlock COMPOSTER = block("minecraft:composter", Passability.BLOCKING);
     public static final TestBlock HAY = block("minecraft:hay_block", Passability.BLOCKING);
     public static final TestBlock BARREL = block("minecraft:barrel", Passability.BLOCKING, "soulhome:storage");
+
+    // alchemy lab
+    public static final TestBlock BREWING_STAND = block("minecraft:brewing_stand", Passability.BLOCKING);
+    public static final TestBlock CAULDRON = block("minecraft:cauldron", Passability.BLOCKING, "soulhome:alchemy_vessels");
+    public static final TestBlock NETHER_WART = block("minecraft:nether_wart", Passability.PASSABLE, "soulhome:reagents");
+    public static final TestBlock SOUL_SAND = block("minecraft:soul_sand", Passability.BLOCKING, "soulhome:reagents");
+
+    // bedchamber
+    public static final TestBlock BED = block("minecraft:red_bed", Passability.BLOCKING, "minecraft:beds", "soulhome:seating");
+    public static final TestBlock JUKEBOX = block("minecraft:jukebox", Passability.BLOCKING);
+    public static final TestBlock CARPET = block("minecraft:white_carpet", Passability.PASSABLE, "minecraft:wool_carpets", "soulhome:seating", "soulhome:furnishing");
+    public static final TestBlock WOOL = block("minecraft:white_wool", Passability.BLOCKING, "minecraft:wool", "soulhome:furnishing");
+
+    // mine
+    public static final TestBlock ORE = block("minecraft:iron_ore", Passability.BLOCKING, "forge:ores");
+    public static final TestBlock RAIL = block("minecraft:rail", Passability.PASSABLE, "minecraft:rails");
+    public static final TestBlock LADDER = block("minecraft:ladder", Passability.PASSABLE);
+    public static final TestBlock GOLD_BLOCK = block("minecraft:gold_block", Passability.BLOCKING, "forge:storage_blocks");
+    public static final TestBlock TORCH = block("minecraft:torch", Passability.PASSABLE, "soulhome:lighting");
 
     private TestBlocks()
     {

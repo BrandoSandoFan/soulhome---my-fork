@@ -1,0 +1,32 @@
+{
+  "display_name": "archetype.soulhome.alchemy_lab",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:brewing_stand" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:brewing_stand" },  "weight": 8.0, "role": "core",    "cap": 3  },
+    { "match": { "tag": "soulhome:alchemy_vessels" },   "weight": 3.0, "role": "vessel",  "cap": 6  },
+    { "match": { "tag": "soulhome:reagents" },          "weight": 2.0, "role": "reagent", "cap": 24 },
+    { "match": { "tag": "soulhome:storage" },           "weight": 1.5, "role": "storage", "cap": 8  },
+    { "match": { "tag": "soulhome:lighting" },          "weight": 1.0, "role": "light",   "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "block": "minecraft:enchanting_table" }, "weight": -2.0 },
+    { "match": { "tag": "soulhome:smithing" },            "weight": -1.5 }
+  ],
+
+  "tiers": [
+    { "min_score": 20,  "tier": 1 },
+    { "min_score": 50,  "tier": 2 },
+    { "min_score": 100, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:potion_duration", "per_tier": 0.15, "max": 0.45 }
+  ]
+}
