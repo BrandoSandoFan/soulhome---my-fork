@@ -14,7 +14,7 @@ What you build inside your soul now changes what you can do outside it. Build a 
 reads as a farm, an armoury, a library, an enchanting room, an alchemy lab, a bedchamber, a mine,
 a track, a training yard or a hearth, you carry that with you: more saturation from food, more
 damage with swords, faster experience, stronger enchantments, longer potions, faster healing,
-quicker mining, more movement speed, an extra jump or two in mid-air, softer landings, and a sword
+quicker mining, more movement speed, an extra jump in mid-air, softer landings, and a sword
 that sets what it hits on fire.
 
 There are no blueprints. Nothing is a multiblock to copy block for block - your soul is looked

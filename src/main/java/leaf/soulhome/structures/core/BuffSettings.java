@@ -39,14 +39,14 @@ public record BuffSettings(
      * Ceilings for the buff types that are not proportions, so {@code globalMaxMagnitude} - a
      * fraction by default - never becomes their cap by accident. Enchanting power is measured in
      * effective levels: six is two thirds of the fifteen-bookshelf bonus vanilla already gives.
-     * Double jump is a count of extra jumps, and three is a full second use of the ability per
-     * fall. Fire aspect is seconds of burn, and six is a long, deliberate punish for a sword
-     * rather than a graze.
+     * Double jump is a count of extra jumps, and one is exactly what the name promises - a second
+     * jump, not a third or fourth, however generous a datapack's own magnitude gets. Fire aspect
+     * is seconds of burn, and six is a long, deliberate punish for a sword rather than a graze.
      */
     public static final Map<String, Double> DEFAULT_TYPE_CAPS =
             Map.of(
                     SoulBuffTypes.ENCHANTMENT_POWER, 6.0d,
-                    SoulBuffTypes.DOUBLE_JUMP, 3.0d,
+                    SoulBuffTypes.DOUBLE_JUMP, 1.0d,
                     SoulBuffTypes.FIRE_ASPECT, 6.0d);
 
     public static final BuffSettings DEFAULTS =
