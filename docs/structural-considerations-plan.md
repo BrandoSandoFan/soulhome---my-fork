@@ -51,7 +51,8 @@ Six rules hold the line:
 
 Rule 6 has a consequence worth writing down now, because it will come up during balancing: if the
 audit shows the top of the range becoming too easy once arrangement counts, the fix is to **lower
-the structural share cap**, not to raise the thresholds. Raising thresholds takes buffs away from
+the structural share cap or raise the ramp exponent**, not to raise the thresholds. Both of those
+move the middle of the curve without moving either end; raising thresholds takes buffs away from
 builds that already earned them.
 
 ## The shape of the design
@@ -235,26 +236,59 @@ buff. Ramp the magnitude across the archetype's own tier ladder:
 entry     = tiers[0].minScore
 top       = tiers[last].minScore
 t         = clamp((score - entry) / (top - entry), 0, 1)
-magnitude = max * (entryFraction + (1 - entryFraction) * t)
+magnitude = max * (entryFraction + (1 - entryFraction) * pow(t, rampExponent))
 ```
 
-`entryFraction` (suggest 0.10) is what stops qualification from meaning nothing. Then lower the
-tier-1 thresholds so a bare pile of the defining blocks lands just inside — for `track`, 20 to 8:
+Then lower the tier-1 thresholds so a bare pile of the defining blocks lands just inside — for
+`track`, 20 to 8.
 
-| build | score | now | proposed |
-|---|---|---|---|
-| 8 rails in a heap | 8.49 | 0% | +2.5% |
-| 32 rails in a heap | 16.97 | 0% | +4.5% |
-| 32 rails + 8 torches | 21.14 | +8% | +5.5% |
-| a real track | 46.01 | +8% | +11.3% |
-| a well-arranged track | 80 | +16% | +19.3% |
-| an exceptional track | 100 | +24% | +24% |
+#### Three knobs, each shaping a different part of the curve
+
+| knob | suggested | what it controls |
+|---|---|---|
+| `entryFraction` | 0.10 | the floor at the bar — what "just barely counts" is worth |
+| `rampExponent` | 1.5 | how the rest of the payout is spread between the bar and the ceiling |
+| tier-1 threshold | per archetype | where the bar sits |
+
+`rampExponent` is the shape knob. At `1.0` the ramp is linear; above 1 it back-loads — quadratic at
+`2.0`, cubic at `3.0`, and any fractional value in between. Below 1 it front-loads instead, which is
+legal and occasionally what a generous pack wants, but works against "a pile counts weakly" and so
+is not the default.
+
+Measured on `track`, with `entry` 8, `top` 100, `entryFraction` 0.10:
+
+| build | score | exp 1.0 | exp 1.5 | exp 2.0 | exp 3.0 |
+|---|---|---|---|---|---|
+| a pile: 8 rails in a heap | 8.49 | 2.5% | 2.4% | 2.4% | 2.4% |
+| a bigger pile: 32 rails in a heap | 16.97 | 4.5% | 3.1% | 2.6% | 2.4% |
+| thrown together: 32 rails + 8 torches | 21.14 | 5.5% | 3.6% | 2.8% | 2.5% |
+| decent, unarranged | 46.01 | 11.3% | 8.1% | 6.1% | 3.9% |
+| well arranged | 70 | 17.0% | 14.3% | 12.2% | 9.0% |
+| well arranged | 85 | 20.5% | 18.9% | 17.5% | 15.1% |
+| exceptional | 100 | 24.0% | 24.0% | 24.0% | 24.0% |
+
+Two rows carry the argument. Across **the bigger pile**: at exponent 1 a heap of 32 rails is worth
+nearly twice a heap of 8, which rewards hoarding — the same failure the `sqrt` curve exists to stop,
+one level up. At exponent 2 the two are within 0.2% of each other and the bottom of the range
+flattens into "you have the right blocks; now build something".
+
+Down the **exponent-2 column**: a decent unarranged room lands at 6.1%, leaving three quarters of
+the ceiling for arrangement to claim. At exponent 1 it has already taken half.
+
+The trade shows at exponent 3, where a decent room gets 3.9% against a pile's 2.4% — at which point
+furnishing a room properly barely matters either. Somewhere around 1.5 to 2.0 is the sweet spot, and
+the balance pass is where it gets picked against real fixtures.
+
+Note the property that makes this knob safe to tune: raising the exponent lowers the magnitude
+everywhere strictly between the two endpoints and moves neither endpoint. The pile is still worth
+`entryFraction`, the exceptional room is still worth `max`.
 
 Tiers survive as labels — what the report says, what `scoreToNextTier` counts towards, what the
 advancements fire on. What they stop being is the thing the buff is computed from.
 
-This is a nerf for minimal builds that currently scrape tier 1, and that is the point of rule 5. It
-is player-visible and belongs in the changelog rather than being discovered.
+This is a nerf for minimal builds that currently scrape tier 1 — at the suggested exponent, a room
+at score 21 goes from +8% to +3.6% — and that is the point of rule 6. It is player-visible and
+belongs in the changelog rather than being discovered.
 
 No new plumbing: `AwardedRoom` already persists `score` alongside `tier`, and the repeated-room
 falloff, per-archetype ceilings, config multipliers and global per-type caps all operate on
