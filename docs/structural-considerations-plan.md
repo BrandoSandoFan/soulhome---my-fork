@@ -42,13 +42,14 @@ Five rules hold the line:
    kidney and a figure-of-eight all pass. Never "the rails form a circle of radius 5".
 4. **Structure amplifies effort, it does not replace it.** Structural credit is capped as a
    proportion of the room's block-signal score, so a perfect ring of nothing is worth nothing.
-5. **No existing build loses a tier.** Tier thresholds do not move. Structure raises ceilings, not
-   floors.
+5. **A pile of blocks counts — weakly.** Understanding what a room is *made of* earns something;
+   arranging it earns the rest. No build loses a tier: thresholds only ever come down. Minimal
+   builds do lose *magnitude*, which is the intent — see "the reward has to be continuous" below.
 
 Rule 5 has a consequence worth writing down now, because it will come up during balancing: if the
-audit shows tier 3 becoming too easy once arrangement counts, the fix is to **lower the structural
-share cap**, not to raise the tier thresholds. Raising thresholds takes buffs away from builds that
-already earned them.
+audit shows the top of the range becoming too easy once arrangement counts, the fix is to **lower
+the structural share cap**, not to raise the thresholds. Raising thresholds takes buffs away from
+builds that already earned them.
 
 ## The shape of the design
 
@@ -118,6 +119,56 @@ The alternative — a multiplicative `raw × (1 + Σ weight × confidence)` term
 and density work — was considered and set aside. It composes more neatly but it makes structural
 credit invisible in the per-signal point breakdown players are shown, and legibility outranks
 elegance here.
+
+### The reward has to be continuous, or none of this is felt
+
+Two measurements against the shipped `track.json`, both of which change what this design has to do.
+
+**The buff is a three-step staircase.** `BuffCalculator` calls `BuffSpec.magnitudeAt(tier)`, which
+is `min(max, perTier x tier)` — an integer tier in, a magnitude out. The score never touches it. So
+a track scoring 21.14 and a track scoring 46.01 both give exactly +8% speed; everything from 20 to
+49.99 is flat.
+
+That is fatal here rather than merely untidy. With a staircase, moving a chair into the ring around
+the fire does *nothing* until the room happens to cross a threshold — so the feature reads as broken
+at exactly the moment a player is doing the thing it was built to reward.
+
+**A pile counts for nothing.** Eight rails in a heap score 8.49 against a tier-1 bar of 20, and even
+32 rails in a heap only reach 16.97 — a single signal role earns no diversity multiplier, so a heap
+cannot cross at any count. It only qualifies once a second *kind* of thing is added.
+
+Both are fixed by the same change, and they are coupled: lowering the entry bar is only safe once
+the reward ramps rather than jumps, or a pile qualifies and immediately collects the full first-tier
+buff. Ramp the magnitude across the archetype's own tier ladder:
+
+```
+entry     = tiers[0].minScore
+top       = tiers[last].minScore
+t         = clamp((score - entry) / (top - entry), 0, 1)
+magnitude = max * (entryFraction + (1 - entryFraction) * t)
+```
+
+`entryFraction` (suggest 0.10) is what stops qualification from meaning nothing. Then lower the
+tier-1 thresholds so a bare pile of the defining blocks lands just inside — for `track`, 20 to 8:
+
+| build | score | now | proposed |
+|---|---|---|---|
+| 8 rails in a heap | 8.49 | 0% | +2.5% |
+| 32 rails in a heap | 16.97 | 0% | +4.5% |
+| 32 rails + 8 torches | 21.14 | +8% | +5.5% |
+| a real track | 46.01 | +8% | +11.3% |
+| a well-arranged track | 80 | +16% | +19.3% |
+| an exceptional track | 100 | +24% | +24% |
+
+Tiers survive as labels — what the report says, what `scoreToNextTier` counts towards, what the
+advancements fire on. What they stop being is the thing the buff is computed from.
+
+This is a nerf for minimal builds that currently scrape tier 1, and that is the point of rule 5. It
+is player-visible and belongs in the changelog rather than being discovered.
+
+No new plumbing: `AwardedRoom` already persists `score` alongside `tier`, and the repeated-room
+falloff, per-archetype ceilings, config multipliers and global per-type caps all operate on
+magnitudes and are unaffected.
 
 ### Geometry
 
@@ -206,27 +257,30 @@ memoized for the rest of the scan.
 1. Region geometry: keep positions for structurally interesting blocks
 2. Structural form definitions: format, registry, codec, sync
 3. Structural scoring in the classifier
+4. Buff magnitude ramps with score, and a pile of blocks just barely counts *(independent of the
+   geometry work — can ship on its own)*
 
 **Phase 2 — The vocabulary**
 
-4. `soulhome:adjacency`
-5. `soulhome:ring_around` — chairs around the hearth fire
-6. `soulhome:loop` — the track is a circuit
-7. `soulhome:platform` and `soulhome:enclosure`
+5. `soulhome:adjacency`
+6. `soulhome:ring_around` — chairs around the hearth fire
+7. `soulhome:loop` — the track is a circuit
+8. `soulhome:platform` and `soulhome:enclosure`
 
 **Phase 3 — Making it real**
 
-8. Feedback UX: explaining structural hits and misses
-9. Apply forms to the shipped archetypes, and the balance pass
-10. Patchouli: document the forms from the data
+9. Feedback UX: explaining structural hits and misses
+10. Apply forms to the shipped archetypes, and the balance pass
+11. Patchouli: document the forms from the data
 
 **Phase 4 — Later**
 
-11. Block facing without widening `BlockSignature` → `soulhome:facing`
-12. `soulhome:symmetry`, `soulhome:spacing`, `soulhome:clearance`
+12. Block facing without widening `BlockSignature` → `soulhome:facing`
+13. `soulhome:symmetry`, `soulhome:spacing`, `soulhome:clearance`
 
-Phase 1 is not independently shippable — nothing changes for a player until at least one form from
-Phase 2 exists. Phase 3's feedback issue should be pulled forward the moment the first form lands
+The geometry half of Phase 1 is not independently shippable — nothing changes for a player until at
+least one form from Phase 2 exists. The reward curve is the exception: it stands on its own and is
+worth landing first, because it is what makes every later arrangement improvement actually felt. Phase 3's feedback issue should be pulled forward the moment the first form lands
 rather than saved for the end, for the same reason #12 was.
 
 ## One drift hazard to close on the way past
