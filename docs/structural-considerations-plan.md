@@ -30,7 +30,7 @@ and all of them work. Adding geometry is the single most likely way to lose that
 obvious implementation of "the track should be a circle" is to check for a circle — and then there
 is one correct track and we have quietly shipped the multiblock system the epic exists to avoid.
 
-Five rules hold the line:
+Six rules hold the line:
 
 1. **Structure is evidence, never a gate.** Structural findings may not appear in `requirements`.
    A room that has the blocks still classifies. A room that also arranges them well scores higher.
@@ -40,13 +40,16 @@ Five rules hold the line:
    review.
 3. **Shape *families*, not shapes.** "The rails form a closed circuit" — a rectangle, an oval, a
    kidney and a figure-of-eight all pass. Never "the rails form a circle of radius 5".
-4. **Structure amplifies effort, it does not replace it.** Structural credit is capped as a
+4. **Several arrangements are right.** Where a room can sensibly be built more than one way, all
+   of them score. The ice on a track can run *under* the rails, *around* them, or *inside* them,
+   and a player who picks one is not punished for not picking the others.
+5. **Structure amplifies effort, it does not replace it.** Structural credit is capped as a
    proportion of the room's block-signal score, so a perfect ring of nothing is worth nothing.
-5. **A pile of blocks counts — weakly.** Understanding what a room is *made of* earns something;
+6. **A pile of blocks counts — weakly.** Understanding what a room is *made of* earns something;
    arranging it earns the rest. No build loses a tier: thresholds only ever come down. Minimal
    builds do lose *magnitude*, which is the intent — see "the reward has to be continuous" below.
 
-Rule 5 has a consequence worth writing down now, because it will come up during balancing: if the
+Rule 6 has a consequence worth writing down now, because it will come up during balancing: if the
 audit shows the top of the range becoming too easy once arrangement counts, the fix is to **lower
 the structural share cap**, not to raise the thresholds. Raising thresholds takes buffs away from
 builds that already earned them.
@@ -54,46 +57,131 @@ builds that already earned them.
 ## The shape of the design
 
 A third kind of evidence sits alongside `signals` and `detractors`: **`structures`**, a list of
-weighted *forms*. A form is a named, parameterised, positional predicate with a graded output.
+weighted *forms*. A form declares **named elements** and a small tree of **clauses** relating them.
 
 ```json
-"structures": [
-  {
-    "form": "soulhome:loop",
-    "weight": 8.0,
-    "role": "circuit",
-    "match": { "tag": "minecraft:rails" },
-    "min_cells": 12,
-    "ideal_cells": 40
+{
+  "name": "circuit",
+  "weight": 8.0,
+  "role": "circuit",
+
+  "elements": {
+    "rails":   { "tag": "minecraft:rails" },
+    "surface": { "block": ["minecraft:ice", "minecraft:packed_ice", "minecraft:hay_block"] }
   },
-  {
-    "form": "soulhome:ring_around",
-    "weight": 6.0,
-    "role": "gathering",
-    "core": { "block": ["minecraft:campfire", "minecraft:soul_campfire", "minecraft:furnace"] },
-    "ring": { "tag": "soulhome:seating" },
-    "min_radius": 1,
-    "max_radius": 4,
-    "sectors": 8,
-    "min_sectors": 3
-  }
-]
+
+  "all": [
+    { "shape": "loop", "of": "rails", "min_cells": 12, "ideal_cells": 40, "weight": 2.0 },
+    { "any": [
+      { "relation": "above",     "of": "rails",   "to": "surface" },
+      { "relation": "surrounds", "of": "surface", "to": "rails", "max_gap": 1 },
+      { "relation": "inside",    "of": "surface", "to": "rails", "max_gap": 1 }
+    ]}
+  ]
+}
 ```
 
-The vocabulary of form *types* is closed and lives in Java; what a datapack composes out of them is
-open. This is the same relationship buff types already have: `soulhome:speed` is implemented in
-Java, and any archetype may ask for it with any magnitude. We are not building a shape scripting
-language, and a datapack naming a form that is not installed should skip that entry with a warning
-rather than invalidating the archetype — the same tolerance `BlockMatcher` already extends to
-blocks from mods that are not present.
+### Why not fixed-arity forms
+
+The first draft of this document proposed a closed vocabulary of fixed-shape forms — `loop{match}`,
+`ring_around{core, ring}`, `adjacency{match, near}` — each with its arity baked in. Two cases break
+that, and both are ordinary things players build.
+
+**Ice on a track relates to the rails in more than one way, and several are right.** The ice should
+itself form a loop; but it also makes sense as the outer ring around the rails, or the infield
+inside them, or the surface beneath them. All three are a track:
+
+```
+  the rails run on it        it rings them          it fills the infield
+
+  y=1  .......               IIIIIII                .......
+       .=====.               I=====I                .=====.
+       .=...=.               I=...=I                .=III=.
+       .=...=.               I=...=I                .=III=.
+       .=====.               I=====I                .=====.
+       .......               IIIIIII                .......
+  y=0  IIIIIII               (one layer)            (one layer)
+```
+
+`loop{match: ice}` cannot say "and it should be under or around the rails"; `adjacency` cannot say
+"in a loop".
+
+**A reading spot is a lectern, a gap, and a chair.**
+
+```
+BBBBB     bookshelves along the back wall
+.....
+..L..     the lectern
+.....     the gap - this is the part that matters
+..C..     a chair, two blocks back, facing across it
+```
+
+A radius-1 adjacency check cannot express "two to four blocks away, on an axis, with clear space
+between", and the gap is the whole point. A chair jammed against a lectern is furniture; a chair
+facing it across a gap is a place someone sits and reads.
+
+So arity has to be open, and clauses have to compose.
+
+### The vocabulary
+
+**Shape leaves**, over one element: `loop`, `platform`, `enclosure`, `line`, `cluster`.
+
+**Relation leaves**, between two: `within`, `at_range`, `above`/`beneath`, `beside`, `across`,
+`along`, `surrounds`/`inside`. Later, `facing`.
+
+**Nodes**: `any` takes the best-satisfied alternative; `all` takes a weighted **mean**, never a
+product — a product would let one unmet clause zero the form, which is gating through the back door
+and breaks the first two rules above.
+
+Nesting is capped at two levels. That is enough for every case here and it keeps clause trees
+readable, reviewable, and — the part that actually matters — diagnosable: the feedback work has to
+turn a failing clause into a sentence, and it cannot do that through arbitrary nesting.
+
+### `of` is judged, `to` is the reference
+
+Every leaf grades as **the fraction of the `of` element's cells that satisfy it**. This is the
+easiest thing in the grammar to get backwards:
+
+- `above{of: rails, to: surface}` — what fraction of the rails run on ice. A broad ice field with a
+  small loop on it scores 1.0. Correct.
+- `beneath{of: surface, to: rails}` — what fraction of the ice is under rails. The same build scores
+  0.33, because most of the ice is under nothing. Also correct, and almost never what was meant.
+
+Coverage grading is also what makes a form touch a lot of the room rather than a token corner of it:
+a relation satisfied by 2 of 40 ice blocks scores 0.05, not 1.0.
+
+### Forms relate several things, but not everything
+
+**Two to four elements**, enforced in validation. One element in isolation says much less about a
+room than the same element placed in relation to another — the whole reason `hearth` can finally
+count seating is that the seating is related to *the fire*. A single-element form is permitted,
+because a pure shape statement is sometimes exactly what is meant, but it should be the exception.
+
+More than four is a schematic, and cannot produce a diagnostic more useful than "it is wrong".
+
+### Yes, this is a small language, and here is its fence
+
+An earlier draft of this document said "we are not building a shape scripting language". A
+composable clause tree plainly is one, so the honest thing is to bound it rather than deny it:
+
+- elements are a flat map - no computed or derived sets
+- clause nesting is capped at two levels
+- leaf predicates are a closed vocabulary implemented in Java, extensible only by a mod
+- no arithmetic, no variables, no conditionals, no references between clauses
+- every leaf returns a graded confidence and a diagnostic; nothing returns a bare boolean
+
+A datapack composes; it does not compute. A datapack naming a clause type that is not installed
+skips *that clause* with a warning — inside an `any` it stops being one of the alternatives, inside
+an `all` it drops out of the mean — rather than invalidating the archetype. Same tolerance
+`BlockMatcher` already extends to blocks from mods that are not present.
 
 ### Scoring
 
-For each form entry:
-
 ```
-confidence = clamp(form.evaluate(geometry), 0, 1)
-contribution = weight × confidence
+confidence(leaf)   = the clause's own graded result, in [0,1]
+confidence(any)    = max over children
+confidence(all)    = Σ (weight_i × confidence_i) / Σ weight_i
+contribution(form) = form.weight × confidence(root)
 ```
 
 No `sqrt` curve and no cap, unlike signals — and pleasingly, neither is needed. The curve exists to
@@ -112,8 +200,10 @@ score         = max(0, raw × diversity × density)
 `signalRaw`* is the point: arrangement multiplies a real room and does nothing for an empty one.
 
 A form's `role` feeds the existing diversity multiplier, but only once its confidence clears
-`structuralRoleThreshold` (default `0.25`). Otherwise an accidental 0.02-confidence adjacency buys
+`structuralRoleThreshold` (default `0.25`). Otherwise an accidental 0.02-confidence relation buys
 a diversity bonus for free.
+
+There is no way to write a hard requirement in this grammar, and that is deliberate.
 
 The alternative — a multiplicative `raw × (1 + Σ weight × confidence)` term, matching how diversity
 and density work — was considered and set aside. It composes more neatly but it makes structural
@@ -194,19 +284,101 @@ Two things fall out of this that are easy to miss:
   signatures and change counting semantics everywhere. The right shape is a separate packed facing
   channel on `RegionGeometry`, leaving `BlockSignature` untouched — a later issue, not this one.
 
-### The v1 vocabulary
+### Worked examples
 
-| Form | Question it answers | Grading |
-|---|---|---|
-| `soulhome:adjacency` | Is A next to B? | satisfied A-cells / `ideal_pairs` |
-| `soulhome:ring_around` | Do the As surround a B? | occupied angular sectors, over `sectors` |
-| `soulhome:loop` | Do the As form a closed circuit? | closure × extent |
-| `soulhome:platform` | Do the As form a contiguous floor? | largest contiguous area / `ideal_area` |
-| `soulhome:enclosure` | Do the As ring the region's edge? | perimeter cells covered / perimeter |
+Three shipped archetypes, as they should read once the grammar lands. Each names several elements
+and relates them; none is a schematic, and in each case a different arrangement of the same idea
+scores as well.
 
-`loop` is worth spelling out, because it is where "tracks being circles" is answered without ever
-asking for a circle. Build a graph over the matched cells (8-neighbour in the horizontal plane with
-a ±1 step in Y, which is what rails physically do), then:
+**The hearth** — chairs ringing the fire, sat back from it, in a lit room:
+
+```
+.C.C.      C  seating
+C...C      F  the fire
+..F..
+C...C      eight chairs, every direction covered,
+.C.C.      each an arm's length back from the flames
+```
+
+```json
+{
+  "name": "gathering", "weight": 6.0, "role": "gathering",
+  "elements": {
+    "fire":    { "block": ["minecraft:campfire", "minecraft:soul_campfire", "minecraft:furnace"] },
+    "seating": { "tag": "soulhome:seating" },
+    "light":   { "tag": "soulhome:lighting" }
+  },
+  "all": [
+    { "relation": "surrounds", "of": "seating", "to": "fire",
+      "min_radius": 1, "max_radius": 4, "sectors": 8, "min_sectors": 3, "weight": 2.0 },
+    { "relation": "at_range", "of": "seating", "to": "fire", "min_distance": 2, "max_distance": 4 },
+    { "relation": "within", "of": "light", "to": "fire", "max_distance": 6 }
+  ]
+}
+```
+
+`at_range` is doing real work alongside `surrounds`: chairs pressed against the campfire cover all
+eight sectors just as well as chairs set back from it, and only one of those is somewhere a person
+sits. Angular coverage says *where*; range says *how close*.
+
+**The library** — the reading spot, and the reason `across` exists:
+
+```json
+{
+  "name": "reading_spot", "weight": 5.0, "role": "study",
+  "elements": {
+    "lectern": { "block": "minecraft:lectern" },
+    "seating": { "tag": "soulhome:seating" },
+    "shelves": { "tag": "minecraft:bookshelves" }
+  },
+  "all": [
+    { "relation": "across", "of": "seating", "to": "lectern",
+      "min_distance": 2, "max_distance": 4, "require_clear": true },
+    { "relation": "within", "of": "lectern", "to": "shelves", "max_distance": 3 }
+  ]
+}
+```
+
+`require_clear` walks the straight line between the two cells and checks every cell on it is
+passable. Be generous with axis alignment: a chair one cell off the lectern's axis is still a chair
+someone reads in, so grade alignment as a falloff over perpendicular offset rather than requiring
+it exactly — otherwise this becomes the fussiest clause in the set and players will hate it without
+knowing why.
+
+**The bedchamber** — four elements, three relations, no shape clause at all, because this room is
+entirely about how things sit relative to one another:
+
+```
+#####      #  wall
+#BB.#      B  bed, head against the north wall
+#...#      L  light
+#..L#      C  chest
+#C..#
+#####
+```
+
+```json
+{
+  "name": "sleeping_quarters", "weight": 5.0, "role": "rest",
+  "elements": {
+    "bed":     { "tag": "minecraft:beds" },
+    "wall":    { "tag": "soulhome:structural" },
+    "light":   { "tag": "soulhome:lighting" },
+    "storage": { "tag": "soulhome:storage" }
+  },
+  "all": [
+    { "relation": "beside", "of": "bed", "to": "wall", "weight": 2.0 },
+    { "relation": "at_range", "of": "light", "to": "bed", "min_distance": 1, "max_distance": 5 },
+    { "relation": "within", "of": "storage", "to": "bed", "max_distance": 6 }
+  ]
+}
+```
+
+### How `loop` grades
+
+Worth spelling out, because it is where "tracks being circles" is answered without ever asking for
+a circle. Build a graph over the element's cells (8-neighbour in the horizontal plane with a ±1 step
+in Y, which is what rails physically do), then:
 
 - **closure** = fraction of the largest component's cells that survive iteratively pruning every
   degree-1 cell. What is left is exactly the cells on a cycle. A closed ring is 1.0; a ring with a
@@ -215,7 +387,7 @@ a ±1 step in Y, which is what rails physically do), then:
   square is not a racetrack.
 
 A figure-of-eight scores very well, which is correct and is the sort of thing that tells you the
-grading is measuring the right property.
+grading is measuring the right property rather than an accidental proxy for it.
 
 Deferred to a later phase: `facing`, `symmetry`, `spacing`, `clearance`.
 
@@ -225,47 +397,59 @@ A structural miss is *far* more opaque than a missing block. "You need 16 booksh
 is self-solving; "your arrangement is wrong" is a dead end and would make the feature read as
 broken — the exact failure mode #12 exists to prevent.
 
-So forms do not return a number. They return a number **and a diagnostic**, computed while
-evaluating rather than reconstructed afterwards, in the same spirit as `ArchetypeScore`:
+So clauses do not return a number. They return a number **and a diagnostic**, computed while
+evaluating rather than reconstructed afterwards, in the same spirit as `ArchetypeScore`. The report
+walks the clause tree rather than the form, because "arrangement: 0.4" is not actionable and the
+clause that scored zero is:
 
 > 24 rails, but the longest closed circuit is 0 — join the two ends
 >
 > seating covers 3 of 8 directions around the campfire
+>
+> the seating rings the fire, but it is pressed right against it
 
-The Soul Lens can go further and highlight the cells involved: the gap in the loop, the empty
-sectors around the fire. `RegionHighlight` already draws region boxes, so the machinery is mostly
-there.
+Two rules fall out of the grammar. **Name the winning alternative of an `any`** — a player who ringed
+their rails in ice should be told that is what was credited, or they may "fix" the one thing that was
+working. And **say what the alternatives were when an `any` scores zero**: "the ice is not under,
+around, or inside the rails" tells a player there are three ways forward rather than one, which is
+the single most useful thing this grammar makes possible.
+
+The Soul Lens can go further and highlight the cells a *clause* reasoned about: the gap in the loop,
+the empty sectors around the fire, the bed that is not against a wall. `RegionHighlight` already
+draws region boxes, so the machinery is mostly there.
 
 ### Cost
 
 One extra filtered pass over each region to build the index. Form evaluation is linear or near-
-linear in the indexed cell count: `loop` is O(n) with pruning, `ring_around` is O(cores × ring
+linear in the indexed cell count: `loop` is O(n) with pruning, `surrounds` is O(cores × ring
 cells), `platform` a flood fill, `enclosure` a perimeter walk. All of it runs in the existing
 worker phase off the snapshot, so there are no new threading concerns.
 
 `ScanSettings` gains `maxGeometryCells` (default 8192). Past that the index is truncated and forms
 report zero **with an explicit reason surfaced to the player**, rather than silently scoring badly.
 
-Forms are value records, so a form instance shared across several archetypes — `soulhome:seating`
-around a fire is a plausible thing for two archetypes to want — is evaluated once per region and
-memoized for the rest of the scan.
+Clauses are value records, so a clause shared across several archetypes — seating surrounding a fire
+is a plausible thing for two archetypes to want — is evaluated once per region and memoized for the
+rest of the scan. Short-circuiting mostly does not help: an `any` cannot stop at the first satisfied
+child because it needs the max, and an `all` needs every child for the mean. The one real saving is
+skipping a whole form when an element resolves to zero cells, which is common and cheap to detect.
 
 ## Issue chain
 
 **Phase 1 — Foundations**
 
 1. Region geometry: keep positions for structurally interesting blocks
-2. Structural form definitions: format, registry, codec, sync
+2. Structural form grammar: elements, shapes, relations, and how they compose
 3. Structural scoring in the classifier
 4. Buff magnitude ramps with score, and a pile of blocks just barely counts *(independent of the
    geometry work — can ship on its own)*
 
 **Phase 2 — The vocabulary**
 
-5. `soulhome:adjacency`
-6. `soulhome:ring_around` — chairs around the hearth fire
-7. `soulhome:loop` — the track is a circuit
-8. `soulhome:platform` and `soulhome:enclosure`
+5. Relations: distance, direction, and clear space between
+6. `surrounds` / `inside` — chairs around the hearth fire, ice around the rails
+7. `soulhome:loop` — the track is a circuit, and the ice belongs to it
+8. Shapes: `platform`, `enclosure`, `line` and `cluster`
 
 **Phase 3 — Making it real**
 
@@ -275,8 +459,8 @@ memoized for the rest of the scan.
 
 **Phase 4 — Later**
 
-12. Block facing without widening `BlockSignature` → `soulhome:facing`
-13. `soulhome:symmetry`, `soulhome:spacing`, `soulhome:clearance`
+12. Block facing without widening `BlockSignature` → the `facing` relation
+13. `symmetry`, `spacing`, `clearance`
 
 The geometry half of Phase 1 is not independently shippable — nothing changes for a player until at
 least one form from Phase 2 exists. The reward curve is the exception: it stands on its own and is
@@ -287,11 +471,11 @@ rather than saved for the end, for the same reason #12 was.
 
 `ArchetypeCodecs` (DataFixerUpper, production) and `ArchetypeJsonReader` (Gson, tests) already
 parse the same file format twice, by hand, and the test reader's own comment admits it "deliberately
-mirrors" the production codec. Adding per-form parameter schemas doubles the surface on which those
-two can drift.
+mirrors" the production codec. Per-clause parameter schemas multiply the surface those two can drift across, and there
+will be a dozen clause types.
 
-Recommended: declare each form's parameters **once**, in `core`, as a small declarative spec — name,
+Recommended: declare each clause's parameters **once**, in `core`, as a small declarative spec — name,
 type, default — and have both parsers read that spec generically into a neutral parameter bag that
-`core` turns into a typed form. It is more work upfront than writing a `MapCodec` per form and a
-Gson mirror per form, and it is the version where a new form cannot be added to one parser and
+`core` turns into a typed clause. It is more work upfront than writing a `MapCodec` per clause and a
+Gson mirror per clause, and it is the version where a new clause cannot be added to one parser and
 forgotten in the other.
