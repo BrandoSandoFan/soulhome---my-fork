@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -153,18 +154,21 @@ class ArchetypeClassifierTest
         SoulRegion study = onlyRegion(library());
         SoulRegion box = onlyRegion(bookshelfBox());
 
-        double studyScore = classifier.score(study, libraryArchetype).score();
-        double boxScore = classifier.score(box, libraryArchetype).score();
+        ArchetypeScore studyScore = classifier.score(study, libraryArchetype);
+        ArchetypeScore boxScore = classifier.score(box, libraryArchetype);
 
         assertTrue(box.allBlocks().count(BlockMatcher.ofTags("minecraft:bookshelves"))
                         > study.allBlocks().count(BlockMatcher.ofTags("minecraft:bookshelves")) * 4,
                 "the box really does contain far more bookshelves");
 
-        assertTrue(studyScore > boxScore,
-                "variety must beat volume: study scored " + studyScore + ", box scored " + boxScore);
+        assertTrue(studyScore.score() > boxScore.score(),
+                "variety must beat volume: study scored " + studyScore.score() + ", box scored " + boxScore.score());
 
-        assertEquals(ClassificationResult.Status.UNCLASSIFIED, classifier.classify(box).status(),
-                "and the box should not qualify as anything at all");
+        // #38 lowered the tier-1 bar so a bare pile of the defining blocks counts weakly, and a
+        // wall of bookshelves with nothing else is exactly that kind of pile in a different shape -
+        // it should just barely qualify rather than being shut out entirely
+        assertEquals(ClassificationResult.Status.CLASSIFIED, classifier.classify(box).status());
+        assertEquals(1, boxScore.tier(), "a pile of bookshelves alone should not reach past tier 1");
     }
 
     @Test
@@ -336,6 +340,64 @@ class ArchetypeClassifierTest
 
         assertEquals(0d, mineScore.score(), 1e-9);
         assertFalse(mineScore.failedRequirements().isEmpty(), "and it should say which gate it failed");
+    }
+
+    @Test
+    @DisplayName("a bare pile of each archetype's defining blocks qualifies weakly, not fully")
+    void pileOfDefiningBlocksQualifiesWeakly()
+    {
+        // #38: lowering the tier-1 bar is only safe once a pile is worth little - this is the
+        // "worth little" half of that, measured against the shipped definitions rather than
+        // asserted in the abstract. One representative, single-tag block per archetype, so the
+        // pile cannot accidentally pick up credit from a second signal.
+        Map<String, TestBlocks.TestBlock> definingBlock = Map.ofEntries(
+                Map.entry("soulhome:alchemy_lab", TestBlocks.BREWING_STAND),
+                Map.entry("soulhome:armoury", TestBlocks.GRINDSTONE),
+                Map.entry("soulhome:bedchamber", TestBlocks.BED),
+                Map.entry("soulhome:enchanting_room", TestBlocks.ENCHANTING_TABLE),
+                Map.entry("soulhome:farm", TestBlocks.WHEAT),
+                Map.entry("soulhome:hearth", TestBlocks.FURNACE),
+                Map.entry("soulhome:library", TestBlocks.BOOKSHELF),
+                Map.entry("soulhome:mine", TestBlocks.ORE),
+                Map.entry("soulhome:track", TestBlocks.RAIL),
+                Map.entry("soulhome:training_yard", TestBlocks.SLIME_BLOCK));
+
+        for (ArchetypeDefinition archetype : shipped)
+        {
+            TestBlocks.TestBlock block = definingBlock.get(archetype.id());
+            assertNotNull(block, archetype.id() + " needs a defining-block fixture for this test");
+            assertFalse(archetype.requirements().isEmpty(), archetype.id() + " should gate on something");
+
+            ArchetypeDefinition.Requirement requirement = archetype.requirements().get(0);
+            assertTrue(requirement.match().test(block),
+                    archetype.id() + "'s pile block should satisfy its own requirement");
+
+            BlockCounts.Builder pile = BlockCounts.builder();
+            pile.add(block, requirement.minCount());
+
+            SoulRegion region = SoulRegion.create(
+                    archetype.regionTypes().get(0),
+                    new RegionBounds(0, 0, 0, 4, 4, 4),
+                    BlockCounts.empty(),
+                    pile.build(),
+                    archetype.minVolume());
+
+            ArchetypeScore score = classifier.score(region, archetype);
+
+            assertTrue(score.qualifies(), archetype.id() + ": a pile of " + requirement.minCount() + " "
+                    + block.id() + " should just barely qualify, scored " + score.score());
+
+            AwardedRoom room = new AwardedRoom(archetype.id(), score.tier(), score.score());
+            BuffBreakdown breakdown = BuffCalculator.explain(List.of(room), List.of(archetype), BuffSettings.DEFAULTS);
+
+            for (ArchetypeDefinition.BuffSpec buff : archetype.buffs())
+            {
+                double granted = breakdown.totals().magnitude(buff.type());
+                assertTrue(granted < buff.max() * 0.2d,
+                        archetype.id() + "'s " + buff.type() + " should stay under a fifth of its ceiling for a "
+                                + "bare pile, got " + granted + " of " + buff.max());
+            }
+        }
     }
 
     // endregion

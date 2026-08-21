@@ -147,13 +147,13 @@ public final class BuffCalculator
         for (int room = 0; room < contributing; room++)
         {
             final double falloff = Math.pow(settings.repeatedRoomFalloff(), room);
-            final int tier = awarded.get(room).tier();
+            final double score = awarded.get(room).score();
 
-            bestTier = Math.max(bestTier, tier);
+            bestTier = Math.max(bestTier, awarded.get(room).tier());
 
             for (ArchetypeDefinition.BuffSpec spec : archetype.buffs())
             {
-                subtotals.merge(spec.type(), spec.magnitudeAt(tier) * falloff, Double::sum);
+                subtotals.merge(spec.type(), spec.magnitudeAt(score, archetype, settings) * falloff, Double::sum);
                 ceilings.merge(spec.type(), spec.max(), Math::min);
             }
         }

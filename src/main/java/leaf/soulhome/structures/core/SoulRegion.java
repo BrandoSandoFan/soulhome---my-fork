@@ -4,6 +4,9 @@
 
 package leaf.soulhome.structures.core;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,8 +25,11 @@ import java.util.Map;
  *                     once per archetype
  * @param volume       interior cell count for an enclosed room, bounding-box volume for an open
  *                     cluster. Drives the density term in scoring.
- * @param identityHash a stable digest of the region's shape and contents, so an unchanged
- *                     soulhome can skip rescanning
+ * @param geometry     positions of the structurally-interesting blocks in this region, for forms
+ *                     that reason about arrangement rather than just counts. {@link RegionGeometry#EMPTY}
+ *                     when nothing asked for one.
+ * @param identityHash a stable digest of the region's shape, contents and geometry, so an
+ *                     unchanged soulhome can skip rescanning
  */
 public record SoulRegion(
         RegionType type,
@@ -32,14 +38,27 @@ public record SoulRegion(
         BlockCounts contents,
         BlockCounts allBlocks,
         int volume,
+        RegionGeometry geometry,
         long identityHash)
 {
+    /** The common case: no geometry indexed, as if the region were scanned with no form filter. */
     public static SoulRegion create(
             RegionType type,
             RegionBounds bounds,
             BlockCounts boundary,
             BlockCounts contents,
             int volume)
+    {
+        return create(type, bounds, boundary, contents, volume, RegionGeometry.EMPTY);
+    }
+
+    public static SoulRegion create(
+            RegionType type,
+            RegionBounds bounds,
+            BlockCounts boundary,
+            BlockCounts contents,
+            int volume,
+            RegionGeometry geometry)
     {
         BlockCounts combined = boundary.plus(contents);
         return new SoulRegion(
@@ -49,14 +68,15 @@ public record SoulRegion(
                 contents,
                 combined,
                 volume,
-                computeIdentityHash(type, bounds, combined));
+                geometry,
+                computeIdentityHash(type, bounds, combined, geometry));
     }
 
     /**
-     * Order-independent digest of what this region is made of. Two scans of an untouched build
-     * must agree, and any block placed or broken inside it must not.
+     * Order-independent digest of what this region is made of and how it is arranged. Two scans of
+     * an untouched build must agree, and any block placed or broken - or moved - inside it must not.
      */
-    private static long computeIdentityHash(RegionType type, RegionBounds bounds, BlockCounts blocks)
+    private static long computeIdentityHash(RegionType type, RegionBounds bounds, BlockCounts blocks, RegionGeometry geometry)
     {
         long hash = 1125899906842597L;
 
@@ -74,6 +94,24 @@ public record SoulRegion(
             hash = hash * 31 + entry.getKey().id().hashCode();
             hash = hash * 31 + entry.getValue();
         }
+
+        // sorted by position: sliding a chair across the room must change the hash even though it
+        // changes no count, or a positionally-scored soulhome would never be seen to have changed
+        List<RegionGeometry.Cell> cells = new ArrayList<>(geometry.cells());
+        cells.sort(Comparator
+                .comparingInt(RegionGeometry.Cell::x)
+                .thenComparingInt(RegionGeometry.Cell::y)
+                .thenComparingInt(RegionGeometry.Cell::z));
+
+        for (RegionGeometry.Cell cell : cells)
+        {
+            hash = hash * 31 + cell.x();
+            hash = hash * 31 + cell.y();
+            hash = hash * 31 + cell.z();
+            hash = hash * 31 + cell.signature().id().hashCode();
+        }
+
+        hash = hash * 31 + (geometry.isTruncated() ? 1 : 0);
 
         return hash;
     }

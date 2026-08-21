@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)fire aspect, growing with the tier, up to +6.$(p)Tiers begin at a score of 20."
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)fire aspect, growing with the tier, up to +6.$(p)Tiers begin at a score of 6."
     },
     {
       "type": "text",

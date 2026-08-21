@@ -36,6 +36,12 @@ counts for more than volume: a hundred bookshelves in a box is not a library.
   its pages cannot drift from what the game actually does.
 - Everything is tunable in the server config: a master switch, per-archetype multipliers,
   per-buff-type ceilings, diminishing returns on repeated rooms, scan limits and scan timing.
+- Buff magnitude now ramps smoothly with a room's score instead of jumping at each tier boundary,
+  so improving an already-qualifying room is felt immediately rather than only once it crosses the
+  next threshold. A bare pile of an archetype's defining blocks now earns a small buff instead of
+  nothing - but this comes at the cost of the flat tier buff a minimal build used to get in full:
+  a room that only just scraped tier 1 is worth noticeably less than before, and a well-arranged
+  room is worth more of its archetype's ceiling than it used to be.
 
 Buffs are earned in the soul and spent in the world. They survive death, dimension changes and
 relogs, and a visitor to someone else's soul keeps their own.
