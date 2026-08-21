@@ -24,6 +24,9 @@ import net.minecraft.server.level.ServerPlayer;
  * <p>Buffs are earned in the soul and spent in the world, which means the place a player is
  * standing when they wonder about them is almost never the place that explains them. This answers
  * from anywhere, without a scan: it reads the soulhome's last saved results.
+ *
+ * <p>And re-applies them on the way past, so that what this prints is what the player is carrying
+ * rather than merely what they ought to be.
  */
 public class BuffsCommand
 {
@@ -46,6 +49,12 @@ public class BuffsCommand
                     .withStyle(ChatFormatting.RED));
             return 0;
         }
+
+        // Re-assert before reporting. This reads the soulhome's saved rooms and hands the player
+        // what they compute to, which is the same input the report below is built from - so the
+        // two cannot disagree, and a player whose buffs have somehow come adrift from their rooms
+        // gets them back by asking about them. No scan: this touches no blocks.
+        StructureScanService.refresh(player);
 
         for (Component line : SoulReport.buffs(StructureScanService.explainBuffs(player)))
         {

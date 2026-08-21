@@ -44,6 +44,18 @@ Soul room fixes
 
 Rooms that classified correctly and then did nothing.
 
+- Buffs no longer stop working the moment you walk into your soulhome. The capability holding
+  them was thrown away for good on the first dimension change of a session - Forge invalidates a
+  removed player's capabilities and revives them again on arrival, but a discarded LazyOptional
+  cannot be revived, and this one was created once and never replaced. So entering your soul,
+  which is a dimension change and the whole point of the mod, permanently severed the buffs from
+  the player for the rest of that session: nothing could read them and nothing could write them.
+  Meanwhile the Soul Lens and `/soulhome buffs` read the soulhome's own saved results and went on
+  reporting the room as working perfectly, which is why this looked like a buff that did nothing
+  rather than a buff that was not there. The holder is remade on demand now.
+- `/soulhome buffs` re-applies your buffs before reporting them, so what it prints is what you are
+  carrying rather than what you ought to be - and so this class of fault has a one-command
+  recovery instead of being invisible.
 - Buffs no longer vanish when you leave your soulhome. A soul dimension keeps none of its own
   chunks loaded, so the rescan on the way out usually arrived to find an unloaded - and therefore
   apparently empty - dimension, and recorded that: every room you had just built, erased about a
