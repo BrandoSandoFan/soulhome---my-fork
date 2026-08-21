@@ -39,3 +39,30 @@ counts for more than volume: a hundred bookshelves in a box is not a library.
 
 Buffs are earned in the soul and spent in the world. They survive death, dimension changes and
 relogs, and a visitor to someone else's soul keeps their own.
+
+Soul room fixes
+
+Rooms that classified correctly and then did nothing.
+
+- Buffs no longer vanish when you leave your soulhome. A soul dimension keeps none of its own
+  chunks loaded, so the rescan on the way out usually arrived to find an unloaded - and therefore
+  apparently empty - dimension, and recorded that: every room you had just built, erased about a
+  second after you walked out of it. Leaving now reads the level on the spot, while it is still
+  there to read, and a scan that cannot see a soulhome leaves its last known rooms alone instead
+  of clearing them. The same fault emptied every soulhome on server start, so buffs also survive a
+  restart now.
+- `soulhome:double_jump` works outside a development workspace. It reads whether the jump key is
+  held from a field whose name differs between source and an installed jar; the reflective lookup
+  was written against the source name, so in a real install it failed at startup, logged one
+  warning and never granted a jump again. It goes through a mixin accessor now, which the build
+  remaps for us.
+- `soulhome:mining_speed` applies on the client as well as the server, as it always intended to.
+  Break speed is predicted client-side, and the client was reading a copy of your buffs that is
+  only ever filled in on the server - so it predicted vanilla speed and the server's confirmation
+  was the only half that ever changed.
+- A soulhome larger than the configured scan limit no longer fails every scan after copying itself
+  into memory first. The limit is checked before the copy, and its owner keeps the buffs from the
+  last scan that did fit.
+- Your buffs are re-applied after every scan of your soulhome rather than only after one that
+  changed something, so what `/soulhome buffs` says you have earned and what you are actually
+  carrying cannot drift apart.

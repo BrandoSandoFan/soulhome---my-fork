@@ -121,7 +121,9 @@ public class SoulHomeBuffData extends SavedData
     /**
      * Record a completed scan.
      *
-     * @return whether anything changed, and so whether buffs need pushing again
+     * @return whether anything changed, and so whether this needs writing to disk. Deliberately
+     *         not the question "do buffs need pushing": a player's buffs can be wrong while these
+     *         results are right, and skipping the push on an unchanged scan is how they stay wrong
      */
     public boolean update(List<AwardedRoom> rooms, long contentHash)
     {

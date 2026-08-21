@@ -5,17 +5,15 @@
 package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulBuffEffect;
+import leaf.soulhome.mixin.LivingEntityAccessor;
 import leaf.soulhome.structures.core.SoulBuffTypes;
-import leaf.soulhome.utils.LogHelper;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,13 +28,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * Whether the jump key is currently held is not exposed publicly anywhere on {@link LivingEntity}
  * - it is the same field vanilla's own ground-jump logic reads, kept {@code protected} because
  * nothing outside the entity was ever meant to need it. A jump granted mid-air is exactly that
- * "outside" case Forge does not build a public hook for, so this reads it via
- * {@link ObfuscationReflectionHelper} - the standard Forge tool for exactly this situation -
- * rather than duplicating input handling with a bespoke network packet.
+ * "outside" case Forge does not build a public hook for, so this reads the field through
+ * {@link LivingEntityAccessor} rather than duplicating input handling with a bespoke network
+ * packet.
  *
- * <p>If a future mapping ever renames the field, this fails soft: {@link #resolveJumpingField}
- * logs one warning at startup and every tick after simply does nothing, rather than crashing the
- * server the first time someone stands in a training yard.
+ * <p>A mixin accessor and not reflection, deliberately. The field is named one thing in this
+ * source tree and another in an installed jar, so a reflective lookup has to be handed the
+ * obfuscated name; one written against the readable name resolves in a development workspace,
+ * fails in every real install, and reports it as a single warning at startup that nobody sees.
+ * The mixin annotation processor does the renaming, so there is nothing to keep in step by hand.
  */
 public class DoubleJumpEffect implements SoulBuffEffect
 {
@@ -44,8 +44,6 @@ public class DoubleJumpEffect implements SoulBuffEffect
 
     /** Vanilla's own jump impulse; matched here rather than invented so the hop feels native. */
     private static final double JUMP_VELOCITY = 0.5d;
-
-    private static final Field JUMPING_FIELD = resolveJumpingField();
 
     private final Map<UUID, AirState> airborne = new ConcurrentHashMap<>();
 
@@ -64,7 +62,7 @@ public class DoubleJumpEffect implements SoulBuffEffect
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event)
     {
-        if (JUMPING_FIELD == null || event.phase != TickEvent.Phase.END || event.side.isClient())
+        if (event.phase != TickEvent.Phase.END || event.side.isClient())
         {
             return;
         }
@@ -111,29 +109,7 @@ public class DoubleJumpEffect implements SoulBuffEffect
 
     private static boolean isJumping(Player player)
     {
-        try
-        {
-            return JUMPING_FIELD.getBoolean(player);
-        }
-        catch (IllegalAccessException e)
-        {
-            return false;
-        }
-    }
-
-    private static Field resolveJumpingField()
-    {
-        try
-        {
-            Field field = ObfuscationReflectionHelper.findField(LivingEntity.class, "jumping");
-            field.setAccessible(true);
-            return field;
-        }
-        catch (RuntimeException e)
-        {
-            LogHelper.warn("Could not find LivingEntity#jumping; soulhome:double_jump will never trigger: " + e);
-            return null;
-        }
+        return ((LivingEntityAccessor) player).getJumping();
     }
 
     /** Per-player state for the current time in the air. Reset the instant they land. */

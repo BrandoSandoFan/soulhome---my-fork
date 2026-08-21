@@ -4,12 +4,12 @@
 
 package leaf.soulhome.items;
 
+import leaf.soulhome.buffs.ClientSoulBuffs;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.feedback.RegionHighlight;
 import leaf.soulhome.feedback.SoulReport;
 import leaf.soulhome.network.Network;
-import leaf.soulhome.network.SyncSoulBuffsMessage;
 import leaf.soulhome.network.SyncSoulRegionsMessage;
 import leaf.soulhome.properties.PropTypes;
 import leaf.soulhome.structures.SoulAnalysis;
@@ -75,7 +75,7 @@ public class SoulLensItem extends BaseItem
                 .withStyle(ChatFormatting.GRAY));
 
         //the client's own copy, kept up to date by the server; display only
-        tooltip.addAll(SoulReport.buffSummary(SyncSoulBuffsMessage.ClientSoulBuffs.get()));
+        tooltip.addAll(SoulReport.buffSummary(ClientSoulBuffs.get()));
     }
 
     @Nonnull

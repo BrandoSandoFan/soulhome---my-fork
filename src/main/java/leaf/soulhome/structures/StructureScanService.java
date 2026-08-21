@@ -42,15 +42,22 @@ import java.util.function.Consumer;
  * <ul>
  *   <li>a block placed or broken inside a soul dimension, debounced so that building a wall costs
  *       one scan rather than one per block</li>
- *   <li>a player leaving their soulhome - the natural moment to say "here is what you built", and
- *       so it skips the debounce</li>
- *   <li>a soul dimension loading, for a soulhome edited in a previous session</li>
+ *   <li>a player leaving their soulhome - the natural moment to say "here is what you built", so
+ *       it skips the debounce entirely and reads the level on the spot</li>
+ *   <li>a player arriving in one, for a soulhome whose definitions changed between sessions</li>
  *   <li>a player asking, through {@code /soulhome analyse} or the Soul Lens</li>
  * </ul>
  *
  * <p>The work is split across threads by what is safe where. The level is read once on the server
  * thread into a {@link SnapshotBlockVolume}; detection and classification then run on a worker;
  * the results are applied back on the server thread. Nothing touches a live level off-thread.
+ *
+ * <h2>A scan that cannot see is not a scan that found nothing</h2>
+ *
+ * A soul dimension keeps none of its own chunks loaded, so most of the time there is nothing
+ * there to read. Only {@link SnapshotBlockVolume.Capture.Outcome#EMPTY} - loaded, and genuinely
+ * bare - may clear what a soulhome was last found to hold. Every other way a snapshot can fail
+ * leaves the saved results exactly as they were.
  *
  * <p>All server-thread state - the debouncer, the analysis cache, the waiting callbacks - is
  * touched only from {@link #onServerTick} and the handlers that feed it.
@@ -87,6 +94,40 @@ public final class StructureScanService
     public static void requestNow(Level level)
     {
         soulLevel(level).ifPresent(soulhome -> debouncer.requestNow(soulhome.dimension(), now()));
+    }
+
+    /**
+     * Read this soulhome <i>right now</i>, on this thread, rather than on a later tick.
+     *
+     * <p>For the one moment where the difference matters: a player leaving their soulhome is the
+     * last instant its chunks are certain to still be loaded. Nothing keeps a soul dimension
+     * loaded once its owner has gone, so a scan deferred even to the next tick can arrive to find
+     * an empty dimension - and "here is what you built" is exactly the moment this feature cannot
+     * afford to get wrong.
+     *
+     * <p>Only the snapshot is taken here; detection and classification still run on a worker.
+     */
+    public static void scanNow(Level level)
+    {
+        soulLevel(level).ifPresent(soulhome ->
+        {
+            final MinecraftServer server = soulhome.getServer();
+            final ResourceKey<Level> key = soulhome.dimension();
+
+            if (server == null)
+            {
+                return;
+            }
+
+            if (!debouncer.claim(key))
+            {
+                // a scan is already running; edits it may have missed are picked up by the next one
+                debouncer.requestNow(key, now());
+                return;
+            }
+
+            beginScan(server, soulhome);
+        });
     }
 
     /** A soul dimension unloaded; stop tracking it. */
@@ -192,11 +233,11 @@ public final class StructureScanService
             return;
         }
 
-        final Optional<SnapshotBlockVolume> snapshot;
+        final SnapshotBlockVolume.Capture capture;
 
         try
         {
-            snapshot = SnapshotBlockVolume.capture(level);
+            capture = SnapshotBlockVolume.capture(level, SoulHomeConfig.scanSettings());
         }
         catch (RuntimeException e)
         {
@@ -206,7 +247,7 @@ public final class StructureScanService
             return;
         }
 
-        if (snapshot.isEmpty())
+        if (capture.outcome() == SnapshotBlockVolume.Capture.Outcome.EMPTY)
         {
             // an untouched soulhome holds nothing worth scanning
             applyResults(server, key, List.of(), 0L);
@@ -215,7 +256,18 @@ public final class StructureScanService
             return;
         }
 
-        final SnapshotBlockVolume volume = snapshot.get();
+        if (capture.outcome() != SnapshotBlockVolume.Capture.Outcome.CAPTURED)
+        {
+            // Unreadable or too large: the scan learned nothing, which is not the same as learning
+            // that the soulhome is empty. Recording it as empty here is how a player who walked
+            // out of a soulhome they had just finished building lost every buff they had earned -
+            // the level unloads the moment they leave, and an unloaded dimension reads as bare.
+            debouncer.release(key);
+            deliver(key, currentOrEmpty(key));
+            return;
+        }
+
+        final SnapshotBlockVolume volume = capture.volume();
 
         Util.backgroundExecutor().execute(() ->
         {
@@ -291,11 +343,13 @@ public final class StructureScanService
             return;
         }
 
-        if (!SoulHomeBuffData.get(level).update(awarded, contentHash))
-        {
-            return;
-        }
+        SoulHomeBuffData.get(level).update(awarded, contentHash);
 
+        // Pushed on every completed scan, not only when the saved results changed. A soulhome
+        // whose rooms are unchanged can still have an owner whose buffs are not: what a player is
+        // carrying and what their soulhome says they earned drifting apart is the one failure this
+        // feature cannot explain to them, since /soulhome buffs reads the saved side. Costs
+        // nothing to rule out - SoulBuffs.set is already a no-op when nothing is different.
         DimensionHelper.soulOwner(level).ifPresent(owner -> pushBuffs(server, owner, awarded));
     }
 
