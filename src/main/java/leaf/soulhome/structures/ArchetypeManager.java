@@ -14,6 +14,7 @@ import leaf.soulhome.structures.core.ArchetypeClassifier;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.ArchetypeSignals;
 import leaf.soulhome.structures.core.BlockSignature;
+import leaf.soulhome.structures.core.RegionGeometry;
 import leaf.soulhome.utils.LogHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -67,6 +68,12 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
     public static Predicate<BlockSignature> signalFilter()
     {
         return loaded.signalFilter();
+    }
+
+    /** Which blocks {@code RegionScanner} should keep positions for - see {@link RegionGeometry}. */
+    public static Predicate<BlockSignature> geometryFilter()
+    {
+        return loaded.geometryFilter();
     }
 
     /**
@@ -124,6 +131,12 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
             }
 
             warnAboutUnknownBuffs(definition);
+
+            for (String warning : definition.validationWarnings())
+            {
+                LogHelper.warn("Soulhome archetype " + id + ": " + warning);
+            }
+
             accepted.put(id, definition);
         }
 
@@ -178,7 +191,8 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
     private record Loaded(
             List<ArchetypeDefinition> archetypes,
             ArchetypeClassifier classifier,
-            Predicate<BlockSignature> signalFilter)
+            Predicate<BlockSignature> signalFilter,
+            Predicate<BlockSignature> geometryFilter)
     {
         private static final Loaded EMPTY = of(List.of());
 
@@ -188,7 +202,8 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
             return new Loaded(
                     frozen,
                     new ArchetypeClassifier(frozen, SoulHomeConfig.scoringSettings()),
-                    ArchetypeSignals.filterFor(frozen));
+                    ArchetypeSignals.filterFor(frozen),
+                    ArchetypeSignals.geometryFilterFor(frozen));
         }
     }
 }

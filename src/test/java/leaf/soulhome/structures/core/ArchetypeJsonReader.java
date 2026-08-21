@@ -14,8 +14,13 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Reads archetype JSON with Gson, so tests can be run against the definitions the mod actually
@@ -87,6 +92,17 @@ public final class ArchetypeJsonReader
 
     public static ArchetypeDefinition read(JsonObject json)
     {
+        return read(json, FormClauseRegistry.BUILTIN);
+    }
+
+    /**
+     * @param registry which {@code shape}/{@code relation} clause types {@code structures} may
+     *                 resolve against. Tests exercising the grammar's own plumbing pass their own
+     *                 registry with fake types registered; {@link #shipped()} uses
+     *                 {@link FormClauseRegistry#BUILTIN}, exactly as the production loader does.
+     */
+    public static ArchetypeDefinition read(JsonObject json, FormClauseRegistry registry)
+    {
         List<RegionType> regionTypes = new ArrayList<>();
 
         for (String name : stringList(json, "region_types"))
@@ -104,7 +120,8 @@ public final class ArchetypeJsonReader
                 readSignals(json, "signals"),
                 readSignals(json, "detractors"),
                 readTiers(json),
-                readBuffs(json));
+                readBuffs(json),
+                readStructures(json, registry));
     }
 
     private static List<ArchetypeDefinition.Requirement> readRequirements(JsonObject json)
@@ -174,6 +191,164 @@ public final class ArchetypeJsonReader
     {
         return new BlockMatcher(stringList(json, "block"), stringList(json, "tag"));
     }
+
+    // region structural forms - mirrors the shape/relation/all/any dispatch in the production
+    // codec (structures.FormCodecs), reading the same ClauseParamSpec each FormClauseType declares
+
+    private static List<Form> readStructures(JsonObject json, FormClauseRegistry registry)
+    {
+        List<Form> forms = new ArrayList<>();
+
+        for (JsonElement element : array(json, "structures"))
+        {
+            Form form = readForm(element.getAsJsonObject(), registry);
+
+            if (form != null)
+            {
+                forms.add(form);
+            }
+        }
+
+        return forms;
+    }
+
+    /** {@code null} means the form's clause tree resolved to nothing and the whole form is dropped. */
+    public static Form readForm(JsonObject json, FormClauseRegistry registry)
+    {
+        String name = json.has("name") ? json.get("name").getAsString() : null;
+        double weight = json.has("weight") ? json.get("weight").getAsDouble() : 1.0;
+        String role = json.has("role") ? json.get("role").getAsString() : null;
+
+        Map<String, BlockMatcher> elements = new LinkedHashMap<>();
+
+        if (json.has("elements"))
+        {
+            for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("elements").entrySet())
+            {
+                elements.put(entry.getKey(), readMatcher(entry.getValue().getAsJsonObject()));
+            }
+        }
+
+        Set<String> referenced = new LinkedHashSet<>();
+        FormClause root = readClauseBody(json, registry, referenced);
+
+        if (root == null || root instanceof UnknownClause)
+        {
+            return null;
+        }
+
+        return new Form(name, weight, role, elements, root, referenced);
+    }
+
+    /**
+     * Reads whichever of {@code shape}/{@code relation}/{@code all}/{@code any} the object carries.
+     * {@code null} means none of those keys were present at all - a structurally empty clause
+     * object. A recognised-but-unresolvable clause comes back as {@link UnknownClause} instead, so
+     * a caller can tell "nothing here" apart from "something here that did not work out".
+     */
+    private static FormClause readClauseBody(JsonObject json, FormClauseRegistry registry, Set<String> referencedOut)
+    {
+        if (json.has("shape"))
+        {
+            return readLeaf(json, "shape", FormClauseType.Kind.SHAPE, registry, referencedOut);
+        }
+
+        if (json.has("relation"))
+        {
+            return readLeaf(json, "relation", FormClauseType.Kind.RELATION, registry, referencedOut);
+        }
+
+        if (json.has("all"))
+        {
+            return readComposite(json.getAsJsonArray("all"), registry, referencedOut, true);
+        }
+
+        if (json.has("any"))
+        {
+            return readComposite(json.getAsJsonArray("any"), registry, referencedOut, false);
+        }
+
+        return null;
+    }
+
+    private static FormClause readComposite(JsonArray array, FormClauseRegistry registry, Set<String> referencedOut, boolean all)
+    {
+        List<WeightedClause> children = new ArrayList<>();
+
+        for (JsonElement entry : array)
+        {
+            JsonObject entryJson = entry.getAsJsonObject();
+            double weight = entryJson.has("weight") ? entryJson.get("weight").getAsDouble() : 1.0;
+            FormClause clause = readClauseBody(entryJson, registry, referencedOut);
+
+            if (clause != null && !(clause instanceof UnknownClause))
+            {
+                children.add(new WeightedClause(weight, clause));
+            }
+        }
+
+        if (children.isEmpty())
+        {
+            return null;
+        }
+
+        return all ? new AllClause(children) : new AnyClause(children);
+    }
+
+    private static FormClause readLeaf(
+            JsonObject json, String field, FormClauseType.Kind kind, FormClauseRegistry registry, Set<String> referencedOut)
+    {
+        String id = json.get(field).getAsString().toLowerCase(Locale.ROOT);
+        Optional<FormClauseType> type = registry.get(kind, id);
+
+        if (type.isEmpty())
+        {
+            return new UnknownClause(id);
+        }
+
+        try
+        {
+            ClauseParams.Builder params = ClauseParams.builder();
+
+            for (ClauseParamSpec spec : type.get().params())
+            {
+                if (!json.has(spec.name()))
+                {
+                    if (spec.required())
+                    {
+                        return new UnknownClause(id);
+                    }
+
+                    params.put(spec.name(), spec.defaultValue());
+                    continue;
+                }
+
+                JsonElement raw = json.get(spec.name());
+
+                Object value = switch (spec.type())
+                {
+                    case DOUBLE -> raw.getAsDouble();
+                    case INT -> raw.getAsInt();
+                    case STRING, ELEMENT -> raw.getAsString();
+                };
+
+                params.put(spec.name(), value);
+
+                if (spec.type() == ClauseParamSpec.Type.ELEMENT)
+                {
+                    referencedOut.add((String) value);
+                }
+            }
+
+            return type.get().create(params.build());
+        }
+        catch (RuntimeException exception)
+        {
+            return new UnknownClause(id);
+        }
+    }
+
+    // endregion
 
     /** Accepts a bare string or an array of strings, exactly as the production codec does. */
     private static List<String> stringList(JsonObject json, String field)

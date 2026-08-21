@@ -277,7 +277,8 @@ public final class StructureScanService
             try
             {
                 List<SoulRegion> regions = RegionScanner.scan(
-                        volume, ArchetypeManager.signalFilter(), SoulHomeConfig.scanSettings());
+                        volume, ArchetypeManager.signalFilter(), ArchetypeManager.geometryFilter(),
+                        SoulHomeConfig.scanSettings());
 
                 contentHash = SoulHomeBuffData.hashOf(regions);
 

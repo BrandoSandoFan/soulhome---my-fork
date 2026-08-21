@@ -328,7 +328,8 @@ class BuffCalculatorTest
                 List.of(),
                 List.of(new ArchetypeDefinition.Tier(0d, 1), new ArchetypeDefinition.Tier(100d, 3)),
                 // perTier is no longer read by magnitudeAt - see ArchetypeDefinition.BuffSpec
-                List.of(new ArchetypeDefinition.BuffSpec(buffType, 0d, max)));
+                List.of(new ArchetypeDefinition.BuffSpec(buffType, 0d, max)),
+                List.of());
     }
 
     private static ClassificationResult awarded(String archetypeId, int tier, double score)

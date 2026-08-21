@@ -138,7 +138,8 @@ class BuffSpecTest
                 List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofTags("minecraft:bookshelves"), 1d, "core", 8)),
                 List.of(),
                 List.of(),
-                List.of(new ArchetypeDefinition.BuffSpec("soulhome:test_buff", 0d, MAX)));
+                List.of(new ArchetypeDefinition.BuffSpec("soulhome:test_buff", 0d, MAX)),
+                List.of());
 
         assertEquals(0d, noTiers.buffs().get(0).magnitudeAt(500d, noTiers, settings(0.10d, 1.5d)), 1e-9);
     }
@@ -153,7 +154,8 @@ class BuffSpecTest
                 List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofTags("minecraft:bookshelves"), 1d, "core", 8)),
                 List.of(),
                 List.of(new ArchetypeDefinition.Tier(ENTRY, 1)),
-                List.of(new ArchetypeDefinition.BuffSpec("soulhome:test_buff", 0d, MAX)));
+                List.of(new ArchetypeDefinition.BuffSpec("soulhome:test_buff", 0d, MAX)),
+                List.of());
 
         ArchetypeDefinition.BuffSpec spec = oneTier.buffs().get(0);
 
@@ -188,7 +190,8 @@ class BuffSpecTest
                         new ArchetypeDefinition.Tier(ENTRY, 1),
                         new ArchetypeDefinition.Tier(MID_TIER, 2),
                         new ArchetypeDefinition.Tier(TOP, 3)),
-                List.of(new ArchetypeDefinition.BuffSpec("soulhome:test_buff", 0d, MAX)));
+                List.of(new ArchetypeDefinition.BuffSpec("soulhome:test_buff", 0d, MAX)),
+                List.of());
     }
 
     // endregion

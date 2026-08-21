@@ -10,6 +10,8 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.BlockMatcher;
+import leaf.soulhome.structures.core.Form;
+import leaf.soulhome.structures.core.FormClauseRegistry;
 import leaf.soulhome.structures.core.RegionType;
 
 import java.util.List;
@@ -89,6 +91,14 @@ public final class ArchetypeCodecs
                                     .forGetter(ArchetypeDefinition.Tier::tier))
                     .apply(instance, ArchetypeDefinition.Tier::new));
 
+    /**
+     * Weighted structural evidence - see {@link leaf.soulhome.structures.core.Form} and the
+     * structural form grammar epic (#27). Hand-written rather than built here from
+     * {@code RecordCodecBuilder}: the clause tree it reads is recursive and dispatches on an open,
+     * datapack-facing vocabulary, neither of which {@code RecordCodecBuilder} expresses directly.
+     */
+    public static final Codec<Form> FORM = FormCodecs.forRegistry(FormClauseRegistry.BUILTIN);
+
     public static final Codec<ArchetypeDefinition.BuffSpec> BUFF_SPEC =
             RecordCodecBuilder.create(instance -> instance
                     .group(
@@ -123,11 +133,13 @@ public final class ArchetypeCodecs
                             TIER.listOf().optionalFieldOf("tiers", List.of())
                                     .forGetter(ArchetypeDefinition::tiers),
                             BUFF_SPEC.listOf().optionalFieldOf("buffs", List.of())
-                                    .forGetter(ArchetypeDefinition::buffs))
-                    .apply(instance, (displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs) ->
+                                    .forGetter(ArchetypeDefinition::buffs),
+                            FORM.listOf().optionalFieldOf("structures", List.of())
+                                    .forGetter(ArchetypeDefinition::structures))
+                    .apply(instance, (displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures) ->
                             new ArchetypeDefinition(
                                     ArchetypeDefinition.PLACEHOLDER_ID, displayName, regionTypes, minVolume,
-                                    requirements, signals, detractors, tiers, buffs)));
+                                    requirements, signals, detractors, tiers, buffs, structures)));
 
     /**
      * The over-the-wire format, which does carry the id - the client has no file paths to derive
@@ -153,7 +165,9 @@ public final class ArchetypeCodecs
                             TIER.listOf().optionalFieldOf("tiers", List.of())
                                     .forGetter(ArchetypeDefinition::tiers),
                             BUFF_SPEC.listOf().optionalFieldOf("buffs", List.of())
-                                    .forGetter(ArchetypeDefinition::buffs))
+                                    .forGetter(ArchetypeDefinition::buffs),
+                            FORM.listOf().optionalFieldOf("structures", List.of())
+                                    .forGetter(ArchetypeDefinition::structures))
                     .apply(instance, ArchetypeDefinition::new));
 
     private ArchetypeCodecs()
