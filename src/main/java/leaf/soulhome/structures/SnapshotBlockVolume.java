@@ -8,6 +8,8 @@ import leaf.soulhome.structures.core.BlockSignature;
 import leaf.soulhome.structures.core.BlockVolume;
 import leaf.soulhome.structures.core.Passability;
 import leaf.soulhome.structures.core.RegionBounds;
+import leaf.soulhome.structures.core.RegionScanner;
+import leaf.soulhome.structures.core.ScanSettings;
 import leaf.soulhome.utils.LogHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -113,11 +115,38 @@ public final class SnapshotBlockVolume implements BlockVolume
     }
 
     /**
+     * Whether any of this soulhome is loaded right now.
+     *
+     * <p>The single most important question a scan can ask, and the reason it is asked separately
+     * from {@link #populatedBounds}: an unloaded dimension and an empty one look identical to a
+     * block-by-block sweep, and recording "there is nothing here" for the first would delete
+     * everything the owner built. A soul dimension holds no chunks of its own accord - nothing
+     * keeps them loaded once its owner walks out - so this is false far more often than not.
+     */
+    public static boolean hasLoadedChunks(ServerLevel level)
+    {
+        for (int chunkX = -SEARCH_CHUNK_RADIUS; chunkX <= SEARCH_CHUNK_RADIUS; chunkX++)
+        {
+            for (int chunkZ = -SEARCH_CHUNK_RADIUS; chunkZ <= SEARCH_CHUNK_RADIUS; chunkZ++)
+            {
+                if (level.hasChunk(chunkX, chunkZ))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * The box worth scanning in this soulhome, derived from which chunk sections actually hold
      * blocks rather than from a fixed guess. A soulhome is one small island in an otherwise empty
      * 384-block-tall void; sweeping all of it would be almost entirely wasted work.
      *
-     * @return empty when the dimension holds nothing at all
+     * @return empty when the dimension holds nothing at all - which includes holding nothing
+     *         <i>loaded</i>, so callers that are about to act on "nothing" must ask
+     *         {@link #hasLoadedChunks} first
      */
     public static Optional<RegionBounds> populatedBounds(ServerLevel level)
     {
@@ -176,28 +205,73 @@ public final class SnapshotBlockVolume implements BlockVolume
     }
 
     /**
-     * Convenience for the common path: work out what to scan and copy it, or report why not.
+     * Work out what to scan and copy it, saying which of the four things happened.
+     *
+     * <p>Only one of them means "this soulhome is empty". The others are a scan that could not
+     * see, and a caller that treats them the same way erases a build it merely failed to read.
+     *
      * <b>Server thread only.</b>
      */
-    public static Optional<SnapshotBlockVolume> capture(ServerLevel level)
+    public static Capture capture(ServerLevel level, ScanSettings settings)
     {
+        if (!hasLoadedChunks(level))
+        {
+            return Capture.of(Capture.Outcome.UNREADABLE);
+        }
+
         Optional<RegionBounds> bounds = populatedBounds(level);
 
         if (bounds.isEmpty())
         {
-            return Optional.empty();
+            return Capture.of(Capture.Outcome.EMPTY);
         }
 
         final RegionBounds box = bounds.get();
 
-        if (box.volume() > Integer.MAX_VALUE)
+        // asked before the arrays are allocated rather than after: a box past the limit would
+        // otherwise be copied in full, at a byte and a reference per cell, only for the scan that
+        // received it to refuse it
+        if (!RegionScanner.isScannable(box, settings))
         {
             LogHelper.warn("Soulhome " + level.dimension().location() + " spans " + box
-                    + ", which is too large to snapshot. Skipping structure scan.");
-            return Optional.empty();
+                    + " (" + box.volume() + " cells), above the scan limit of "
+                    + settings.maxScannedCells() + ". Its buffs are left as they were.");
+            return Capture.of(Capture.Outcome.TOO_LARGE);
         }
 
-        return Optional.of(capture(level, box));
+        return new Capture(Capture.Outcome.CAPTURED, capture(level, box));
+    }
+
+    /**
+     * What {@link #capture(ServerLevel, ScanSettings)} found.
+     *
+     * @param outcome which of the four things happened
+     * @param volume  the copy, present only for {@link Outcome#CAPTURED}
+     */
+    public record Capture(Outcome outcome, SnapshotBlockVolume volume)
+    {
+        public enum Outcome
+        {
+            /** A usable copy of the build. */
+            CAPTURED,
+
+            /**
+             * Loaded, and genuinely holds nothing. The one outcome that means a soulhome's rooms
+             * really are gone, and so the one outcome that may clear its owner's buffs.
+             */
+            EMPTY,
+
+            /** Nothing of it is loaded, so nothing can be said about what it holds. */
+            UNREADABLE,
+
+            /** Populated well past what a scan will read. Also says nothing about what it holds. */
+            TOO_LARGE
+        }
+
+        private static Capture of(Outcome outcome)
+        {
+            return new Capture(outcome, null);
+        }
     }
 
     @Override

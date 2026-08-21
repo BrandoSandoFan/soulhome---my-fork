@@ -6,18 +6,21 @@ package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 /**
- * Hearth: your sword sets what it hits alight, the way the enchantment of the same name does.
+ * Hearth: whatever you hit with catches alight, the way the Fire Aspect enchantment does.
  *
- * <p>Same scope as {@link SwordDamageEffect} and for the same reason: only a direct, sword-in-hand
- * melee hit counts. A blade forged in a hearth is what earned this, not an arrow that happened to
- * leave a bow at the same moment.
+ * <p>Unlike {@link SwordDamageEffect}, this is not weapon-conditional: a hearth is about carrying
+ * fire with you, not about a specific blade, so any direct melee hit lights the target regardless
+ * of what is in the player's hand - a sword, an axe, or a bare fist.
+ *
+ * <p>Still scoped to a direct hit. {@code LivingHurtEvent#getSource().getDirectEntity()} is the
+ * player only for melee; an arrow or a thrown trident is its own entity, so this never fires for
+ * something that merely left the player at some point - the same distinction
+ * {@link SwordDamageEffect} draws, just without the weapon check on top of it.
  *
  * <p>{@code LivingEntity#setSecondsOnFire} already keeps the larger of the target's current burn
  * time and the new one, so a target already alight for longer than this hit would grant is left
@@ -43,13 +46,6 @@ public class FireAspectEffect implements SoulBuffEffect
     public void onLivingHurt(LivingHurtEvent event)
     {
         if (!(event.getSource().getDirectEntity() instanceof Player player) || !appliesTo(player))
-        {
-            return;
-        }
-
-        final ItemStack weapon = player.getMainHandItem();
-
-        if (!weapon.is(ItemTags.SWORDS))
         {
             return;
         }

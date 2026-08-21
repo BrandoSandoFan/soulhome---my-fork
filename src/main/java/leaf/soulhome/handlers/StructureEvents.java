@@ -101,14 +101,27 @@ public class StructureEvents
         if (server != null)
         {
             // Leaving a soulhome is the natural moment to say "here is what you built", so the
-            // dimension being left is scanned without waiting out the debounce. Hooked here rather
-            // than inside DimensionHelper.FlipDimension so that every way out counts - the
-            // SoulKey, the /soul command, and falling out of the world.
+            // dimension being left is read here and now. Not merely requested: nothing keeps a
+            // soul dimension loaded once its owner has gone, so by the next tick there can be
+            // nothing left to read. Hooked here rather than inside DimensionHelper.FlipDimension
+            // so that every way out counts - the SoulKey, the /soul command, and falling out of
+            // the world.
             final ServerLevel from = server.getLevel(event.getFrom());
 
             if (from != null)
             {
-                StructureScanService.requestNow(from);
+                StructureScanService.scanNow(from);
+            }
+
+            // and arriving is the moment to pick up anything that changed while nobody could see
+            // it - a datapack that redefined an archetype between sessions, say. Marked dirty
+            // rather than requested outright, so the scan waits out the quiet period and finds
+            // the chunks around the player loaded rather than still arriving.
+            final ServerLevel to = server.getLevel(event.getTo());
+
+            if (to != null)
+            {
+                StructureScanService.markDirty(to);
             }
         }
 
@@ -140,7 +153,9 @@ public class StructureEvents
     @SubscribeEvent
     public static void onLevelLoad(LevelEvent.Load event)
     {
-        // a soulhome edited in a previous session, or one that has never been scanned at all
+        // A soulhome that has never been scanned at all. Nothing of it is loaded yet at this
+        // point, so this scan usually finds nothing readable and leaves the last saved results
+        // alone; the rescan that matters happens when its owner next walks in.
         if (event.getLevel() instanceof Level level)
         {
             StructureScanService.requestNow(level);

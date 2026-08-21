@@ -6,19 +6,20 @@ package leaf.soulhome.network;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import leaf.soulhome.buffs.ClientSoulBuffs;
 import leaf.soulhome.structures.core.SoulBuffSet;
 
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
  * Tells a client what buffs its player currently has.
  *
- * <p>Display only. Magnitudes are computed and applied server-side; this copy exists so the
- * feedback work can render "you have +20% XP gain from your library" without asking the server
- * every frame.
+ * <p>Never authoritative. Magnitudes are computed and clamped server-side; this copy exists so a
+ * tooltip can render "you have +20% XP gain from your library" without asking the server every
+ * frame, and so that an effect the client has to predict - block breaking - has a magnitude to
+ * predict with. See {@link ClientSoulBuffs}.
  */
 public class SyncSoulBuffsMessage implements Consumer<NetworkEvent.Context>
 {
@@ -47,30 +48,5 @@ public class SyncSoulBuffsMessage implements Consumer<NetworkEvent.Context>
     public void accept(NetworkEvent.Context context)
     {
         context.enqueueWork(() -> ClientSoulBuffs.accept(this.buffs));
-    }
-
-    /**
-     * The client's view of its own buffs.
-     *
-     * <p>Deliberately a plain static holder rather than a client capability: nothing here needs a
-     * client-only class, so there is no dist hazard, and there is exactly one local player.
-     */
-    public static final class ClientSoulBuffs
-    {
-        private static volatile SoulBuffSet current = SoulBuffSet.empty();
-
-        private ClientSoulBuffs()
-        {
-        }
-
-        static void accept(SoulBuffSet buffs)
-        {
-            current = buffs;
-        }
-
-        public static SoulBuffSet get()
-        {
-            return current;
-        }
     }
 }

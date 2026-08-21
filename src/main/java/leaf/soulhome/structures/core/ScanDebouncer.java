@@ -119,6 +119,28 @@ public final class ScanDebouncer<K>
         return due;
     }
 
+    /**
+     * Take one key for a scan starting right now, without waiting for {@link #claimDue}.
+     *
+     * <p>For the cases where the moment matters more than the schedule: a player leaving their
+     * soulhome is the last instant its chunks are certain to still be loaded, and a scan deferred
+     * to the next tick can find an empty dimension.
+     *
+     * @return whether the caller may start the scan. False means one is already in flight, and
+     *         starting a second would have two scans writing the same soulhome's results.
+     */
+    public boolean claim(K key)
+    {
+        if (this.inFlight.contains(key))
+        {
+            return false;
+        }
+
+        this.pending.remove(key);
+        this.inFlight.add(key);
+        return true;
+    }
+
     /** A scan finished. The key becomes eligible again. */
     public void release(K key)
     {

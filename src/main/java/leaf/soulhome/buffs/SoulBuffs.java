@@ -27,6 +27,11 @@ import net.minecraftforge.common.util.FakePlayer;
  *   <li>everything is zero while the feature is switched off in the config</li>
  *   <li>never negative, and never null</li>
  * </ul>
+ *
+ * <p>Server-side this reads the capability. Client-side it reads {@link ClientSoulBuffs}, the copy
+ * the server last sent - the capability exists on both sides but is only ever filled in on one.
+ * There is one such copy, for the local player, which is the only player a client ever predicts
+ * anything for.
  */
 public final class SoulBuffs
 {
@@ -39,6 +44,15 @@ public final class SoulBuffs
         if (player == null || player instanceof FakePlayer)
         {
             return SoulBuffSet.empty();
+        }
+
+        if (player.level().isClientSide)
+        {
+            // The capability is attached on both sides but only ever filled in on the server, so a
+            // client-side read of it is always zero - which is not the same as "this player has no
+            // buffs", and is the wrong answer for the one effect that has to run on both sides.
+            // The synced copy is what the client actually knows.
+            return ClientSoulBuffs.get();
         }
 
         return player.getCapability(SoulBuffsProvider.CAPABILITY)
@@ -62,6 +76,14 @@ public final class SoulBuffs
         if (raw <= 0d)
         {
             return 0d;
+        }
+
+        if (player.level().isClientSide)
+        {
+            // already clamped by the server that sent it. Clamping again against the client's own
+            // config would be clamping against the wrong file - these are server settings, and a
+            // client connected to someone else's server has never read them.
+            return raw;
         }
 
         return Math.min(raw, SoulHomeConfig.buffSettings().capFor(buffType));

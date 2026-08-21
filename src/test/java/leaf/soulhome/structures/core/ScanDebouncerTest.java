@@ -141,6 +141,38 @@ class ScanDebouncerTest
     }
 
     @Test
+    @DisplayName("claiming a soulhome outright takes it in flight and out of the queue")
+    void claimTakesTheKeyImmediately()
+    {
+        ScanDebouncer<String> debouncer = debouncer();
+
+        debouncer.markDirty("soul", 0L);
+
+        assertTrue(debouncer.claim("soul"), "nothing was in flight, so this scan may start");
+        assertTrue(debouncer.isInFlight("soul"));
+        assertFalse(debouncer.isPending("soul"), "claiming takes it out of the pending queue");
+
+        // the tick loop must not then start a second scan of the same soulhome
+        assertEquals(List.of(), debouncer.claimDue(1_000_000L));
+    }
+
+    @Test
+    @DisplayName("a soulhome already being scanned cannot be claimed a second time")
+    void claimRefusesWhileInFlight()
+    {
+        ScanDebouncer<String> debouncer = debouncer();
+
+        debouncer.markDirty("soul", 0L);
+        debouncer.claimDue(10_000L);
+
+        assertFalse(debouncer.claim("soul"), "a scan is already running");
+
+        debouncer.release("soul");
+
+        assertTrue(debouncer.claim("soul"), "and may be claimed once that one finishes");
+    }
+
+    @Test
     @DisplayName("nothing to do means nothing is returned")
     void idleByDefault()
     {
