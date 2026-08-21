@@ -253,15 +253,53 @@ public record ArchetypeDefinition(
      * the shape here is deliberately inert.
      *
      * @param type    buff id, e.g. {@code soulhome:xp_gain}
-     * @param perTier magnitude added per tier
+     * @param perTier magnitude added per tier. No longer read by {@link #magnitudeAt}, which
+     *                derives magnitude from the score directly - kept as a datapack field rather
+     *                than removed, since dropping it would be a breaking format change on its own.
      * @param max     ceiling on the total magnitude from this archetype
      */
     public record BuffSpec(String type, double perTier, double max)
     {
-        /** Magnitude at the given tier, clamped to {@link #max}. */
-        public double magnitudeAt(int tier)
+        /**
+         * Magnitude for a room that scored this well, ramped continuously across the archetype's
+         * own tier ladder rather than jumping at each tier boundary - see {@code BuffSettings} for
+         * what {@code entryFraction} and {@code rampExponent} each shape.
+         *
+         * <pre>{@code
+         * entry     = tiers[0].minScore
+         * top       = tiers[last].minScore
+         * t         = clamp((score - entry) / (top - entry), 0, 1)
+         * magnitude = max * (entryFraction + (1 - entryFraction) * pow(t, rampExponent))
+         * }</pre>
+         *
+         * <p>Below {@code entry} this is 0 - a room that has not earned its archetype's first tier
+         * grants nothing. At or above {@code top} this is exactly {@link #max}, at every exponent.
+         *
+         * @param score     the room's raw classifier score, not its tier
+         * @param archetype supplies the tier ladder {@code entry} and {@code top} are read from
+         */
+        public double magnitudeAt(double score, ArchetypeDefinition archetype, BuffSettings settings)
         {
-            return Math.min(this.max, this.perTier * Math.max(0, tier));
+            List<Tier> tiers = archetype.tiers();
+
+            if (tiers.isEmpty())
+            {
+                return 0d;
+            }
+
+            final double entry = tiers.get(0).minScore();
+
+            if (score < entry)
+            {
+                return 0d;
+            }
+
+            final double top = tiers.get(tiers.size() - 1).minScore();
+            final double t = top <= entry ? 1d : Math.max(0d, Math.min(1d, (score - entry) / (top - entry)));
+            final double entryFraction = settings.entryFraction();
+            final double fraction = entryFraction + (1d - entryFraction) * Math.pow(t, settings.rampExponent());
+
+            return this.max * fraction;
         }
     }
 }

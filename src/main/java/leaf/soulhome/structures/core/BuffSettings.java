@@ -27,13 +27,23 @@ import java.util.Map;
  *                             are unitless, so one number cannot cap them all: 1.0 is a doubling
  *                             of experience gain and would be a rounding error at an enchanting
  *                             table. Anything absent falls back to {@code globalMaxMagnitude}.
+ * @param entryFraction        the fraction of a buff's ceiling granted right at an archetype's own
+ *                             tier-1 threshold - what "just barely counts" is worth. A room scoring
+ *                             below that threshold grants nothing at all.
+ * @param rampExponent         shapes how the rest of the ceiling is spread between the entry
+ *                             threshold and the top of the archetype's tier ladder. {@code 1.0} is
+ *                             linear; above 1 the payout back-loads towards the top of the range,
+ *                             which is what stops a bigger pile of the same one thing from being
+ *                             worth much more than a smaller one. Must be positive and finite.
  */
 public record BuffSettings(
         double repeatedRoomFalloff,
         int maxRoomsPerArchetype,
         double globalMaxMagnitude,
         Map<String, Double> archetypeMultipliers,
-        Map<String, Double> buffTypeCaps)
+        Map<String, Double> buffTypeCaps,
+        double entryFraction,
+        double rampExponent)
 {
     /**
      * Ceilings for the buff types that are not proportions, so {@code globalMaxMagnitude} - a
@@ -49,13 +59,18 @@ public record BuffSettings(
                     SoulBuffTypes.DOUBLE_JUMP, 1.0d,
                     SoulBuffTypes.FIRE_ASPECT, 6.0d);
 
-    public static final BuffSettings DEFAULTS =
-            new BuffSettings(0.5d, 3, 1.0d, Map.of(), DEFAULT_TYPE_CAPS);
+    /** Suggested starting points - see the class-level ramp knob documentation. */
+    public static final double DEFAULT_ENTRY_FRACTION = 0.10d;
+    public static final double DEFAULT_RAMP_EXPONENT = 1.5d;
 
-    /** The common case: no per-archetype tuning, and the built-in type ceilings. */
+    public static final BuffSettings DEFAULTS = new BuffSettings(
+            0.5d, 3, 1.0d, Map.of(), DEFAULT_TYPE_CAPS, DEFAULT_ENTRY_FRACTION, DEFAULT_RAMP_EXPONENT);
+
+    /** The common case: no per-archetype tuning, and the built-in type ceilings and ramp. */
     public BuffSettings(double repeatedRoomFalloff, int maxRoomsPerArchetype, double globalMaxMagnitude)
     {
-        this(repeatedRoomFalloff, maxRoomsPerArchetype, globalMaxMagnitude, Map.of(), DEFAULT_TYPE_CAPS);
+        this(repeatedRoomFalloff, maxRoomsPerArchetype, globalMaxMagnitude, Map.of(), DEFAULT_TYPE_CAPS,
+                DEFAULT_ENTRY_FRACTION, DEFAULT_RAMP_EXPONENT);
     }
 
     public BuffSettings(
@@ -64,7 +79,8 @@ public record BuffSettings(
             double globalMaxMagnitude,
             Map<String, Double> archetypeMultipliers)
     {
-        this(repeatedRoomFalloff, maxRoomsPerArchetype, globalMaxMagnitude, archetypeMultipliers, DEFAULT_TYPE_CAPS);
+        this(repeatedRoomFalloff, maxRoomsPerArchetype, globalMaxMagnitude, archetypeMultipliers, DEFAULT_TYPE_CAPS,
+                DEFAULT_ENTRY_FRACTION, DEFAULT_RAMP_EXPONENT);
     }
 
     public BuffSettings
@@ -90,6 +106,18 @@ public record BuffSettings(
         {
             throw new IllegalArgumentException(
                     "globalMaxMagnitude must not be negative, got " + globalMaxMagnitude);
+        }
+
+        if (entryFraction < 0 || entryFraction > 1)
+        {
+            throw new IllegalArgumentException(
+                    "entryFraction must be between 0 and 1, got " + entryFraction);
+        }
+
+        if (!Double.isFinite(rampExponent) || rampExponent <= 0)
+        {
+            throw new IllegalArgumentException(
+                    "rampExponent must be positive and finite, got " + rampExponent);
         }
     }
 

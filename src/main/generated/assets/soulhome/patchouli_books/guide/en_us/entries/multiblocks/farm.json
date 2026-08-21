@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Works as a room or as open ground. At least 9 blocks of space.$(p)Grants:$(li)saturation, growing with the tier, up to +45%.$(p)Tiers begin at a score of 20."
+      "text": "Works as a room or as open ground. At least 9 blocks of space.$(p)Grants:$(li)saturation, growing with the tier, up to +45%.$(p)Tiers begin at a score of 6."
     },
     {
       "type": "text",

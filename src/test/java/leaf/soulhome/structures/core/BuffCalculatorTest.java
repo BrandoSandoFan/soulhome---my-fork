@@ -21,14 +21,22 @@ class BuffCalculatorTest
     private static final String XP = "soulhome:xp_gain";
     private static final String SATURATION = "soulhome:saturation";
 
+    /**
+     * A linear ramp (no entry floor, exponent 1) over the {@link #archetype} tier ladder's own
+     * 0-to-100 range, so a test can predict a magnitude as {@code max * score / 100} by hand
+     * instead of fighting the default curve's {@code entryFraction} and {@code pow}.
+     */
+    private static final BuffSettings LINEAR = new BuffSettings(
+            0.5d, 3, 1.0d, Map.of(), BuffSettings.DEFAULT_TYPE_CAPS, 0d, 1d);
+
     @Test
-    @DisplayName("one classified room grants its archetype's buff at its tier")
+    @DisplayName("one classified room grants its archetype's buff proportionally to its score")
     void singleRoomGrantsItsBuff()
     {
         SoulBuffSet buffs = compute(List.of(awarded("soulhome:library", 2, 60d)));
 
-        // 0.10 per tier, tier 2
-        assertEquals(0.20d, buffs.magnitude(XP), 1e-9);
+        // max 0.30, 60% of the way from the archetype's entry (0) to its top (100)
+        assertEquals(0.18d, buffs.magnitude(XP), 1e-9);
         assertTrue(buffs.has(XP));
     }
 
@@ -38,11 +46,11 @@ class BuffCalculatorTest
     {
         // one good library should beat four mediocre ones
         SoulBuffSet buffs = compute(List.of(
-                awarded("soulhome:library", 1, 30d),
-                awarded("soulhome:library", 1, 25d)));
+                awarded("soulhome:library", 1, 60d),
+                awarded("soulhome:library", 1, 40d)));
 
-        // 0.10 + 0.10 * 0.5
-        assertEquals(0.15d, buffs.magnitude(XP), 1e-9);
+        // 0.30 * 0.60 + (0.30 * 0.40) * 0.5
+        assertEquals(0.24d, buffs.magnitude(XP), 1e-9);
     }
 
     @Test
@@ -56,10 +64,13 @@ class BuffCalculatorTest
             many.add(awarded("soulhome:library", 1, 30d - room));
         }
 
-        SoulBuffSet buffs = compute(many);
+        // a high ceiling so this test is about the count cap and falloff, not the archetype max
+        SoulBuffSet buffs = BuffCalculator.compute(
+                many, List.of(archetype("soulhome:library", XP, 1.0d)), LINEAR);
 
-        // three rooms at 0.10, falling off by half each time: 0.10 + 0.05 + 0.025
-        assertEquals(0.175d, buffs.magnitude(XP), 1e-9);
+        // only the top three rooms count - scores 30, 29, 28 - falling off by half each time:
+        // 0.30 + 0.29 * 0.5 + 0.28 * 0.25
+        assertEquals(0.515d, buffs.magnitude(XP), 1e-9);
     }
 
     @Test
@@ -67,16 +78,17 @@ class BuffCalculatorTest
     void bestRoomLeadsRegardlessOfOrder()
     {
         SoulBuffSet best = compute(List.of(
-                awarded("soulhome:library", 3, 120d),
-                awarded("soulhome:library", 1, 20d)));
+                awarded("soulhome:library", 3, 100d),
+                awarded("soulhome:library", 1, 50d)));
 
         SoulBuffSet reversed = compute(List.of(
-                awarded("soulhome:library", 1, 20d),
-                awarded("soulhome:library", 3, 120d)));
+                awarded("soulhome:library", 1, 50d),
+                awarded("soulhome:library", 3, 100d)));
 
         assertEquals(best.magnitude(XP), reversed.magnitude(XP), 1e-9);
 
-        // tier 3 at full value plus tier 1 at half: 0.30 + 0.05
+        // full value (score at the top of the ladder) plus a half-score room at half falloff:
+        // 0.30 + 0.15 * 0.5 = 0.375, clamped to the archetype's own max of 0.30
         assertEquals(0.30d, best.magnitude(XP), 1e-9, "clamped to the archetype's own max of 0.30");
     }
 
@@ -91,6 +103,7 @@ class BuffCalculatorTest
             many.add(awarded("soulhome:library", 3, 200d - room));
         }
 
+        // every room scores at or above the top of the ladder, so each is worth the full 0.30:
         // 0.30 + 0.15 + 0.075 would be 0.525, but the archetype declares max 0.30
         assertEquals(0.30d, compute(many).magnitude(XP), 1e-9);
     }
@@ -102,9 +115,11 @@ class BuffCalculatorTest
         BuffSettings tightCap = new BuffSettings(0.5d, 3, 0.40d);
 
         List<ArchetypeDefinition> archetypes = List.of(
-                archetype("soulhome:library", XP, 0.10d, 0.30d),
-                archetype("soulhome:scriptorium", XP, 0.10d, 0.30d));
+                archetype("soulhome:library", XP, 0.30d),
+                archetype("soulhome:scriptorium", XP, 0.30d));
 
+        // both rooms score at the top of their ladder, so each is worth its full 0.30 regardless
+        // of tightCap's default ramp shape
         SoulBuffSet buffs = BuffCalculator.compute(
                 List.of(awarded("soulhome:library", 3, 100d), awarded("soulhome:scriptorium", 3, 100d)),
                 archetypes,
@@ -118,17 +133,13 @@ class BuffCalculatorTest
     @DisplayName("different buff types are accumulated separately")
     void differentBuffTypesDoNotInterfere()
     {
-        List<ArchetypeDefinition> archetypes = List.of(
-                archetype("soulhome:library", XP, 0.10d, 0.30d),
-                archetype("soulhome:farm", SATURATION, 0.15d, 0.45d));
+        SoulBuffSet buffs = compute(List.of(
+                awarded("soulhome:library", 1, 60d),
+                awarded("soulhome:farm", 2, 60d)));
 
-        SoulBuffSet buffs = BuffCalculator.compute(
-                List.of(awarded("soulhome:library", 1, 30d), awarded("soulhome:farm", 2, 60d)),
-                archetypes,
-                BuffSettings.DEFAULTS);
-
-        assertEquals(0.10d, buffs.magnitude(XP), 1e-9);
-        assertEquals(0.30d, buffs.magnitude(SATURATION), 1e-9);
+        // 0.30 * 0.60 and 0.45 * 0.60
+        assertEquals(0.18d, buffs.magnitude(XP), 1e-9);
+        assertEquals(0.27d, buffs.magnitude(SATURATION), 1e-9);
     }
 
     @Test
@@ -149,7 +160,7 @@ class BuffCalculatorTest
     {
         SoulBuffSet buffs = BuffCalculator.compute(
                 List.of(awarded("soulhome:removed_by_a_datapack", 3, 100d)),
-                List.of(archetype("soulhome:library", XP, 0.10d, 0.30d)),
+                List.of(archetype("soulhome:library", XP, 0.30d)),
                 BuffSettings.DEFAULTS);
 
         assertTrue(buffs.isEmpty());
@@ -180,8 +191,8 @@ class BuffCalculatorTest
         assertEquals(3, persisted.size(), "the ambiguous room is not persisted as earned");
 
         List<ArchetypeDefinition> archetypes = List.of(
-                archetype("soulhome:library", XP, 0.10d, 0.30d),
-                archetype("soulhome:farm", SATURATION, 0.15d, 0.45d));
+                archetype("soulhome:library", XP, 0.30d),
+                archetype("soulhome:farm", SATURATION, 0.45d));
 
         assertEquals(
                 BuffCalculator.compute(results, archetypes, BuffSettings.DEFAULTS),
@@ -192,17 +203,21 @@ class BuffCalculatorTest
     @DisplayName("a per-archetype config multiplier scales everything that archetype grants")
     void archetypeMultiplierApplies()
     {
-        BuffSettings halved = new BuffSettings(0.5d, 3, 1.0d, Map.of("soulhome:library", 0.5d));
+        // linear, so the multiplier's effect is not tangled up with the default curve's shape
+        BuffSettings halved = new BuffSettings(
+                0.5d, 3, 1.0d, Map.of("soulhome:library", 0.5d), BuffSettings.DEFAULT_TYPE_CAPS, 0d, 1d);
 
         SoulBuffSet buffs = BuffCalculator.compute(
                 List.of(awarded("soulhome:library", 2, 60d), awarded("soulhome:farm", 2, 60d)),
                 List.of(
-                        archetype("soulhome:library", XP, 0.10d, 0.30d),
-                        archetype("soulhome:farm", SATURATION, 0.15d, 0.45d)),
+                        archetype("soulhome:library", XP, 0.30d),
+                        archetype("soulhome:farm", SATURATION, 0.45d)),
                 halved);
 
-        assertEquals(0.10d, buffs.magnitude(XP), 1e-9, "the library is turned down");
-        assertEquals(0.30d, buffs.magnitude(SATURATION), 1e-9, "an archetype not listed is untouched");
+        // 0.30 * 0.60 halved
+        assertEquals(0.09d, buffs.magnitude(XP), 1e-9, "the library is turned down");
+        // 0.45 * 0.60, untouched
+        assertEquals(0.27d, buffs.magnitude(SATURATION), 1e-9, "an archetype not listed is untouched");
     }
 
     @Test
@@ -213,7 +228,7 @@ class BuffCalculatorTest
 
         BuffBreakdown breakdown = BuffCalculator.explain(
                 List.of(new AwardedRoom("soulhome:library", 3, 100d)),
-                List.of(archetype("soulhome:library", XP, 0.10d, 0.30d)),
+                List.of(archetype("soulhome:library", XP, 0.30d)),
                 off);
 
         assertTrue(breakdown.totals().isEmpty());
@@ -230,7 +245,7 @@ class BuffCalculatorTest
 
         SoulBuffSet buffs = BuffCalculator.compute(
                 List.of(awarded("soulhome:enchanting_room", 3, 100d)),
-                List.of(archetype("soulhome:enchanting_room", enchanting, 2.0d, 6.0d)),
+                List.of(archetype("soulhome:enchanting_room", enchanting, 6.0d)),
                 BuffSettings.DEFAULTS);
 
         assertEquals(6.0d, buffs.magnitude(enchanting), 1e-9);
@@ -242,13 +257,15 @@ class BuffCalculatorTest
     {
         BuffSettings tightCap = new BuffSettings(0.5d, 3, 0.40d);
 
+        // both rooms score at the top of their ladder, so each is worth its full 0.30 regardless
+        // of tightCap's default ramp shape
         BuffBreakdown breakdown = BuffCalculator.explain(
                 List.of(
                         new AwardedRoom("soulhome:library", 3, 100d),
-                        new AwardedRoom("soulhome:scriptorium", 3, 90d)),
+                        new AwardedRoom("soulhome:scriptorium", 3, 100d)),
                 List.of(
-                        archetype("soulhome:library", XP, 0.10d, 0.30d),
-                        archetype("soulhome:scriptorium", XP, 0.10d, 0.30d)),
+                        archetype("soulhome:library", XP, 0.30d),
+                        archetype("soulhome:scriptorium", XP, 0.30d)),
                 tightCap);
 
         assertEquals(0.40d, breakdown.totals().magnitude(XP), 1e-9);
@@ -266,7 +283,7 @@ class BuffCalculatorTest
                 new AwardedRoom("soulhome:library", 2, 60d),
                 new AwardedRoom("soulhome:library", 1, 30d));
 
-        List<ArchetypeDefinition> archetypes = List.of(archetype("soulhome:library", XP, 0.10d, 0.30d));
+        List<ArchetypeDefinition> archetypes = List.of(archetype("soulhome:library", XP, 0.30d));
 
         assertEquals(
                 BuffCalculator.computeFromAwarded(rooms, archetypes, BuffSettings.DEFAULTS),
@@ -290,12 +307,16 @@ class BuffCalculatorTest
         return BuffCalculator.compute(
                 results,
                 List.of(
-                        archetype("soulhome:library", XP, 0.10d, 0.30d),
-                        archetype("soulhome:farm", SATURATION, 0.15d, 0.45d)),
-                BuffSettings.DEFAULTS);
+                        archetype("soulhome:library", XP, 0.30d),
+                        archetype("soulhome:farm", SATURATION, 0.45d)),
+                LINEAR);
     }
 
-    private static ArchetypeDefinition archetype(String id, String buffType, double perTier, double max)
+    /**
+     * A test archetype whose tier ladder runs from a score of 0 (tier 1, the entry) to a score of
+     * 100 (tier 3, the top) - the range {@link #LINEAR} ramps magnitude across.
+     */
+    private static ArchetypeDefinition archetype(String id, String buffType, double max)
     {
         return new ArchetypeDefinition(
                 id,
@@ -305,8 +326,9 @@ class BuffCalculatorTest
                 List.of(),
                 List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofTags("minecraft:bookshelves"), 1d, "core", 8)),
                 List.of(),
-                List.of(new ArchetypeDefinition.Tier(1d, 1)),
-                List.of(new ArchetypeDefinition.BuffSpec(buffType, perTier, max)));
+                List.of(new ArchetypeDefinition.Tier(0d, 1), new ArchetypeDefinition.Tier(100d, 3)),
+                // perTier is no longer read by magnitudeAt - see ArchetypeDefinition.BuffSpec
+                List.of(new ArchetypeDefinition.BuffSpec(buffType, 0d, max)));
     }
 
     private static ClassificationResult awarded(String archetypeId, int tier, double score)

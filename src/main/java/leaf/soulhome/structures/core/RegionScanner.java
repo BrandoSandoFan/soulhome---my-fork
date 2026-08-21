@@ -54,6 +54,7 @@ public final class RegionScanner
     private final BlockVolume volume;
     private final ScanSettings settings;
     private final Predicate<BlockSignature> signalFilter;
+    private final Predicate<BlockSignature> geometryFilter;
 
     private final RegionBounds bounds;
     private final int sizeX;
@@ -61,11 +62,16 @@ public final class RegionScanner
     private final int sizeZ;
     private final byte[] flags;
 
-    private RegionScanner(BlockVolume volume, Predicate<BlockSignature> signalFilter, ScanSettings settings)
+    private RegionScanner(
+            BlockVolume volume,
+            Predicate<BlockSignature> signalFilter,
+            Predicate<BlockSignature> geometryFilter,
+            ScanSettings settings)
     {
         this.volume = volume;
         this.settings = settings;
         this.signalFilter = signalFilter;
+        this.geometryFilter = geometryFilter == null ? signature -> false : geometryFilter;
 
         this.bounds = volume.bounds();
         this.sizeX = this.bounds.sizeX();
@@ -86,6 +92,10 @@ public final class RegionScanner
     }
 
     /**
+     * The common case: nothing is structurally interesting yet, so nothing is indexed. Safe and
+     * cheap while no archetype has a form to ask {@link RegionGeometry} anything - see
+     * {@link #scan(BlockVolume, Predicate, Predicate, ScanSettings)} for when one does.
+     *
      * @param signalFilter blocks worth clustering an open-air region around - in practice, every
      *                     block named by some loaded archetype. May be {@code null}, which skips
      *                     open-air detection entirely.
@@ -96,6 +106,24 @@ public final class RegionScanner
             Predicate<BlockSignature> signalFilter,
             ScanSettings settings)
     {
+        return scan(volume, signalFilter, null, settings);
+    }
+
+    /**
+     * @param signalFilter   blocks worth clustering an open-air region around - in practice, every
+     *                       block named by some loaded archetype. May be {@code null}, which skips
+     *                       open-air detection entirely.
+     * @param geometryFilter blocks worth keeping a position for - in practice, every block named by
+     *                       some loaded archetype's structural forms. May be {@code null}, which
+     *                       indexes nothing and leaves every {@link SoulRegion#geometry()} empty.
+     * @throws IllegalArgumentException if the volume fails {@link #isScannable}
+     */
+    public static List<SoulRegion> scan(
+            BlockVolume volume,
+            Predicate<BlockSignature> signalFilter,
+            Predicate<BlockSignature> geometryFilter,
+            ScanSettings settings)
+    {
         if (!isScannable(volume.bounds(), settings))
         {
             throw new IllegalArgumentException(
@@ -103,7 +131,7 @@ public final class RegionScanner
                             + " cells, above the limit of " + settings.maxScannedCells());
         }
 
-        return new RegionScanner(volume, signalFilter, settings).run();
+        return new RegionScanner(volume, signalFilter, geometryFilter, settings).run();
     }
 
     private List<SoulRegion> run()
@@ -314,6 +342,7 @@ public final class RegionScanner
 
         BlockCounts.Builder boundary = BlockCounts.builder();
         BlockCounts.Builder contents = BlockCounts.builder();
+        RegionGeometry.Builder geometry = RegionGeometry.builder(this.settings.maxGeometryCells());
         RegionBounds regionBounds = interiorBounds;
 
         // blocks standing in the room itself: torches, crops, carpets, water
@@ -328,7 +357,9 @@ public final class RegionScanner
 
             if (this.volume.passabilityAt(x, y, z) == Passability.PASSABLE)
             {
-                contents.add(this.volume.signatureAt(x, y, z));
+                BlockSignature signature = this.volume.signatureAt(x, y, z);
+                contents.add(signature);
+                indexIfInteresting(geometry, x, y, z, signature);
             }
         }
 
@@ -385,6 +416,7 @@ public final class RegionScanner
 
             BlockSignature signature = this.volume.signatureAt(x, y, z);
             regionBounds = regionBounds.encompass(x, y, z);
+            indexIfInteresting(geometry, x, y, z, signature);
 
             // walls, floor and ceiling sit outside the air's bounding box; anything solid *inside*
             // it is furniture standing in the room - a pillar, an enchanting table, an anvil
@@ -403,7 +435,16 @@ public final class RegionScanner
                 regionBounds,
                 boundary.build(),
                 contents.build(),
-                interior.size());
+                interior.size(),
+                geometry.build());
+    }
+
+    private void indexIfInteresting(RegionGeometry.Builder geometry, int x, int y, int z, BlockSignature signature)
+    {
+        if (signature != null && this.geometryFilter.test(signature))
+        {
+            geometry.add(x, y, z, signature);
+        }
     }
 
     // endregion
@@ -533,6 +574,7 @@ public final class RegionScanner
         // Anything already claimed by a room is skipped below, so the slack cannot steal walls.
         RegionBounds clusterBounds = clamp(boundsOf(cluster).expand(1));
         BlockCounts.Builder contents = BlockCounts.builder();
+        RegionGeometry.Builder geometry = RegionGeometry.builder(this.settings.maxGeometryCells());
 
         // everything standing in the cluster's footprint counts, not just the signal blocks:
         // the farmland under the wheat and the barrel in the barn are part of the farm too
@@ -558,7 +600,9 @@ public final class RegionScanner
                     }
 
                     this.flags[index] |= FLAG_CLAIMED;
-                    contents.add(this.volume.signatureAt(x, y, z));
+                    BlockSignature signature = this.volume.signatureAt(x, y, z);
+                    contents.add(signature);
+                    indexIfInteresting(geometry, x, y, z, signature);
                 }
             }
         }
@@ -570,7 +614,8 @@ public final class RegionScanner
                 clusterBounds,
                 BlockCounts.empty(),
                 contents.build(),
-                (int) Math.min(boundsVolume, Integer.MAX_VALUE));
+                (int) Math.min(boundsVolume, Integer.MAX_VALUE),
+                geometry.build());
     }
 
     // endregion

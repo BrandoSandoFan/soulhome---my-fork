@@ -171,7 +171,8 @@ public final class SoulHomeConfig
                                 SERVER.clusterRadius.get(),
                                 SERVER.minClusterSize.get(),
                                 SERVER.maxRegions.get(),
-                                SERVER.maxScannedCells.get()),
+                                SERVER.maxScannedCells.get(),
+                                SERVER.maxGeometryCells.get()),
                         new ScoringSettings(
                                 SERVER.diversityBonusPerRole.get(),
                                 SERVER.densityFloor.get(),
@@ -182,7 +183,9 @@ public final class SoulHomeConfig
                                 SERVER.maxRoomsPerArchetype.get(),
                                 SERVER.globalMaxMagnitude.get(),
                                 readPairs(SERVER.archetypeMultipliers.get(), "archetype multiplier"),
-                                readPairs(SERVER.buffTypeCaps.get(), "buff type cap")),
+                                readPairs(SERVER.buffTypeCaps.get(), "buff type cap"),
+                                SERVER.entryFraction.get(),
+                                SERVER.rampExponent.get()),
                         SERVER.quietPeriodMillis.get(),
                         SERVER.maxScanDelayMillis.get(),
                         SERVER.checkIntervalTicks.get());
@@ -274,6 +277,8 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.DoubleValue globalMaxMagnitude;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> archetypeMultipliers;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> buffTypeCaps;
+        public final ForgeConfigSpec.DoubleValue entryFraction;
+        public final ForgeConfigSpec.DoubleValue rampExponent;
 
         public final ForgeConfigSpec.DoubleValue diversityBonusPerRole;
         public final ForgeConfigSpec.DoubleValue densityFloor;
@@ -285,6 +290,7 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.IntValue minClusterSize;
         public final ForgeConfigSpec.IntValue maxRegions;
         public final ForgeConfigSpec.LongValue maxScannedCells;
+        public final ForgeConfigSpec.IntValue maxGeometryCells;
 
         public final ForgeConfigSpec.LongValue quietPeriodMillis;
         public final ForgeConfigSpec.LongValue maxScanDelayMillis;
@@ -345,6 +351,22 @@ public final class SoulHomeConfig
                             () -> NO_MULTIPLIERS,
                             entry -> entry instanceof String);
 
+            this.entryFraction = builder
+                    .comment(
+                            "Fraction of a buff's ceiling granted right at an archetype's own tier-1 threshold -",
+                            "what 'just barely qualifying' is worth. A room scoring below that threshold grants",
+                            "nothing at all.")
+                    .defineInRange("entry_fraction", BuffSettings.DEFAULT_ENTRY_FRACTION, 0d, 1d);
+
+            this.rampExponent = builder
+                    .comment(
+                            "Shapes how the rest of a buff's ceiling is spread between the entry threshold and the",
+                            "top of an archetype's tier ladder. 1.0 is linear; above 1 the payout back-loads towards",
+                            "the top of the range, which stops a bigger pile of one kind of block being worth much",
+                            "more than a smaller pile of the same thing. Below 1 front-loads instead - legal, but",
+                            "works against that intent.")
+                    .defineInRange("ramp_exponent", BuffSettings.DEFAULT_RAMP_EXPONENT, 0.01d, 10d);
+
             builder.pop();
 
             builder.comment("How a room is scored against an archetype.").push("scoring");
@@ -394,6 +416,13 @@ public final class SoulHomeConfig
             this.maxScannedCells = builder
                     .comment("Refuse to scan a soulhome whose populated area is larger than this many block positions.")
                     .defineInRange("max_scanned_cells", 4_000_000L, 4096L, 512_000_000L);
+
+            this.maxGeometryCells = builder
+                    .comment(
+                            "Per-region cap on how many structurally-interesting block positions are indexed for",
+                            "positional scoring. Past this the index is truncated and reported as such, rather",
+                            "than silently scoring an arrangement badly for no reason a player can see.")
+                    .defineInRange("max_geometry_cells", 8192, 64, 1_000_000);
 
             builder.pop();
 

@@ -31,6 +31,11 @@ class RegionScannerTest
         return RegionScanner.scan(volume, null, ScanSettings.DEFAULTS);
     }
 
+    private static List<SoulRegion> scanWithGeometry(GridVolume volume, Predicate<BlockSignature> geometryFilter)
+    {
+        return RegionScanner.scan(volume, ANY_CROP, geometryFilter, ScanSettings.DEFAULTS);
+    }
+
     // region enclosed rooms
 
     @Test
@@ -322,6 +327,118 @@ class RegionScannerTest
         assertFalse(RegionScanner.isScannable(huge, ScanSettings.DEFAULTS));
     }
 
+    // region geometry
+
+    private static final Predicate<BlockSignature> LECTERNS_ONLY =
+            signature -> signature.hasTag("minecraft:lectern") || signature.id().equals("minecraft:lectern");
+
+    @Test
+    @DisplayName("without a geometry filter, nothing is indexed")
+    void noGeometryFilterMeansNoGeometry()
+    {
+        SoulRegion room = scan(furnishedRoom()).get(0);
+
+        assertTrue(room.geometry().isEmpty());
+        assertFalse(room.geometry().isTruncated());
+    }
+
+    @Test
+    @DisplayName("only blocks the geometry filter names are indexed")
+    void onlyFilteredBlocksAreIndexed()
+    {
+        SoulRegion room = scanWithGeometry(furnishedRoom(), LECTERNS_ONLY).get(0);
+
+        assertEquals(1, room.geometry().size(), "the room also has bookshelves, which the filter excludes");
+        assertEquals("minecraft:lectern", room.geometry().cells().get(0).signature().id());
+    }
+
+    @Test
+    @DisplayName("cellsMatching agrees with BlockCounts.count for a matcher within the filter")
+    void cellsMatchingAgreesWithBlockCounts()
+    {
+        Predicate<BlockSignature> anyFurniture = signature ->
+                signature.hasTag("minecraft:bookshelves") || signature.id().equals("minecraft:lectern");
+
+        SoulRegion room = scanWithGeometry(furnishedRoom(), anyFurniture).get(0);
+
+        BlockMatcher shelves = BlockMatcher.ofTags("minecraft:bookshelves");
+        assertEquals(room.allBlocks().count(shelves), room.geometry().cellsMatching(shelves).size());
+
+        BlockMatcher lectern = BlockMatcher.ofBlocks("minecraft:lectern");
+        assertEquals(room.allBlocks().count(lectern), room.geometry().cellsMatching(lectern).size());
+    }
+
+    @Test
+    @DisplayName("geometry is deterministic across two scans of the same volume")
+    void geometryIsDeterministic()
+    {
+        Predicate<BlockSignature> anyFurniture = signature ->
+                signature.hasTag("minecraft:bookshelves") || signature.id().equals("minecraft:lectern");
+
+        List<RegionGeometry.Cell> first = scanWithGeometry(furnishedRoom(), anyFurniture).get(0).geometry().cells();
+        List<RegionGeometry.Cell> second = scanWithGeometry(furnishedRoom(), anyFurniture).get(0).geometry().cells();
+
+        assertEquals(first, second);
+    }
+
+    @Test
+    @DisplayName("identity hash changes when a filtered block moves without any count changing")
+    void identityHashChangesOnMoveAlone()
+    {
+        long before = scanWithGeometry(furnishedRoom(), LECTERNS_ONLY).get(0).identityHash();
+        long after = scanWithGeometry(furnishedRoomWithLecternMoved(), LECTERNS_ONLY).get(0).identityHash();
+
+        assertNotEquals(before, after, "the lectern moved to a different cell, so the hash must move too");
+    }
+
+    @Test
+    @DisplayName("identity hash is stable across two scans when nothing moves")
+    void identityHashStableWhenNothingMoves()
+    {
+        long first = scanWithGeometry(furnishedRoom(), LECTERNS_ONLY).get(0).identityHash();
+        long second = scanWithGeometry(furnishedRoom(), LECTERNS_ONLY).get(0).identityHash();
+
+        assertEquals(first, second);
+    }
+
+    @Test
+    @DisplayName("without geometry indexing, moving a block leaves the identity hash unchanged")
+    void identityHashIgnoresMovementWithoutAGeometryFilter()
+    {
+        // the regression #26 exists to close: before geometry, sliding furniture around changed no
+        // count, so the hash never moved and a rearranged soulhome's buffs never refreshed
+        long before = scan(furnishedRoom()).get(0).identityHash();
+        long after = scan(furnishedRoomWithLecternMoved()).get(0).identityHash();
+
+        assertEquals(before, after, "with nothing indexing position, the hash can only see the counts");
+    }
+
+    @Test
+    @DisplayName("truncation past maxGeometryCells sets the flag rather than throwing")
+    void truncationSetsFlagRatherThanThrowing()
+    {
+        ScanSettings tinyGeometry = new ScanSettings(4096, 4, 4, 64, 4_000_000L, 2);
+        Predicate<BlockSignature> anyBookshelf = signature -> signature.hasTag("minecraft:bookshelves");
+
+        List<SoulRegion> regions = RegionScanner.scan(furnishedRoom(), ANY_CROP, anyBookshelf, tinyGeometry);
+
+        assertEquals(1, regions.size());
+        SoulRegion room = regions.get(0);
+
+        assertTrue(room.geometry().isTruncated(), "the room holds three bookshelves against a cap of two");
+        assertEquals(2, room.geometry().size());
+    }
+
+    @Test
+    @DisplayName("an index under its cap is not marked truncated")
+    void geometryUnderCapIsNotTruncated()
+    {
+        SoulRegion room = scanWithGeometry(furnishedRoom(), LECTERNS_ONLY).get(0);
+        assertFalse(room.geometry().isTruncated());
+    }
+
+    // endregion
+
     // region layouts
 
     private static GridVolume sealedRoom()
@@ -345,6 +462,38 @@ class RegionScannerTest
     private static String[] bigFloor()
     {
         return new String[]{"#######", "#######", "#######", "#######", "#######", "#######", "#######"};
+    }
+
+    /** Three bookshelves on the back wall (boundary) and one lectern standing in the room (contents). */
+    private static GridVolume furnishedRoom()
+    {
+        return GridVolume.of(
+                floor(),
+                new String[]{
+                        "#BBB#",
+                        "#...#",
+                        "#L..#",
+                        "#...#",
+                        "#####"},
+                floor());
+    }
+
+    /**
+     * {@link #furnishedRoom()} with the lectern swapped to the mirror cell in the same row, so the
+     * block counts are identical - this is a pure move, not a move that also changes what shell
+     * cells the room happens to claim.
+     */
+    private static GridVolume furnishedRoomWithLecternMoved()
+    {
+        return GridVolume.of(
+                floor(),
+                new String[]{
+                        "#BBB#",
+                        "#...#",
+                        "#..L#",
+                        "#...#",
+                        "#####"},
+                floor());
     }
 
     // endregion
