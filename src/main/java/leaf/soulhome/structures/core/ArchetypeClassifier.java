@@ -7,8 +7,10 @@ package leaf.soulhome.structures.core;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Set;
 
@@ -78,9 +80,14 @@ public final class ArchetypeClassifier
     {
         List<ArchetypeScore> scores = new ArrayList<>(this.archetypes.size());
 
+        // shared across every archetype scored for this region: clauses are value records, and the
+        // same clause - "seating surrounds the fire" - is commonly named by more than one
+        // archetype's forms. See FormClauseEvaluator.
+        Map<FormClause, FormResult> clauseMemo = new HashMap<>();
+
         for (ArchetypeDefinition archetype : this.archetypes)
         {
-            scores.add(score(region, archetype));
+            scores.add(score(region, archetype, clauseMemo));
         }
 
         scores.sort(Comparator
@@ -126,16 +133,29 @@ public final class ArchetypeClassifier
      */
     public ArchetypeScore score(SoulRegion region, ArchetypeDefinition archetype)
     {
+        return score(region, archetype, new HashMap<>());
+    }
+
+    /**
+     * @param clauseMemo shared across every archetype {@link #classify(SoulRegion)} scores for one
+     *                   region, so a leaf clause named by more than one archetype's forms is only
+     *                   ever evaluated once. A caller going through {@link #score(SoulRegion,
+     *                   ArchetypeDefinition)} directly gets a throwaway memo instead - correct
+     *                   either way, just without the cross-archetype saving.
+     */
+    private ArchetypeScore score(SoulRegion region, ArchetypeDefinition archetype, Map<FormClause, FormResult> clauseMemo)
+    {
         final BlockCounts blocks = region.allBlocks();
 
         final String ineligibleReason = ineligibilityOf(region, archetype);
         final List<ArchetypeScore.FailedRequirement> failedRequirements = failedRequirements(blocks, archetype);
+        final boolean gated = ineligibleReason != null || !failedRequirements.isEmpty();
 
         List<ArchetypeScore.SignalContribution> contributions = new ArrayList<>();
         List<ArchetypeScore.SignalContribution> missing = new ArrayList<>();
         Set<String> rolesPresent = new LinkedHashSet<>();
 
-        double raw = 0d;
+        double signalRaw = 0d;
         int signalBlocks = 0;
 
         for (ArchetypeDefinition.Signal signal : archetype.signals())
@@ -156,8 +176,10 @@ public final class ArchetypeClassifier
             contributions.add(entry);
             rolesPresent.add(signal.role());
             signalBlocks += counted;
-            raw += contribution;
+            signalRaw += contribution;
         }
+
+        double raw = signalRaw;
 
         for (ArchetypeDefinition.Signal detractor : archetype.detractors())
         {
@@ -186,9 +208,59 @@ public final class ArchetypeClassifier
                 .comparingDouble(ArchetypeScore.SignalContribution::weight).reversed()
                 .thenComparing(ArchetypeScore.SignalContribution::description));
 
+        // structure is evidence, never a gate: a gated archetype still scores 0, but its forms are
+        // not evaluated at all - no point paying for geometry on a region that failed min_volume
+        List<ArchetypeScore.StructureContribution> structuralHits = List.of();
+        List<ArchetypeScore.StructureContribution> structuralMisses = List.of();
+
+        if (!gated && !archetype.structures().isEmpty())
+        {
+            List<ArchetypeScore.StructureContribution> hits = new ArrayList<>();
+            List<ArchetypeScore.StructureContribution> misses = new ArrayList<>();
+            double structuralRaw = 0d;
+
+            for (Form form : archetype.structures())
+            {
+                ArchetypeScore.ClauseEvaluation rootEval =
+                        FormClauseEvaluator.evaluate(form.root(), region.geometry(), form.elements(), clauseMemo);
+                final double confidence = rootEval.confidence();
+                final double contribution = form.weight() * confidence;
+
+                ArchetypeScore.StructureContribution entry = new ArchetypeScore.StructureContribution(
+                        form.name(), form.role(), form.weight(), confidence, contribution, rootEval);
+
+                if (confidence <= 0d)
+                {
+                    misses.add(entry);
+                    continue;
+                }
+
+                hits.add(entry);
+                structuralRaw += contribution;
+
+                // below the threshold, an accidental sliver of a match does not buy a full
+                // diversity bonus for free
+                if (confidence >= this.settings.structuralRoleThreshold())
+                {
+                    rolesPresent.add(form.role());
+                }
+            }
+
+            hits.sort(Comparator
+                    .comparingDouble(ArchetypeScore.StructureContribution::contribution).reversed()
+                    .thenComparing(ArchetypeScore.StructureContribution::name));
+            misses.sort(Comparator.comparing(ArchetypeScore.StructureContribution::name));
+
+            structuralHits = hits;
+            structuralMisses = misses;
+
+            // proportional to signalRaw, not a constant: arrangement amplifies a real room and is
+            // worth nothing in an empty one - a perfect ring of chairs around nothing scores nothing
+            raw += Math.min(structuralRaw, this.settings.structuralShareCap() * signalRaw);
+        }
+
         final double diversity = diversityMultiplier(rolesPresent.size());
         final double density = densityMultiplier(signalBlocks, region.volume());
-        final boolean gated = ineligibleReason != null || !failedRequirements.isEmpty();
         final double score = gated ? 0d : Math.max(0d, raw * diversity * density);
 
         return new ArchetypeScore(
@@ -203,7 +275,9 @@ public final class ArchetypeClassifier
                 contributions,
                 missing,
                 failedRequirements,
-                ineligibleReason);
+                ineligibleReason,
+                structuralHits,
+                structuralMisses);
     }
 
     private static String ineligibilityOf(SoulRegion region, ArchetypeDefinition archetype)
