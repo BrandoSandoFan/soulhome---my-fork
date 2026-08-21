@@ -78,3 +78,8 @@ Rooms that classified correctly and then did nothing.
 - Your buffs are re-applied after every scan of your soulhome rather than only after one that
   changed something, so what `/soulhome buffs` says you have earned and what you are actually
   carrying cannot drift apart.
+- `soulhome:fire_aspect` no longer requires a sword in hand. A hearth is about carrying fire with
+  you, not about a specific blade, so any direct melee hit now lights the target - a sword, an
+  axe, or a bare fist. `soulhome:sword_damage`, the armoury's buff, is unchanged and still needs
+  one: "you hit harder with a sword" is a weapon-conditional promise in a way "your hearth sets
+  things alight" was never meant to be.
