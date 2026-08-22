@@ -68,9 +68,11 @@ class FormCodecsTest
 
         Codec<Form> codec = FormCodecs.forRegistry(registry);
 
+        // a single element, referenced by the one clause - anything more would need a clause that
+        // actually reads it too, or validationErrors() below would correctly flag it as unused
         Form original = new Form(
                 "circuit", 3.5, "circuit",
-                Map.of("rails", BlockMatcher.ofTags("minecraft:rails"), "surface", BlockMatcher.ofBlocks("minecraft:ice")),
+                Map.of("rails", BlockMatcher.ofTags("minecraft:rails")),
                 loopType.create(ClauseParams.builder().put("of", "rails").put("min_cells", 12).build()),
                 Set.of("rails"));
 
