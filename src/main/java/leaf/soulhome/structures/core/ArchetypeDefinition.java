@@ -6,8 +6,10 @@ package leaf.soulhome.structures.core;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.OptionalDouble;
+import java.util.Set;
 
 /**
  * A datapack-defined description of what some kind of room looks like.
@@ -33,6 +35,10 @@ import java.util.OptionalDouble;
  * @param detractors   weighted negative evidence, used to tell near-miss archetypes apart
  * @param tiers        score thresholds, ascending
  * @param buffs        what the player gets, consumed by the buff registry
+ * @param structures   weighted structural evidence - how the room is arranged, not just what it
+ *                      holds. Never a gate: a {@link Form} cannot appear in {@link #requirements},
+ *                      because there is nowhere on {@link Requirement} to put one. See the
+ *                      structural considerations epic (#25).
  */
 public record ArchetypeDefinition(
         String id,
@@ -43,7 +49,8 @@ public record ArchetypeDefinition(
         List<Signal> signals,
         List<Signal> detractors,
         List<Tier> tiers,
-        List<BuffSpec> buffs)
+        List<BuffSpec> buffs,
+        List<Form> structures)
 {
     /**
      * Default per-signal ceiling. Caps are the hard backstop against volume-stuffing; the
@@ -66,6 +73,7 @@ public record ArchetypeDefinition(
         signals = signals == null ? List.of() : List.copyOf(signals);
         detractors = detractors == null ? List.of() : List.copyOf(detractors);
         buffs = buffs == null ? List.of() : List.copyOf(buffs);
+        structures = structures == null ? List.of() : List.copyOf(structures);
 
         // ascending, so tierFor can walk them and take the last one cleared
         List<Tier> sortedTiers = new ArrayList<>(tiers == null ? List.of() : tiers);
@@ -78,7 +86,8 @@ public record ArchetypeDefinition(
     {
         return new ArchetypeDefinition(
                 newId, this.displayName, this.regionTypes, this.minVolume,
-                this.requirements, this.signals, this.detractors, this.tiers, this.buffs);
+                this.requirements, this.signals, this.detractors, this.tiers, this.buffs,
+                this.structures);
     }
 
     public boolean accepts(RegionType type)
@@ -183,7 +192,44 @@ public record ArchetypeDefinition(
             }
         }
 
+        Set<String> formNames = new HashSet<>();
+
+        for (int i = 0; i < this.structures.size(); i++)
+        {
+            Form form = this.structures.get(i);
+            final String where = "structures[" + i + "]";
+
+            for (String error : form.validationErrors())
+            {
+                errors.add(where + ": " + error);
+            }
+
+            if (form.name() != null && !form.name().isBlank() && !formNames.add(form.name()))
+            {
+                errors.add(where + ": duplicate form name '" + form.name() + "'");
+            }
+        }
+
         return errors;
+    }
+
+    /**
+     * Problems worth a packmaker's attention that do not reject the archetype - a form that
+     * relates only one element, say. Logged, never enforced.
+     */
+    public List<String> validationWarnings()
+    {
+        List<String> warnings = new ArrayList<>();
+
+        for (int i = 0; i < this.structures.size(); i++)
+        {
+            for (String warning : this.structures.get(i).validationWarnings())
+            {
+                warnings.add("structures[" + i + "]: " + warning);
+            }
+        }
+
+        return warnings;
     }
 
     private static void collectSignalErrors(List<String> errors, String field, List<Signal> signals, boolean positive)

@@ -32,6 +32,35 @@ public final class ArchetypeSignals
      */
     public static Predicate<BlockSignature> filterFor(Collection<ArchetypeDefinition> archetypes)
     {
+        return matcherFilter(collectSignalMatchers(archetypes));
+    }
+
+    /**
+     * A predicate matching any block named by an element of any of these archetypes' structural
+     * forms - what {@link RegionScanner}'s {@code geometryFilter} should index, so a room full of
+     * stone indexes nothing and a room with rails and chairs indexes only the rails and the chairs.
+     * See "Only index what a form will ask about" in #26.
+     *
+     * <p>Derived the same way {@link #filterFor} is, and for the same reason: a datapack that adds
+     * a form gets its elements indexed without a Java change.
+     */
+    public static Predicate<BlockSignature> geometryFilterFor(Collection<ArchetypeDefinition> archetypes)
+    {
+        List<BlockMatcher> matchers = new ArrayList<>();
+
+        for (ArchetypeDefinition archetype : archetypes)
+        {
+            for (Form form : archetype.structures())
+            {
+                matchers.addAll(form.elements().values());
+            }
+        }
+
+        return matcherFilter(matchers);
+    }
+
+    private static List<BlockMatcher> collectSignalMatchers(Collection<ArchetypeDefinition> archetypes)
+    {
         List<BlockMatcher> matchers = new ArrayList<>();
 
         for (ArchetypeDefinition archetype : archetypes)
@@ -47,6 +76,11 @@ public final class ArchetypeSignals
             }
         }
 
+        return matchers;
+    }
+
+    private static Predicate<BlockSignature> matcherFilter(List<BlockMatcher> matchers)
+    {
         if (matchers.isEmpty())
         {
             return signature -> false;

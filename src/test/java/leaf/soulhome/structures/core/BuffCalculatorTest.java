@@ -328,7 +328,8 @@ class BuffCalculatorTest
                 List.of(),
                 List.of(new ArchetypeDefinition.Tier(0d, 1), new ArchetypeDefinition.Tier(100d, 3)),
                 // perTier is no longer read by magnitudeAt - see ArchetypeDefinition.BuffSpec
-                List.of(new ArchetypeDefinition.BuffSpec(buffType, 0d, max)));
+                List.of(new ArchetypeDefinition.BuffSpec(buffType, 0d, max)),
+                List.of());
     }
 
     private static ClassificationResult awarded(String archetypeId, int tier, double score)
@@ -345,7 +346,7 @@ class BuffCalculatorTest
     {
         ArchetypeScore best = new ArchetypeScore(
                 archetypeId, "archetype.soulhome.test", score, score, 1d, 1d, tier,
-                OptionalDouble.empty(), List.of(), List.of(), List.of(), null);
+                OptionalDouble.empty(), List.of(), List.of(), List.of(), null, List.of(), List.of());
 
         SoulRegion region = SoulRegion.create(
                 RegionType.ENCLOSED,

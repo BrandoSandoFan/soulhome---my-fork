@@ -177,7 +177,9 @@ public final class SoulHomeConfig
                                 SERVER.diversityBonusPerRole.get(),
                                 SERVER.densityFloor.get(),
                                 SERVER.minDensityFactor.get(),
-                                SERVER.ambiguityMargin.get()),
+                                SERVER.ambiguityMargin.get(),
+                                SERVER.structuralShareCap.get(),
+                                SERVER.structuralRoleThreshold.get()),
                         new BuffSettings(
                                 SERVER.repeatedRoomFalloff.get(),
                                 SERVER.maxRoomsPerArchetype.get(),
@@ -284,6 +286,8 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.DoubleValue densityFloor;
         public final ForgeConfigSpec.DoubleValue minDensityFactor;
         public final ForgeConfigSpec.DoubleValue ambiguityMargin;
+        public final ForgeConfigSpec.DoubleValue structuralShareCap;
+        public final ForgeConfigSpec.DoubleValue structuralRoleThreshold;
 
         public final ForgeConfigSpec.IntValue maxRoomVolume;
         public final ForgeConfigSpec.IntValue clusterRadius;
@@ -392,6 +396,22 @@ public final class SoulHomeConfig
                             "1.15 means '15% clear of the runner-up'; anything closer is reported as ambiguous",
                             "rather than being assigned by a coin toss.")
                     .defineInRange("ambiguity_margin", 1.15d, 1d, 10d);
+
+            this.structuralShareCap = builder
+                    .comment(
+                            "Structural credit (from how a room's blocks are arranged, not just what it holds) is",
+                            "capped at this fraction of the room's signal total, so a perfect arrangement of nothing",
+                            "is worth nothing. 0.5 means arrangement can at most add half again what the room's",
+                            "contents alone earned. Lower this, rather than raising thresholds, if arrangement makes",
+                            "the top of an archetype's range too easy to reach.")
+                    .defineInRange("structural_share_cap", 0.5d, 0d, 10d);
+
+            this.structuralRoleThreshold = builder
+                    .comment(
+                            "Confidence a structural form must reach before its role counts toward the diversity",
+                            "bonus above. Below this, an accidental sliver of a match does not buy a full",
+                            "diversity bonus for free.")
+                    .defineInRange("structural_role_threshold", 0.25d, 0d, 1d);
 
             builder.pop();
 

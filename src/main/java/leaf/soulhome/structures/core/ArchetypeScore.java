@@ -25,6 +25,15 @@ import java.util.OptionalDouble;
  * @param failedRequirements   hard gates that were not met; non-empty means the score is zero
  * @param ineligibleReason     why this archetype would not consider the region at all (wrong
  *                             region type, too small), or {@code null} if it did consider it
+ * @param structuralContributions structural forms (see {@code Form}, the structural considerations
+ *                             epic #25) that scored above zero, best first. Empty for every gated
+ *                             region - forms are not evaluated at all once a region is gated, since
+ *                             there is no point paying for geometry on one that failed
+ *                             {@code min_volume} - and, today, for every region: nothing ships
+ *                             registered to {@code FormClauseRegistry.BUILTIN} until #29
+ * @param missingStructures    structural forms that scored exactly zero - "arranged like this and
+ *                             it would count" is the answer a player needs, the structural sibling
+ *                             of {@code missingSignals}
  */
 public record ArchetypeScore(
         String archetypeId,
@@ -38,13 +47,17 @@ public record ArchetypeScore(
         List<SignalContribution> contributions,
         List<SignalContribution> missingSignals,
         List<FailedRequirement> failedRequirements,
-        String ineligibleReason)
+        String ineligibleReason,
+        List<StructureContribution> structuralContributions,
+        List<StructureContribution> missingStructures)
 {
     public ArchetypeScore
     {
         contributions = List.copyOf(contributions);
         missingSignals = List.copyOf(missingSignals);
         failedRequirements = List.copyOf(failedRequirements);
+        structuralContributions = structuralContributions == null ? List.of() : List.copyOf(structuralContributions);
+        missingStructures = missingStructures == null ? List.of() : List.copyOf(missingStructures);
     }
 
     /** Whether the score was forced to zero rather than simply being low. */
@@ -89,6 +102,56 @@ public record ArchetypeScore(
         public String toString()
         {
             return "needs " + this.required + " of " + this.description + ", found " + this.found;
+        }
+    }
+
+    /**
+     * One structural form's contribution: {@code contribution = weight × confidence}, plus the
+     * evaluated clause tree beneath it. "Arrangement: 0.4" tells a player nothing they can act on;
+     * the tree tells them what to build next - see {@link ClauseEvaluation}.
+     *
+     * @param name   the form's own name, from its {@code Form}
+     * @param role   grouping label, feeds the diversity multiplier once {@code confidence} clears
+     *               {@code ScoringSettings#structuralRoleThreshold}
+     */
+    public record StructureContribution(
+            String name,
+            String role,
+            double weight,
+            double confidence,
+            double contribution,
+            ClauseEvaluation root)
+    {
+    }
+
+    /**
+     * One clause's evaluated result, as part of a {@link StructureContribution}'s tree - a leaf's
+     * own graded confidence and diagnostic, or a composite node's combined confidence together with
+     * every child that fed it.
+     *
+     * @param typeId       {@code "all"}, {@code "any"}, or the leaf's own clause id
+     * @param description  {@code FormClause#describe()} - human-readable, for the report
+     * @param confidence   this node's own confidence: a leaf's graded result, an {@code all}'s
+     *                     weighted mean, or an {@code any}'s best child
+     * @param diagnostic   a short reason, already resolved for a composite node - an {@code any}
+     *                     carries its winning child's diagnostic, not all of them
+     * @param children     empty for a leaf
+     * @param selectedChild for an {@code any} node, the index into {@code children} of the
+     *                      alternative that won; {@code -1} for anything else. The player who ringed
+     *                      their rails in ice should be told that is what was credited, not left
+     *                      guessing which of three readings applied.
+     */
+    public record ClauseEvaluation(
+            String typeId,
+            String description,
+            double confidence,
+            String diagnostic,
+            List<ClauseEvaluation> children,
+            int selectedChild)
+    {
+        public ClauseEvaluation
+        {
+            children = List.copyOf(children);
         }
     }
 }

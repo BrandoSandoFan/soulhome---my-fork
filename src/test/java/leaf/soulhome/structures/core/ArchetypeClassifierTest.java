@@ -513,7 +513,8 @@ class ArchetypeClassifierTest
                         BlockMatcher.ofTags("minecraft:bookshelves"), 3.0d, "core", 32)),
                 List.of(),
                 List.of(new ArchetypeDefinition.Tier(1d, 1)),
-                List.of(new ArchetypeDefinition.BuffSpec("soulhome:nothing", 0.1d, 0.3d)));
+                List.of(new ArchetypeDefinition.BuffSpec("soulhome:nothing", 0.1d, 0.3d)),
+                List.of());
     }
 
     // endregion
