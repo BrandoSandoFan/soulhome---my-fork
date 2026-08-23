@@ -30,5 +30,36 @@
 
   "buffs": [
     { "type": "soulhome:mining_speed", "per_tier": 0.10, "max": 0.30 }
+  ],
+
+  "structures": [
+    {
+      "name": "working_face",
+      "weight": 5.0,
+      "role": "shaft",
+      "elements": {
+        "rails":    { "tag": "minecraft:rails" },
+        "ores":     { "tag": "forge:ores" },
+        "supports": { "block": "minecraft:ladder" }
+      },
+      "all": [
+        { "shape": "soulhome:line", "of": "rails", "min_run": 5, "ideal_run": 12, "weight": 2.0 },
+        { "relation": "along", "of": "supports", "to": "rails", "max_distance": 2, "min_run": 4 },
+        { "relation": "within", "of": "ores", "to": "rails", "max_distance": 3 }
+      ]
+    },
+    {
+      "name": "vein",
+      "weight": 3.0,
+      "role": "trove",
+      "elements": {
+        "ores":    { "tag": "forge:ores" },
+        "storage": { "tag": "forge:storage_blocks" }
+      },
+      "all": [
+        { "shape": "soulhome:cluster", "of": "ores", "weight": 1.5 },
+        { "relation": "within", "of": "storage", "to": "ores", "max_distance": 6 }
+      ]
+    }
   ]
 }

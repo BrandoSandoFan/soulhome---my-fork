@@ -29,5 +29,36 @@
   "buffs": [
     { "type": "soulhome:double_jump",     "per_tier": 1.0,  "max": 1.0  },
     { "type": "soulhome:fall_protection", "per_tier": 0.15, "max": 0.45 }
+  ],
+
+  "structures": [
+    {
+      "name": "course",
+      "weight": 6.0,
+      "role": "course",
+      "elements": {
+        "fences":      { "tag": "minecraft:fences" },
+        "slime":       { "block": "minecraft:slime_block" },
+        "scaffolding": { "block": ["minecraft:scaffolding", "minecraft:ladder"] }
+      },
+      "all": [
+        { "shape": "soulhome:enclosure", "of": "fences", "min_coverage": 0.5, "weight": 1.5 },
+        { "relation": "at_range", "of": "slime", "to": "scaffolding",
+          "min_distance": 1, "max_distance": 4, "weight": 2.0 },
+        { "shape": "soulhome:line", "of": "scaffolding", "min_run": 3, "ideal_run": 8 }
+      ]
+    },
+    {
+      "name": "padded",
+      "weight": 2.0,
+      "role": "cushion",
+      "elements": {
+        "hay":   { "block": "minecraft:hay_block" },
+        "slime": { "block": "minecraft:slime_block" }
+      },
+      "all": [
+        { "relation": "within", "of": "hay", "to": "slime", "max_distance": 3 }
+      ]
+    }
   ]
 }

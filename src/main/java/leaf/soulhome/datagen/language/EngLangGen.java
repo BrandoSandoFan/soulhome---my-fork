@@ -129,6 +129,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.REGION_SIGNAL, "%s x%s (%s)");
         add(Constants.StringKeys.REGION_SIGNAL_CAPPED, "only %s counted");
         add(Constants.StringKeys.REGION_MISSING, "Has none of: %s");
+        add(Constants.StringKeys.REGION_STRUCTURE, "Arranged: %s (%s)");
+        add(Constants.StringKeys.REGION_STRUCTURE_MISSING, "Could also arrange: %s - %s");
 
         add(Constants.StringKeys.BUFFS_HEADER, "What your soul is giving you:");
         add(Constants.StringKeys.BUFFS_NONE, "Your soul is giving you nothing yet. Build a room in it.");

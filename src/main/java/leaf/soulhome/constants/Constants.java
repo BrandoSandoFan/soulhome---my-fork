@@ -42,6 +42,8 @@ public class Constants
         public static final String REGION_SIGNAL = "message.soulhome.region.signal";
         public static final String REGION_SIGNAL_CAPPED = "message.soulhome.region.signal_capped";
         public static final String REGION_MISSING = "message.soulhome.region.missing";
+        public static final String REGION_STRUCTURE = "message.soulhome.region.structure";
+        public static final String REGION_STRUCTURE_MISSING = "message.soulhome.region.structure_missing";
 
         public static final String BUFFS_HEADER = "message.soulhome.buffs.header";
         public static final String BUFFS_NONE = "message.soulhome.buffs.none";

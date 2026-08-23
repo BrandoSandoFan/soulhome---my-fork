@@ -27,5 +27,33 @@
 
   "buffs": [
     { "type": "soulhome:sword_damage", "per_tier": 0.10, "max": 0.30 }
+  ],
+
+  "structures": [
+    {
+      "name": "armed_and_ready",
+      "weight": 5.0,
+      "role": "kit",
+      "elements": {
+        "smithing": { "tag": "soulhome:smithing" },
+        "armament": { "tag": "soulhome:armament" },
+        "storage":  { "tag": "soulhome:storage" }
+      },
+      "all": [
+        { "relation": "surrounds", "of": "armament", "to": "smithing", "min_radius": 1, "max_radius": 4, "weight": 2.0 },
+        { "relation": "within",    "of": "storage",  "to": "smithing", "max_distance": 5 }
+      ]
+    },
+    {
+      "name": "rack",
+      "weight": 2.5,
+      "role": "display",
+      "elements": {
+        "armament": { "tag": "soulhome:armament" }
+      },
+      "all": [
+        { "shape": "soulhome:line", "of": "armament", "min_run": 3, "ideal_run": 6 }
+      ]
+    }
   ]
 }

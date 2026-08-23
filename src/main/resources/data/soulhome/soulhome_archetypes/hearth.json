@@ -28,5 +28,35 @@
 
   "buffs": [
     { "type": "soulhome:fire_aspect", "per_tier": 2.0, "max": 6.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "gathering",
+      "weight": 6.0,
+      "role": "gathering",
+      "elements": {
+        "fire":    { "block": ["minecraft:furnace", "minecraft:campfire", "minecraft:soul_campfire"] },
+        "seating": { "tag": "soulhome:seating" },
+        "light":   { "tag": "soulhome:lighting" }
+      },
+      "all": [
+        { "relation": "surrounds", "of": "seating", "to": "fire", "min_radius": 1, "max_radius": 4, "weight": 2.0 },
+        { "relation": "within",    "of": "light",   "to": "fire", "max_distance": 5 }
+      ]
+    },
+    {
+      "name": "banked",
+      "weight": 3.0,
+      "role": "heat",
+      "elements": {
+        "fire":       { "block": ["minecraft:furnace", "minecraft:campfire", "minecraft:soul_campfire"] },
+        "hearthstone": { "block": ["minecraft:netherrack", "minecraft:magma_block"] }
+      },
+      "all": [
+        { "relation": "beneath", "of": "hearthstone", "to": "fire", "max_drop": 2, "weight": 1.5 },
+        { "shape": "soulhome:platform", "of": "hearthstone", "min_area": 4, "ideal_area": 9 }
+      ]
+    }
   ]
 }

@@ -28,6 +28,8 @@ class ArchetypeClassifierTest
     private static List<ArchetypeDefinition> shipped;
     private static ArchetypeClassifier classifier;
     private static Predicate<BlockSignature> signals;
+    private static Predicate<BlockSignature> geometryFilter;
+    private static boolean needsClearance;
 
     @BeforeAll
     static void loadShippedArchetypes() throws IOException
@@ -35,11 +37,18 @@ class ArchetypeClassifierTest
         shipped = ArchetypeJsonReader.shipped();
         classifier = new ArchetypeClassifier(shipped);
         signals = ArchetypeSignals.filterFor(shipped);
+
+        // mirrors StructureScanService's own wiring - without this, every shipped archetype's
+        // structural forms would evaluate against an unindexed (and therefore always-empty)
+        // RegionGeometry, and every form in this file's fixtures would silently score 0
+        geometryFilter = ArchetypeSignals.geometryFilterFor(shipped);
+        needsClearance = ArchetypeSignals.needsClearance(shipped);
     }
 
     private static ClassificationResult classifyOnly(GridVolume volume)
     {
-        List<SoulRegion> regions = RegionScanner.scan(volume, signals, ScanSettings.DEFAULTS);
+        List<SoulRegion> regions =
+                RegionScanner.scan(volume, signals, geometryFilter, needsClearance, ScanSettings.DEFAULTS);
         assertEquals(1, regions.size(), "expected exactly one region in this layout");
         return classifier.classify(regions.get(0));
     }
@@ -400,6 +409,32 @@ class ArchetypeClassifierTest
         }
     }
 
+    @Test
+    @DisplayName("a deliberately arranged room's forms actually contribute something")
+    void arrangedFixturesEarnRealStructuralCredit()
+    {
+        // the fixtures in this file already build rooms with their elements sensibly placed (beds
+        // against walls, chairs ringing fires, rails in loops) - if the shipped forms score zero on
+        // them, the forms are not pulling their weight, per #34's own audit property 1
+        Map<String, GridVolume> fixtures = Map.ofEntries(
+                Map.entry("soulhome:library", library()),
+                Map.entry("soulhome:bedchamber", bedchamber()),
+                Map.entry("soulhome:mine", mine()),
+                Map.entry("soulhome:track", track()),
+                Map.entry("soulhome:training_yard", trainingYard()),
+                Map.entry("soulhome:hearth", hearth()),
+                Map.entry("soulhome:alchemy_lab", alchemyLab()));
+
+        for (Map.Entry<String, GridVolume> fixture : fixtures.entrySet())
+        {
+            ArchetypeDefinition archetype = ArchetypeJsonReader.byId(shipped, fixture.getKey());
+            ArchetypeScore score = classifier.score(onlyRegion(fixture.getValue()), archetype);
+
+            assertFalse(score.structuralContributions().isEmpty(),
+                    fixture.getKey() + ": none of its forms scored above zero on its own canonical fixture");
+        }
+    }
+
     // endregion
 
     // region assignment rules
@@ -451,13 +486,31 @@ class ArchetypeClassifierTest
                 ArchetypeJsonReader.byId(shipped, "soulhome:library"));
 
         double summed = 0d;
+        double signalRaw = 0d;
 
         for (ArchetypeScore.SignalContribution contribution : score.contributions())
         {
             summed += contribution.contribution();
+
+            // detractors share this same list with a negative contribution - signalRaw is what the
+            // structural share cap is measured against, so only the positive half counts here
+            if (contribution.contribution() > 0)
+            {
+                signalRaw += contribution.contribution();
+            }
         }
 
-        assertEquals(score.rawScore(), summed, 1e-9, "contributions must account for the raw score");
+        double structuralRaw = 0d;
+
+        for (ArchetypeScore.StructureContribution structural : score.structuralContributions())
+        {
+            structuralRaw += structural.contribution();
+        }
+
+        double cappedStructural = Math.min(structuralRaw, ScoringSettings.DEFAULTS.structuralShareCap() * signalRaw);
+
+        assertEquals(score.rawScore(), summed + cappedStructural, 1e-9,
+                "signal contributions plus the (capped) structural ones must account for the raw score");
         assertEquals(score.rawScore() * score.diversityMultiplier() * score.densityMultiplier(),
                 score.score(), 1e-9, "and the multipliers must account for the rest");
         assertTrue(score.diversityMultiplier() > 1d, "a varied room earns its diversity bonus");
@@ -482,7 +535,8 @@ class ArchetypeClassifierTest
 
     private static SoulRegion onlyRegion(GridVolume volume)
     {
-        List<SoulRegion> regions = RegionScanner.scan(volume, signals, ScanSettings.DEFAULTS);
+        List<SoulRegion> regions =
+                RegionScanner.scan(volume, signals, geometryFilter, needsClearance, ScanSettings.DEFAULTS);
         assertEquals(1, regions.size(), "expected exactly one region in this layout");
         return regions.get(0);
     }

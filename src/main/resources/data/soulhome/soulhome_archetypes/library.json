@@ -29,5 +29,35 @@
 
   "buffs": [
     { "type": "soulhome:xp_gain", "per_tier": 0.10, "max": 0.30 }
+  ],
+
+  "structures": [
+    {
+      "name": "reading_spot",
+      "weight": 5.0,
+      "role": "reading",
+      "elements": {
+        "lectern": { "block": "minecraft:lectern" },
+        "seating": { "tag": "soulhome:seating" },
+        "shelves": { "tag": "minecraft:bookshelves" }
+      },
+      "all": [
+        { "relation": "across", "of": "seating", "to": "lectern", "min_distance": 2, "max_distance": 3, "weight": 2.0 },
+        { "relation": "within", "of": "shelves", "to": "lectern", "max_distance": 4 }
+      ]
+    },
+    {
+      "name": "nook",
+      "weight": 3.0,
+      "role": "core",
+      "elements": {
+        "shelves": { "tag": "minecraft:bookshelves" },
+        "seating": { "tag": "soulhome:seating" }
+      },
+      "relation": "within",
+      "of": "seating",
+      "to": "shelves",
+      "max_distance": 3
+    }
   ]
 }

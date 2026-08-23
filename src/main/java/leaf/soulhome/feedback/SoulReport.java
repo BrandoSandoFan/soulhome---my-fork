@@ -43,6 +43,14 @@ public final class SoulReport
     /** How many absent signals to name. This is the "what should I add next" list. */
     private static final int MISSING_SIGNALS = 3;
 
+    /** How many matched structural forms are worth listing - there are far fewer of these per
+     *  archetype than signals, so every hit is usually worth showing. */
+    private static final int TOP_STRUCTURES = 3;
+
+    /** How many zero-scoring forms to name, with their own diagnostic rather than a bare list -
+     *  "what should I arrange next", the structural sibling of {@link #MISSING_SIGNALS}. */
+    private static final int MISSING_STRUCTURES = 2;
+
     private SoulReport()
     {
     }
@@ -208,6 +216,7 @@ public final class SoulReport
     private static List<Component> explainSuccess(ArchetypeScore best)
     {
         List<Component> lines = new ArrayList<>(contributions(best));
+        lines.addAll(structure(best));
 
         final OptionalDouble toNext = best.scoreToNextTier();
 
@@ -221,6 +230,7 @@ public final class SoulReport
         }
 
         lines.addAll(missing(best));
+        lines.addAll(missingStructure(best));
 
         return lines;
     }
@@ -245,6 +255,7 @@ public final class SoulReport
                 .withStyle(ChatFormatting.GRAY));
 
         lines.addAll(missing(best));
+        lines.addAll(missingStructure(best));
 
         return lines;
     }
@@ -296,7 +307,9 @@ public final class SoulReport
         }
 
         lines.addAll(contributions(best));
+        lines.addAll(structure(best));
         lines.addAll(missing(best));
+        lines.addAll(missingStructure(best));
 
         return lines;
     }
@@ -334,6 +347,66 @@ public final class SoulReport
             }
 
             lines.add(indent(line));
+        }
+
+        return lines;
+    }
+
+    /**
+     * How the room is arranged, not just what it holds - the structural sibling of
+     * {@link #contributions}. Best first, exactly as {@link ArchetypeScore#structuralContributions}
+     * already sorts them.
+     */
+    private static List<Component> structure(ArchetypeScore score)
+    {
+        List<Component> lines = new ArrayList<>();
+
+        if (score.structuralContributions().isEmpty())
+        {
+            return lines;
+        }
+
+        final List<ArchetypeScore.StructureContribution> shown = score.structuralContributions()
+                .subList(0, Math.min(TOP_STRUCTURES, score.structuralContributions().size()));
+
+        for (ArchetypeScore.StructureContribution contribution : shown)
+        {
+            lines.add(indent(translated(
+                    Constants.StringKeys.REGION_STRUCTURE,
+                    contribution.name(),
+                    score(contribution.contribution())))
+                    .withStyle(ChatFormatting.WHITE));
+        }
+
+        return lines;
+    }
+
+    /**
+     * Forms that scored exactly zero, each with its own diagnostic - "arranged like this and it
+     * would count" is a more useful answer than a bare name, which is why this does not just list
+     * names the way {@link #missing} does for signals.
+     */
+    private static List<Component> missingStructure(ArchetypeScore score)
+    {
+        List<Component> lines = new ArrayList<>();
+
+        if (score.missingStructures().isEmpty())
+        {
+            return lines;
+        }
+
+        final List<ArchetypeScore.StructureContribution> shown = score.missingStructures()
+                .subList(0, Math.min(MISSING_STRUCTURES, score.missingStructures().size()));
+
+        for (ArchetypeScore.StructureContribution missing : shown)
+        {
+            final String diagnostic = missing.root() == null ? "" : missing.root().diagnostic();
+
+            lines.add(indent(translated(
+                    Constants.StringKeys.REGION_STRUCTURE_MISSING,
+                    missing.name(),
+                    diagnostic.isEmpty() ? missing.root().description() : diagnostic))
+                    .withStyle(ChatFormatting.BLUE));
         }
 
         return lines;

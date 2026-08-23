@@ -46,9 +46,17 @@ counts for more than volume: a hundred bookshelves in a box is not a library.
   sits near, above, beside or across clear space from another; whether seating rings a fire or ice
   fills the loop a track encloses; whether a rail circuit actually closes rather than just piling
   up rail; and whether a run of blocks forms a platform, an enclosure, a line or a single deliberate
-  cluster rather than scattered leftovers. This is vocabulary for datapacks and future archetypes
-  to write with, not a change to anything shipped today - none of the ten built-in rooms reference
-  any of it yet, so nothing about how your soulhome is judged changes from this alone.
+  cluster rather than scattered leftovers.
+- All ten shipped archetypes now actually use it, with two or three forms each: a track's rails
+  have to close a loop and run with ice or a surface under, around or inside them; a hearth's
+  seating has to ring the fire rather than sit anywhere in the room; a library wants a chair
+  reading across a lectern's gap and a nook of seating near the shelves; a bedchamber wants its
+  bed against a wall, lit, with somewhere to put things; a training yard wants a fenced course
+  with the scaffolding leading down onto the slime; and so on for the alchemy lab, armoury,
+  enchanting room, farm and mine.
+- `/soulhome analyse` (and the Soul Lens) now explain the arrangement half of a score too: which
+  forms were credited and how much, and which ones scored nothing along with what would make them
+  count.
 
 Buffs are earned in the soul and spent in the world. They survive death, dimension changes and
 relogs, and a visitor to someone else's soul keeps their own.

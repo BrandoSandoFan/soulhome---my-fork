@@ -26,5 +26,34 @@
 
   "buffs": [
     { "type": "soulhome:enchantment_power", "per_tier": 2.0, "max": 6.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "focus",
+      "weight": 6.0,
+      "role": "focus",
+      "elements": {
+        "table":   { "block": "minecraft:enchanting_table" },
+        "shelves": { "tag": "minecraft:bookshelves" },
+        "candles": { "tag": "soulhome:lighting" }
+      },
+      "all": [
+        { "relation": "surrounds", "of": "shelves", "to": "table", "min_radius": 1, "max_radius": 2, "weight": 2.0 },
+        { "relation": "within",    "of": "candles", "to": "table", "max_distance": 4 }
+      ]
+    },
+    {
+      "name": "arcane_ring",
+      "weight": 2.5,
+      "role": "arcane",
+      "elements": {
+        "arcane": { "tag": "soulhome:arcane" },
+        "table":  { "block": "minecraft:enchanting_table" }
+      },
+      "all": [
+        { "relation": "surrounds", "of": "arcane", "to": "table", "min_radius": 1, "max_radius": 5 }
+      ]
+    }
   ]
 }

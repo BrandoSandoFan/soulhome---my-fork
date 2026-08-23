@@ -89,6 +89,8 @@
   "message.soulhome.region.shape": "%s region %s, volume %s",
   "message.soulhome.region.signal": "%s x%s (%s)",
   "message.soulhome.region.signal_capped": "only %s counted",
+  "message.soulhome.region.structure": "Arranged: %s (%s)",
+  "message.soulhome.region.structure_missing": "Could also arrange: %s - %s",
   "message.soulhome.region.unclassified": "Not anything yet",
   "soulhome.landing": "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.",
   "soulhome:soulhome": "SoulHome",
