@@ -58,6 +58,12 @@ public record Form(
         return this.root.evaluate(geometry, this.elements);
     }
 
+    /** Whether this form's clause tree needs {@link RegionGeometry#isBlocked} to grade correctly. */
+    public boolean needsClearance()
+    {
+        return this.root != null && this.root.needsClearance();
+    }
+
     /**
      * Problems that should reject this archetype outright, logged loudly by the loader. Structure
      * is optional evidence, but a form that cannot mean what it says is a datapack bug, not

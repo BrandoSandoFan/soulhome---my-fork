@@ -42,6 +42,13 @@ counts for more than volume: a hundred bookshelves in a box is not a library.
   nothing - but this comes at the cost of the flat tier buff a minimal build used to get in full:
   a room that only just scraped tier 1 is worth noticeably less than before, and a well-arranged
   room is worth more of its archetype's ceiling than it used to be.
+- Archetypes can now score how a room is arranged, not just what it contains: whether one thing
+  sits near, above, beside or across clear space from another; whether seating rings a fire or ice
+  fills the loop a track encloses; whether a rail circuit actually closes rather than just piling
+  up rail; and whether a run of blocks forms a platform, an enclosure, a line or a single deliberate
+  cluster rather than scattered leftovers. This is vocabulary for datapacks and future archetypes
+  to write with, not a change to anything shipped today - none of the ten built-in rooms reference
+  any of it yet, so nothing about how your soulhome is judged changes from this alone.
 
 Buffs are earned in the soul and spent in the world. They survive death, dimension changes and
 relogs, and a visitor to someone else's soul keeps their own.

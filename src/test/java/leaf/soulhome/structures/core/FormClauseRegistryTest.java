@@ -4,6 +4,7 @@
 
 package leaf.soulhome.structures.core;
 
+import leaf.soulhome.structures.BuiltinFormClauses;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -56,11 +57,15 @@ class FormClauseRegistryTest
     }
 
     @Test
-    @DisplayName("nothing ships registered to BUILTIN in this issue - Phase 2 (#29-#32) is what adds clause types")
-    void builtinShipsEmpty()
+    @DisplayName("Phase 2 (#29-#32) registers the shape/relation vocabulary onto BUILTIN")
+    void builtinShipsThePhase2Vocabulary()
     {
-        assertTrue(FormClauseRegistry.BUILTIN.get(FormClauseType.Kind.SHAPE, "loop").isEmpty());
-        assertTrue(FormClauseRegistry.BUILTIN.get(FormClauseType.Kind.RELATION, "above").isEmpty());
+        BuiltinFormClauses.registerAll(FormClauseRegistry.BUILTIN);
+
+        assertTrue(FormClauseRegistry.BUILTIN.get(FormClauseType.Kind.SHAPE, "soulhome:loop").isPresent());
+        assertTrue(FormClauseRegistry.BUILTIN.get(FormClauseType.Kind.RELATION, "above").isPresent());
+        assertTrue(FormClauseRegistry.BUILTIN.get(FormClauseType.Kind.RELATION, "within").isPresent());
+        assertTrue(FormClauseRegistry.BUILTIN.get(FormClauseType.Kind.SHAPE, "soulhome:cluster").isPresent());
     }
 
     @Test

@@ -55,6 +55,7 @@ public final class RegionScanner
     private final ScanSettings settings;
     private final Predicate<BlockSignature> signalFilter;
     private final Predicate<BlockSignature> geometryFilter;
+    private final boolean indexClearance;
 
     private final RegionBounds bounds;
     private final int sizeX;
@@ -66,12 +67,14 @@ public final class RegionScanner
             BlockVolume volume,
             Predicate<BlockSignature> signalFilter,
             Predicate<BlockSignature> geometryFilter,
+            boolean indexClearance,
             ScanSettings settings)
     {
         this.volume = volume;
         this.settings = settings;
         this.signalFilter = signalFilter;
         this.geometryFilter = geometryFilter == null ? signature -> false : geometryFilter;
+        this.indexClearance = indexClearance;
 
         this.bounds = volume.bounds();
         this.sizeX = this.bounds.sizeX();
@@ -124,6 +127,25 @@ public final class RegionScanner
             Predicate<BlockSignature> geometryFilter,
             ScanSettings settings)
     {
+        return scan(volume, signalFilter, geometryFilter, false, settings);
+    }
+
+    /**
+     * @param indexClearance whether to also record which cells are {@link Passability#BLOCKING}, so
+     *                       {@link RegionGeometry#isBlocked} can answer the {@code across} relation's
+     *                       {@code require_clear} check (#29). Costs nothing beyond a set insertion
+     *                       at cells the scanner is visiting anyway - see
+     *                       {@code ArchetypeSignals#needsClearance} for how a caller decides whether
+     *                       any loaded form actually needs this before paying for it.
+     * @throws IllegalArgumentException if the volume fails {@link #isScannable}
+     */
+    public static List<SoulRegion> scan(
+            BlockVolume volume,
+            Predicate<BlockSignature> signalFilter,
+            Predicate<BlockSignature> geometryFilter,
+            boolean indexClearance,
+            ScanSettings settings)
+    {
         if (!isScannable(volume.bounds(), settings))
         {
             throw new IllegalArgumentException(
@@ -131,7 +153,7 @@ public final class RegionScanner
                             + " cells, above the limit of " + settings.maxScannedCells());
         }
 
-        return new RegionScanner(volume, signalFilter, geometryFilter, settings).run();
+        return new RegionScanner(volume, signalFilter, geometryFilter, indexClearance, settings).run();
     }
 
     private List<SoulRegion> run()
@@ -418,6 +440,14 @@ public final class RegionScanner
             regionBounds = regionBounds.encompass(x, y, z);
             indexIfInteresting(geometry, x, y, z, signature);
 
+            // every shell cell is BLOCKING by construction - it was only pushed here because a
+            // passabilityAt check just above said so - so this is free: no extra query, just
+            // recording what the scanner already knows while it is looking at the cell anyway
+            if (this.indexClearance)
+            {
+                geometry.addBlocked(x, y, z);
+            }
+
             // walls, floor and ceiling sit outside the air's bounding box; anything solid *inside*
             // it is furniture standing in the room - a pillar, an enchanting table, an anvil
             if (interiorBounds.contains(x, y, z))
@@ -429,6 +459,8 @@ public final class RegionScanner
                 boundary.add(signature);
             }
         }
+
+        geometry.bounds(regionBounds);
 
         return SoulRegion.create(
                 RegionType.ENCLOSED,
@@ -585,8 +617,9 @@ public final class RegionScanner
                 for (int z = clusterBounds.minZ(); z <= clusterBounds.maxZ(); z++)
                 {
                     final int index = index(x, y, z);
+                    final Passability passability = this.volume.passabilityAt(x, y, z);
 
-                    if (this.volume.passabilityAt(x, y, z) == Passability.EMPTY)
+                    if (passability == Passability.EMPTY)
                     {
                         continue;
                     }
@@ -603,9 +636,16 @@ public final class RegionScanner
                     BlockSignature signature = this.volume.signatureAt(x, y, z);
                     contents.add(signature);
                     indexIfInteresting(geometry, x, y, z, signature);
+
+                    if (this.indexClearance && passability == Passability.BLOCKING)
+                    {
+                        geometry.addBlocked(x, y, z);
+                    }
                 }
             }
         }
+
+        geometry.bounds(clusterBounds);
 
         final long boundsVolume = clusterBounds.volume();
 

@@ -59,6 +59,29 @@ public final class ArchetypeSignals
         return matcherFilter(matchers);
     }
 
+    /**
+     * Whether any of these archetypes' structural forms actually needs clearance data - see
+     * {@link RegionGeometry#isBlocked} and {@link RegionScanner}'s {@code indexClearance} flag.
+     * Today that means an {@code across} relation with {@code require_clear} set; derived the same
+     * way {@link #geometryFilterFor} is, so a datapack adding one gets clearance tracked for its
+     * scan without a Java change.
+     */
+    public static boolean needsClearance(Collection<ArchetypeDefinition> archetypes)
+    {
+        for (ArchetypeDefinition archetype : archetypes)
+        {
+            for (Form form : archetype.structures())
+            {
+                if (form.needsClearance())
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private static List<BlockMatcher> collectSignalMatchers(Collection<ArchetypeDefinition> archetypes)
     {
         List<BlockMatcher> matchers = new ArrayList<>();

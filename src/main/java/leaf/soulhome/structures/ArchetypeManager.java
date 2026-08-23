@@ -76,6 +76,12 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
         return loaded.geometryFilter();
     }
 
+    /** Whether {@code RegionScanner} should also track clearance data - see {@link ArchetypeSignals#needsClearance}. */
+    public static boolean needsClearance()
+    {
+        return loaded.needsClearance();
+    }
+
     /**
      * Replace the loaded set. Used by the reload listener on the server, and by the sync packet on
      * the client.
@@ -192,7 +198,8 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
             List<ArchetypeDefinition> archetypes,
             ArchetypeClassifier classifier,
             Predicate<BlockSignature> signalFilter,
-            Predicate<BlockSignature> geometryFilter)
+            Predicate<BlockSignature> geometryFilter,
+            boolean needsClearance)
     {
         private static final Loaded EMPTY = of(List.of());
 
@@ -203,7 +210,8 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
                     frozen,
                     new ArchetypeClassifier(frozen, SoulHomeConfig.scoringSettings()),
                     ArchetypeSignals.filterFor(frozen),
-                    ArchetypeSignals.geometryFilterFor(frozen));
+                    ArchetypeSignals.geometryFilterFor(frozen),
+                    ArchetypeSignals.needsClearance(frozen));
         }
     }
 }

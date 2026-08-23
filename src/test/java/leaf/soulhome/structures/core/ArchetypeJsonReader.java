@@ -8,6 +8,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import leaf.soulhome.structures.BuiltinFormClauses;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -37,6 +38,15 @@ public final class ArchetypeJsonReader
     /** Where the shipped definitions live, relative to the repository root. */
     public static final Path SHIPPED_DIRECTORY =
             Path.of("src", "main", "resources", "data", "soulhome", "soulhome_archetypes");
+
+    static
+    {
+        // the Minecraft-free test suite never runs SoulHome's bootstrap, so nothing else populates
+        // FormClauseRegistry.BUILTIN with the real #29-#32 vocabulary before a test that reads
+        // against it by default (see #read(JsonObject)) runs - safe to call more than once, see
+        // BuiltinFormClauses#registerAll(FormClauseRegistry)
+        BuiltinFormClauses.registerAll(FormClauseRegistry.BUILTIN);
+    }
 
     private ArchetypeJsonReader()
     {

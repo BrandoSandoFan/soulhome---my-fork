@@ -11,6 +11,7 @@ import leaf.soulhome.compat.patchouli.PatchouliCompat;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.registry.*;
+import leaf.soulhome.structures.BuiltinFormClauses;
 import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -81,6 +82,11 @@ public class SoulHome
         //Entity Caps
 
         DataSerializersRegistry.register();
+
+        // the shape/relation vocabulary structural forms are written against (#29-#32) - must
+        // happen before any datapack is read, or every "shape"/"relation" clause in it resolves to
+        // UnknownClause the way an unrecognised one always does
+        BuiltinFormClauses.registerAll();
 
         //must happen before any datapack is read, or advancements naming these triggers are dropped
         SoulAdvancements.register();
