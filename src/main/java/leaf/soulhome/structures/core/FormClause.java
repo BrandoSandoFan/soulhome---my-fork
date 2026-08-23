@@ -42,4 +42,17 @@ public interface FormClause
      *                      validation needs that context
      */
     List<String> validationErrors(Set<String> elementNames);
+
+    /**
+     * Whether evaluating this clause needs {@link RegionGeometry#isBlocked} data to be meaningful -
+     * in practice, only ever {@code true} for an {@code across} relation (#29) with
+     * {@code require_clear} set. {@code false} by default so nothing outside that one clause has to
+     * know this exists; {@link AllClause} and {@link AnyClause} override it to walk their children,
+     * so {@link Form#needsClearance()} - and so {@code ArchetypeSignals#needsClearance} - can ask
+     * the question of a whole clause tree without new tree-walking machinery.
+     */
+    default boolean needsClearance()
+    {
+        return false;
+    }
 }

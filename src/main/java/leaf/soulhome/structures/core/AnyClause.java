@@ -75,4 +75,18 @@ public record AnyClause(List<WeightedClause> children) implements FormClause
 
         return errors;
     }
+
+    @Override
+    public boolean needsClearance()
+    {
+        for (WeightedClause child : this.children)
+        {
+            if (child.clause().needsClearance())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

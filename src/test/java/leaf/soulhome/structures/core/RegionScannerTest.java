@@ -439,6 +439,58 @@ class RegionScannerTest
 
     // endregion
 
+    // region clearance (#29)
+
+    @Test
+    @DisplayName("an enclosed region's geometry carries its own bounds")
+    void enclosedRegionGeometryCarriesBounds()
+    {
+        SoulRegion room = scanWithGeometry(furnishedRoom(), LECTERNS_ONLY).get(0);
+
+        assertEquals(room.bounds(), room.geometry().bounds().orElseThrow());
+    }
+
+    @Test
+    @DisplayName("an open-air region's geometry carries its own bounds too")
+    void openRegionGeometryCarriesBounds()
+    {
+        GridVolume field = GridVolume.of(
+                new String[]{"fffff", "fffff", "fffff", "fffff", "fffff"},
+                new String[]{"wwwww", "wwwww", "wwwww", "wwwww", "wwwww"});
+
+        List<SoulRegion> regions = RegionScanner.scan(field, ANY_CROP, LECTERNS_ONLY, ScanSettings.DEFAULTS);
+        assertEquals(1, regions.size());
+
+        SoulRegion cluster = regions.get(0);
+        assertEquals(cluster.bounds(), cluster.geometry().bounds().orElseThrow());
+    }
+
+    @Test
+    @DisplayName("without indexClearance, nothing is recorded as blocked even where a wall plainly is")
+    void withoutIndexClearanceNothingIsRecordedBlocked()
+    {
+        SoulRegion room = RegionScanner.scan(furnishedRoom(), ANY_CROP, LECTERNS_ONLY, false, ScanSettings.DEFAULTS).get(0);
+
+        // (0,1,1) is the left wall of furnishedRoom()'s middle row - definitely BLOCKING - yet
+        // unrecorded, since clearance tracking was never asked for
+        assertFalse(room.geometry().isBlocked(0, 1, 1));
+    }
+
+    @Test
+    @DisplayName("with indexClearance, wall and furniture cells the scanner visits are recorded as blocked")
+    void withIndexClearanceWallsAreRecordedBlocked()
+    {
+        SoulRegion room = RegionScanner.scan(furnishedRoom(), ANY_CROP, LECTERNS_ONLY, true, ScanSettings.DEFAULTS).get(0);
+
+        // the lectern itself (indexed furniture, standing at x=1,z=2) and the room's left wall
+        // (shell, at x=0) are both BLOCKING cells the scanner visits while building this room
+        assertTrue(room.geometry().isBlocked(1, 1, 2), "the lectern");
+        assertTrue(room.geometry().isBlocked(0, 1, 1), "the left wall");
+        assertFalse(room.geometry().isBlocked(2, 1, 2), "open floor space has nothing blocked");
+    }
+
+    // endregion
+
     // region layouts
 
     private static GridVolume sealedRoom()

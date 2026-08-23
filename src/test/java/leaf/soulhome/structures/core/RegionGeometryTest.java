@@ -118,4 +118,48 @@ class RegionGeometryTest
 
         assertFalse(geometry.isTruncated());
     }
+
+    // region clearance (#29)
+
+    @Test
+    @DisplayName("isBlocked is false everywhere when nothing was ever recorded as blocked")
+    void isBlockedDefaultsToFalse()
+    {
+        RegionGeometry geometry = RegionGeometry.builder(10).add(0, 0, 0, TestBlocks.BOOKSHELF).build();
+
+        assertFalse(geometry.isBlocked(0, 0, 0), "not tracked - absence must read as 'not blocked', not as a failure");
+        assertFalse(geometry.isBlocked(5, 5, 5));
+    }
+
+    @Test
+    @DisplayName("EMPTY is safe to query for blocked cells and bounds")
+    void emptyIsSafeToQuery()
+    {
+        assertFalse(RegionGeometry.EMPTY.isBlocked(0, 0, 0));
+        assertTrue(RegionGeometry.EMPTY.bounds().isEmpty());
+    }
+
+    @Test
+    @DisplayName("a recorded blocked position is reported, and nowhere else is")
+    void addBlockedIsRecorded()
+    {
+        RegionGeometry geometry = RegionGeometry.builder(10).addBlocked(1, 2, 3).build();
+
+        assertTrue(geometry.isBlocked(1, 2, 3));
+        assertFalse(geometry.isBlocked(1, 2, 4));
+    }
+
+    @Test
+    @DisplayName("bounds is empty until the builder is given one, and present afterwards")
+    void boundsIsOptional()
+    {
+        RegionGeometry withoutBounds = RegionGeometry.builder(10).add(0, 0, 0, TestBlocks.BOOKSHELF).build();
+        assertTrue(withoutBounds.bounds().isEmpty());
+
+        RegionBounds bounds = new RegionBounds(0, 0, 0, 4, 4, 4);
+        RegionGeometry withBounds = RegionGeometry.builder(10).bounds(bounds).build();
+        assertEquals(bounds, withBounds.bounds().orElseThrow());
+    }
+
+    // endregion
 }
