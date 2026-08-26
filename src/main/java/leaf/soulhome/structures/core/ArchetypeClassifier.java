@@ -212,6 +212,7 @@ public final class ArchetypeClassifier
         // not evaluated at all - no point paying for geometry on a region that failed min_volume
         List<ArchetypeScore.StructureContribution> structuralHits = List.of();
         List<ArchetypeScore.StructureContribution> structuralMisses = List.of();
+        boolean structuralCapped = false;
 
         if (!gated && !archetype.structures().isEmpty())
         {
@@ -256,7 +257,9 @@ public final class ArchetypeClassifier
 
             // proportional to signalRaw, not a constant: arrangement amplifies a real room and is
             // worth nothing in an empty one - a perfect ring of chairs around nothing scores nothing
-            raw += Math.min(structuralRaw, this.settings.structuralShareCap() * signalRaw);
+            final double structuralCap = this.settings.structuralShareCap() * signalRaw;
+            structuralCapped = structuralRaw > structuralCap;
+            raw += Math.min(structuralRaw, structuralCap);
         }
 
         final double diversity = diversityMultiplier(rolesPresent.size());
@@ -277,7 +280,8 @@ public final class ArchetypeClassifier
                 failedRequirements,
                 ineligibleReason,
                 structuralHits,
-                structuralMisses);
+                structuralMisses,
+                structuralCapped);
     }
 
     private static String ineligibilityOf(SoulRegion region, ArchetypeDefinition archetype)

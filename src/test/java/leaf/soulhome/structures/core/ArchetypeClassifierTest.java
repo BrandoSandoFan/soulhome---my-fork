@@ -476,6 +476,27 @@ class ArchetypeClassifierTest
         assertEquals(32, bookshelves.countedCount());
     }
 
+    @Test
+    @DisplayName("structural credit is flagged as capped only once it actually hits the share cap")
+    void structuralCappedFlagsOnlyWhenTheCapBites()
+    {
+        // #33 needs to tell a player "arrangement stopped moving the score" apart from "arrangement
+        // simply is not worth much yet" - both look identical from the raw numbers alone unless the
+        // classifier says which one happened
+        SoulRegion region = onePileRegion();
+
+        ArchetypeDefinition generous = structuralOnly("soulhome:cap_generous", 0.1d);
+        ArchetypeScore generousScore = new ArchetypeClassifier(List.of(generous)).score(region, generous);
+
+        assertFalse(generousScore.structuralCapped(), "a form well under half the signal total should not be flagged");
+        assertEquals(1, generousScore.structuralContributions().size());
+
+        ArchetypeDefinition greedy = structuralOnly("soulhome:cap_greedy", 50d);
+        ArchetypeScore greedyScore = new ArchetypeClassifier(List.of(greedy)).score(region, greedy);
+
+        assertTrue(greedyScore.structuralCapped(), "a form worth 100x the signal total should be flagged");
+    }
+
     // endregion
 
     // region helpers
@@ -498,6 +519,39 @@ class ArchetypeClassifierTest
         }
 
         throw new AssertionError("No score recorded for " + archetypeId);
+    }
+
+    /** One bookshelf, enclosed, nothing else - just enough signal total to have a cap worth hitting. */
+    private static SoulRegion onePileRegion()
+    {
+        return SoulRegion.create(
+                RegionType.ENCLOSED,
+                new RegionBounds(0, 0, 0, 1, 1, 1),
+                BlockCounts.empty(),
+                BlockCounts.builder().add(TestBlocks.BOOKSHELF, 1).build(),
+                1);
+    }
+
+    /**
+     * A signal worth exactly 1.0 (one bookshelf, weight 1, {@code sqrt(1)}) and a single fully-
+     * confident form at {@code formWeight}, so the form's raw contribution against the default
+     * {@code structuralShareCap} (half the signal total) is controlled entirely by the caller.
+     */
+    private static ArchetypeDefinition structuralOnly(String id, double formWeight)
+    {
+        return new ArchetypeDefinition(
+                id,
+                "archetype.soulhome.test",
+                List.of(RegionType.ENCLOSED),
+                1,
+                List.of(),
+                List.of(new ArchetypeDefinition.Signal(
+                        BlockMatcher.ofTags("minecraft:bookshelves"), 1.0d, "core", 100)),
+                List.of(),
+                List.of(new ArchetypeDefinition.Tier(0.5d, 1)),
+                List.of(new ArchetypeDefinition.BuffSpec("soulhome:nothing", 0.1d, 0.3d)),
+                List.of(new Form(
+                        "gathering", formWeight, "arrangement", Map.of(), FakeClause.of(1.0d), Set.of())));
     }
 
     /** Two of these score identically on any region, which is what the margin rule is for. */

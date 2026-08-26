@@ -130,6 +130,15 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.REGION_SIGNAL_CAPPED, "only %s counted");
         add(Constants.StringKeys.REGION_MISSING, "Has none of: %s");
 
+        add(Constants.StringKeys.REGION_STRUCTURE_HEADER, "Arrangement:");
+        add(Constants.StringKeys.REGION_STRUCTURE, "%s (%s)");
+        add(Constants.StringKeys.REGION_STRUCTURE_ZERO, "%s - not yet");
+        add(Constants.StringKeys.REGION_STRUCTURE_CLAUSE_HIT, "+ %s");
+        add(Constants.StringKeys.REGION_STRUCTURE_CLAUSE_MISS, "- %s");
+        add(Constants.StringKeys.REGION_STRUCTURE_CAPPED, "(held at the cap)");
+        add(Constants.StringKeys.REGION_STRUCTURE_TRUNCATED, "This region is too large to analyse its arrangement.");
+        add(Constants.StringKeys.REGION_STRUCTURE_SKIPPED, "%s (needs a mod that is not installed)");
+
         add(Constants.StringKeys.BUFFS_HEADER, "What your soul is giving you:");
         add(Constants.StringKeys.BUFFS_NONE, "Your soul is giving you nothing yet. Build a room in it.");
         add(Constants.StringKeys.BUFFS_ENTRY, "%s %s");

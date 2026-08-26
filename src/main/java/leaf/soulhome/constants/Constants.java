@@ -43,6 +43,18 @@ public class Constants
         public static final String REGION_SIGNAL_CAPPED = "message.soulhome.region.signal_capped";
         public static final String REGION_MISSING = "message.soulhome.region.missing";
 
+        // Structural considerations (#25): the arrangement half of the report. A clause's own
+        // description/diagnostic carries the substance, so a new clause type never needs a new key
+        // here - only the surrounding notices (capped, truncated, skipped) are fixed strings.
+        public static final String REGION_STRUCTURE_HEADER = "message.soulhome.region.structure_header";
+        public static final String REGION_STRUCTURE = "message.soulhome.region.structure";
+        public static final String REGION_STRUCTURE_ZERO = "message.soulhome.region.structure_zero";
+        public static final String REGION_STRUCTURE_CLAUSE_HIT = "message.soulhome.region.structure_clause_hit";
+        public static final String REGION_STRUCTURE_CLAUSE_MISS = "message.soulhome.region.structure_clause_miss";
+        public static final String REGION_STRUCTURE_CAPPED = "message.soulhome.region.structure_capped";
+        public static final String REGION_STRUCTURE_TRUNCATED = "message.soulhome.region.structure_truncated";
+        public static final String REGION_STRUCTURE_SKIPPED = "message.soulhome.region.structure_skipped";
+
         public static final String BUFFS_HEADER = "message.soulhome.buffs.header";
         public static final String BUFFS_NONE = "message.soulhome.buffs.none";
         public static final String BUFFS_ENTRY = "message.soulhome.buffs.entry";

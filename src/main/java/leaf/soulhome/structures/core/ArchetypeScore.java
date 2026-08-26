@@ -29,11 +29,16 @@ import java.util.OptionalDouble;
  *                             epic #25) that scored above zero, best first. Empty for every gated
  *                             region - forms are not evaluated at all once a region is gated, since
  *                             there is no point paying for geometry on one that failed
- *                             {@code min_volume} - and, today, for every region: nothing ships
- *                             registered to {@code FormClauseRegistry.BUILTIN} until #29
+ *                             {@code min_volume} - and, today, for every shipped archetype: none of
+ *                             them declare any forms yet, that being the whole of #34
  * @param missingStructures    structural forms that scored exactly zero - "arranged like this and
  *                             it would count" is the answer a player needs, the structural sibling
  *                             of {@code missingSignals}
+ * @param structuralCapped     whether structural credit hit {@code ScoringSettings#structuralShareCap}
+ *                             and was held back - a player who keeps arranging a room and sees the
+ *                             score stop moving deserves to know why rather than concluding the mod
+ *                             is broken. Always {@code false} for a gated region: nothing is credited
+ *                             far enough to be capped.
  */
 public record ArchetypeScore(
         String archetypeId,
@@ -49,7 +54,8 @@ public record ArchetypeScore(
         List<FailedRequirement> failedRequirements,
         String ineligibleReason,
         List<StructureContribution> structuralContributions,
-        List<StructureContribution> missingStructures)
+        List<StructureContribution> missingStructures,
+        boolean structuralCapped)
 {
     public ArchetypeScore
     {
