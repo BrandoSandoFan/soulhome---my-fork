@@ -27,5 +27,22 @@
 
   "buffs": [
     { "type": "soulhome:sword_damage", "per_tier": 0.10, "max": 0.30 }
+  ],
+
+  "structures": [
+    {
+      "name": "armed_and_ready",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "forge":    { "tag": "soulhome:smithing" },
+        "armament": { "tag": "soulhome:armament" },
+        "storage":  { "tag": "soulhome:storage" }
+      },
+      "all": [
+        { "relation": "at_range", "of": "armament", "to": "forge", "min_distance": 0, "max_distance": 4, "weight": 2.0 },
+        { "relation": "within",   "of": "storage",  "to": "forge", "max_distance": 5, "weight": 1.0 }
+      ]
+    }
   ]
 }

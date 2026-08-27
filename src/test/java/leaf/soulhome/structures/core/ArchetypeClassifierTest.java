@@ -28,6 +28,7 @@ class ArchetypeClassifierTest
     private static List<ArchetypeDefinition> shipped;
     private static ArchetypeClassifier classifier;
     private static Predicate<BlockSignature> signals;
+    private static Predicate<BlockSignature> geometry;
 
     @BeforeAll
     static void loadShippedArchetypes() throws IOException
@@ -35,11 +36,12 @@ class ArchetypeClassifierTest
         shipped = ArchetypeJsonReader.shipped();
         classifier = new ArchetypeClassifier(shipped);
         signals = ArchetypeSignals.filterFor(shipped);
+        geometry = ArchetypeSignals.geometryFilterFor(shipped);
     }
 
     private static ClassificationResult classifyOnly(GridVolume volume)
     {
-        List<SoulRegion> regions = RegionScanner.scan(volume, signals, ScanSettings.DEFAULTS);
+        List<SoulRegion> regions = RegionScanner.scan(volume, signals, geometry, ScanSettings.DEFAULTS);
         assertEquals(1, regions.size(), "expected exactly one region in this layout");
         return classifier.classify(regions.get(0));
     }
@@ -450,14 +452,34 @@ class ArchetypeClassifierTest
         ArchetypeScore score = classifier.score(onlyRegion(library()),
                 ArchetypeJsonReader.byId(shipped, "soulhome:library"));
 
-        double summed = 0d;
+        double signalSum = 0d;
 
         for (ArchetypeScore.SignalContribution contribution : score.contributions())
         {
-            summed += contribution.contribution();
+            signalSum += contribution.contribution();
         }
 
-        assertEquals(score.rawScore(), summed, 1e-9, "contributions must account for the raw score");
+        double structuralSum = 0d;
+
+        for (ArchetypeScore.StructureContribution contribution : score.structuralContributions())
+        {
+            structuralSum += contribution.contribution();
+        }
+
+        // structural credit is capped as a share of the signal total (#34), so the canonical study
+        // - reading_spot's own weight comfortably under that cap - should reconstruct exactly; only
+        // a form far past the cap would need the inequality instead
+        if (score.structuralCapped())
+        {
+            assertTrue(score.rawScore() < signalSum + structuralSum,
+                    "capped structural credit must be less than the uncapped total");
+        }
+        else
+        {
+            assertEquals(signalSum + structuralSum, score.rawScore(), 1e-9,
+                    "contributions must account for the raw score");
+        }
+
         assertEquals(score.rawScore() * score.diversityMultiplier() * score.densityMultiplier(),
                 score.score(), 1e-9, "and the multipliers must account for the rest");
         assertTrue(score.diversityMultiplier() > 1d, "a varied room earns its diversity bonus");
@@ -497,13 +519,54 @@ class ArchetypeClassifierTest
         assertTrue(greedyScore.structuralCapped(), "a form worth 100x the signal total should be flagged");
     }
 
+    @Test
+    @DisplayName("#34's forms never cost a canonical build a point or a tier")
+    void formsNeverRegressAShippedArchetype()
+    {
+        // the epic's own guarantee: structural weights are additive and thresholds only ever come
+        // down, so this should hold by construction - which is exactly the kind of claim that needs
+        // a test rather than a comment. Run through the real shipped JSON via ArchetypeJsonReader,
+        // so a weight typo in an archetype file fails here rather than quietly demoting a build.
+        Map<String, GridVolume> canonicalBuild = Map.ofEntries(
+                Map.entry("soulhome:library", library()),
+                Map.entry("soulhome:hearth", hearth()),
+                Map.entry("soulhome:track", track()),
+                Map.entry("soulhome:bedchamber", bedchamber()),
+                Map.entry("soulhome:training_yard", trainingYard()),
+                Map.entry("soulhome:mine", mine()),
+                Map.entry("soulhome:alchemy_lab", alchemyLab()),
+                Map.entry("soulhome:farm", farm()),
+                Map.entry("soulhome:enchanting_room", enchantingRoom()),
+                Map.entry("soulhome:armoury", armoury()));
+
+        assertEquals(shipped.size(), canonicalBuild.size(),
+                "every shipped archetype needs a canonical-build fixture here, or a newly added one goes untested");
+
+        for (ArchetypeDefinition archetype : shipped)
+        {
+            GridVolume volume = canonicalBuild.get(archetype.id());
+            assertNotNull(volume, archetype.id() + " has no canonical-build fixture in this test");
+
+            SoulRegion region = onlyRegion(volume);
+            ArchetypeScore withForms = classifier.score(region, archetype);
+            ArchetypeScore withoutForms = classifier.score(region, withoutStructures(archetype));
+
+            assertTrue(withForms.score() >= withoutForms.score() - 1e-9,
+                    archetype.id() + ": adding forms must never lower the score - "
+                            + withForms.score() + " with, " + withoutForms.score() + " without");
+            assertTrue(withForms.tier() >= withoutForms.tier(),
+                    archetype.id() + ": adding forms must never cost a tier - tier "
+                            + withForms.tier() + " with, tier " + withoutForms.tier() + " without");
+        }
+    }
+
     // endregion
 
     // region helpers
 
     private static SoulRegion onlyRegion(GridVolume volume)
     {
-        List<SoulRegion> regions = RegionScanner.scan(volume, signals, ScanSettings.DEFAULTS);
+        List<SoulRegion> regions = RegionScanner.scan(volume, signals, geometry, ScanSettings.DEFAULTS);
         assertEquals(1, regions.size(), "expected exactly one region in this layout");
         return regions.get(0);
     }
@@ -519,6 +582,15 @@ class ArchetypeClassifierTest
         }
 
         throw new AssertionError("No score recorded for " + archetypeId);
+    }
+
+    /** The same archetype, with its forms stripped - the "before #34" baseline for a regression check. */
+    private static ArchetypeDefinition withoutStructures(ArchetypeDefinition archetype)
+    {
+        return new ArchetypeDefinition(
+                archetype.id(), archetype.displayName(), archetype.regionTypes(), archetype.minVolume(),
+                archetype.requirements(), archetype.signals(), archetype.detractors(), archetype.tiers(),
+                archetype.buffs(), List.of());
     }
 
     /** One bookshelf, enclosed, nothing else - just enough signal total to have a cap worth hitting. */
@@ -893,6 +965,37 @@ class ArchetypeClassifierTest
                         "#.mmm.#",
                         "#c...c#",
                         "#kkkkk#"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    private static GridVolume armoury()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#GGGGG#",
+                        "#i...i#",
+                        "#.....#",
+                        "#.bA..#",
+                        "#.....#",
+                        "#i...i#",
+                        "#GGGGG#"},
+                new String[]{
+                        "#GGGGG#",
+                        "#n...n#",
+                        "#.....#",
+                        "#..A..#",
+                        "#.....#",
+                        "#n...n#",
+                        "#GGGGG#"},
                 new String[]{
                         "#######",
                         "#c...c#",

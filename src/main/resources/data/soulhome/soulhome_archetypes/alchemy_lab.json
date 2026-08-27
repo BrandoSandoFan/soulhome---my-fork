@@ -28,5 +28,22 @@
 
   "buffs": [
     { "type": "soulhome:potion_duration", "per_tier": 0.15, "max": 0.45 }
+  ],
+
+  "structures": [
+    {
+      "name": "bench",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "stand":    { "block": "minecraft:brewing_stand" },
+        "reagents": { "tag": "soulhome:reagents" },
+        "storage":  { "tag": "soulhome:storage" }
+      },
+      "all": [
+        { "relation": "within", "of": "reagents", "to": "stand", "max_distance": 3, "weight": 2.0 },
+        { "relation": "within", "of": "storage",  "to": "stand", "max_distance": 5, "weight": 1.0 }
+      ]
+    }
   ]
 }

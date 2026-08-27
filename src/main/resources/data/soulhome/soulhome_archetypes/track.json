@@ -29,5 +29,37 @@
 
   "buffs": [
     { "type": "soulhome:speed", "per_tier": 0.08, "max": 0.24 }
+  ],
+
+  "structures": [
+    {
+      "name": "circuit",
+      "weight": 6.0,
+      "role": "arrangement",
+      "elements": {
+        "rails":   { "tag": "minecraft:rails" },
+        "surface": { "block": ["minecraft:ice", "minecraft:packed_ice", "minecraft:blue_ice", "minecraft:hay_block"] }
+      },
+      "all": [
+        { "shape": "soulhome:loop", "of": "rails", "min_cells": 12, "ideal_cells": 32, "weight": 2.0 },
+        { "any": [
+            { "relation": "above",     "of": "rails",   "to": "surface" },
+            { "relation": "surrounds", "of": "surface", "to": "rails" },
+            { "relation": "inside",    "of": "surface", "to": "rails" }
+          ], "weight": 1.0 }
+      ]
+    },
+    {
+      "name": "trackside",
+      "weight": 2.0,
+      "role": "arrangement",
+      "elements": {
+        "fences": { "tag": "minecraft:fences" },
+        "rails":  { "tag": "minecraft:rails" }
+      },
+      "relation": "beside",
+      "of": "fences",
+      "to": "rails"
+    }
   ]
 }

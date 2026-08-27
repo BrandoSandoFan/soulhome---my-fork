@@ -30,5 +30,23 @@
 
   "buffs": [
     { "type": "soulhome:mining_speed", "per_tier": 0.10, "max": 0.30 }
+  ],
+
+  "structures": [
+    {
+      "name": "working_face",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "rails":    { "tag": "minecraft:rails" },
+        "ores":     { "tag": "forge:ores" },
+        "supports": { "block": "minecraft:ladder" }
+      },
+      "all": [
+        { "shape": "soulhome:line", "of": "rails", "min_run": 4, "ideal_run": 12, "weight": 2.0 },
+        { "relation": "along",  "of": "supports", "to": "rails", "min_run": 4, "weight": 1.0 },
+        { "relation": "within", "of": "ores",     "to": "rails", "max_distance": 3, "weight": 1.0 }
+      ]
+    }
   ]
 }

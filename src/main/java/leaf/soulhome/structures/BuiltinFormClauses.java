@@ -27,9 +27,10 @@ import leaf.soulhome.structures.core.WithinClauseType;
  * (#25) adds: distance and direction (#29), surrounding and containment (#30), closed circuits
  * (#31), and platforms/enclosures/lines/clusters (#32).
  *
- * <p>Registering these does not, on its own, change anything a player sees: no shipped archetype
- * JSON references any of these ids yet (that is #34's job). This only makes the vocabulary
- * available for a datapack - or a future archetype - to use.
+ * <p>Every shipped archetype's JSON now references some of these ids (#34), and this is what makes
+ * that vocabulary resolvable rather than every {@code shape}/{@code relation} clause in the game
+ * falling back to {@link leaf.soulhome.structures.core.UnknownClause}. A datapack can register its
+ * own clause types the same way, onto its own {@link FormClauseRegistry}.
  */
 public final class BuiltinFormClauses
 {
