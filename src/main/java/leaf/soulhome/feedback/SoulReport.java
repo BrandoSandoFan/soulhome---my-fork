@@ -43,6 +43,15 @@ public final class SoulReport
     /** How many absent signals to name. This is the "what should I add next" list. */
     private static final int MISSING_SIGNALS = 3;
 
+    /** How many credited forms are worth showing their clause tree before the tail stops helping. */
+    private static final int TOP_STRUCTURES = 3;
+
+    /** How many zero-scored forms to name, each with the alternatives that were tried. */
+    private static final int MISSING_STRUCTURES = 2;
+
+    /** Guards {@link #clauseLines} against a malformed tree; the grammar itself caps nesting at 2. */
+    private static final int MAX_CLAUSE_DEPTH = 8;
+
     private SoulReport()
     {
     }
@@ -95,9 +104,9 @@ public final class SoulReport
 
         switch (result.status())
         {
-            case CLASSIFIED -> lines.addAll(explainSuccess(best));
+            case CLASSIFIED -> lines.addAll(explainSuccess(best, result.region()));
             case AMBIGUOUS -> lines.addAll(explainAmbiguity(best, result.runnerUp()));
-            case UNCLASSIFIED -> lines.addAll(explainFailure(best));
+            case UNCLASSIFIED -> lines.addAll(explainFailure(best, result.region()));
         }
 
         return lines;
@@ -205,9 +214,10 @@ public final class SoulReport
         return lines;
     }
 
-    private static List<Component> explainSuccess(ArchetypeScore best)
+    private static List<Component> explainSuccess(ArchetypeScore best, SoulRegion region)
     {
         List<Component> lines = new ArrayList<>(contributions(best));
+        lines.addAll(structuralSection(best, region));
 
         final OptionalDouble toNext = best.scoreToNextTier();
 
@@ -254,7 +264,7 @@ public final class SoulReport
      * first and in full - "needs 16 of #minecraft:bookshelves, found 3" is the sentence a stuck
      * player needs.
      */
-    private static List<Component> explainFailure(ArchetypeScore best)
+    private static List<Component> explainFailure(ArchetypeScore best, SoulRegion region)
     {
         List<Component> lines = new ArrayList<>();
 
@@ -296,6 +306,7 @@ public final class SoulReport
         }
 
         lines.addAll(contributions(best));
+        lines.addAll(structuralSection(best, region));
         lines.addAll(missing(best));
 
         return lines;
@@ -369,6 +380,135 @@ public final class SoulReport
         return lines;
     }
 
+    /**
+     * The arrangement half of the report. Skipped entirely when the archetype defines no forms, or
+     * a gated region never reached them in the first place - see {@link ArchetypeScore#isGated()}.
+     *
+     * <p>Reports the clause, not just the form: "arrangement: 0.4" tells a player nothing they can
+     * act on, so this walks the evaluated tree {@code ArchetypeClassifier} already recorded rather
+     * than showing only the form's own combined confidence.
+     */
+    private static List<Component> structuralSection(ArchetypeScore score, SoulRegion region)
+    {
+        List<Component> lines = new ArrayList<>();
+
+        if (score.structuralContributions().isEmpty() && score.missingStructures().isEmpty())
+        {
+            return lines;
+        }
+
+        MutableComponent header = translated(Constants.StringKeys.REGION_STRUCTURE_HEADER)
+                .withStyle(ChatFormatting.LIGHT_PURPLE);
+
+        if (score.structuralCapped())
+        {
+            header.append(Component.literal(" "))
+                    .append(translated(Constants.StringKeys.REGION_STRUCTURE_CAPPED).withStyle(ChatFormatting.GOLD));
+        }
+
+        lines.add(indent(header));
+
+        if (region.geometry().isTruncated())
+        {
+            lines.add(indent(translated(Constants.StringKeys.REGION_STRUCTURE_TRUNCATED), 2)
+                    .withStyle(ChatFormatting.GRAY));
+        }
+
+        final List<ArchetypeScore.StructureContribution> hits = score.structuralContributions();
+
+        for (ArchetypeScore.StructureContribution hit : hits.subList(0, Math.min(TOP_STRUCTURES, hits.size())))
+        {
+            lines.add(indent(translated(
+                    Constants.StringKeys.REGION_STRUCTURE,
+                    hit.name(),
+                    score(hit.contribution())), 2)
+                    .withStyle(ChatFormatting.WHITE));
+
+            lines.addAll(clauseLines(hit.root(), 0));
+        }
+
+        final List<ArchetypeScore.StructureContribution> misses = score.missingStructures();
+
+        for (ArchetypeScore.StructureContribution miss :
+                misses.subList(0, Math.min(MISSING_STRUCTURES, misses.size())))
+        {
+            lines.add(indent(translated(Constants.StringKeys.REGION_STRUCTURE_ZERO, miss.name()), 2)
+                    .withStyle(ChatFormatting.GRAY));
+
+            lines.addAll(clauseLines(miss.root(), 0));
+        }
+
+        return lines;
+    }
+
+    /**
+     * Walks one form's evaluated clause tree, mirroring how {@code FormClauseEvaluator} built it:
+     * an {@code all} node contributes no line of its own, only its children, since it is the
+     * clauses themselves that are actionable, not the mean of them. An {@code any} node names its
+     * winning alternative when one matched - the player who ringed their rails in ice should be
+     * told that is what was credited - and lists every alternative it tried when none did, which is
+     * the single most useful thing the grammar makes possible: "the ice is not under, around, or
+     * inside the rails" is three ways forward, not one dead end.
+     *
+     * <p>A clause named by a mod that is not installed ({@code UnknownClause}, #27) renders as
+     * skipped, never as a failed clause - it never had anything to say either way.
+     */
+    private static List<Component> clauseLines(ArchetypeScore.ClauseEvaluation node, int depth)
+    {
+        if (depth > MAX_CLAUSE_DEPTH)
+        {
+            return List.of();
+        }
+
+        if (node.typeId().startsWith("unknown:"))
+        {
+            List<Component> lines = new ArrayList<>(1);
+            lines.add(indent(translated(
+                    Constants.StringKeys.REGION_STRUCTURE_SKIPPED,
+                    node.typeId().substring("unknown:".length())), 3)
+                    .withStyle(ChatFormatting.DARK_GRAY));
+            return lines;
+        }
+
+        if (node.typeId().equals("all") || node.typeId().equals("any"))
+        {
+            List<ArchetypeScore.ClauseEvaluation> toRender = node.children();
+
+            if (node.typeId().equals("any") && node.confidence() > 0d && node.selectedChild() >= 0)
+            {
+                toRender = List.of(node.children().get(node.selectedChild()));
+            }
+
+            List<Component> lines = new ArrayList<>();
+
+            for (ArchetypeScore.ClauseEvaluation child : toRender)
+            {
+                lines.addAll(clauseLines(child, depth + 1));
+            }
+
+            return lines;
+        }
+
+        // a leaf: exactly one line, "+" or "-" and whatever the clause itself has to say
+        List<Component> lines = new ArrayList<>(1);
+        lines.add(indent(clauseLine(node), 3));
+        return lines;
+    }
+
+    private static MutableComponent clauseLine(ArchetypeScore.ClauseEvaluation leaf)
+    {
+        final boolean hit = leaf.confidence() > 0d;
+
+        final String text = leaf.diagnostic().isBlank()
+                ? leaf.description()
+                : leaf.description() + " - " + leaf.diagnostic();
+
+        return translated(
+                hit ? Constants.StringKeys.REGION_STRUCTURE_CLAUSE_HIT : Constants.StringKeys.REGION_STRUCTURE_CLAUSE_MISS,
+                text)
+                .withStyle(hit ? ChatFormatting.DARK_GREEN : ChatFormatting.GRAY);
+    }
+
     private static MutableComponent describeShape(SoulRegion region)
     {
         return translated(
@@ -436,6 +576,11 @@ public final class SoulReport
 
     private static MutableComponent indent(Component line)
     {
-        return Component.literal("   ").append(line);
+        return indent(line, 1);
+    }
+
+    private static MutableComponent indent(Component line, int levels)
+    {
+        return Component.literal("   ".repeat(Math.max(levels, 0))).append(line);
     }
 }

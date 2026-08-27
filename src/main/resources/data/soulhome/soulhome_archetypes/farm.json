@@ -28,5 +28,23 @@
 
   "buffs": [
     { "type": "soulhome:saturation", "per_tier": 0.15, "max": 0.45 }
+  ],
+
+  "structures": [
+    {
+      "name": "field",
+      "weight": 4.0,
+      "role": "arrangement",
+      "elements": {
+        "soil":  { "block": "minecraft:farmland" },
+        "crops": { "tag": "minecraft:crops" },
+        "water": { "block": "minecraft:water" }
+      },
+      "all": [
+        { "shape": "soulhome:platform", "of": "soil", "min_area": 9, "ideal_area": 36, "weight": 2.0 },
+        { "relation": "within",   "of": "crops", "to": "soil",  "max_distance": 1, "weight": 1.0 },
+        { "relation": "at_range", "of": "water", "to": "soil",  "min_distance": 0, "max_distance": 4, "weight": 1.0 }
+      ]
+    }
   ]
 }

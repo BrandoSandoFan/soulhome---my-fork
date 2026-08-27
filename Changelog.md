@@ -47,8 +47,15 @@ counts for more than volume: a hundred bookshelves in a box is not a library.
   fills the loop a track encloses; whether a rail circuit actually closes rather than just piling
   up rail; and whether a run of blocks forms a platform, an enclosure, a line or a single deliberate
   cluster rather than scattered leftovers. This is vocabulary for datapacks and future archetypes
-  to write with, not a change to anything shipped today - none of the ten built-in rooms reference
-  any of it yet, so nothing about how your soulhome is judged changes from this alone.
+  to write with, and every shipped room now writes with it - a bed against a wall, chairs ringing a
+  hearth, a chair reading across a gap from a lectern, a closed rail loop, a fenced training course,
+  and the rest, each score a little higher for being arranged the way the room's name suggests.
+  Nothing loses a tier for skipping this: it is worth doing, never worth requiring, and a pile of
+  the right blocks still counts for something on its own.
+- `/soulhome analyse` explains arrangement the same way it already explains missing blocks: which
+  arrangement was credited, which alternative was picked when more than one would have counted, what
+  a well-arranged room is still missing, and why a room too large to fully scan or a room that has
+  already hit its arrangement credit for the tier is not scoring any higher.
 
 Buffs are earned in the soul and spent in the world. They survive death, dimension changes and
 relogs, and a visitor to someone else's soul keeps their own.

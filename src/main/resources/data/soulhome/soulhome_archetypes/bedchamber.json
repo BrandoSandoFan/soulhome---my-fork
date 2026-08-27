@@ -27,5 +27,24 @@
 
   "buffs": [
     { "type": "soulhome:healing", "per_tier": 0.10, "max": 0.30 }
+  ],
+
+  "structures": [
+    {
+      "name": "sleeping_quarters",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "bed":     { "tag": "minecraft:beds" },
+        "wall":    { "tag": "soulhome:structural" },
+        "light":   { "tag": "soulhome:lighting" },
+        "storage": { "tag": "soulhome:storage" }
+      },
+      "all": [
+        { "relation": "beside",    "of": "bed",     "to": "wall",    "weight": 2.0 },
+        { "relation": "at_range",  "of": "light",   "to": "bed",     "min_distance": 1, "max_distance": 5 },
+        { "relation": "within",    "of": "storage", "to": "bed",     "max_distance": 6 }
+      ]
+    }
   ]
 }

@@ -28,5 +28,22 @@
 
   "buffs": [
     { "type": "soulhome:fire_aspect", "per_tier": 2.0, "max": 6.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "gathering",
+      "weight": 6.0,
+      "role": "arrangement",
+      "elements": {
+        "fire":    { "block": ["minecraft:furnace", "minecraft:campfire", "minecraft:soul_campfire"] },
+        "seating": { "tag": "soulhome:seating" },
+        "light":   { "tag": "soulhome:lighting" }
+      },
+      "all": [
+        { "relation": "surrounds", "of": "seating", "to": "fire", "weight": 2.0 },
+        { "relation": "at_range",  "of": "light",   "to": "fire", "min_distance": 1, "max_distance": 6, "weight": 1.0 }
+      ]
+    }
   ]
 }

@@ -13,6 +13,7 @@ import leaf.soulhome.datagen.items.ItemModelsGen;
 import leaf.soulhome.datagen.language.EngLangGen;
 import leaf.soulhome.datagen.patchouli.PatchouliGen;
 import leaf.soulhome.datagen.recipe.RecipeGen;
+import leaf.soulhome.structures.BuiltinFormClauses;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -29,6 +30,12 @@ public class DataGen
     @SubscribeEvent
     public static void onDataGen(GatherDataEvent event)
     {
+        // a datagen run never fires FMLCommonSetupEvent, so this has to happen here too - otherwise
+        // every shipped archetype's "shape"/"relation" clause resolves to UnknownClause the moment
+        // any provider reads the archetype JSON (see SoulHome#commonSetup for the same call on the
+        // real game's boot path)
+        BuiltinFormClauses.registerAll();
+
         DataGenerator generator = event.getGenerator();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         final PackOutput packOutput = generator.getPackOutput();

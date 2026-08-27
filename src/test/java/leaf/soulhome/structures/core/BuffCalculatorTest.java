@@ -346,7 +346,7 @@ class BuffCalculatorTest
     {
         ArchetypeScore best = new ArchetypeScore(
                 archetypeId, "archetype.soulhome.test", score, score, 1d, 1d, tier,
-                OptionalDouble.empty(), List.of(), List.of(), List.of(), null, List.of(), List.of());
+                OptionalDouble.empty(), List.of(), List.of(), List.of(), null, List.of(), List.of(), false);
 
         SoulRegion region = SoulRegion.create(
                 RegionType.ENCLOSED,
