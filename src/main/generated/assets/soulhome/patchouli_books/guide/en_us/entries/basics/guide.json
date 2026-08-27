@@ -9,7 +9,7 @@
     },
     {
       "type": "text",
-      "text": "Grow a farm in there and every meal goes further. Build an armoury and your sword bites harder.$(p)There are no blueprints to copy - build what you think a farm looks like, and it is judged on its own merits. See $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."
+      "text": "Grow a farm in there and every meal goes further. Build an armoury and your sword bites harder.$(p)There are no blueprints to copy - build what you think a farm looks like, and it is judged on its own merits, including how it is arranged. There is still no single right layout. See $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."
     }
   ],
   "priority": false,

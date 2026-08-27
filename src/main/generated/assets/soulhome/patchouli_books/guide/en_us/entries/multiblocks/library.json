@@ -12,6 +12,11 @@
       "type": "text",
       "text": "Will not count without:$(li)16 of any bookshelves$(p)Rewards, most first:$(li)Lectern$(li)any bookshelves$(li)Cartography Table$(li)any seating$(li)any storage$(p)Counts against it:$(li)Enchanting Table$(li)any smithing",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Seating is across from lectern, and seating is within 6 of shelves.",
+      "title": "How you arrange it"
     }
   ],
   "priority": false,

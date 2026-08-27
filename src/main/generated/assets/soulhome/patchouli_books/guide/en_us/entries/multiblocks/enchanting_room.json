@@ -12,6 +12,11 @@
       "type": "text",
       "text": "Will not count without:$(li)1 of Enchanting Table$(p)Rewards, most first:$(li)Enchanting Table$(li)any bookshelves$(li)any arcane$(li)any lighting$(p)Counts against it:$(li)Lectern",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Shelves surrounds table, and candles is 0-4 from table.",
+      "title": "How you arrange it"
     }
   ],
   "priority": false,

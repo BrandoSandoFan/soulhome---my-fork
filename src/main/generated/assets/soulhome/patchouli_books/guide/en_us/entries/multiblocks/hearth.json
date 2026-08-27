@@ -12,6 +12,11 @@
       "type": "text",
       "text": "Will not count without:$(li)1 of Furnace or Campfire or Soul Campfire$(p)Rewards, most first:$(li)Furnace or Campfire or Soul Campfire$(li)Lava$(li)Magma Block$(li)Netherrack$(li)any lighting$(p)Counts against it:$(li)Water$(li)any crops",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Seating surrounds fire, and light is 1-6 from fire.",
+      "title": "How you arrange it"
     }
   ],
   "priority": false,

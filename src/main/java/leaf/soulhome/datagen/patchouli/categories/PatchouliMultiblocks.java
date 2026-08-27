@@ -7,7 +7,9 @@ package leaf.soulhome.datagen.patchouli.categories;
 
 import leaf.soulhome.datagen.patchouli.categories.data.ArchetypeDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.BookStuff;
+import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
+import leaf.soulhome.structures.core.Form;
 import leaf.soulhome.structures.core.RegionType;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import leaf.soulhome.utils.StringHelper;
@@ -15,6 +17,7 @@ import leaf.soulhome.utils.StringHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * The rooms you can build inside your soul.
@@ -71,6 +74,8 @@ public class PatchouliMultiblocks
                         new BookStuff.TextPage(
                                 "Your soul is looked over now and then, and each enclosed room - and each dense patch of open ground - is judged on what it is made of. Two libraries that look nothing alike can both be libraries.$(p)Variety counts for more than volume. A hundred bookshelves in a box is not a library; shelves, a lectern, somewhere to sit and something to read by is."),
                         new BookStuff.TextPage(
+                                "Some rooms also notice how what they hold is placed, not only what it is - shelves gathered around a reading nook count for more than the same shelves scattered flat.$(p)This is never required, only rewarded, and there is still no one right layout. A page that says how a room can be arranged is telling you one way among several, not the way."),
+                        new BookStuff.TextPage(
                                 "If a room does not count, ask. $(l)/soulhome analyse$() tells you what was seen in every room, what was missing, and what it nearly was.$(p)The $(item)Soul Lens$(0) does the same, and draws the edges of what it found - which is worth seeing, because a wall you thought was there might not be.")
                                 .setTitle("When it does not work"),
                 }; // end pages
@@ -93,16 +98,40 @@ public class PatchouliMultiblocks
 
         BookStuff.Entry entry = new BookStuff.Entry(path, category, iconFor(archetype, category));
 
+        List<BookStuff.Page> pages = new ArrayList<>();
+        pages.add(new BookStuff.TextPage(whereItGoes(archetype) + rewards(archetype)));
+        pages.add(new BookStuff.TextPage(mustHave(archetype) + looksFor(archetype)).setTitle("What counts"));
+        arrangementPage(archetype).ifPresent(pages::add);
+
         entry.sortnum = sortnum;
         entry.advancement = ADVANCEMENT;
-        entry.pages = new BookStuff.Page[]
-                {
-                        new BookStuff.TextPage(whereItGoes(archetype) + rewards(archetype)),
-                        new BookStuff.TextPage(mustHave(archetype) + looksFor(archetype))
-                                .setTitle("What counts"),
-                };
+        entry.pages = pages.toArray(BookStuff.Page[]::new);
 
         return entry;
+    }
+
+    /**
+     * The "how you arrange it" page, present only for an archetype that ships at least one
+     * {@link Form} - #35 of the structural considerations epic (#25). Kept separate from
+     * {@link #entryFor} so a test can check the presence/absence rule without rendering a whole
+     * entry.
+     */
+    static Optional<BookStuff.Page> arrangementPage(ArchetypeDefinition archetype)
+    {
+        if (archetype.structures().isEmpty())
+        {
+            return Optional.empty();
+        }
+
+        StringBuilder text = new StringBuilder(
+                "None of this is required, but building it well earns more than the blocks alone:");
+
+        for (Form form : archetype.structures())
+        {
+            text.append("$(li)").append(FormDocs.describe(form));
+        }
+
+        return Optional.of(new BookStuff.TextPage(text.toString()).setTitle("How you arrange it"));
     }
 
     private static String whereItGoes(ArchetypeDefinition archetype)

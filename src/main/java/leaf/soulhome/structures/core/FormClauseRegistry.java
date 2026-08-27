@@ -4,7 +4,9 @@
 
 package leaf.soulhome.structures.core;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,5 +56,15 @@ public final class FormClauseRegistry
     public Optional<FormClauseType> findById(String id)
     {
         return Optional.ofNullable(this.byId.get(id));
+    }
+
+    /**
+     * Every registered clause type, for anything that wants to enumerate the vocabulary rather
+     * than name it by hand - a coverage test asking "does every clause type describe itself",
+     * for instance. Kept in step with {@link #register} for free, since both read the same map.
+     */
+    public Collection<FormClauseType> all()
+    {
+        return List.copyOf(this.byId.values());
     }
 }

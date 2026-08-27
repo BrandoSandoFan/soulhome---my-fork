@@ -12,6 +12,11 @@
       "type": "text",
       "text": "Will not count without:$(li)4 of any ores$(p)Rewards, most first:$(li)any ores$(li)any rails$(li)Ladder$(li)any storage blocks$(li)any lighting$(p)Counts against it:$(li)any crops$(li)any smithing",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Rails runs in a line, and supports runs along rails, and ores is within 3 of rails.",
+      "title": "How you arrange it"
     }
   ],
   "priority": false,
