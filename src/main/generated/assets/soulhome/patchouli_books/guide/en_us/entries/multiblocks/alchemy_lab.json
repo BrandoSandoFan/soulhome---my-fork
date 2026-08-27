@@ -12,6 +12,11 @@
       "type": "text",
       "text": "Will not count without:$(li)1 of Brewing Stand$(p)Rewards, most first:$(li)Brewing Stand$(li)any alchemy vessels$(li)any reagents$(li)any storage$(li)any lighting$(p)Counts against it:$(li)Enchanting Table$(li)any smithing",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Reagents is within 3 of stand, and storage is within 5 of stand.",
+      "title": "How you arrange it"
     }
   ],
   "priority": false,

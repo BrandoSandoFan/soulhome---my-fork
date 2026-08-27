@@ -12,6 +12,11 @@
       "type": "text",
       "text": "Will not count without:$(li)1 of any beds$(p)Rewards, most first:$(li)any beds$(li)Jukebox$(li)any furnishing$(li)any lighting$(li)any storage$(p)Counts against it:$(li)any smithing",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Bed is beside wall, and light is 1-5 from bed, and storage is within 6 of bed.",
+      "title": "How you arrange it"
     }
   ],
   "priority": false,

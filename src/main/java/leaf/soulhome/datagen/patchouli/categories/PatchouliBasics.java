@@ -38,7 +38,7 @@ public class PatchouliBasics
         bookEntry.pages = new BookStuff.Page[]
                 {
                         new BookStuff.TextPage("Your guide to everything in the mod! The heart of it is this: what you build inside your soul changes what you can do outside of it."),
-                        new BookStuff.TextPage("Grow a farm in there and every meal goes further. Build an armoury and your sword bites harder.$(p)There are no blueprints to copy - build what you think a farm looks like, and it is judged on its own merits. See $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."),
+                        new BookStuff.TextPage("Grow a farm in there and every meal goes further. Build an armoury and your sword bites harder.$(p)There are no blueprints to copy - build what you think a farm looks like, and it is judged on its own merits, including how it is arranged. There is still no single right layout. See $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."),
                 };
         entries.add(bookEntry);
 

@@ -12,6 +12,11 @@
       "type": "text",
       "text": "Will not count without:$(li)8 of any rails$(p)Rewards, most first:$(li)any rails$(li)Hay Block$(li)any fences$(li)Ice or Packed Ice or Blue Ice$(li)any lighting$(p)Counts against it:$(li)any smithing$(li)any crops",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Rails forms a closed circuit, and rails sits over surface, or surface surrounds rails, or surface is inside rails.$(li)Fences is beside rails.",
+      "title": "How you arrange it"
     }
   ],
   "priority": false,

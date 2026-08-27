@@ -12,6 +12,11 @@
       "type": "text",
       "text": "Will not count without:$(li)1 of any smithing$(p)Rewards, most first:$(li)any smithing$(li)any anvil$(li)any armament$(li)any storage$(li)any lighting$(p)Counts against it:$(li)any bookshelves",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Armament is 0-4 from forge, and storage is within 5 of forge.",
+      "title": "How you arrange it"
     }
   ],
   "priority": false,

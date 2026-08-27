@@ -14,6 +14,10 @@
     },
     {
       "type": "text",
+      "text": "Some rooms also notice how what they hold is placed, not only what it is - shelves gathered around a reading nook count for more than the same shelves scattered flat.$(p)This is never required, only rewarded, and there is still no one right layout. A page that says how a room can be arranged is telling you one way among several, not the way."
+    },
+    {
+      "type": "text",
       "text": "If a room does not count, ask. $(l)/soulhome analyse$() tells you what was seen in every room, what was missing, and what it nearly was.$(p)The $(item)Soul Lens$(0) does the same, and draws the edges of what it found - which is worth seeing, because a wall you thought was there might not be.",
       "title": "When it does not work"
     }

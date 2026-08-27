@@ -12,6 +12,11 @@
       "type": "text",
       "text": "Will not count without:$(li)1 of Slime Block$(p)Rewards, most first:$(li)Slime Block$(li)Scaffolding$(li)Hay Block$(li)Ladder$(li)any lighting$(p)Counts against it:$(li)any smithing$(li)any crops",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Fences encloses floor, and slime is 1-4 from scaffolding, and scaffolding runs in a line.",
+      "title": "How you arrange it"
     }
   ],
   "priority": false,
