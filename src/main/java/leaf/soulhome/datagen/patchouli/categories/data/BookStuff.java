@@ -13,6 +13,20 @@ import java.util.Map;
 
 public class BookStuff
 {
+	/**
+	 * {@code book.json} sets {@code "i18n": true}, which makes Patchouli treat every {@code name},
+	 * {@code description}, {@code text} and {@code title} as a translation key run through vanilla's
+	 * {@code I18n.get} - and {@code I18n.get} passes whatever it looks up through
+	 * {@code String.format}, key or not. None of this generated prose is meant as a format string,
+	 * so a lone {@code %} (a percentage buff, say) throws inside vanilla and the whole page renders
+	 * as "Format error: ..." instead of what was written - see #44. Escaping every {@code %} here,
+	 * once, at the point each field is written to JSON, is the one place that has to get this right.
+	 */
+	private static String escapePercent(String text)
+	{
+		return text == null ? null : text.replace("%", "%%");
+	}
+
 	public static class Category
 	{
 		public String name;
@@ -48,8 +62,8 @@ public class BookStuff
 			JsonObject jsonobject = new JsonObject();
 
 			final String displayTitleName = this.displayTitle.isEmpty() ? this.name : this.displayTitle;
-			jsonobject.addProperty("name", StringHelper.fixCapitalisation(displayTitleName));//Convert to people readable text
-			jsonobject.addProperty("description", this.description);
+			jsonobject.addProperty("name", escapePercent(StringHelper.fixCapitalisation(displayTitleName)));//Convert to people readable text
+			jsonobject.addProperty("description", escapePercent(this.description));
 			jsonobject.addProperty("icon", this.icon);
 
 			if (!this.parent.isEmpty())
@@ -111,7 +125,7 @@ public class BookStuff
 
 			//enforced
 			final String displayTitleName = this.displayTitle.isEmpty() ? this.name : this.displayTitle;
-			jsonobject.addProperty("name", StringHelper.fixCapitalisation(displayTitleName));//ensure people readable text
+			jsonobject.addProperty("name", escapePercent(StringHelper.fixCapitalisation(displayTitleName)));//ensure people readable text
 			jsonobject.addProperty("category", modid + ":" + this.category.name);
 			jsonobject.addProperty("icon", this.icon);
 
@@ -205,9 +219,9 @@ public class BookStuff
 			JsonObject jsonObject = new JsonObject();
 
 			addElement(jsonObject, "type", this.type);
-			addElement(jsonObject, "text", this.text);
+			addElement(jsonObject, "text", escapePercent(this.text));
 			addElement(jsonObject, "advancement", this.advancement);
-			addElement(jsonObject, "title", this.title);
+			addElement(jsonObject, "title", escapePercent(this.title));
 
 			if (recipes != null && recipes.length > 0)
 			{

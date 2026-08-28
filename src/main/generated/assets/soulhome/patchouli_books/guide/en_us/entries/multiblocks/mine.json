@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)mining speed, growing with the tier, up to +30%.$(p)Tiers begin at a score of 6."
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)mining speed, growing with the tier, up to +30%%.$(p)Tiers begin at a score of 6."
     },
     {
       "type": "text",

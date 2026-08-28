@@ -27,6 +27,8 @@ import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -145,7 +147,7 @@ public final class SoulLensRenderer
 
         int line = 0;
 
-        for (RegionHighlight region : regions)
+        for (RegionHighlight region : forLabels(regions))
         {
             if (line >= MAX_LABELS)
             {
@@ -164,6 +166,28 @@ public final class SoulLensRenderer
 
             line++;
         }
+    }
+
+    /**
+     * Classified and ambiguous regions sorted ahead of unclassified ones, stably within each
+     * group. A soul with several empty pockets and one furnished room should not have that room
+     * pushed off the {@link #MAX_LABELS}-line list by the pockets that scored nothing.
+     */
+    private static List<RegionHighlight> forLabels(List<RegionHighlight> regions)
+    {
+        List<RegionHighlight> sorted = new ArrayList<>(regions);
+        sorted.sort(Comparator.comparingInt(SoulLensRenderer::labelPriority));
+        return sorted;
+    }
+
+    private static int labelPriority(RegionHighlight region)
+    {
+        if (region.isClassified())
+        {
+            return 0;
+        }
+
+        return region.isAmbiguous() ? 1 : 2;
     }
 
     private static Component label(RegionHighlight region, boolean standingIn)

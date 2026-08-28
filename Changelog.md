@@ -103,3 +103,20 @@ Rooms that classified correctly and then did nothing.
   axe, or a bare fist. `soulhome:sword_damage`, the armoury's buff, is unchanged and still needs
   one: "you hit harder with a sword" is a weapon-conditional promise in a way "your hearth sets
   things alight" was never meant to be.
+- Every room page in the guide no longer opens with "Format error:". The book runs in Patchouli's
+  i18n mode, which passes every generated line through vanilla's `String.format` whether or not it
+  is actually a translation key - and a percentage buff ("+45%") is not a valid format string on
+  its own, so eight of the ten room entries hit this on their very first page. Percent signs in
+  generated book text are escaped now, so every page renders as written.
+- `soulhome:lighting` recognises the light sources it was missing - the tag was a twelve-entry
+  hand-written list, and redstone lamps, the one nearly every wired build uses, were not on it, so
+  a room lit entirely with them scored as unlit. Jack o'lanterns, froglights, glow lichen, redstone
+  torches, amethyst clusters and buds, sea pickles, beacons, conduits, respawn anchors, cave vines
+  and the invisible light block all count now too. This is a buff: a room lit with any of these
+  scores higher than it did.
+- The Soul Lens no longer labels every empty region "Alchemy Lab". An unclassified region has
+  every archetype score exactly zero, and the overlay was showing whichever archetype id happened
+  to sort first alphabetically as if it had been awarded - a new soul with a few empty pockets read
+  as full of alchemy labs. An unclassified region now reads "Not anything yet" instead, and a
+  classified room can no longer be crowded out of the label list by empty pockets sitting ahead of
+  it.
