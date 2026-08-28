@@ -1,4 +1,5 @@
 {
+  "_comment": "Blocks a player places to light a room, whether or not they are currently emitting light - an unlit redstone lamp on a lever still counts, the same way an unlit candle already does (BlockSignature is keyed on the block, not the block state). \"replace\": false so packs and other mods can extend this. Deliberately excludes minecraft:magma_block (soulhome:hearth's own heat signal), minecraft:crying_obsidian (soulhome:arcane) and minecraft:lava_cauldron (soulhome:alchemy_vessels, which soulhome:alchemy_lab scores alongside this tag) so no block scores twice in the same room - see issue #45.",
   "replace": false,
   "values": [
     "#minecraft:candles",
@@ -12,6 +13,25 @@
     "minecraft:glowstone",
     "minecraft:shroomlight",
     "minecraft:end_rod",
-    "#minecraft:campfires"
+    "#minecraft:campfires",
+    "minecraft:redstone_lamp",
+    "minecraft:jack_o_lantern",
+    "minecraft:ochre_froglight",
+    "minecraft:verdant_froglight",
+    "minecraft:pearlescent_froglight",
+    "minecraft:glow_lichen",
+    "minecraft:redstone_torch",
+    "minecraft:redstone_wall_torch",
+    "minecraft:amethyst_cluster",
+    "minecraft:small_amethyst_bud",
+    "minecraft:medium_amethyst_bud",
+    "minecraft:large_amethyst_bud",
+    "minecraft:sea_pickle",
+    "minecraft:beacon",
+    "minecraft:conduit",
+    "minecraft:respawn_anchor",
+    "minecraft:cave_vines",
+    "minecraft:cave_vines_plant",
+    "minecraft:light"
   ]
 }

@@ -332,6 +332,18 @@ class ArchetypeClassifierTest
     }
 
     @Test
+    @DisplayName("a room lit with redstone lamps scores the same light contribution as the same room lit with candles - #45")
+    void redstoneLampsCountAsLighting()
+    {
+        ArchetypeScore litWithCandles = classifyOnly(hearth(TestBlocks.CANDLE)).best();
+        ArchetypeScore litWithLamps = classifyOnly(hearth(TestBlocks.REDSTONE_LAMP)).best();
+
+        assertEquals("soulhome:hearth", litWithLamps.archetypeId());
+        assertEquals(litWithCandles.score(), litWithLamps.score(), 1.0e-9,
+                "redstone lamps should count as lighting exactly like candles do, not score zero for it");
+    }
+
+    @Test
     @DisplayName("a track full of rails is not mistaken for a mine")
     void trackIsNotAMine()
     {
@@ -947,7 +959,14 @@ class ArchetypeClassifierTest
 
     private static GridVolume hearth()
     {
+        return hearth(TestBlocks.CANDLE);
+    }
+
+    /** The canonical hearth, lit with whatever {@code light} is - see #45. */
+    private static GridVolume hearth(TestBlocks.TestBlock light)
+    {
         return GridVolume.of(
+                Map.of('c', light),
                 SLAB,
                 new String[]{
                         "#kkkkk#",

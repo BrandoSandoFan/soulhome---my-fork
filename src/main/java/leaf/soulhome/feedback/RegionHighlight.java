@@ -57,13 +57,19 @@ public record RegionHighlight(
         final RegionBounds bounds = result.region().bounds();
         final ArchetypeScore best = result.best();
 
+        //in an UNCLASSIFIED region every archetype scores 0.0 and "best" is only whichever id
+        //sorts first alphabetically - not a name the client should ever show as this region's
+        //title. AMBIGUOUS keeps its name (the top candidate, same as the chat report's "halfway
+        //between X and Y"); only a genuine zero-everywhere miss goes nameless
+        final boolean named = best != null && result.status() != ClassificationResult.Status.UNCLASSIFIED;
+
         return new RegionHighlight(
                 bounds.minX(), bounds.minY(), bounds.minZ(),
                 bounds.maxX(), bounds.maxY(), bounds.maxZ(),
                 result.status().name(),
-                best == null ? "" : best.archetypeId(),
-                best == null ? "" : best.displayName(),
-                best == null ? 0 : best.tier(),
+                named ? best.archetypeId() : "",
+                named ? best.displayName() : "",
+                named ? best.tier() : 0,
                 best == null ? 0d : best.score());
     }
 

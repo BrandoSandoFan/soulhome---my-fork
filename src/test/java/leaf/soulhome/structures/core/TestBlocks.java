@@ -85,6 +85,9 @@ public final class TestBlocks
     public static final TestBlock MAGMA = block("minecraft:magma_block", Passability.BLOCKING);
     public static final TestBlock NETHERRACK = block("minecraft:netherrack", Passability.BLOCKING);
 
+    // lighting (#45): redstone lamps were missing from soulhome:lighting entirely
+    public static final TestBlock REDSTONE_LAMP = block("minecraft:redstone_lamp", Passability.BLOCKING, "soulhome:lighting");
+
     private TestBlocks()
     {
     }
