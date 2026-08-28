@@ -172,7 +172,8 @@ public class PatchouliMultiblocks
                     .append(describeBuff(buff.type()))
                     .append(", growing with the tier, up to ")
                     .append(magnitude(buff.type(), buff.max()))
-                    .append('.');
+                    .append('.')
+                    .append(caveat(buff.type()));
         }
 
         if (!archetype.tiers().isEmpty())
@@ -252,6 +253,18 @@ public class PatchouliMultiblocks
         }
 
         return category.icon;
+    }
+
+    /**
+     * A per-buff qualifier for the rare buff whose scope a flat "up to +N%" would misstate - see
+     * #52 and #53. Kept as one small exception rather than a general mechanism, since it is the
+     * only buff type that is not simply "applies to everything, more with a higher tier".
+     */
+    private static String caveat(String buffType)
+    {
+        return SoulBuffTypes.POTION_DURATION.equals(buffType)
+                ? " Only what you drink, splash on yourself or stand in the lingering cloud of - never a potion thrown at someone else - and only its beneficial effects; a harmful or neutral effect from your own potion is untouched."
+                : "";
     }
 
     /** {@code soulhome:xp_gain} to "experience gain", for prose rather than for a log line. */

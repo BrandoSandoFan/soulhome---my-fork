@@ -31,7 +31,11 @@ public final class SoulBuffTypes
     /** Enchanting room: extra effective enchanting levels. */
     public static final String ENCHANTMENT_POWER = "soulhome:enchantment_power";
 
-    /** Alchemy lab: longer potions, as a fraction of the duration drunk. */
+    /**
+     * Alchemy lab: longer potions, as a fraction of the duration applied. Drunk, self-splashed or
+     * stood in your own lingering cloud - never a potion thrown at something else. Beneficial
+     * effects only; a harmful or neutral effect from your own potion is left exactly as brewed.
+     */
     public static final String POTION_DURATION = "soulhome:potion_duration";
 
     /** Bedchamber: faster healing, as a fraction of the health restored. */

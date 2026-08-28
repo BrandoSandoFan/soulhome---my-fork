@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -196,10 +197,25 @@ public final class SoulLensRenderer
                 ? Component.translatable(Constants.StringKeys.REGION_UNCLASSIFIED)
                 : Component.translatable(region.displayName());
 
-        //a tier for a room that earned one, a question mark for one that did not
-        final Component body = Component.literal("")
-                .append(name)
-                .append(Component.literal(region.isClassified() ? " T" + region.tier() : " ?"));
+        MutableComponent body = Component.literal("").append(name);
+
+        if (region.isClassified())
+        {
+            //a tier for a room that earned one
+            body = body.append(Component.literal(" T" + region.tier()));
+        }
+        else if (region.hasNearMiss())
+        {
+            //a near miss is worth naming, but never as this region's title (#46) - it trails
+            //"Not anything yet" as a parenthetical instead of replacing it
+            body = body.append(Component.literal(" (nearly "))
+                    .append(Component.translatable(region.nearMissName()))
+                    .append(Component.literal(")"));
+        }
+        else
+        {
+            body = body.append(Component.literal(" ?"));
+        }
 
         return standingIn ? Component.literal("> ").append(body) : body;
     }

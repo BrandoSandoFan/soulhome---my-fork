@@ -120,3 +120,16 @@ Rooms that classified correctly and then did nothing.
   as full of alchemy labs. An unclassified region now reads "Not anything yet" instead, and a
   classified room can no longer be crowded out of the label list by empty pockets sitting ahead of
   it.
+- The Soul Lens now tells a near miss apart from an award. A region that lost out on the
+  ambiguity margin between two close candidates used to have the closer one's name printed as if
+  it had been won; it now reads "Not anything yet (nearly <archetype>)" instead, so the top
+  candidate is still worth seeing without being mistaken for a classification.
+- `soulhome:potion_duration` (the alchemy lab's buff) now extends a splash potion thrown at
+  yourself and a lingering cloud you are standing in, not only a potion you drink. It still never
+  extends a potion aimed at something else, so it stays your buff and not a debuff-stretching tool
+  in PvP or against mobs.
+- The alchemy lab no longer extends a potion's harmful effects. Turtle Master's Resistance grew
+  with the tier as intended, but so did its Slowness - and a poison or weakness potion lasted
+  longer for building a brewing room, which is a nerf disguised as a buff. Only beneficial effects
+  are extended now; a harmful or neutral effect from your own potion is left exactly as brewed.
+  This is a nerf to anyone currently drinking Turtle Master with an alchemy lab.

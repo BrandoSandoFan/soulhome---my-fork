@@ -17,18 +17,21 @@ import java.util.List;
 import java.util.OptionalDouble;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * #46: an empty region has every archetype score 0.0, so {@code ClassificationResult.best} is
  * only the alphabetically-first archetype id, not a name the client should ever be told is this
  * region's title - see {@link ClassificationResult}'s own javadoc on {@code best}. Confirms
- * {@link RegionHighlight#of} stops that tie-break winner from leaking to the Soul Lens overlay.
+ * {@link RegionHighlight#of} stops that tie-break winner from leaking to the Soul Lens overlay,
+ * and that a genuine near miss (AMBIGUOUS, with a positive score) is carried as its own field
+ * rather than as the region's title.
  */
 class RegionHighlightTest
 {
     @Test
-    @DisplayName("an UNCLASSIFIED result carries no archetype name and no tier")
+    @DisplayName("an UNCLASSIFIED result carries no archetype name, no tier and no near miss")
     void unclassifiedCarriesNoName()
     {
         ArchetypeScore tieBreakWinner = score("soulhome:alchemy_lab", 0d, 0);
@@ -42,10 +45,12 @@ class RegionHighlightTest
         assertEquals("", highlight.displayName());
         assertEquals(0, highlight.tier());
         assertTrue(highlight.displayName().isBlank(), "a blank name is what makes the renderer fall back to \"Not anything yet\"");
+        assertEquals("", highlight.nearMissName());
+        assertFalse(highlight.hasNearMiss(), "every archetype scored 0.0, so there is no closest candidate worth naming");
     }
 
     @Test
-    @DisplayName("a CLASSIFIED result carries the awarded archetype's name and tier")
+    @DisplayName("a CLASSIFIED result carries the awarded archetype's name and tier, and no near miss")
     void classifiedCarriesItsName()
     {
         ArchetypeScore awarded = score("soulhome:library", 42d, 2);
@@ -58,11 +63,13 @@ class RegionHighlightTest
         assertEquals("soulhome:library", highlight.archetypeId());
         assertEquals("archetype.soulhome.library", highlight.displayName());
         assertEquals(2, highlight.tier());
+        assertEquals("", highlight.nearMissName());
+        assertFalse(highlight.hasNearMiss(), "an awarded region has nothing to call a near miss");
     }
 
     @Test
-    @DisplayName("an AMBIGUOUS result names the top candidate rather than reading as empty")
-    void ambiguousKeepsTheTopCandidateName()
+    @DisplayName("an AMBIGUOUS result carries no title, but names the top candidate as a near miss")
+    void ambiguousCarriesTheTopCandidateAsANearMissOnly()
     {
         ArchetypeScore best = score("soulhome:library", 30d, 1);
         ArchetypeScore runnerUp = score("soulhome:enchanting_room", 29d, 1);
@@ -72,7 +79,11 @@ class RegionHighlightTest
 
         RegionHighlight highlight = RegionHighlight.of(result);
 
-        assertEquals("archetype.soulhome.library", highlight.displayName());
+        assertEquals("", highlight.archetypeId(), "AMBIGUOUS is not an award, so it carries no archetype id");
+        assertEquals("", highlight.displayName(), "the near miss must never be sent as this region's title (#46)");
+        assertEquals(0, highlight.tier());
+        assertEquals("archetype.soulhome.library", highlight.nearMissName());
+        assertTrue(highlight.hasNearMiss());
     }
 
     private static ArchetypeScore score(String archetypeId, double value, int tier)
