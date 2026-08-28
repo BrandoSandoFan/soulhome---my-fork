@@ -35,7 +35,8 @@ public record RegionHighlight(
         String archetypeId,
         String displayName,
         int tier,
-        double score)
+        double score,
+        String nearMissName)
 {
     public static final Codec<RegionHighlight> CODEC = RecordCodecBuilder.create(instance -> instance
             .group(
@@ -49,28 +50,33 @@ public record RegionHighlight(
                     Codec.STRING.optionalFieldOf("archetype", "").forGetter(RegionHighlight::archetypeId),
                     Codec.STRING.optionalFieldOf("display_name", "").forGetter(RegionHighlight::displayName),
                     Codec.INT.optionalFieldOf("tier", 0).forGetter(RegionHighlight::tier),
-                    Codec.DOUBLE.optionalFieldOf("score", 0d).forGetter(RegionHighlight::score))
+                    Codec.DOUBLE.optionalFieldOf("score", 0d).forGetter(RegionHighlight::score),
+                    Codec.STRING.optionalFieldOf("near_miss", "").forGetter(RegionHighlight::nearMissName))
             .apply(instance, RegionHighlight::new));
 
     public static RegionHighlight of(ClassificationResult result)
     {
         final RegionBounds bounds = result.region().bounds();
         final ArchetypeScore best = result.best();
+        final boolean classified = result.status() == ClassificationResult.Status.CLASSIFIED;
 
         //in an UNCLASSIFIED region every archetype scores 0.0 and "best" is only whichever id
         //sorts first alphabetically - not a name the client should ever show as this region's
-        //title. AMBIGUOUS keeps its name (the top candidate, same as the chat report's "halfway
-        //between X and Y"); only a genuine zero-everywhere miss goes nameless
-        final boolean named = best != null && result.status() != ClassificationResult.Status.UNCLASSIFIED;
+        //title, awarded or not. AMBIGUOUS is a genuine near miss - "best" scored something, just
+        //not enough to clear the ambiguity margin over its runner-up - so it is worth surfacing,
+        //but as its own field: it is never this region's title, only a note next to "Not
+        //anything yet" (#46)
+        final boolean nearMiss = !classified && best != null && best.score() > 0d;
 
         return new RegionHighlight(
                 bounds.minX(), bounds.minY(), bounds.minZ(),
                 bounds.maxX(), bounds.maxY(), bounds.maxZ(),
                 result.status().name(),
-                named ? best.archetypeId() : "",
-                named ? best.displayName() : "",
-                named ? best.tier() : 0,
-                best == null ? 0d : best.score());
+                classified ? best.archetypeId() : "",
+                classified ? best.displayName() : "",
+                classified ? best.tier() : 0,
+                best == null ? 0d : best.score(),
+                nearMiss ? best.displayName() : "");
     }
 
     public static List<RegionHighlight> of(List<ClassificationResult> results)
@@ -98,6 +104,12 @@ public record RegionHighlight(
     public boolean isAmbiguous()
     {
         return ClassificationResult.Status.AMBIGUOUS.name().equals(this.status);
+    }
+
+    /** Whether an unawarded region still has a closest candidate worth naming (#46). */
+    public boolean hasNearMiss()
+    {
+        return !this.nearMissName.isBlank();
     }
 
     public boolean contains(double x, double y, double z)
