@@ -6,6 +6,7 @@ package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -137,7 +138,7 @@ public class PotionDurationEffect implements SoulBuffEffect
      */
     private static void extend(Player player, MobEffectInstance applied, double magnitude)
     {
-        if (applied.getEffect().isInstantenous() || applied.getEffect().getCategory() != MobEffectCategory.BENEFICIAL)
+        if (!isExtendable(applied))
         {
             return;
         }
@@ -156,5 +157,19 @@ public class PotionDurationEffect implements SoulBuffEffect
                 applied.isAmbient(),
                 applied.isVisible(),
                 applied.showIcon()));
+    }
+
+    /**
+     * Whether {@code applied} is a duration the alchemy lab may stretch - see #53 and the class
+     * javadoc. Split out of {@link #extend} so the decision reads as one rule rather than being
+     * folded into a guard clause; deliberately does not touch {@link Player}, so nothing here
+     * requires a live game world to reason about, even though {@code structures.core}'s
+     * Minecraft-free test approach does not extend to {@link MobEffect}/{@link MobEffectInstance}
+     * themselves - those need an actual game bootstrap to construct safely, so this is verified by
+     * reading rather than by a unit test.
+     */
+    static boolean isExtendable(MobEffectInstance applied)
+    {
+        return !applied.getEffect().isInstantenous() && applied.getEffect().getCategory() == MobEffectCategory.BENEFICIAL;
     }
 }

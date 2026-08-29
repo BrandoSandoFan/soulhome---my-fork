@@ -401,10 +401,11 @@ public final class SoulHomeConfig
                     .comment(
                             "Structural credit (from how a room's blocks are arranged, not just what it holds) is",
                             "capped at this fraction of the room's signal total, so a perfect arrangement of nothing",
-                            "is worth nothing. 0.5 means arrangement can at most add half again what the room's",
-                            "contents alone earned. Lower this, rather than raising thresholds, if arrangement makes",
-                            "the top of an archetype's range too easy to reach.")
-                    .defineInRange("structural_share_cap", 0.5d, 0d, 10d);
+                            "is worth nothing. 1.0 means arrangement can at most double what the room's contents",
+                            "alone earned. Raised from 0.5 (#54): the old cap was a large, unexplained part of why",
+                            "a well-arranged room still struggled to reach tier 2. Lower this, rather than raising",
+                            "thresholds, if arrangement makes the top of an archetype's range too easy to reach.")
+                    .defineInRange("structural_share_cap", 1.0d, 0d, 10d);
 
             this.structuralRoleThreshold = builder
                     .comment(
