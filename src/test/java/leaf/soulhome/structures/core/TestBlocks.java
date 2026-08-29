@@ -85,6 +85,10 @@ public final class TestBlocks
     public static final TestBlock MAGMA = block("minecraft:magma_block", Passability.BLOCKING);
     public static final TestBlock NETHERRACK = block("minecraft:netherrack", Passability.BLOCKING);
 
+    // hearth (#48): a smoker is one of the two blocks the hearth's new cooking signal counts,
+    // matched by block id rather than a tag since neither vanilla block carries one of its own
+    public static final TestBlock SMOKER = block("minecraft:smoker", Passability.BLOCKING);
+
     // lighting (#45): redstone lamps were missing from soulhome:lighting entirely
     public static final TestBlock REDSTONE_LAMP = block("minecraft:redstone_lamp", Passability.BLOCKING, "soulhome:lighting");
 

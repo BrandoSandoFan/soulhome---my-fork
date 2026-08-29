@@ -10,7 +10,6 @@ import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionUtils;
@@ -118,23 +117,16 @@ public class PotionDurationEffect implements SoulBuffEffect
 
         for (MobEffectInstance declared : brewed)
         {
-            final MobEffect effect = declared.getEffect();
-
-            if (effect.isInstantenous() || player.getEffect(effect) == null)
+            if (player.getEffect(declared.getEffect()) == null)
             {
-                // no duration to touch, or this declared effect did not take - immune mob, cured
-                // milk, another mod's say-so
+                // this declared effect did not take - immune mob, cured milk, another mod's say-so
                 continue;
             }
 
-            if (effect.getCategory() == MobEffectCategory.BENEFICIAL)
-            {
-                extend(player, declared, magnitude);
-            }
-            else if (effect.getCategory() == MobEffectCategory.HARMFUL)
-            {
-                reduce(player, declared, magnitude);
-            }
+            // exactly one of these does anything, per isExtendable/isShortenable - a category is
+            // never both
+            extend(player, declared, magnitude);
+            reduce(player, declared, magnitude);
         }
     }
 
@@ -147,31 +139,16 @@ public class PotionDurationEffect implements SoulBuffEffect
             return;
         }
 
-        final Entity source = event.getEffectSource();
-
-        if (source != player)
+        if (event.getEffectSource() != player)
         {
             return;
         }
 
         final MobEffectInstance applied = event.getEffectInstance();
-        final MobEffect effect = applied.getEffect();
-
-        if (effect.isInstantenous())
-        {
-            return;
-        }
-
         final double magnitude = magnitudeFor(player);
 
-        if (effect.getCategory() == MobEffectCategory.BENEFICIAL)
-        {
-            extend(player, applied, magnitude);
-        }
-        else if (effect.getCategory() == MobEffectCategory.HARMFUL)
-        {
-            shortenInPlace(applied, magnitude);
-        }
+        extend(player, applied, magnitude);
+        reduce(player, applied, magnitude);
     }
 
     /**
@@ -182,6 +159,11 @@ public class PotionDurationEffect implements SoulBuffEffect
      */
     private static void extend(Player player, MobEffectInstance applied, double magnitude)
     {
+        if (!isExtendable(applied))
+        {
+            return;
+        }
+
         final int extra = (int) (applied.getDuration() * magnitude);
 
         if (extra <= 0)
@@ -206,6 +188,11 @@ public class PotionDurationEffect implements SoulBuffEffect
      */
     private static void reduce(Player player, MobEffectInstance declared, double magnitude)
     {
+        if (!isShortenable(declared))
+        {
+            return;
+        }
+
         final MobEffectInstance active = player.getEffect(declared.getEffect());
 
         if (active == null || active.getDuration() > declared.getDuration())
@@ -229,5 +216,25 @@ public class PotionDurationEffect implements SoulBuffEffect
         }
 
         ((MobEffectInstanceAccessor) active).setDuration(shortened);
+    }
+
+    /**
+     * Whether {@code applied} is a duration the alchemy lab may stretch - see #53 and the class
+     * javadoc. Split out of {@link #extend} so the decision reads as one rule rather than being
+     * folded into a guard clause; deliberately does not touch {@link Player}, so nothing here
+     * requires a live game world to reason about, even though {@code structures.core}'s
+     * Minecraft-free test approach does not extend to {@link MobEffect}/{@link MobEffectInstance}
+     * themselves - those need an actual game bootstrap to construct safely, so this is verified by
+     * reading rather than by a unit test.
+     */
+    static boolean isExtendable(MobEffectInstance applied)
+    {
+        return !applied.getEffect().isInstantenous() && applied.getEffect().getCategory() == MobEffectCategory.BENEFICIAL;
+    }
+
+    /** The harmful-effect mirror of {@link #isExtendable} - see #53 and the class javadoc. */
+    static boolean isShortenable(MobEffectInstance applied)
+    {
+        return !applied.getEffect().isInstantenous() && applied.getEffect().getCategory() == MobEffectCategory.HARMFUL;
     }
 }

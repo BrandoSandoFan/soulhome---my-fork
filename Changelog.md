@@ -135,3 +135,17 @@ Rooms that classified correctly and then did nothing.
   beneficial one runs longer; a neutral effect (Glowing is the main one) is left exactly as
   brewed. This is a nerf to anyone currently drinking Turtle Master with an alchemy lab for the
   Resistance and getting away with the Slowness too.
+- Arrangement counts for a lot more of a room's score now. Structural credit - the bonus for how a
+  room is arranged, not just what it holds - was capped at half the room's block-signal total, with
+  no explanation anywhere a player could find it, and that cap was a large part of why a
+  well-arranged room still struggled to clear tier 2. It can now add as much again as the room's
+  contents alone earned, not just half again - a buff to every room that bothers to arrange itself
+  well, and configurable via `structural_share_cap` for anyone who wants the old ratio back.
+- The hearth rewards a fireplace now, not just a nether-block bonfire. Past the fire itself, almost
+  every point on the archetype came from lava, magma and netherrack, and there was no signal at all
+  for seating, furnishings, storage or cooking - the things that make a room feel like somewhere to
+  sit rather than a lava pit. Lava and netherrack are worth less now, lighting is worth
+  substantially more, and seating, furnishings, storage, a smoker and a cauldron all count toward
+  the hearth for the first time. A furnished fireplace room now out-scores a netherrack box of
+  comparable size, which used to score roughly twice as high for no arrangement at all. This is a
+  nerf to nether-block-only hearths and a buff to furnished ones.
