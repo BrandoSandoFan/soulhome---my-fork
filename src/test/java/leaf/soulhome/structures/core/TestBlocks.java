@@ -13,6 +13,12 @@ import java.util.Set;
  * what the shipped tag files under {@code data/soulhome/tags/blocks} resolve to, so the real
  * archetype definitions can be scored against these worlds.
  *
+ * <p>Passability mirrors vanilla too, including the split between a block that fills its cell and
+ * one that merely stops the fill: a fence, a wall, a door, a stair, a bed and most furniture are
+ * {@link Passability#PARTIAL}, and only a genuine full cube is {@link Passability#BLOCKING}. The
+ * region scanner treats the two differently - see {@link Passability} - so getting this wrong here
+ * would make its tests agree with each other and disagree with the game.
+ *
  * <p>Everything here is a <i>block</i>. Armour stands and item frames, which an armoury would
  * naturally display weapons on, are entities and so are invisible to block-based region detection
  * entirely - the armoury archetype is built out of smithing and armament blocks instead.
@@ -26,40 +32,40 @@ public final class TestBlocks
     public static final TestBlock GLASS = block("minecraft:glass", Passability.BLOCKING);
 
     // doors count as boundary whether open or shut
-    public static final TestBlock DOOR = block("minecraft:oak_door", Passability.BLOCKING, "minecraft:doors");
+    public static final TestBlock DOOR = block("minecraft:oak_door", Passability.PARTIAL, "minecraft:doors");
 
     // library
     public static final TestBlock BOOKSHELF = block("minecraft:bookshelf", Passability.BLOCKING, "minecraft:bookshelves");
-    public static final TestBlock LECTERN = block("minecraft:lectern", Passability.BLOCKING);
-    public static final TestBlock CHAIR = block("minecraft:oak_stairs", Passability.BLOCKING, "minecraft:stairs", "soulhome:seating");
+    public static final TestBlock LECTERN = block("minecraft:lectern", Passability.PARTIAL);
+    public static final TestBlock CHAIR = block("minecraft:oak_stairs", Passability.PARTIAL, "minecraft:stairs", "soulhome:seating");
     public static final TestBlock CANDLE = block("minecraft:candle", Passability.PASSABLE, "minecraft:candles", "soulhome:lighting");
 
     // armoury
-    public static final TestBlock ANVIL = block("minecraft:anvil", Passability.BLOCKING, "minecraft:anvil", "soulhome:smithing");
-    public static final TestBlock GRINDSTONE = block("minecraft:grindstone", Passability.BLOCKING, "soulhome:smithing");
+    public static final TestBlock ANVIL = block("minecraft:anvil", Passability.PARTIAL, "minecraft:anvil", "soulhome:smithing");
+    public static final TestBlock GRINDSTONE = block("minecraft:grindstone", Passability.PARTIAL, "soulhome:smithing");
     public static final TestBlock BANNER = block("minecraft:white_banner", Passability.PASSABLE, "minecraft:banners", "soulhome:armament");
     public static final TestBlock IRON_BLOCK = block("minecraft:iron_block", Passability.BLOCKING, "soulhome:armament", "forge:storage_blocks");
 
     // enchanting
-    public static final TestBlock ENCHANTING_TABLE = block("minecraft:enchanting_table", Passability.BLOCKING);
+    public static final TestBlock ENCHANTING_TABLE = block("minecraft:enchanting_table", Passability.PARTIAL);
     public static final TestBlock OBSIDIAN = block("minecraft:obsidian", Passability.BLOCKING, "soulhome:arcane");
 
     // farm
     public static final TestBlock WHEAT = block("minecraft:wheat", Passability.PASSABLE, "minecraft:crops");
-    public static final TestBlock FARMLAND = block("minecraft:farmland", Passability.BLOCKING);
+    public static final TestBlock FARMLAND = block("minecraft:farmland", Passability.PARTIAL);
     public static final TestBlock WATER = block("minecraft:water", Passability.PASSABLE);
-    public static final TestBlock COMPOSTER = block("minecraft:composter", Passability.BLOCKING);
+    public static final TestBlock COMPOSTER = block("minecraft:composter", Passability.PARTIAL);
     public static final TestBlock HAY = block("minecraft:hay_block", Passability.BLOCKING);
     public static final TestBlock BARREL = block("minecraft:barrel", Passability.BLOCKING, "soulhome:storage");
 
     // alchemy lab
-    public static final TestBlock BREWING_STAND = block("minecraft:brewing_stand", Passability.BLOCKING);
-    public static final TestBlock CAULDRON = block("minecraft:cauldron", Passability.BLOCKING, "soulhome:alchemy_vessels");
+    public static final TestBlock BREWING_STAND = block("minecraft:brewing_stand", Passability.PARTIAL);
+    public static final TestBlock CAULDRON = block("minecraft:cauldron", Passability.PARTIAL, "soulhome:alchemy_vessels");
     public static final TestBlock NETHER_WART = block("minecraft:nether_wart", Passability.PASSABLE, "soulhome:reagents");
-    public static final TestBlock SOUL_SAND = block("minecraft:soul_sand", Passability.BLOCKING, "soulhome:reagents");
+    public static final TestBlock SOUL_SAND = block("minecraft:soul_sand", Passability.PARTIAL, "soulhome:reagents");
 
     // bedchamber
-    public static final TestBlock BED = block("minecraft:red_bed", Passability.BLOCKING, "minecraft:beds", "soulhome:seating");
+    public static final TestBlock BED = block("minecraft:red_bed", Passability.PARTIAL, "minecraft:beds", "soulhome:seating");
     public static final TestBlock JUKEBOX = block("minecraft:jukebox", Passability.BLOCKING);
     public static final TestBlock CARPET = block("minecraft:white_carpet", Passability.PASSABLE, "minecraft:wool_carpets", "soulhome:seating", "soulhome:furnishing");
     public static final TestBlock WOOL = block("minecraft:white_wool", Passability.BLOCKING, "minecraft:wool", "soulhome:furnishing");
@@ -72,7 +78,8 @@ public final class TestBlocks
     public static final TestBlock TORCH = block("minecraft:torch", Passability.PASSABLE, "soulhome:lighting");
 
     // track
-    public static final TestBlock FENCE = block("minecraft:oak_fence", Passability.BLOCKING, "minecraft:fences");
+    public static final TestBlock FENCE = block("minecraft:oak_fence", Passability.PARTIAL, "minecraft:fences");
+    public static final TestBlock COBBLE_WALL = block("minecraft:cobblestone_wall", Passability.PARTIAL, "minecraft:walls");
     public static final TestBlock ICE = block("minecraft:ice", Passability.BLOCKING);
 
     // training yard

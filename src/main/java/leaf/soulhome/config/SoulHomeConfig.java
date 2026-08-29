@@ -172,7 +172,9 @@ public final class SoulHomeConfig
                                 SERVER.minClusterSize.get(),
                                 SERVER.maxRegions.get(),
                                 SERVER.maxScannedCells.get(),
-                                SERVER.maxGeometryCells.get()),
+                                SERVER.maxGeometryCells.get(),
+                                SERVER.minRoomVolume.get(),
+                                SERVER.shellDepth.get()),
                         new ScoringSettings(
                                 SERVER.diversityBonusPerRole.get(),
                                 SERVER.densityFloor.get(),
@@ -289,7 +291,9 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.DoubleValue structuralShareCap;
         public final ForgeConfigSpec.DoubleValue structuralRoleThreshold;
 
+        public final ForgeConfigSpec.IntValue minRoomVolume;
         public final ForgeConfigSpec.IntValue maxRoomVolume;
+        public final ForgeConfigSpec.IntValue shellDepth;
         public final ForgeConfigSpec.IntValue clusterRadius;
         public final ForgeConfigSpec.IntValue minClusterSize;
         public final ForgeConfigSpec.IntValue maxRegions;
@@ -418,13 +422,34 @@ public final class SoulHomeConfig
 
             builder.comment("Limits on what a scan will look at.").push("scanning");
 
+            this.minRoomVolume = builder
+                    .comment(
+                            "Interior cells below which a sealed pocket is a crevice rather than a room.",
+                            "Voids inside a thick wall, gaps behind a stair and hollow pillars are sealed spaces too,",
+                            "and offering each of them as a region fills the lens with boxes drawn around nothing.")
+                    .defineInRange("min_room_volume", ScanSettings.DEFAULT_MIN_ROOM_VOLUME, 1, 4096);
+
             this.maxRoomVolume = builder
                     .comment("Interior cells above which an enclosed pocket is treated as outdoors rather than a room.")
                     .defineInRange("max_room_volume", 4096, 8, 1_000_000);
 
+            this.shellDepth = builder
+                    .comment(
+                            "How many layers of solid blocks packed against a room's walls still belong to that",
+                            "building rather than being loose blocks an open-air cluster could form around.",
+                            "One covers a roof laid onto a ceiling and the outer half of a double-thick wall.",
+                            "0 disables it, which lets a barn's own roof come back as a second region on top of it.")
+                    .defineInRange("shell_depth", ScanSettings.DEFAULT_SHELL_DEPTH, 0, 8);
+
             this.clusterRadius = builder
-                    .comment("Distance within which two signal blocks join the same open-air cluster, such as a field.")
-                    .defineInRange("cluster_radius", 4, 1, 32);
+                    .comment(
+                            "How far an open-air cluster reaches through clear space to pick up the next signal block.",
+                            "Counted in steps through cells the cluster can cross rather than measured straight",
+                            "through solid matter, so a wall between two builds is a boundary. Only blocks filling",
+                            "their whole cell count as one: fences, walls, panes, slabs and stairs are things a",
+                            "player puts inside a build, not the edge of it.",
+                            "Raise it to join fields split by wide paths; lower it to tell closer builds apart.")
+                    .defineInRange("cluster_radius", 3, 1, 32);
 
             this.minClusterSize = builder
                     .comment("Signal blocks an open-air cluster needs before it counts, so one planted flower is not a farm.")

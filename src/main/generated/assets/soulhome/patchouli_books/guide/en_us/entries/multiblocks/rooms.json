@@ -18,6 +18,11 @@
     },
     {
       "type": "text",
+      "text": "Out in the open, a build gathers itself by reaching a few blocks through clear ground, and it stops at solid blocks. Two builds too close together read as one thing - holding both their blocks, and scoring as neither.$(p)So if a farm and a track are being read as one, leave a few blocks between them, or build a wall of full blocks. A fence or a low wall will not do it: those are parts of a build, not the edge of one.",
+      "title": "Where one thing ends"
+    },
+    {
+      "type": "text",
       "text": "If a room does not count, ask. $(l)/soulhome analyse$() tells you what was seen in every room, what was missing, and what it nearly was.$(p)The $(item)Soul Lens$(0) does the same, and draws the edges of what it found - which is worth seeing, because a wall you thought was there might not be.",
       "title": "When it does not work"
     }
