@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)potion duration, growing with the tier, up to +45%%. Only what you drink, splash on yourself or stand in the lingering cloud of - never a potion thrown at someone else - and only its beneficial effects; a harmful or neutral effect from your own potion is untouched.$(p)Tiers begin at a score of 8."
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)potion duration, growing with the tier, up to +45%%. Only what you drink, splash on yourself or stand in the lingering cloud of - never a potion thrown at someone else. A beneficial effect runs that much longer; a harmful one runs that much shorter; a neutral effect is untouched.$(p)Tiers begin at a score of 8."
     },
     {
       "type": "text",

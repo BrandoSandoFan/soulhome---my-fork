@@ -263,7 +263,7 @@ public class PatchouliMultiblocks
     private static String caveat(String buffType)
     {
         return SoulBuffTypes.POTION_DURATION.equals(buffType)
-                ? " Only what you drink, splash on yourself or stand in the lingering cloud of - never a potion thrown at someone else - and only its beneficial effects; a harmful or neutral effect from your own potion is untouched."
+                ? " Only what you drink, splash on yourself or stand in the lingering cloud of - never a potion thrown at someone else. A beneficial effect runs that much longer; a harmful one runs that much shorter; a neutral effect is untouched."
                 : "";
     }
 

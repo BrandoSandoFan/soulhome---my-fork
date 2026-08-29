@@ -32,9 +32,10 @@ public final class SoulBuffTypes
     public static final String ENCHANTMENT_POWER = "soulhome:enchantment_power";
 
     /**
-     * Alchemy lab: longer potions, as a fraction of the duration applied. Drunk, self-splashed or
-     * stood in your own lingering cloud - never a potion thrown at something else. Beneficial
-     * effects only; a harmful or neutral effect from your own potion is left exactly as brewed.
+     * Alchemy lab: your own potions know what to keep and what to cut short, as a fraction of the
+     * duration applied. Drunk, self-splashed or stood in your own lingering cloud - never a potion
+     * thrown at something else. A beneficial effect runs longer; a harmful one runs shorter; a
+     * neutral effect (Glowing is the main one) is left exactly as brewed.
      */
     public static final String POTION_DURATION = "soulhome:potion_duration";
 
