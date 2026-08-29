@@ -149,3 +149,21 @@ Rooms that classified correctly and then did nothing.
   the hearth for the first time. A furnished fireplace room now out-scores a netherrack box of
   comparable size, which used to score roughly twice as high for no arrangement at all. This is a
   nerf to nether-block-only hearths and a buff to furnished ones.
+- The guide now explains what "any lighting", "any reagents" and every other category on a room
+  page actually means. A new glossary page in the Soul Rooms category lists exactly what each of
+  the mod's own categories holds, generated straight from the tag files so it can never drift from
+  what the classifier does, and every mention of one of these categories on a room page now links
+  straight to it.
+- Tier 2 and tier 3 were badly mistuned for every shipped archetype - tier 2 needed a build close
+  to the best that archetype could ever score, and tier 3 could not be reached at all, by any
+  build, no matter how well arranged. Since buff magnitude ramps against the top of an archetype's
+  own tier ladder, an unreachable tier 3 was quietly capping every buff in the mod well under its
+  advertised maximum too - the armoury, for instance, could never pay out more than about 47% of
+  its stated sword damage ceiling. Every archetype's tier 2 and tier 3 thresholds are retuned
+  against what that archetype can actually score, so a well-built room can clear tier 2 without
+  being maxed out, tier 3 is reachable by a genuinely excellent one, and every buff can now pay
+  out in full.
+- The Soul Lens has a proper icon instead of the flat placeholder it launched with. It now reads
+  as part of the same set as the SoulKey and the guide book - a shaded metal rim and handle, and a
+  soul-fire glow visible through the glass with a small purple rune, rather than a handful of flat
+  colours with no shading or outline.

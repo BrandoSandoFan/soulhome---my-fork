@@ -222,6 +222,7 @@ public class BookStuff
 			addElement(jsonObject, "text", escapePercent(this.text));
 			addElement(jsonObject, "advancement", this.advancement);
 			addElement(jsonObject, "title", escapePercent(this.title));
+			addElement(jsonObject, "anchor", this.anchor);
 
 			if (recipes != null && recipes.length > 0)
 			{

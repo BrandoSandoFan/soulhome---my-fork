@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)1 of Slime Block$(p)Rewards, most first:$(li)Slime Block$(li)Scaffolding$(li)Hay Block$(li)Ladder$(li)any lighting$(p)Counts against it:$(li)any smithing$(li)any crops",
+      "text": "Will not count without:$(li)1 of Slime Block$(p)Rewards, most first:$(li)Slime Block$(li)Scaffolding$(li)Hay Block$(li)Ladder$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
       "title": "What counts"
     },
     {
