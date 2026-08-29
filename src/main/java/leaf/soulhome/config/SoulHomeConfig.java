@@ -444,8 +444,10 @@ public final class SoulHomeConfig
             this.clusterRadius = builder
                     .comment(
                             "How far an open-air cluster reaches through clear space to pick up the next signal block.",
-                            "Counted in steps through cells the fill can pass through, so walls, floors and other",
-                            "structures are boundaries rather than something the cluster measures straight through.",
+                            "Counted in steps through cells the cluster can cross rather than measured straight",
+                            "through solid matter, so a wall between two builds is a boundary. Only blocks filling",
+                            "their whole cell count as one: fences, walls, panes, slabs and stairs are things a",
+                            "player puts inside a build, not the edge of it.",
                             "Raise it to join fields split by wide paths; lower it to tell closer builds apart.")
                     .defineInRange("cluster_radius", 3, 1, 32);
 

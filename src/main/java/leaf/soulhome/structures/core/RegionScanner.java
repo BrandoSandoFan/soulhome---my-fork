@@ -29,13 +29,20 @@ import java.util.function.Predicate;
  *
  * <h2>Distance is what you can walk, not what you can measure</h2>
  *
- * An open-air cluster reaches out to the next signal block by stepping through cells the fill can
- * actually pass through, up to {@link ScanSettings#clusterRadius} steps of clear space at a time.
+ * An open-air cluster reaches out to the next signal block by stepping through cells it can
+ * actually cross, up to {@link ScanSettings#clusterRadius} steps of clear space at a time.
  * Straight-line distance would have been cheaper, and was what this did first, but it means solid
  * matter is not a boundary: a farm and a racetrack on opposite sides of a wall still read as one
  * region, and a player who reaches for the obvious fix - build a wall between them - watches it
  * make no difference at all. Walls are the tool players already have for saying "these are two
  * different places", so they have to work.
+ *
+ * <p>Only a block filling its whole cell is one of those walls - see {@link Passability}. A fence,
+ * a wall, a pane, a slab or a stair is something a player puts <i>inside</i> a build; the track
+ * archetype scores fencing as part of a track, and a circuit cut off from its own trackside by its
+ * own fence would be the mod disagreeing with itself. Signal blocks are crossed whatever they are
+ * made of, so a haystack is taken in whole rather than skinned, and whatever a finished region has
+ * closed around is taken in as well: a region is a solid thing, never a ring with a hole in it.
  *
  * <h2>A building owns its own fabric</h2>
  *
@@ -84,6 +91,12 @@ public final class RegionScanner
      * and the corner of a box is part of that box.
      */
     private static final int[][] NEIGHBOURS_26 = neighbours26();
+
+    /** 4-neighbourhood within one horizontal layer, for {@link #fillInteriorHoles}. */
+    private static final int[][] NEIGHBOURS_IN_PLANE = {
+            {1, 0}, {-1, 0},
+            {0, 1}, {0, -1}
+    };
 
     private static int[][] neighbours26()
     {
@@ -257,7 +270,7 @@ public final class RegionScanner
 
     private void seedOutside(IntStack stack, int x, int y, int z)
     {
-        if (this.volume.passabilityAt(x, y, z) == Passability.BLOCKING)
+        if (this.volume.passabilityAt(x, y, z).stopsFill())
         {
             return;
         }
@@ -298,7 +311,7 @@ public final class RegionScanner
                     continue;
                 }
 
-                if (this.volume.passabilityAt(nx, ny, nz) == Passability.BLOCKING)
+                if (this.volume.passabilityAt(nx, ny, nz).stopsFill())
                 {
                     continue;
                 }
@@ -329,7 +342,7 @@ public final class RegionScanner
                         continue;
                     }
 
-                    if (this.volume.passabilityAt(x, y, z) == Passability.BLOCKING)
+                    if (this.volume.passabilityAt(x, y, z).stopsFill())
                     {
                         continue;
                     }
@@ -394,7 +407,7 @@ public final class RegionScanner
                     continue;
                 }
 
-                if (this.volume.passabilityAt(nx, ny, nz) == Passability.BLOCKING)
+                if (this.volume.passabilityAt(nx, ny, nz).stopsFill())
                 {
                     continue;
                 }
@@ -476,7 +489,7 @@ public final class RegionScanner
                     continue;
                 }
 
-                if (this.volume.passabilityAt(nx, ny, nz) != Passability.BLOCKING)
+                if (!this.volume.passabilityAt(nx, ny, nz).stopsFill())
                 {
                     continue;
                 }
@@ -506,7 +519,7 @@ public final class RegionScanner
             regionBounds = regionBounds.encompass(x, y, z);
             indexIfInteresting(geometry, x, y, z, signature);
 
-            // every shell cell is BLOCKING by construction - it was only pushed here because a
+            // every shell cell stops the fill by construction - it was only pushed here because a
             // passabilityAt check just above said so - so this is free: no extra query, just
             // recording what the scanner already knows while it is looking at the cell anyway
             if (this.indexClearance)
@@ -601,7 +614,7 @@ public final class RegionScanner
                         continue;
                     }
 
-                    if (this.volume.passabilityAt(nx, ny, nz) != Passability.BLOCKING)
+                    if (!this.volume.passabilityAt(nx, ny, nz).stopsFill())
                     {
                         continue;
                     }
@@ -623,6 +636,12 @@ public final class RegionScanner
      * Density-based clustering over signal blocks that belong to no room. Seeded on a signal block
      * and grown outwards through space the fill can pass through, so a field of wheat with a gap in
      * it is still one farm, while a farm and a racetrack with a wall between them are two things.
+     *
+     * <p>Done in phases rather than one cluster at a time, because the later phases take in ground
+     * a cluster did not grow through - the slack under a field, and whatever a ring of blocks has
+     * closed around. Growing every cluster before any of that happens is what stops a rail loop
+     * from swallowing the shrine somebody built in its infield: by the time the loop looks at the
+     * space it encloses, the shrine is already a structure of its own.
      */
     private void findOpenRegions(List<SoulRegion> regions)
     {
@@ -668,10 +687,12 @@ public final class RegionScanner
             return;
         }
 
-        // how much clear space a cluster still has left to cross at each cell it has reached.
-        // Allocated once and undone after each cluster rather than reallocated per seed: a soulhome
-        // full of torches has a great many seeds and only one of them is ever growing at a time.
-        byte[] reach = new byte[this.flags.length];
+        // one cell of working space per scan cell, handed from phase to phase and always left
+        // zeroed. Allocated once rather than per cluster: a soulhome full of torches has a great
+        // many seeds and only one of them is ever being worked on at a time.
+        byte[] scratch = new byte[this.flags.length];
+
+        List<IntStack> clusters = new ArrayList<>();
 
         for (int seed : seeds)
         {
@@ -680,12 +701,32 @@ public final class RegionScanner
                 continue;
             }
 
-            SoulRegion region = growCluster(seed, signalCells, reach);
+            IntStack cluster = growCluster(seed, signalCells, scratch);
 
-            if (region != null)
+            if (cluster != null)
             {
-                regions.add(region);
+                clusters.add(cluster);
             }
+        }
+
+        List<IntStack> absorbed = new ArrayList<>(clusters.size());
+        List<RegionBounds> boxes = new ArrayList<>(clusters.size());
+
+        for (IntStack cluster : clusters)
+        {
+            IntStack cells = absorbSlack(cluster);
+            absorbed.add(cells);
+            boxes.add(boundsOf(cells));
+        }
+
+        for (int i = 0; i < absorbed.size(); i++)
+        {
+            fillInteriorHoles(absorbed.get(i), boxes.get(i), scratch);
+        }
+
+        for (int i = 0; i < absorbed.size(); i++)
+        {
+            regions.add(buildOpenRegion(absorbed.get(i), boxes.get(i)));
         }
     }
 
@@ -694,14 +735,15 @@ public final class RegionScanner
      *
      * <p>Reaching the next signal block costs a step per cell of clear space crossed, and arriving
      * at one refills the allowance, so {@link ScanSettings#clusterRadius} is the widest gap a
-     * cluster will bridge rather than the size of the whole thing. Only cells the fill can pass
-     * through are crossable, which is the whole point: a wall, a floor or another structure's
-     * blocks end the spread, and neither a straight line through solid rock nor a path through
-     * somebody else's living room counts as nearness.
+     * cluster will bridge rather than the size of the whole thing. Only a block filling its whole
+     * cell ends the spread, which is the whole point: a wall between a farm and a track is a
+     * boundary, while the fence around the track and the slabs edging the farm are parts of the
+     * builds themselves and would cut them into pieces if they counted.
      *
-     * @param reach scratch space shared between clusters, left as it was found
+     * @param reach scratch space, left as it was found
+     * @return the signal cells of the cluster, or {@code null} if it is too sparse to be a build
      */
-    private SoulRegion growCluster(int seed, Set<Integer> signalCells, byte[] reach)
+    private IntStack growCluster(int seed, Set<Integer> signalCells, byte[] reach)
     {
         final int radius = this.settings.clusterRadius();
 
@@ -751,6 +793,9 @@ public final class RegionScanner
 
                 if (signalCells.contains(neighbour))
                 {
+                    // joined however solid it is. Hay bales, ice and farmland are all full blocks,
+                    // and a cluster that could not step into one could not cross its own surface -
+                    // a haystack would come back as a hollow shell of its own outside faces.
                     this.flags[neighbour] |= FLAG_CLAIMED;
                     cluster.push(neighbour);
                     reach[neighbour] = (byte) radius;
@@ -759,7 +804,7 @@ public final class RegionScanner
                     continue;
                 }
 
-                if (this.volume.passabilityAt(nx, ny, nz) == Passability.BLOCKING)
+                if (this.volume.passabilityAt(nx, ny, nz).isFullBlock())
                 {
                     continue;
                 }
@@ -791,7 +836,7 @@ public final class RegionScanner
             return null;
         }
 
-        return buildOpenRegion(cluster);
+        return cluster;
     }
 
     /**
@@ -803,7 +848,7 @@ public final class RegionScanner
      * over-estimate of everything but a solid rectangle, and taking one meant a sprawling or
      * L-shaped cluster swallowed whatever happened to be standing in the space it did not occupy.
      */
-    private SoulRegion buildOpenRegion(IntStack cluster)
+    private IntStack absorbSlack(IntStack cluster)
     {
         IntStack absorbed = new IntStack();
 
@@ -848,8 +893,134 @@ public final class RegionScanner
             }
         }
 
-        final RegionBounds clusterBounds = boundsOf(absorbed);
+        return absorbed;
+    }
 
+    /**
+     * Take in whatever the region has closed around, so a region is a solid thing rather than a
+     * shell with unaccounted space inside it.
+     *
+     * <p>The infield of a rail loop, the courtyard inside a ring of crops, the stone a raised bed
+     * was built around: none of it is reachable from a signal block, so none of it was absorbed,
+     * and the region came back as a ring with a hole in the middle. That is wrong twice over. The
+     * blocks in the hole belong to this build and went uncounted - and, worse, the clearance index
+     * that {@code across ... require_clear} reads is only written for cells the region took in, so
+     * a solid infield read back as clear open space and a form that asks for room to move got the
+     * answer exactly backwards.
+     *
+     * <p>Judged layer by layer: within each horizontal slice of the region's box, anything a flood
+     * coming in from the edge of that slice cannot reach is enclosed by the region and taken in.
+     * Layers rather than the whole box because the builds this is for are flat - a rail circuit is
+     * a ring with open sky over its infield, so in three dimensions nothing about it is enclosed at
+     * all, and yet the infield is plainly inside the track. Anything a room or an earlier cluster
+     * has already claimed is left where it is.
+     *
+     * <p>The flood is 4-connected while the region is 26-connected, which is deliberate: a ring
+     * that closes only across a diagonal has still closed.
+     *
+     * @param scratch per-cell scratch space, left zeroed
+     */
+    private void fillInteriorHoles(IntStack absorbed, RegionBounds box, byte[] scratch)
+    {
+        final byte MINE = 1;
+        final byte OUTSIDE = 2;
+
+        IntStack touched = new IntStack();
+
+        for (int i = 0; i < absorbed.size(); i++)
+        {
+            final int index = absorbed.get(i);
+            scratch[index] = MINE;
+            touched.push(index);
+        }
+
+        IntStack stack = new IntStack();
+
+        for (int y = box.minY(); y <= box.maxY(); y++)
+        {
+            for (int x = box.minX(); x <= box.maxX(); x++)
+            {
+                for (int z = box.minZ(); z <= box.maxZ(); z++)
+                {
+                    final boolean onEdge = x == box.minX() || x == box.maxX()
+                            || z == box.minZ() || z == box.maxZ();
+
+                    if (!onEdge)
+                    {
+                        continue;
+                    }
+
+                    final int index = index(x, y, z);
+
+                    if (scratch[index] == 0)
+                    {
+                        scratch[index] = OUTSIDE;
+                        touched.push(index);
+                        stack.push(index);
+                    }
+                }
+            }
+        }
+
+        while (!stack.isEmpty())
+        {
+            final int index = stack.pop();
+            final int x = xOf(index);
+            final int y = yOf(index);
+            final int z = zOf(index);
+
+            for (int[] offset : NEIGHBOURS_IN_PLANE)
+            {
+                final int nx = x + offset[0];
+                final int nz = z + offset[1];
+
+                if (!box.contains(nx, y, nz))
+                {
+                    continue;
+                }
+
+                final int neighbour = index(nx, y, nz);
+
+                if (scratch[neighbour] != 0)
+                {
+                    continue;
+                }
+
+                scratch[neighbour] = OUTSIDE;
+                touched.push(neighbour);
+                stack.push(neighbour);
+            }
+        }
+
+        // x, y, z order, so which cells a truncated geometry index keeps does not depend on the
+        // order the flood happened to run in
+        for (int x = box.minX(); x <= box.maxX(); x++)
+        {
+            for (int y = box.minY(); y <= box.maxY(); y++)
+            {
+                for (int z = box.minZ(); z <= box.maxZ(); z++)
+                {
+                    final int index = index(x, y, z);
+
+                    if (scratch[index] != 0 || (this.flags[index] & FLAG_CLAIMED) != 0)
+                    {
+                        continue;
+                    }
+
+                    this.flags[index] |= FLAG_CLAIMED;
+                    absorbed.push(index);
+                }
+            }
+        }
+
+        for (int i = 0; i < touched.size(); i++)
+        {
+            scratch[touched.get(i)] = 0;
+        }
+    }
+
+    private SoulRegion buildOpenRegion(IntStack absorbed, RegionBounds box)
+    {
         // index order is x, y, z order, so this is the sweep the bounding-box version did - which
         // keeps what lands in a truncated geometry index the same from one scan to the next
         BlockCounts.Builder contents = BlockCounts.builder();
@@ -865,25 +1036,24 @@ public final class RegionScanner
             contents.add(signature);
             indexIfInteresting(geometry, x, y, z, signature);
 
-            if (this.indexClearance && this.volume.passabilityAt(x, y, z) == Passability.BLOCKING)
+            if (this.indexClearance && this.volume.passabilityAt(x, y, z).stopsFill())
             {
                 geometry.addBlocked(x, y, z);
             }
         }
 
-        geometry.bounds(clusterBounds);
+        geometry.bounds(box);
 
-        final long boundsVolume = clusterBounds.volume();
+        final long boundsVolume = box.volume();
 
         return SoulRegion.create(
                 RegionType.OPEN,
-                clusterBounds,
+                box,
                 BlockCounts.empty(),
                 contents.build(),
                 (int) Math.min(boundsVolume, Integer.MAX_VALUE),
                 geometry.build());
     }
-
     // endregion
 
     /**

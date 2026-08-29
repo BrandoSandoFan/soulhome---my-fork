@@ -332,6 +332,85 @@ class RegionScannerTest
     }
 
     @Test
+    @DisplayName("a fence or wall around a build does not cut it off from what is just outside it")
+    void aDecorativeWallDoesNotSeparate()
+    {
+        // a rail circuit ringed by cobblestone wall, with hay laid just outside the ring. A fence,
+        // a wall, a pane or a slab is something a player puts inside one build - the track
+        // archetype scores fencing as part of a track - so treating each of them as the edge of a
+        // build would cut a fenced circuit off from its own trackside.
+        List<SoulRegion> regions = scanForAnySignal(ringedTrack('|'));
+
+        assertEquals(1, regions.size(), "the wall is decoration, not a boundary");
+        assertEquals(16, countIn(regions.get(0), "minecraft:rails"));
+        assertEquals(32, regions.get(0).allBlocks().count(BlockMatcher.ofBlocks("minecraft:hay_block")),
+                "the hay outside the ring is part of the same build");
+    }
+
+    @Test
+    @DisplayName("a solid wall between two builds still separates them, where a fence does not")
+    void onlyFullBlocksSeparate()
+    {
+        // the same shape and the same height, with the ring built out of full blocks instead. Kept
+        // next to the case above deliberately: the difference between the two is the whole rule.
+        List<SoulRegion> regions = scanForAnySignal(ringedTrack('#'));
+
+        assertEquals(2, regions.size(), "a wall of full blocks is a boundary");
+
+        SoulRegion hay = regions.get(0);
+        SoulRegion track = regions.get(1);
+
+        assertEquals(0, countIn(hay, "minecraft:rails"));
+        assertEquals(16, countIn(track, "minecraft:rails"));
+        assertEquals(0, track.allBlocks().count(BlockMatcher.ofBlocks("minecraft:hay_block")));
+    }
+
+    @Test
+    @DisplayName("a region takes in what it has closed around, rather than coming back as a ring")
+    void aRegionHasNoInteriorHoles()
+    {
+        // a rail loop with a solid stone infield. Nothing in there is a signal, so nothing in there
+        // was ever reached - and the clearance index a form reads is only written for cells the
+        // region took in, so an infield of solid rock used to read back as clear open space.
+        List<SoulRegion> regions = RegionScanner.scan(
+                GridVolume.of(
+                        new String[]{"#######", "#######", "#######", "#######", "#######", "#######", "#######"},
+                        new String[]{
+                                ".......",
+                                ".=====.",
+                                ".=YYY=.",
+                                ".=YYY=.",
+                                ".=YYY=.",
+                                ".=====.",
+                                "......."}),
+                ANY_SIGNAL, ANY_SIGNAL, true, ScanSettings.DEFAULTS);
+
+        assertEquals(1, regions.size());
+
+        SoulRegion track = regions.get(0);
+        assertTrue(track.geometry().isBlocked(3, 1, 3),
+                "the middle of the infield is solid, and the region has to know it");
+        assertEquals(9, track.allBlocks().count(BlockMatcher.ofBlocks("minecraft:gold_block")),
+                "all nine infield blocks belong to the track, not just the ring the rails touch");
+    }
+
+    @Test
+    @DisplayName("a solid mass of signal blocks is taken in whole, not skinned")
+    void aMassOfSignalBlocksIsNotAHollowShell()
+    {
+        // hay bales, ice and farmland are all full blocks. If the spread stopped at a full block
+        // without first asking whether it is a signal, a haystack would come back as a hollow
+        // shell of its own outside faces with its middle unaccounted for.
+        String[] solid = {"hhhhh", "hhhhh", "hhhhh", "hhhhh", "hhhhh"};
+
+        List<SoulRegion> regions = scanForAnySignal(GridVolume.of(solid, solid, solid));
+
+        assertEquals(1, regions.size());
+        assertEquals(75, regions.get(0).allBlocks().count(BlockMatcher.ofBlocks("minecraft:hay_block")),
+                "every bale, including the ones buried in the middle");
+    }
+
+    @Test
     @DisplayName("a sparse trail of signal blocks does not drag a region across the build")
     void aSparseTrailDoesNotStretchARegion()
     {
@@ -519,6 +598,48 @@ class RegionScannerTest
 
         assertEquals(1, regions.size());
         assertEquals(1, regions.get(0).volume());
+    }
+
+    /**
+     * A rail circuit inside a three-block-high ring, with hay laid just outside it. Tall enough
+     * that stepping over the ring is further than a cluster will reach, so what the ring is built
+     * of is the only thing deciding whether the hay and the rails are one build or two.
+     */
+    private static GridVolume ringedTrack(char ring)
+    {
+        final String r = String.valueOf(ring);
+
+        return GridVolume.of(
+                new String[]{"#########", "#########", "#########", "#########", "#########",
+                             "#########", "#########", "#########", "#########"},
+                new String[]{
+                        "hhhhhhhhh",
+                        "h" + r.repeat(7) + "h",
+                        "h" + r + "=====" + r + "h",
+                        "h" + r + "=...=" + r + "h",
+                        "h" + r + "=...=" + r + "h",
+                        "h" + r + "=...=" + r + "h",
+                        "h" + r + "=====" + r + "h",
+                        "h" + r.repeat(7) + "h",
+                        "hhhhhhhhh"},
+                ringLayer(r),
+                ringLayer(r),
+                new String[]{".........", ".........", ".........", ".........", ".........",
+                             ".........", ".........", ".........", "........."});
+    }
+
+    private static String[] ringLayer(String ring)
+    {
+        return new String[]{
+                ".........",
+                "." + ring.repeat(7) + ".",
+                "." + ring + "....." + ring + ".",
+                "." + ring + "....." + ring + ".",
+                "." + ring + "....." + ring + ".",
+                "." + ring + "....." + ring + ".",
+                "." + ring + "....." + ring + ".",
+                "." + ring.repeat(7) + ".",
+                "........."};
     }
 
     /** A field and a track with three blocks of clear ground between them. */

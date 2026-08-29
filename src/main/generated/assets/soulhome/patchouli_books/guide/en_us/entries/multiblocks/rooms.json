@@ -18,7 +18,7 @@
     },
     {
       "type": "text",
-      "text": "Out in the open, a build gathers itself by reaching a few blocks through clear ground, and it stops at anything solid. Two builds too close together read as one thing - holding both their blocks, and scoring as neither.$(p)So if a farm and a track are being read as one, put a few blocks of space between them, or a wall. A sealed gap too small to stand in is not a room at all.",
+      "text": "Out in the open, a build gathers itself by reaching a few blocks through clear ground, and it stops at solid blocks. Two builds too close together read as one thing - holding both their blocks, and scoring as neither.$(p)So if a farm and a track are being read as one, leave a few blocks between them, or build a wall of full blocks. A fence or a low wall will not do it: those are parts of a build, not the edge of one.",
       "title": "Where one thing ends"
     },
     {

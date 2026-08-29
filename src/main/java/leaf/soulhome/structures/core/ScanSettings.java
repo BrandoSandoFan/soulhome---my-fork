@@ -11,9 +11,11 @@ package leaf.soulhome.structures.core;
  * @param maxRoomVolume    interior cells above which a pocket is treated as outdoors rather than a
  *                         room. A cathedral is not a room.
  * @param clusterRadius    how far an open-air cluster will reach through clear space to pick up the
- *                         next signal block. Measured as steps through cells the fill can actually
- *                         pass through, not as a straight line, so a wall between two fields is a
- *                         boundary rather than something the cluster tunnels under.
+ *                         next signal block. Measured as steps through cells the cluster can
+ *                         actually cross, not as a straight line, so a wall between two fields is a
+ *                         boundary rather than something the cluster tunnels under. Only a block
+ *                         filling its cell stops the spread - see {@link Passability} - so the
+ *                         fencing around a track does not cut it off from its own trackside.
  * @param minClusterSize   signal blocks an open-air cluster needs before it counts as a structure,
  *                         so a single planted flower is not a farm
  * @param maxRegions       hard cap on regions returned, to bound downstream classification cost

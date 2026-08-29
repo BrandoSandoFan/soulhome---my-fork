@@ -14,9 +14,11 @@ import leaf.soulhome.utils.LogHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.Optional;
 
@@ -101,17 +103,30 @@ public final class SnapshotBlockVolume implements BlockVolume
             return Passability.EMPTY;
         }
 
-        // doors, trapdoors and gates are walls whether they are open or shut. Treating an open
+        // doors, trapdoors and gates seal a room whether they are open or shut. Treating an open
         // door as a leak would make a player's buffs blink out as they walked through their own
-        // front door, and would merge every room joined by a corridor into one.
+        // front door, and would merge every room joined by a corridor into one. PARTIAL rather
+        // than BLOCKING: a door is a way through a wall, not a wall in its own right.
         if (state.is(BlockTags.DOORS) || state.is(BlockTags.TRAPDOORS) || state.is(BlockTags.FENCE_GATES))
         {
-            return Passability.BLOCKING;
+            return Passability.PARTIAL;
         }
+
+        final VoxelShape collision = state.getCollisionShape(level, pos);
 
         // torches, carpets, crops, flowers, water: part of the build, but the room's air flows
         // through them
-        return state.getCollisionShape(level, pos).isEmpty() ? Passability.PASSABLE : Passability.BLOCKING;
+        if (collision.isEmpty())
+        {
+            return Passability.PASSABLE;
+        }
+
+        // whether the block fills its cell, which is what separates a wall from a fence. Read off
+        // the collision shape we already have rather than from a tag, so a modded block is judged
+        // by what it does rather than by whether anyone remembered to tag it. A handful of vanilla
+        // blocks are a pixel short of a full cube - farmland and soul sand among them - and so
+        // come out PARTIAL; that is the right answer for both, since neither is a wall.
+        return Block.isShapeFullBlock(collision) ? Passability.BLOCKING : Passability.PARTIAL;
     }
 
     /**

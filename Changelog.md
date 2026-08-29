@@ -175,6 +175,23 @@ Rooms that classified correctly and then did nothing.
   builds. And it takes in the ground under it by following its own shape rather than its bounding
   box, so a long or L-shaped field no longer swallows whatever happens to be standing in the
   rectangle it does not occupy.
+- A fence or a low wall around a build no longer cuts it off from the rest of itself. Only a block
+  filling its whole cell counts as the edge of a build now. A fence, a wall, a pane, a slab, a
+  stair or a chest is something you put *inside* a build - the track archetype scores fencing as
+  part of a track - so a fenced circuit walled off from its own trackside was the mod disagreeing
+  with itself. A wall of full blocks still separates two builds, and that is still the way to say
+  "these are two different places".
+- A region is a solid thing now, not a ring with a hole in it. The infield of a rail loop, the
+  courtyard inside a ring of crops, the stone a raised bed is built around: none of it could be
+  reached from a signal block, so none of it was ever counted as part of the build it plainly
+  belongs to. Worse, the clearance a room's arrangement is scored against is only recorded for
+  what a region took in, so a solid infield read back as clear open space and any arrangement
+  asking for room to move got the answer exactly backwards. Whatever a build closes around is now
+  part of it - and anything already claimed by a room or another build is left alone, so a shrine
+  in the middle of your racetrack is still its own thing.
+- A solid mass of the blocks an archetype looks for is taken in whole rather than skinned. Hay
+  bales, ice and farmland are all full blocks; a build now steps into one regardless, so a
+  haystack counts as a haystack instead of as a hollow shell of its own outside faces.
 - A building no longer sprouts a second region on top of itself. A room's walls were only the layer
   of blocks touching its air, which left a roof laid over the ceiling, the outer half of a thick
   wall, and even the corners of a plain box belonging to nothing - and loose blocks are exactly
