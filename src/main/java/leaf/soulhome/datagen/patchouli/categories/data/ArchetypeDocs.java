@@ -50,9 +50,6 @@ public final class ArchetypeDocs
     private static final Path RELATIVE_DIRECTORY =
             Path.of("src", "main", "resources", "data", SoulHome.MODID, ArchetypeManager.DIRECTORY);
 
-    /** How far up from the working directory to look for the project root. */
-    private static final int MAX_SEARCH_DEPTH = 6;
-
     private ArchetypeDocs()
     {
     }
@@ -60,7 +57,7 @@ public final class ArchetypeDocs
     /** Every archetype this mod ships, in a stable order. */
     public static List<ArchetypeDefinition> shipped()
     {
-        final Path directory = locate();
+        final Path directory = ProjectResources.locate(RELATIVE_DIRECTORY);
 
         List<ArchetypeDefinition> archetypes = new ArrayList<>();
 
@@ -87,32 +84,6 @@ public final class ArchetypeDocs
         }
 
         return archetypes;
-    }
-
-    /**
-     * The archetype directory, found by walking up from wherever the generator was run. Gradle
-     * runs data generation from the {@code run} folder rather than the project root, and this is
-     * not worth a hardcoded number of {@code ..} hops.
-     */
-    private static Path locate()
-    {
-        Path cursor = Path.of("").toAbsolutePath();
-
-        for (int depth = 0; depth <= MAX_SEARCH_DEPTH && cursor != null; depth++)
-        {
-            final Path candidate = cursor.resolve(RELATIVE_DIRECTORY);
-
-            if (Files.isDirectory(candidate))
-            {
-                return candidate;
-            }
-
-            cursor = cursor.getParent();
-        }
-
-        throw new IllegalStateException(
-                "Could not find " + RELATIVE_DIRECTORY + " from " + Path.of("").toAbsolutePath()
-                        + " to document the archetypes");
     }
 
     private static Optional<ArchetypeDefinition> read(Path file)

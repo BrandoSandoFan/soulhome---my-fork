@@ -5,9 +5,11 @@
 package leaf.soulhome.datagen.patchouli.categories;
 
 
+import leaf.soulhome.SoulHome;
 import leaf.soulhome.datagen.patchouli.categories.data.ArchetypeDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.BookStuff;
 import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
+import leaf.soulhome.datagen.patchouli.categories.data.TagDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.Form;
 import leaf.soulhome.structures.core.RegionType;
@@ -54,6 +56,7 @@ public class PatchouliMultiblocks
         categories.add(multiblocks);
 
         entries.add(introduction(multiblocks));
+        entries.add(tagsGlossary(multiblocks));
 
         int sortnum = 0;
 
@@ -108,6 +111,58 @@ public class PatchouliMultiblocks
         entry.pages = pages.toArray(BookStuff.Page[]::new);
 
         return entry;
+    }
+
+    /**
+     * What each {@code soulhome:} category actually holds - #49. Every room page names its
+     * rewards as a bare category ("any lighting", "any reagents") and, until this entry existed,
+     * nowhere in the book or the game said what was in one. One page per tag, anchored so
+     * {@link #readable} can link every mention straight to it; written from the tag files
+     * themselves so a new block added to {@code soulhome:lighting} shows up here for free.
+     *
+     * <p>Only the {@code soulhome:} tags get a page. A room page also names vanilla and Forge
+     * tags ({@code minecraft:crops}, {@code minecraft:rails}...), but this mod does not ship
+     * their contents, so there is nothing local to write a page from - see {@link TagDocs}.
+     */
+    static BookStuff.Entry tagsGlossary(BookStuff.Category category)
+    {
+        BookStuff.Entry entry = new BookStuff.Entry("tags", category, category.icon);
+        entry.setDisplayTitle("what the categories mean");
+        entry.advancement = ADVANCEMENT;
+        entry.sortnum = -9;
+
+        List<BookStuff.Page> pages = new ArrayList<>();
+
+        pages.add(new BookStuff.TextPage(
+                "Room pages reward \"any\" of a category rather than one specific block, so a build using any mod's version of it still counts.$(p)This is what each of this mod's own categories actually holds. A page here for every one a room page mentions.")
+                .setTitle("What counts as what"));
+
+        for (TagDocs.Tag tag : TagDocs.shipped())
+        {
+            pages.add(tagPage(tag));
+        }
+
+        entry.pages = pages.toArray(BookStuff.Page[]::new);
+
+        return entry;
+    }
+
+    private static BookStuff.Page tagPage(TagDocs.Tag tag)
+    {
+        StringBuilder text = new StringBuilder("$(item)").append(tag.id()).append("$(0)$(p)");
+
+        for (String value : tag.values())
+        {
+            text.append("$(li)").append(readable(value));
+        }
+
+        text.append("$(p)Data packs and other mods can add to this list - nothing here replaces it.");
+
+        BookStuff.Page page = new BookStuff.TextPage(text.toString())
+                .setTitle(StringHelper.fixCapitalisation(tag.path()));
+        page.anchor = tag.path();
+
+        return page;
     }
 
     /**
@@ -278,9 +333,11 @@ public class PatchouliMultiblocks
 
     /**
      * Ids as a player should read them: {@code #minecraft:bookshelves} becomes "any bookshelves",
-     * {@code minecraft:lectern} becomes "Lectern".
+     * {@code minecraft:lectern} becomes "Lectern". A tag this mod defines - and therefore has a
+     * glossary page for, see {@link #tagsGlossary} - links straight to that page (#49); a vanilla
+     * or Forge tag stays plain text, since there is no local page to send a reader to.
      */
-    private static String readable(String description)
+    static String readable(String description)
     {
         StringBuilder readable = new StringBuilder();
 
@@ -294,9 +351,20 @@ public class PatchouliMultiblocks
             final boolean tag = part.startsWith("#");
             final String trimmed = tag ? part.substring(1) : part;
             final int separator = trimmed.indexOf(':');
+            final String namespace = separator < 0 ? "" : trimmed.substring(0, separator);
             final String path = separator < 0 ? trimmed : trimmed.substring(separator + 1);
 
-            readable.append(tag ? "any " + path.replace('_', ' ') : StringHelper.fixCapitalisation(path));
+            if (!tag)
+            {
+                readable.append(StringHelper.fixCapitalisation(path));
+                continue;
+            }
+
+            final String label = "any " + path.replace('_', ' ');
+
+            readable.append(SoulHome.MODID.equals(namespace)
+                    ? "$(l:" + SoulHome.MODID + ":multiblocks/tags#" + path + ")" + label + "$(/l)"
+                    : label);
         }
 
         return readable.toString();

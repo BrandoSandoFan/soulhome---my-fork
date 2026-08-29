@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)1 of Brewing Stand$(p)Rewards, most first:$(li)Brewing Stand$(li)any alchemy vessels$(li)any reagents$(li)any storage$(li)any lighting$(p)Counts against it:$(li)Enchanting Table$(li)any smithing",
+      "text": "Will not count without:$(li)1 of Brewing Stand$(p)Rewards, most first:$(li)Brewing Stand$(li)$(l:soulhome:multiblocks/tags#alchemy_vessels)any alchemy vessels$(/l)$(li)$(l:soulhome:multiblocks/tags#reagents)any reagents$(/l)$(li)$(l:soulhome:multiblocks/tags#storage)any storage$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)Enchanting Table$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
       "title": "What counts"
     },
     {

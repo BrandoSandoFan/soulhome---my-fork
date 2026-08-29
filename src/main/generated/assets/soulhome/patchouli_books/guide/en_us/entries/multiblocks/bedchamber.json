@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)1 of any beds$(p)Rewards, most first:$(li)any beds$(li)Jukebox$(li)any furnishing$(li)any lighting$(li)any storage$(p)Counts against it:$(li)any smithing",
+      "text": "Will not count without:$(li)1 of any beds$(p)Rewards, most first:$(li)any beds$(li)Jukebox$(li)$(l:soulhome:multiblocks/tags#furnishing)any furnishing$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)$(l:soulhome:multiblocks/tags#storage)any storage$(/l)$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
       "title": "What counts"
     },
     {

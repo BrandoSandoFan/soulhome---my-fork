@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)16 of any bookshelves$(p)Rewards, most first:$(li)Lectern$(li)any bookshelves$(li)Cartography Table$(li)any seating$(li)any storage$(p)Counts against it:$(li)Enchanting Table$(li)any smithing",
+      "text": "Will not count without:$(li)16 of any bookshelves$(p)Rewards, most first:$(li)Lectern$(li)any bookshelves$(li)Cartography Table$(li)$(l:soulhome:multiblocks/tags#seating)any seating$(/l)$(li)$(l:soulhome:multiblocks/tags#storage)any storage$(/l)$(p)Counts against it:$(li)Enchanting Table$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
       "title": "What counts"
     },
     {

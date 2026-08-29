@@ -23,8 +23,8 @@
 
   "tiers": [
     { "min_score": 8,   "tier": 1 },
-    { "min_score": 50,  "tier": 2 },
-    { "min_score": 100, "tier": 3 }
+    { "min_score": 35,  "tier": 2 },
+    { "min_score": 56,  "tier": 3 }
   ],
 
   "buffs": [

@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)4 of any ores$(p)Rewards, most first:$(li)any ores$(li)any rails$(li)Ladder$(li)any storage blocks$(li)any lighting$(p)Counts against it:$(li)any crops$(li)any smithing",
+      "text": "Will not count without:$(li)4 of any ores$(p)Rewards, most first:$(li)any ores$(li)any rails$(li)Ladder$(li)any storage blocks$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)any crops$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
       "title": "What counts"
     },
     {

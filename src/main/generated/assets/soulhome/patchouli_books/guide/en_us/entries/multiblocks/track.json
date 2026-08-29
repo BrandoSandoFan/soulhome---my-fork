@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)8 of any rails$(p)Rewards, most first:$(li)any rails$(li)Hay Block$(li)any fences$(li)Ice or Packed Ice or Blue Ice$(li)any lighting$(p)Counts against it:$(li)any smithing$(li)any crops",
+      "text": "Will not count without:$(li)8 of any rails$(p)Rewards, most first:$(li)any rails$(li)Hay Block$(li)any fences$(li)Ice or Packed Ice or Blue Ice$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
       "title": "What counts"
     },
     {
