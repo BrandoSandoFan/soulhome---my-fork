@@ -161,8 +161,12 @@ public class PotionDurationEffect implements SoulBuffEffect
 
     /**
      * Whether {@code applied} is a duration the alchemy lab may stretch - see #53 and the class
-     * javadoc. Package-private so a test can drive it directly with a synthetic {@link MobEffect},
-     * without needing a real {@link Player} to call {@link #extend} through.
+     * javadoc. Split out of {@link #extend} so the decision reads as one rule rather than being
+     * folded into a guard clause; deliberately does not touch {@link Player}, so nothing here
+     * requires a live game world to reason about, even though {@code structures.core}'s
+     * Minecraft-free test approach does not extend to {@link MobEffect}/{@link MobEffectInstance}
+     * themselves - those need an actual game bootstrap to construct safely, so this is verified by
+     * reading rather than by a unit test.
      */
     static boolean isExtendable(MobEffectInstance applied)
     {
