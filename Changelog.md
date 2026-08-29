@@ -128,8 +128,10 @@ Rooms that classified correctly and then did nothing.
   yourself and a lingering cloud you are standing in, not only a potion you drink. It still never
   extends a potion aimed at something else, so it stays your buff and not a debuff-stretching tool
   in PvP or against mobs.
-- The alchemy lab no longer extends a potion's harmful effects. Turtle Master's Resistance grew
-  with the tier as intended, but so did its Slowness - and a poison or weakness potion lasted
-  longer for building a brewing room, which is a nerf disguised as a buff. Only beneficial effects
-  are extended now; a harmful or neutral effect from your own potion is left exactly as brewed.
-  This is a nerf to anyone currently drinking Turtle Master with an alchemy lab.
+- The alchemy lab no longer extends a potion's harmful effects - it cuts them short instead.
+  Turtle Master's Resistance grew with the tier as intended, but so did its Slowness, and a
+  poison or weakness potion lasted longer for building a brewing room, which was a nerf disguised
+  as a buff. A harmful effect from your own potion now runs shorter by the same fraction a
+  beneficial one runs longer; a neutral effect (Glowing is the main one) is left exactly as
+  brewed. This is a nerf to anyone currently drinking Turtle Master with an alchemy lab for the
+  Resistance and getting away with the Slowness too.

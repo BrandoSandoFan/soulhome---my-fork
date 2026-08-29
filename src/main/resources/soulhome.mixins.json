@@ -6,7 +6,8 @@
   "refmap": "soulhome.refmap.json",
   "mixins": [
     "DefrostedRegistry",
-    "LivingEntityAccessor"
+    "LivingEntityAccessor",
+    "MobEffectInstanceAccessor"
   ],
   "client": [
     "EffectInstanceMixin",
