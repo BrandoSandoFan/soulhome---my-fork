@@ -7,6 +7,7 @@ package leaf.soulhome.structures.core;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -103,22 +104,24 @@ class RegionScannerTest
     void nestedRoomsAreBothFound()
     {
         List<SoulRegion> regions = scan(GridVolume.of(
-                bigFloor(),
+                hugeFloor(),
                 new String[]{
-                        "#######",
-                        "#.....#",
-                        "#.###.#",
-                        "#.#.#.#",
-                        "#.###.#",
-                        "#.....#",
-                        "#######"},
-                bigFloor()));
+                        "#########",
+                        "#.......#",
+                        "#.#####.#",
+                        "#.#...#.#",
+                        "#.#...#.#",
+                        "#.#...#.#",
+                        "#.#####.#",
+                        "#.......#",
+                        "#########"},
+                hugeFloor()));
 
         assertEquals(2, regions.size());
 
-        // sorted richest-first, so the outer ring comes back before the closet
-        assertEquals(16, regions.get(0).volume(), "the ring between the two shells");
-        assertEquals(1, regions.get(1).volume(), "the single cell at the centre");
+        // sorted richest-first, so the outer ring comes back before the inner chamber
+        assertEquals(24, regions.get(0).volume(), "the ring between the two shells");
+        assertEquals(9, regions.get(1).volume(), "the chamber at the centre");
     }
 
     @Test
@@ -152,7 +155,7 @@ class RegionScannerTest
     @DisplayName("an enclosed volume larger than the cap is not a room")
     void oversizedPocketIsDiscarded()
     {
-        ScanSettings tiny = new ScanSettings(4, 4, 4, 64, 4_000_000L);
+        ScanSettings tiny = ScanSettings.DEFAULTS.withRoomVolumeRange(1, 4);
         List<SoulRegion> regions = RegionScanner.scan(sealedRoom(), null, tiny);
 
         assertTrue(regions.isEmpty(), "9 interior cells against a cap of 4");
@@ -237,6 +240,340 @@ class RegionScannerTest
         assertEquals(RegionType.ENCLOSED, regions.get(0).type());
     }
 
+    // endregion
+
+    // region telling one structure from the next (#60)
+
+    /** Everything the shipped archetypes name between them, which is what the game passes in. */
+    private static final Predicate<BlockSignature> ANY_SIGNAL = signature ->
+            signature.hasTag("minecraft:crops")
+                    || signature.hasTag("minecraft:rails")
+                    || signature.hasTag("minecraft:fences")
+                    || signature.hasTag("soulhome:lighting")
+                    || signature.id().equals("minecraft:farmland")
+                    || signature.id().equals("minecraft:hay_block")
+                    || signature.id().equals("minecraft:water");
+
+    private static List<SoulRegion> scanForAnySignal(GridVolume volume)
+    {
+        return RegionScanner.scan(volume, ANY_SIGNAL, ScanSettings.DEFAULTS);
+    }
+
+    private static int countIn(SoulRegion region, String tag)
+    {
+        return region.allBlocks().count(BlockMatcher.ofTags(tag));
+    }
+
+    @Test
+    @DisplayName("a farm and a track with clear ground between them are two regions")
+    void separateOpenBuildsAreSeparateRegions()
+    {
+        // the report this came from: three blocks of nothing between a field and a racetrack, and
+        // the two came back as one region that then scored as neither. Every block either build is
+        // made of is a signal, so nothing but the space between them tells them apart.
+        List<SoulRegion> regions = scanForAnySignal(farmAndTrackThreeApart());
+
+        assertEquals(2, regions.size());
+
+        SoulRegion farm = regions.get(0);
+        SoulRegion track = regions.get(1);
+
+        assertEquals(16, countIn(farm, "minecraft:crops"));
+        assertEquals(0, countIn(farm, "minecraft:rails"), "the track is not part of the farm");
+        assertEquals(12, countIn(track, "minecraft:rails"));
+        assertEquals(0, countIn(track, "minecraft:crops"), "nor the farm part of the track");
+    }
+
+    @Test
+    @DisplayName("how far a cluster reaches is a setting, not a rule")
+    void theClusterReachIsASetting()
+    {
+        // for anyone who wants the old grouping back, or who builds at a different scale
+        GridVolume volume = farmAndTrackThreeApart();
+
+        assertEquals(2, RegionScanner.scan(volume, ANY_SIGNAL, ScanSettings.DEFAULTS).size());
+        assertEquals(1, RegionScanner.scan(
+                        volume, ANY_SIGNAL, ScanSettings.DEFAULTS.withClusterRadius(4)).size(),
+                "one step further and the two are near enough to be one thing again");
+    }
+
+    @Test
+    @DisplayName("a gap narrow enough to step over leaves one field, not two")
+    void aNarrowGapDoesNotSplitAField()
+    {
+        // the other half of the same question: a farm with a path through it is still one farm,
+        // which is why the reach is a couple of blocks rather than none at all
+        List<SoulRegion> regions = scanForAnySignal(wallOrGap(false));
+
+        assertEquals(1, regions.size());
+        assertEquals(12, countIn(regions.get(0), "minecraft:crops"));
+        assertEquals(8, countIn(regions.get(0), "minecraft:rails"),
+                "with nothing between them, two blocks apart is near enough to be one thing");
+    }
+
+    @Test
+    @DisplayName("a wall between two open builds separates them")
+    void aWallSeparatesOpenRegions()
+    {
+        // same layout, same distance, with a wall standing in the gap. Building a wall is the
+        // thing a player reaches for to say "these are two different places", and before this it
+        // did nothing at all: proximity was measured straight through solid rock.
+        List<SoulRegion> regions = scanForAnySignal(wallOrGap(true));
+
+        assertEquals(2, regions.size());
+
+        SoulRegion farm = regions.get(0);
+        SoulRegion track = regions.get(1);
+
+        assertEquals(12, countIn(farm, "minecraft:crops"));
+        assertEquals(0, countIn(farm, "minecraft:rails"));
+        assertEquals(8, countIn(track, "minecraft:rails"));
+        assertEquals(0, countIn(track, "minecraft:crops"));
+    }
+
+    @Test
+    @DisplayName("a sparse trail of signal blocks does not drag a region across the build")
+    void aSparseTrailDoesNotStretchARegion()
+    {
+        // every torch is a signal, and each one used to be within reach of the last, so a lit path
+        // leading away from a farm towed the farm's region along behind it - and the region then
+        // scored badly for being mostly empty space
+        List<SoulRegion> regions = scanForAnySignal(GridVolume.of(
+                new String[]{
+                        "ffff.......................",
+                        "ffff.......................",
+                        "ffff.......................",
+                        "ffff......................."},
+                new String[]{
+                        "wwww....t....t....t....t...",
+                        "wwww.......................",
+                        "wwww.......................",
+                        "wwww......................."}));
+
+        assertEquals(1, regions.size(), "the torches are too far apart to be a structure of their own");
+        assertTrue(regions.get(0).bounds().maxX() <= 5,
+                "the farm's region stops at the farm, rather than reaching the last torch: "
+                        + regions.get(0).bounds());
+    }
+
+    @Test
+    @DisplayName("an open region takes in the ground under it without taking in its whole box")
+    void openRegionSlackFollowsTheClusterNotItsBoundingBox()
+    {
+        // an L-shaped field with a stack of bookshelves standing in the corner the L does not
+        // occupy. The farmland a block under the crops is part of the farm; the bookshelves are
+        // not, and a bounding box could not tell the two apart.
+        List<SoulRegion> regions = scanForAnySignal(GridVolume.of(
+                new String[]{
+                        "ffffff",
+                        "ffffff",
+                        "ff....",
+                        "ff....",
+                        "ff....",
+                        "ff...."},
+                new String[]{
+                        "wwwwww",
+                        "wwwwww",
+                        "ww....",
+                        "ww....",
+                        "ww..BB",
+                        "ww..BB"}));
+
+        assertEquals(1, regions.size());
+
+        SoulRegion field = regions.get(0);
+        assertEquals(20, countIn(field, "minecraft:crops"));
+        assertEquals(20, field.allBlocks().count(BlockMatcher.ofBlocks("minecraft:farmland")),
+                "the ground the crops grow in is part of the farm");
+        assertEquals(0, countIn(field, "minecraft:bookshelves"),
+                "the bookshelves are in the field's bounding box but not in the field");
+    }
+
+    @Test
+    @DisplayName("a building's roof does not sprout an open-air region of its own")
+    void aBuildingsRoofBelongsToTheBuilding()
+    {
+        // a barn's shell is only the layer touching the room's air, so the hay laid over its
+        // ceiling belonged to nothing and clustered into a second region floating on top of the
+        // first - the "why are there two boxes here" the report opens with
+        List<SoulRegion> regions = scanForAnySignal(GridVolume.of(
+                new String[]{"#######", "#######", "#######", "#######", "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                new String[]{"#######", "#######", "#######", "#######", "#######"},
+                new String[]{"hhhhhhh", "hhhhhhh", "hhhhhhh", "hhhhhhh", "hhhhhhh"}));
+
+        assertEquals(1, regions.size(), "the barn, and nothing else");
+        assertEquals(RegionType.ENCLOSED, regions.get(0).type());
+        assertEquals(0, regions.get(0).allBlocks().count(BlockMatcher.ofBlocks("minecraft:hay_block")),
+                "the roof is the barn's, but it is not what the barn is scored on");
+    }
+
+    @Test
+    @DisplayName("a room's own outer corners do not cluster into a region of their own")
+    void aBuildingsCornersBelongToTheBuilding()
+    {
+        // a study built out of bookshelves. The edges and corners of the box touch no interior air,
+        // so they are never part of the shell, and every one of them is a block some archetype
+        // names - which is exactly what an open-air cluster forms around.
+        GridVolume study = GridVolume.of(
+                new String[]{"BBBBB", "BBBBB", "BBBBB", "BBBBB", "BBBBB"},
+                new String[]{
+                        "BBBBB",
+                        "B...B",
+                        "B...B",
+                        "B...B",
+                        "BBBBB"},
+                new String[]{"BBBBB", "BBBBB", "BBBBB", "BBBBB", "BBBBB"});
+
+        Predicate<BlockSignature> anyBookshelf = signature -> signature.hasTag("minecraft:bookshelves");
+
+        List<SoulRegion> regions = RegionScanner.scan(study, anyBookshelf, ScanSettings.DEFAULTS);
+        assertEquals(1, regions.size(), "the study, and nothing else");
+        assertEquals(RegionType.ENCLOSED, regions.get(0).type());
+
+        // and the shell depth is what is doing the work, rather than the case never arising
+        List<SoulRegion> unclaimed =
+                RegionScanner.scan(study, anyBookshelf, ScanSettings.DEFAULTS.withShellDepth(0));
+        assertEquals(2, unclaimed.size(), "with nothing claiming them, the corners are loose blocks");
+    }
+
+    @Test
+    @DisplayName("a farm in the crook of an L-shaped house is still a farm")
+    void aFarmBesideAConcaveBuildingIsStillFound()
+    {
+        // the bounding box of an L-shaped room covers the ground the L wraps around. Excluding
+        // that box - which is how a building used to claim its own footprint - meant a farm
+        // planted in the corner of your own house was never reported at all.
+        List<SoulRegion> regions = scanForAnySignal(GridVolume.of(
+                new String[]{
+                        "##########",
+                        "##########",
+                        "##########",
+                        "##########",
+                        "##########",
+                        "####.ffff.",
+                        "####.ffff.",
+                        "####.ffff.",
+                        "####......"},
+                new String[]{
+                        "##########",
+                        "#........#",
+                        "#........#",
+                        "#........#",
+                        "#..#######",
+                        "#..#.wwww.",
+                        "#..#.wwww.",
+                        "#..#.wwww.",
+                        "####......"},
+                new String[]{
+                        "##########",
+                        "##########",
+                        "##########",
+                        "##########",
+                        "##########",
+                        "####......",
+                        "####......",
+                        "####......",
+                        "####......"}));
+
+        assertEquals(2, regions.size());
+
+        SoulRegion house = regions.get(0);
+        SoulRegion farm = regions.get(1);
+
+        assertEquals(RegionType.ENCLOSED, house.type());
+        assertEquals(RegionType.OPEN, farm.type());
+        assertEquals(12, countIn(farm, "minecraft:crops"));
+    }
+
+    @Test
+    @DisplayName("a sealed crevice too small to stand in is not a room")
+    void tinySealedPocketsAreNotRooms()
+    {
+        // the void left inside a double-thick wall. Nothing can ever classify at this size, so
+        // every one of them was a box drawn around nothing in the player's lens.
+        List<SoulRegion> regions = scan(GridVolume.of(
+                new String[]{"#####", "#####", "#####", "#####", "#####"},
+                new String[]{"#####", "#####", "##.##", "#####", "#####"},
+                new String[]{"#####", "#####", "#####", "#####", "#####"}));
+
+        assertTrue(regions.isEmpty(), "a one-cell void inside a wall is not a room");
+    }
+
+    @Test
+    @DisplayName("the minimum room volume is a setting, not a rule")
+    void theMinimumRoomVolumeCanBeTurnedOff()
+    {
+        List<SoulRegion> regions = RegionScanner.scan(
+                GridVolume.of(
+                        new String[]{"#####", "#####", "#####", "#####", "#####"},
+                        new String[]{"#####", "#####", "##.##", "#####", "#####"},
+                        new String[]{"#####", "#####", "#####", "#####", "#####"}),
+                null,
+                ScanSettings.DEFAULTS.withRoomVolumeRange(1, 4096));
+
+        assertEquals(1, regions.size());
+        assertEquals(1, regions.get(0).volume());
+    }
+
+    /** A field and a track with three blocks of clear ground between them. */
+    private static GridVolume farmAndTrackThreeApart()
+    {
+        return GridVolume.of(
+                new String[]{
+                        "ffff...###",
+                        "ffff...###",
+                        "ffff...###",
+                        "ffff...###"},
+                new String[]{
+                        "wwww...===",
+                        "wwww...===",
+                        "wwww...===",
+                        "wwww...==="});
+    }
+
+    /**
+     * A field and a track two blocks apart, with and without a wall standing between them. The
+     * wall runs past both builds in Z, so going around its ends is further than going over it.
+     */
+    private static GridVolume wallOrGap(boolean walled)
+    {
+        final String divider = walled ? "#" : ".";
+
+        return GridVolume.of(
+                new String[]{
+                        "######",
+                        "fff###",
+                        "fff###",
+                        "fff###",
+                        "fff###",
+                        "######"},
+                new String[]{
+                        "..." + divider + "..",
+                        "www" + divider + "==",
+                        "www" + divider + "==",
+                        "www" + divider + "==",
+                        "www" + divider + "==",
+                        "..." + divider + ".."},
+                new String[]{
+                        "..." + divider + "..",
+                        "..." + divider + "..",
+                        "..." + divider + "..",
+                        "..." + divider + "..",
+                        "..." + divider + "..",
+                        "..." + divider + ".."},
+                new String[]{"......", "......", "......", "......", "......", "......"});
+    }
+
+    // endregion
+
+    // region open air
+
     @Test
     @DisplayName("open-air detection is skipped entirely without a signal filter")
     void noSignalFilterMeansNoOpenRegions()
@@ -268,26 +605,26 @@ class RegionScannerTest
     {
         // a small room and a large one, side by side
         String[] slab = {
-                "###########",
-                "###########",
-                "###########",
-                "###########",
-                "###########"};
+                "############",
+                "############",
+                "############",
+                "############",
+                "############"};
 
         GridVolume volume = GridVolume.of(
                 slab,
                 new String[]{
-                        "###########",
-                        "#..##.....#",
-                        "#..##.....#",
-                        "#..##.....#",
-                        "###########"},
+                        "############",
+                        "#...##.....#",
+                        "#...##.....#",
+                        "#...##.....#",
+                        "############"},
                 slab);
 
         List<SoulRegion> both = RegionScanner.scan(volume, null, ScanSettings.DEFAULTS);
         assertEquals(2, both.size());
         assertEquals(15, both.get(0).volume(), "richest first");
-        assertEquals(6, both.get(1).volume());
+        assertEquals(9, both.get(1).volume());
 
         ScanSettings cappedToOne = new ScanSettings(4096, 4, 4, 1, 4_000_000L);
         List<SoulRegion> capped = RegionScanner.scan(volume, null, cappedToOne);
@@ -511,9 +848,11 @@ class RegionScannerTest
         return new String[]{"#####", "#####", "#####", "#####", "#####"};
     }
 
-    private static String[] bigFloor()
+    private static String[] hugeFloor()
     {
-        return new String[]{"#######", "#######", "#######", "#######", "#######", "#######", "#######"};
+        String[] rows = new String[9];
+        Arrays.fill(rows, "#########");
+        return rows;
     }
 
     /** Three bookshelves on the back wall (boundary) and one lectern standing in the room (contents). */

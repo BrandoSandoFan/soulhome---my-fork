@@ -5,6 +5,7 @@
 package leaf.soulhome.structures.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +26,31 @@ import java.util.function.Predicate;
  *       invisible to the pass above - but a farm is the headline example of this whole feature.
  *       So signal-bearing blocks that belong to no room are clustered by proximity instead.</li>
  * </ol>
+ *
+ * <h2>Distance is what you can walk, not what you can measure</h2>
+ *
+ * An open-air cluster reaches out to the next signal block by stepping through cells the fill can
+ * actually pass through, up to {@link ScanSettings#clusterRadius} steps of clear space at a time.
+ * Straight-line distance would have been cheaper, and was what this did first, but it means solid
+ * matter is not a boundary: a farm and a racetrack on opposite sides of a wall still read as one
+ * region, and a player who reaches for the obvious fix - build a wall between them - watches it
+ * make no difference at all. Walls are the tool players already have for saying "these are two
+ * different places", so they have to work.
+ *
+ * <h2>A building owns its own fabric</h2>
+ *
+ * A room's shell is only the layer of blocks touching its air, which leaves the rest of the
+ * building - a roof over the ceiling, the outer half of a thick wall, the corners of a plain box -
+ * belonging to nothing. Those loose blocks used to seed open-air clusters of their own, so a barn
+ * with a hay roof came back as a barn plus a mysterious second region sitting on top of it. Blocks
+ * within {@link ScanSettings#shellDepth} of a shell are claimed for that building instead. They are
+ * not scored - the shell alone is still what a room is worth - they just stop being available to
+ * anything else.
+ *
+ * <p>This used to be done by excluding each room's whole bounding box, which was worse in both
+ * directions: it still missed anything above the roofline, and for any build that is not a plain
+ * box it swallowed the ground around it. A farm planted in the crook of an L-shaped house fell
+ * inside the house's bounding box and was never reported at all.
  *
  * <h2>Doors are walls</h2>
  *
@@ -51,6 +77,36 @@ public final class RegionScanner
             {0, 0, 1}, {0, 0, -1}
     };
 
+    /**
+     * 26-neighbourhood, for everything that is a question about nearness rather than about whether
+     * a space is sealed: how far a cluster reaches, what counts as a cell of slack around it, and
+     * which blocks are packed against a building. A field planted in a checkerboard is one farm,
+     * and the corner of a box is part of that box.
+     */
+    private static final int[][] NEIGHBOURS_26 = neighbours26();
+
+    private static int[][] neighbours26()
+    {
+        int[][] offsets = new int[26][];
+        int next = 0;
+
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                for (int dz = -1; dz <= 1; dz++)
+                {
+                    if (dx != 0 || dy != 0 || dz != 0)
+                    {
+                        offsets[next++] = new int[]{dx, dy, dz};
+                    }
+                }
+            }
+        }
+
+        return offsets;
+    }
+
     private final BlockVolume volume;
     private final ScanSettings settings;
     private final Predicate<BlockSignature> signalFilter;
@@ -62,6 +118,9 @@ public final class RegionScanner
     private final int sizeY;
     private final int sizeZ;
     private final byte[] flags;
+
+    /** Every shell cell every room claimed, so {@link #claimBuildingFabric} knows where to start. */
+    private final IntStack shellCells = new IntStack();
 
     private RegionScanner(
             BlockVolume volume,
@@ -162,19 +221,8 @@ public final class RegionScanner
 
         markOutside();
         findEnclosedRegions(regions);
-
-        // A building's own footprint belongs to that building. Without this, the outer corners and
-        // edges of a room - which touch no interior air and so are never claimed as its shell -
-        // are left loose, and a house with bookshelf walls sprouts a phantom open-air "region"
-        // made of its own exterior.
-        List<RegionBounds> buildings = new ArrayList<>(regions.size());
-
-        for (SoulRegion region : regions)
-        {
-            buildings.add(region.bounds());
-        }
-
-        findOpenRegions(regions, buildings);
+        claimBuildingFabric();
+        findOpenRegions(regions);
 
         return capRegions(regions);
     }
@@ -298,7 +346,8 @@ public final class RegionScanner
     }
 
     /**
-     * @return the room grown from this cell, or {@code null} if the pocket is too large to be one
+     * @return the room grown from this cell, or {@code null} if the pocket is too large or too
+     *         small to be one
      */
     private SoulRegion collectPocket(int seed)
     {
@@ -355,7 +404,23 @@ public final class RegionScanner
             }
         }
 
-        return oversized ? null : buildEnclosedRegion(interior);
+        if (oversized)
+        {
+            return null;
+        }
+
+        if (interior.size() < this.settings.minRoomVolume())
+        {
+            // a void inside a thick wall, the gap behind a stair, the shaft up a hollow pillar.
+            // Every build of any complexity has several, none of them is a room, and offering each
+            // one as a region leaves the player's lens full of boxes around nothing.
+            //
+            // Still marked visited above, so this pocket is not walked again; deliberately not
+            // claimed, so the blocks around it stay available to whatever they are actually part of.
+            return null;
+        }
+
+        return buildEnclosedRegion(interior);
     }
 
     private SoulRegion buildEnclosedRegion(IntStack interior)
@@ -426,6 +491,7 @@ public final class RegionScanner
                 // still claimed, so open-air clustering does not treat a wall as a loose signal
                 this.flags[neighbour] |= FLAG_CLAIMED;
                 shell.push(neighbour);
+                this.shellCells.push(neighbour);
             }
         }
 
@@ -481,14 +547,84 @@ public final class RegionScanner
 
     // endregion
 
+    // region building fabric
+
+    /**
+     * Claim the solid blocks packed against each room's shell for that room's building.
+     *
+     * <p>The shell is only the layer touching a room's air, which leaves a roof over the ceiling,
+     * the outer half of a thick wall, and the corners and edges of a plain box owned by nobody -
+     * and so free to seed an open-air cluster of their own on top of a building the scan has
+     * already understood. Spreads through solid blocks only, so it stops dead at the first cell of
+     * air and cannot walk away across the ground.
+     *
+     * <p>Claimed, not counted: these blocks are excluded from the pass below, but they are not
+     * added to any room's boundary. What a room is worth is still what lines it.
+     */
+    private void claimBuildingFabric()
+    {
+        final int depth = this.settings.shellDepth();
+
+        if (depth <= 0 || this.shellCells.isEmpty())
+        {
+            return;
+        }
+
+        IntStack layer = this.shellCells;
+
+        for (int step = 0; step < depth && !layer.isEmpty(); step++)
+        {
+            IntStack next = new IntStack();
+
+            for (int i = 0; i < layer.size(); i++)
+            {
+                final int index = layer.get(i);
+                final int x = xOf(index);
+                final int y = yOf(index);
+                final int z = zOf(index);
+
+                for (int[] offset : NEIGHBOURS_26)
+                {
+                    final int nx = x + offset[0];
+                    final int ny = y + offset[1];
+                    final int nz = z + offset[2];
+
+                    if (!this.bounds.contains(nx, ny, nz))
+                    {
+                        continue;
+                    }
+
+                    final int neighbour = index(nx, ny, nz);
+
+                    if ((this.flags[neighbour] & FLAG_CLAIMED) != 0)
+                    {
+                        continue;
+                    }
+
+                    if (this.volume.passabilityAt(nx, ny, nz) != Passability.BLOCKING)
+                    {
+                        continue;
+                    }
+
+                    this.flags[neighbour] |= FLAG_CLAIMED;
+                    next.push(neighbour);
+                }
+            }
+
+            layer = next;
+        }
+    }
+
+    // endregion
+
     // region open-air clusters
 
     /**
      * Density-based clustering over signal blocks that belong to no room. Seeded on a signal block
-     * and grown through every signal block within {@link ScanSettings#clusterRadius}, so a field
-     * of wheat with a gap in it is still one farm.
+     * and grown outwards through space the fill can pass through, so a field of wheat with a gap in
+     * it is still one farm, while a farm and a racetrack with a wall between them are two things.
      */
-    private void findOpenRegions(List<SoulRegion> regions, List<RegionBounds> buildings)
+    private void findOpenRegions(List<SoulRegion> regions)
     {
         if (this.signalFilter == null)
         {
@@ -506,7 +642,7 @@ public final class RegionScanner
                 {
                     final int index = index(x, y, z);
 
-                    if ((this.flags[index] & FLAG_CLAIMED) != 0 || isInside(buildings, x, y, z))
+                    if ((this.flags[index] & FLAG_CLAIMED) != 0)
                     {
                         continue;
                     }
@@ -527,6 +663,16 @@ public final class RegionScanner
             }
         }
 
+        if (seeds.isEmpty())
+        {
+            return;
+        }
+
+        // how much clear space a cluster still has left to cross at each cell it has reached.
+        // Allocated once and undone after each cluster rather than reallocated per seed: a soulhome
+        // full of torches has a great many seeds and only one of them is ever growing at a time.
+        byte[] reach = new byte[this.flags.length];
+
         for (int seed : seeds)
         {
             if ((this.flags[seed] & FLAG_CLAIMED) != 0)
@@ -534,7 +680,7 @@ public final class RegionScanner
                 continue;
             }
 
-            SoulRegion region = growCluster(seed, signalCells, buildings);
+            SoulRegion region = growCluster(seed, signalCells, reach);
 
             if (region != null)
             {
@@ -543,54 +689,99 @@ public final class RegionScanner
         }
     }
 
-    private SoulRegion growCluster(int seed, Set<Integer> signalCells, List<RegionBounds> buildings)
+    /**
+     * Grow one cluster out from a signal block.
+     *
+     * <p>Reaching the next signal block costs a step per cell of clear space crossed, and arriving
+     * at one refills the allowance, so {@link ScanSettings#clusterRadius} is the widest gap a
+     * cluster will bridge rather than the size of the whole thing. Only cells the fill can pass
+     * through are crossable, which is the whole point: a wall, a floor or another structure's
+     * blocks end the spread, and neither a straight line through solid rock nor a path through
+     * somebody else's living room counts as nearness.
+     *
+     * @param reach scratch space shared between clusters, left as it was found
+     */
+    private SoulRegion growCluster(int seed, Set<Integer> signalCells, byte[] reach)
     {
         final int radius = this.settings.clusterRadius();
 
-        IntStack stack = new IntStack();
+        IntStack frontier = new IntStack();
         IntStack cluster = new IntStack();
-        Set<Integer> clusterCells = new HashSet<>();
+        IntStack touched = new IntStack();
 
         this.flags[seed] |= FLAG_CLAIMED;
-        stack.push(seed);
+        cluster.push(seed);
+        reach[seed] = (byte) radius;
+        touched.push(seed);
+        frontier.push(seed);
 
-        while (!stack.isEmpty())
+        while (!frontier.isEmpty())
         {
-            final int index = stack.pop();
-            cluster.push(index);
-            clusterCells.add(index);
+            final int index = frontier.pop();
+            final int budget = reach[index];
+
+            if (budget <= 0)
+            {
+                continue;
+            }
 
             final int x = xOf(index);
             final int y = yOf(index);
             final int z = zOf(index);
 
-            for (int dx = -radius; dx <= radius; dx++)
+            for (int[] offset : NEIGHBOURS_26)
             {
-                for (int dy = -radius; dy <= radius; dy++)
+                final int nx = x + offset[0];
+                final int ny = y + offset[1];
+                final int nz = z + offset[2];
+
+                if (!this.bounds.contains(nx, ny, nz))
                 {
-                    for (int dz = -radius; dz <= radius; dz++)
+                    continue;
+                }
+
+                final int neighbour = index(nx, ny, nz);
+
+                if ((this.flags[neighbour] & FLAG_CLAIMED) != 0)
+                {
+                    // this cluster's own, a room's, or an earlier cluster's - either way not a way
+                    // through, so one structure cannot reach another by crossing a third
+                    continue;
+                }
+
+                if (signalCells.contains(neighbour))
+                {
+                    this.flags[neighbour] |= FLAG_CLAIMED;
+                    cluster.push(neighbour);
+                    reach[neighbour] = (byte) radius;
+                    touched.push(neighbour);
+                    frontier.push(neighbour);
+                    continue;
+                }
+
+                if (this.volume.passabilityAt(nx, ny, nz) == Passability.BLOCKING)
+                {
+                    continue;
+                }
+
+                final int remaining = budget - 1;
+
+                if (remaining > reach[neighbour])
+                {
+                    if (reach[neighbour] == 0)
                     {
-                        final int nx = x + dx;
-                        final int ny = y + dy;
-                        final int nz = z + dz;
-
-                        if (!this.bounds.contains(nx, ny, nz))
-                        {
-                            continue;
-                        }
-
-                        final int neighbour = index(nx, ny, nz);
-
-                        if ((this.flags[neighbour] & FLAG_CLAIMED) != 0 || !signalCells.contains(neighbour))
-                        {
-                            continue;
-                        }
-
-                        this.flags[neighbour] |= FLAG_CLAIMED;
-                        stack.push(neighbour);
+                        touched.push(neighbour);
                     }
+
+                    reach[neighbour] = (byte) remaining;
+                    frontier.push(neighbour);
                 }
             }
+        }
+
+        for (int i = 0; i < touched.size(); i++)
+        {
+            reach[touched.get(i)] = 0;
         }
 
         if (cluster.size() < this.settings.minClusterSize())
@@ -600,48 +791,83 @@ public final class RegionScanner
             return null;
         }
 
-        // one cell of slack around the signal blocks, clamped to the scan volume. A field of wheat
-        // has its bounding box at crop height, and the farmland holding it up is a layer below;
-        // without the slack the ground a farm is grown on would not count as part of the farm.
-        // Anything already claimed by a room is skipped below, so the slack cannot steal walls.
-        RegionBounds clusterBounds = clamp(boundsOf(cluster).expand(1));
+        return buildOpenRegion(cluster);
+    }
+
+    /**
+     * Take in one cell of slack around the cluster's own blocks. A field of wheat sits at crop
+     * height and the farmland holding it up is a layer below, so without the slack the ground a
+     * farm is grown on would not count as part of the farm.
+     *
+     * <p>The slack follows the shape of the cluster rather than its bounding box. A box is an
+     * over-estimate of everything but a solid rectangle, and taking one meant a sprawling or
+     * L-shaped cluster swallowed whatever happened to be standing in the space it did not occupy.
+     */
+    private SoulRegion buildOpenRegion(IntStack cluster)
+    {
+        IntStack absorbed = new IntStack();
+
+        for (int i = 0; i < cluster.size(); i++)
+        {
+            absorbed.push(cluster.get(i));
+        }
+
+        for (int i = 0; i < cluster.size(); i++)
+        {
+            final int index = cluster.get(i);
+            final int x = xOf(index);
+            final int y = yOf(index);
+            final int z = zOf(index);
+
+            for (int[] offset : NEIGHBOURS_26)
+            {
+                final int nx = x + offset[0];
+                final int ny = y + offset[1];
+                final int nz = z + offset[2];
+
+                if (!this.bounds.contains(nx, ny, nz))
+                {
+                    continue;
+                }
+
+                final int neighbour = index(nx, ny, nz);
+
+                // already spoken for by a room, an earlier cluster, or this one
+                if ((this.flags[neighbour] & FLAG_CLAIMED) != 0)
+                {
+                    continue;
+                }
+
+                if (this.volume.passabilityAt(nx, ny, nz) == Passability.EMPTY)
+                {
+                    continue;
+                }
+
+                this.flags[neighbour] |= FLAG_CLAIMED;
+                absorbed.push(neighbour);
+            }
+        }
+
+        final RegionBounds clusterBounds = boundsOf(absorbed);
+
+        // index order is x, y, z order, so this is the sweep the bounding-box version did - which
+        // keeps what lands in a truncated geometry index the same from one scan to the next
         BlockCounts.Builder contents = BlockCounts.builder();
         RegionGeometry.Builder geometry = RegionGeometry.builder(this.settings.maxGeometryCells());
 
-        // everything standing in the cluster's footprint counts, not just the signal blocks:
-        // the farmland under the wheat and the barrel in the barn are part of the farm too
-        for (int x = clusterBounds.minX(); x <= clusterBounds.maxX(); x++)
+        for (int index : absorbed.toSortedArray())
         {
-            for (int y = clusterBounds.minY(); y <= clusterBounds.maxY(); y++)
+            final int x = xOf(index);
+            final int y = yOf(index);
+            final int z = zOf(index);
+
+            BlockSignature signature = this.volume.signatureAt(x, y, z);
+            contents.add(signature);
+            indexIfInteresting(geometry, x, y, z, signature);
+
+            if (this.indexClearance && this.volume.passabilityAt(x, y, z) == Passability.BLOCKING)
             {
-                for (int z = clusterBounds.minZ(); z <= clusterBounds.maxZ(); z++)
-                {
-                    final int index = index(x, y, z);
-                    final Passability passability = this.volume.passabilityAt(x, y, z);
-
-                    if (passability == Passability.EMPTY)
-                    {
-                        continue;
-                    }
-
-                    // skip anything already spoken for by a room or an earlier cluster - but not
-                    // this cluster's own signal blocks, which we claimed on the way in
-                    if (!clusterCells.contains(index)
-                            && ((this.flags[index] & FLAG_CLAIMED) != 0 || isInside(buildings, x, y, z)))
-                    {
-                        continue;
-                    }
-
-                    this.flags[index] |= FLAG_CLAIMED;
-                    BlockSignature signature = this.volume.signatureAt(x, y, z);
-                    contents.add(signature);
-                    indexIfInteresting(geometry, x, y, z, signature);
-
-                    if (this.indexClearance && passability == Passability.BLOCKING)
-                    {
-                        geometry.addBlocked(x, y, z);
-                    }
-                }
+                geometry.addBlocked(x, y, z);
             }
         }
 
@@ -677,30 +903,6 @@ public final class RegionScanner
         return regions.size() <= this.settings.maxRegions()
                 ? regions
                 : new ArrayList<>(regions.subList(0, this.settings.maxRegions()));
-    }
-
-    private static boolean isInside(List<RegionBounds> buildings, int x, int y, int z)
-    {
-        for (RegionBounds building : buildings)
-        {
-            if (building.contains(x, y, z))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private RegionBounds clamp(RegionBounds box)
-    {
-        return new RegionBounds(
-                Math.max(box.minX(), this.bounds.minX()),
-                Math.max(box.minY(), this.bounds.minY()),
-                Math.max(box.minZ(), this.bounds.minZ()),
-                Math.min(box.maxX(), this.bounds.maxX()),
-                Math.min(box.maxY(), this.bounds.maxY()),
-                Math.min(box.maxZ(), this.bounds.maxZ()));
     }
 
     private RegionBounds boundsOf(IntStack cells)
@@ -789,6 +991,14 @@ public final class RegionScanner
         boolean isEmpty()
         {
             return this.size == 0;
+        }
+
+        int[] toSortedArray()
+        {
+            int[] copy = new int[this.size];
+            System.arraycopy(this.values, 0, copy, 0, this.size);
+            Arrays.sort(copy);
+            return copy;
         }
     }
 }

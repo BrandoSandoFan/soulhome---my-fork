@@ -163,6 +163,35 @@ Rooms that classified correctly and then did nothing.
   against what that archetype can actually score, so a well-built room can clear tier 2 without
   being maxed out, tier 3 is reachable by a genuinely excellent one, and every buff can now pay
   out in full.
+- Two builds standing next to each other are two rooms again. Open-air structures - a farm, a
+  racetrack, a training yard - were grouped by measuring straight-line distance between the blocks
+  they are made of, which took no notice of anything in between: solid rock was not a boundary, so
+  a farm and a track a few blocks apart came back as one region, holding both archetypes' blocks
+  and therefore scoring as neither, and building a wall between them - the obvious thing to reach
+  for - changed nothing at all. An open-air region now reaches out to the next block through space
+  it could actually cross, so walls, floors and other structures separate builds the way they look
+  like they should. Its reach is a little shorter too (`cluster_radius`, now 3): a path through a
+  field still leaves one farm, while a few blocks of clear ground between two builds now means two
+  builds. And it takes in the ground under it by following its own shape rather than its bounding
+  box, so a long or L-shaped field no longer swallows whatever happens to be standing in the
+  rectangle it does not occupy.
+- A building no longer sprouts a second region on top of itself. A room's walls were only the layer
+  of blocks touching its air, which left a roof laid over the ceiling, the outer half of a thick
+  wall, and even the corners of a plain box belonging to nothing - and loose blocks are exactly
+  what an open-air region forms around, so a barn with a hay roof came back as a barn plus a
+  mysterious second box sitting on it. The blocks packed against a room's walls now belong to that
+  room's building (`shell_depth`). They are claimed, not scored: what a room is worth is still what
+  lines it.
+- A farm planted in the crook of an L-shaped house is found again. Buildings used to claim their
+  own footprint by excluding the whole bounding box of each room, which for anything that is not a
+  plain rectangle covered a great deal of ground the building does not stand on. Anything built in
+  that ground - the classic case being a garden in the corner of your own house - was silently
+  never reported at all.
+- Sealed gaps too small to stand in are no longer offered as rooms. The void inside a double-thick
+  wall, the space behind a stair, the shaft up a hollow pillar: each is a sealed pocket, each was a
+  region, and none of them can ever classify as anything, so a build of any complexity left the
+  Soul Lens full of boxes drawn around nothing. A pocket now has to be at least `min_room_volume`
+  cells - eight by default, two blocks each way - to count as a room.
 - The Soul Lens has a proper icon instead of the flat placeholder it launched with. It now reads
   as part of the same set as the SoulKey and the guide book - a shaded metal rim and handle, and a
   soul-fire glow visible through the glass with a small purple rune, rather than a handful of flat
