@@ -11,63 +11,63 @@
     },
     {
       "type": "text",
+      "anchor": "alchemy_vessels",
       "text": "$(item)soulhome:alchemy_vessels$(0)$(p)$(li)Cauldron$(li)Water Cauldron$(li)Lava Cauldron$(li)Powder Snow Cauldron$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Alchemy Vessels",
-      "anchor": "alchemy_vessels"
+      "title": "Alchemy Vessels"
     },
     {
       "type": "text",
+      "anchor": "arcane",
       "text": "$(item)soulhome:arcane$(0)$(p)$(li)Obsidian$(li)Crying Obsidian$(li)Lapis Block$(li)Amethyst Block$(li)Budding Amethyst$(li)End Stone$(li)End Stone Bricks$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Arcane",
-      "anchor": "arcane"
+      "title": "Arcane"
     },
     {
       "type": "text",
+      "anchor": "armament",
       "text": "$(item)soulhome:armament$(0)$(p)$(li)any banners$(li)Iron Block$(li)Iron Bars$(li)Chain$(li)Cauldron$(li)Target$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Armament",
-      "anchor": "armament"
+      "title": "Armament"
     },
     {
       "type": "text",
+      "anchor": "furnishing",
       "text": "$(item)soulhome:furnishing$(0)$(p)$(li)any wool$(li)any wool carpets$(li)any flower pots$(li)Bell$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Furnishing",
-      "anchor": "furnishing"
+      "title": "Furnishing"
     },
     {
       "type": "text",
+      "anchor": "lighting",
       "text": "$(item)soulhome:lighting$(0)$(p)$(li)any candles$(li)Torch$(li)Wall Torch$(li)Soul Torch$(li)Soul Wall Torch$(li)Lantern$(li)Soul Lantern$(li)Sea Lantern$(li)Glowstone$(li)Shroomlight$(li)End Rod$(li)any campfires$(li)Redstone Lamp$(li)Jack O Lantern$(li)Ochre Froglight$(li)Verdant Froglight$(li)Pearlescent Froglight$(li)Glow Lichen$(li)Redstone Torch$(li)Redstone Wall Torch$(li)Amethyst Cluster$(li)Small Amethyst Bud$(li)Medium Amethyst Bud$(li)Large Amethyst Bud$(li)Sea Pickle$(li)Beacon$(li)Conduit$(li)Respawn Anchor$(li)Cave Vines$(li)Cave Vines Plant$(li)Light$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Lighting",
-      "anchor": "lighting"
+      "title": "Lighting"
     },
     {
       "type": "text",
+      "anchor": "reagents",
       "text": "$(item)soulhome:reagents$(0)$(p)$(li)Nether Wart$(li)Soul Sand$(li)Soul Soil$(li)Sugar Cane$(li)Brown Mushroom$(li)Red Mushroom$(li)Redstone Block$(li)Honey Block$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Reagents",
-      "anchor": "reagents"
+      "title": "Reagents"
     },
     {
       "type": "text",
+      "anchor": "seating",
       "text": "$(item)soulhome:seating$(0)$(p)$(li)any stairs$(li)any wool carpets$(li)any beds$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Seating",
-      "anchor": "seating"
+      "title": "Seating"
     },
     {
       "type": "text",
+      "anchor": "smithing",
       "text": "$(item)soulhome:smithing$(0)$(p)$(li)Anvil$(li)Chipped Anvil$(li)Damaged Anvil$(li)Smithing Table$(li)Grindstone$(li)Blast Furnace$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Smithing",
-      "anchor": "smithing"
+      "title": "Smithing"
     },
     {
       "type": "text",
+      "anchor": "storage",
       "text": "$(item)soulhome:storage$(0)$(p)$(li)Chest$(li)Trapped Chest$(li)Barrel$(li)Ender Chest$(li)any shulker boxes$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Storage",
-      "anchor": "storage"
+      "title": "Storage"
     },
     {
       "type": "text",
+      "anchor": "structural",
       "text": "$(item)soulhome:structural$(0)$(p)$(li)Stone$(li)Cobblestone$(li)Mossy Cobblestone$(li)Stone Bricks$(li)Mossy Stone Bricks$(li)Cracked Stone Bricks$(li)Chiseled Stone Bricks$(li)Deepslate$(li)Cobbled Deepslate$(li)Deepslate Bricks$(li)Deepslate Tiles$(li)Bricks$(li)Nether Bricks$(li)Red Nether Bricks$(li)Sandstone$(li)Red Sandstone$(li)Blackstone$(li)Quartz Block$(li)Prismarine$(li)Dark Prismarine$(li)any planks$(li)any logs$(li)Glass$(li)Glass Pane$(p)Data packs and other mods can add to this list - nothing here replaces it.",
-      "title": "Structural",
-      "anchor": "structural"
+      "title": "Structural"
     }
   ],
   "priority": false,
