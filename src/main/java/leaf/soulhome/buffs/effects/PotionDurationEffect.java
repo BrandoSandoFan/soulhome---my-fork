@@ -6,6 +6,7 @@ package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -137,7 +138,7 @@ public class PotionDurationEffect implements SoulBuffEffect
      */
     private static void extend(Player player, MobEffectInstance applied, double magnitude)
     {
-        if (applied.getEffect().isInstantenous() || applied.getEffect().getCategory() != MobEffectCategory.BENEFICIAL)
+        if (!isExtendable(applied))
         {
             return;
         }
@@ -156,5 +157,15 @@ public class PotionDurationEffect implements SoulBuffEffect
                 applied.isAmbient(),
                 applied.isVisible(),
                 applied.showIcon()));
+    }
+
+    /**
+     * Whether {@code applied} is a duration the alchemy lab may stretch - see #53 and the class
+     * javadoc. Package-private so a test can drive it directly with a synthetic {@link MobEffect},
+     * without needing a real {@link Player} to call {@link #extend} through.
+     */
+    static boolean isExtendable(MobEffectInstance applied)
+    {
+        return !applied.getEffect().isInstantenous() && applied.getEffect().getCategory() == MobEffectCategory.BENEFICIAL;
     }
 }

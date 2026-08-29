@@ -9,10 +9,13 @@
 
   "signals": [
     { "match": { "block": ["minecraft:furnace", "minecraft:campfire", "minecraft:soul_campfire"] }, "weight": 6.0, "role": "core", "cap": 3 },
-    { "match": { "block": "minecraft:lava" },        "weight": 3.0, "role": "heat",     "cap": 4  },
+    { "match": { "block": "minecraft:lava" },        "weight": 1.5, "role": "heat",     "cap": 3  },
     { "match": { "block": "minecraft:magma_block" }, "weight": 1.5, "role": "heat",     "cap": 8  },
-    { "match": { "block": "minecraft:netherrack" },  "weight": 1.0, "role": "material", "cap": 16 },
-    { "match": { "tag": "soulhome:lighting" },       "weight": 0.5, "role": "light",    "cap": 16 }
+    { "match": { "block": "minecraft:netherrack" },  "weight": 0.5, "role": "material", "cap": 8  },
+    { "match": { "tag": "soulhome:lighting" },       "weight": 1.5, "role": "light",    "cap": 16 },
+    { "match": { "tag": ["soulhome:seating", "soulhome:furnishing"] }, "weight": 2.0, "role": "comfort", "cap": 12 },
+    { "match": { "tag": "soulhome:storage" },        "weight": 1.0, "role": "storage",  "cap": 4  },
+    { "match": { "block": ["minecraft:smoker", "minecraft:cauldron"] }, "weight": 1.5, "role": "cooking", "cap": 2 }
   ],
 
   "detractors": [

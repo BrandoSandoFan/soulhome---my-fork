@@ -344,6 +344,54 @@ class ArchetypeClassifierTest
     }
 
     @Test
+    @DisplayName("the hearth's new comfort, storage and cooking signals fire on their blocks - #48")
+    void hearthRewardsComfortStorageAndCooking()
+    {
+        ArchetypeDefinition hearthArchetype = ArchetypeJsonReader.byId(shipped, "soulhome:hearth");
+
+        BlockCounts.Builder blocks = BlockCounts.builder();
+        blocks.add(TestBlocks.CHAIR, 1);
+        blocks.add(TestBlocks.WOOL, 1);
+        blocks.add(TestBlocks.BARREL, 1);
+        blocks.add(TestBlocks.SMOKER, 1);
+
+        BlockCounts counts = blocks.build();
+
+        int comfortCount = 0;
+        int storageCount = 0;
+        int cookingCount = 0;
+
+        for (ArchetypeDefinition.Signal signal : hearthArchetype.signals())
+        {
+            switch (signal.role())
+            {
+                case "comfort" -> comfortCount = counts.count(signal.match());
+                case "storage" -> storageCount = counts.count(signal.match());
+                case "cooking" -> cookingCount = counts.count(signal.match());
+                default -> { }
+            }
+        }
+
+        assertEquals(2, comfortCount, "the chair and the wool should both count toward comfort");
+        assertEquals(1, storageCount, "the barrel should count toward storage");
+        assertEquals(1, cookingCount, "the smoker should count toward cooking");
+    }
+
+    @Test
+    @DisplayName("a furnished fireplace out-scores a netherrack-and-lava box of the same size - #48")
+    void furnishedHearthOutscoresANetherPit()
+    {
+        ArchetypeDefinition hearthArchetype = ArchetypeJsonReader.byId(shipped, "soulhome:hearth");
+
+        double furnished = classifier.score(onlyRegion(furnishedHearth()), hearthArchetype).score();
+        double netherPit = classifier.score(onlyRegion(netherPitHearth()), hearthArchetype).score();
+
+        assertTrue(furnished > netherPit,
+                "a furnished fireplace (" + furnished + ") should out-score a nether pit of the same "
+                        + "size (" + netherPit + ") - see #48");
+    }
+
+    @Test
     @DisplayName("a track full of rails is not mistaken for a mine")
     void trackIsNotAMine()
     {
@@ -619,7 +667,8 @@ class ArchetypeClassifierTest
     /**
      * A signal worth exactly 1.0 (one bookshelf, weight 1, {@code sqrt(1)}) and a single fully-
      * confident form at {@code formWeight}, so the form's raw contribution against the default
-     * {@code structuralShareCap} (half the signal total) is controlled entirely by the caller.
+     * {@code structuralShareCap} (the signal total, once again as much - see #54) is controlled
+     * entirely by the caller.
      */
     private static ArchetypeDefinition structuralOnly(String id, double formWeight)
     {
@@ -991,6 +1040,73 @@ class ArchetypeClassifierTest
                         "#.....#",
                         "#.....#",
                         "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** A furnished fireplace room - #48's answer to {@link #netherPitHearth()}. */
+    private static GridVolume furnishedHearth()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#WWWWW#",
+                        "#S...S#",
+                        "#.....#",
+                        "#..N..#",
+                        "#.....#",
+                        "#S...S#",
+                        "#WWWWW#"},
+                new String[]{
+                        "#WWWWW#",
+                        "#c...c#",
+                        "#.bbb.#",
+                        "#.bbb.#",
+                        "#.bbb.#",
+                        "#c...c#",
+                        "#WWWWW#"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    /**
+     * A furnace ringed with lava, magma and netherrack and nothing else - the pre-#48 idea of a
+     * hearth, and the build {@link #furnishedHearth()} of the same size and volume should beat.
+     */
+    private static GridVolume netherPitHearth()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#kkkkk#",
+                        "#v...v#",
+                        "#.....#",
+                        "#..N..#",
+                        "#.....#",
+                        "#v...v#",
+                        "#kkkkk#"},
+                new String[]{
+                        "#kkkkk#",
+                        "#.....#",
+                        "#.mmm.#",
+                        "#.mmm.#",
+                        "#.mmm.#",
+                        "#.....#",
+                        "#kkkkk#"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
                         "#######"},
                 SLAB);
     }

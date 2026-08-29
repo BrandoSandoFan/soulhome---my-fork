@@ -18,8 +18,10 @@ package leaf.soulhome.structures.core;
  *                               assigned to it. 1.15 means "15% clear of the runner-up".
  * @param structuralShareCap     structural credit is capped at this fraction of a region's signal
  *                               total, so a perfect arrangement of nothing is worth nothing - see
- *                               the structural considerations epic (#25, #28). 0.5 means arrangement
- *                               can at most add half again what the room's contents alone earned.
+ *                               the structural considerations epic (#25, #28). 1.0 means arrangement
+ *                               can at most double what the room's contents alone earned - raised
+ *                               from the original 0.5 by #54, which was a large part of why tier 2
+ *                               was so hard to reach for a well-arranged room.
  * @param structuralRoleThreshold confidence a structural form must clear before its role counts
  *                               toward the diversity multiplier - otherwise an accidental
  *                               0.02-confidence clause would buy a full diversity bonus for free.
@@ -32,7 +34,7 @@ public record ScoringSettings(
         double structuralShareCap,
         double structuralRoleThreshold)
 {
-    public static final ScoringSettings DEFAULTS = new ScoringSettings(0.15d, 0.02d, 0.25d, 1.15d, 0.5d, 0.25d);
+    public static final ScoringSettings DEFAULTS = new ScoringSettings(0.15d, 0.02d, 0.25d, 1.15d, 1.0d, 0.25d);
 
     public ScoringSettings
     {
