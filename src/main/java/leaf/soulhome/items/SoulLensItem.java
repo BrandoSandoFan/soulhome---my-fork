@@ -7,13 +7,18 @@ package leaf.soulhome.items;
 import leaf.soulhome.buffs.ClientSoulBuffs;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.feedback.LensBuffReport;
+import leaf.soulhome.feedback.LensRegionReport;
 import leaf.soulhome.feedback.RegionHighlight;
 import leaf.soulhome.feedback.SoulReport;
 import leaf.soulhome.network.Network;
+import leaf.soulhome.network.SyncSoulLensBuffsMessage;
+import leaf.soulhome.network.SyncSoulLensReportMessage;
 import leaf.soulhome.network.SyncSoulRegionsMessage;
 import leaf.soulhome.properties.PropTypes;
 import leaf.soulhome.structures.SoulAnalysis;
 import leaf.soulhome.structures.StructureScanService;
+import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.ClassificationResult;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.TextHelper;
@@ -37,7 +42,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Shows a player what the classifier can see.
@@ -128,10 +132,11 @@ public class SoulLensItem extends BaseItem
             return;
         }
 
-        Network.sendTo(
-                new SyncSoulRegionsMessage(
-                        level.dimension().location().toString(), RegionHighlight.of(analysis.results())),
-                player);
+        final String dimension = level.dimension().location().toString();
+
+        // the world outlines and corner labels are untouched (#50, deliverable F) - only the
+        // wall-of-chat explanation behind them moves to the lens screen
+        Network.sendTo(new SyncSoulRegionsMessage(dimension, RegionHighlight.of(analysis.results())), player);
 
         if (analysis.isEmpty())
         {
@@ -140,26 +145,20 @@ public class SoulLensItem extends BaseItem
             return;
         }
 
-        final Optional<ClassificationResult> standingIn =
-                analysis.regionAt(asked.getX(), asked.getY(), asked.getZ());
+        final BuffBreakdown breakdown = StructureScanService.explainBuffs(player);
+        final List<ClassificationResult> results = analysis.results();
+        final int standingIn = results.indexOf(
+                analysis.regionAt(asked.getX(), asked.getY(), asked.getZ()).orElse(null));
 
-        // standing inside a region: explain that one in full. Standing outside every region -
-        // which is itself worth knowing - list them all so the outlines have names
-        final List<Component> lines = standingIn.isPresent()
-                ? SoulReport.region(standingIn.get(), 1)
-                : SoulReport.analysis(analysis);
-
-        for (Component line : lines)
-        {
-            player.sendSystemMessage(line);
-        }
+        Network.sendTo(
+                new SyncSoulLensReportMessage(dimension, LensRegionReport.of(results, breakdown), standingIn),
+                player);
     }
 
     private static void showBuffs(ServerPlayer player)
     {
-        for (Component line : SoulReport.buffs(StructureScanService.explainBuffs(player)))
-        {
-            player.sendSystemMessage(line);
-        }
+        Network.sendTo(
+                new SyncSoulLensBuffsMessage(LensBuffReport.of(StructureScanService.explainBuffs(player))),
+                player);
     }
 }

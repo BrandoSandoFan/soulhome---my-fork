@@ -213,3 +213,10 @@ Rooms that classified correctly and then did nothing.
   as part of the same set as the SoulKey and the guide book - a shaded metal rim and handle, and a
   soul-fire glow visible through the glass with a small purple rune, rather than a handful of flat
   colours with no shading or outline.
+- The Soul Lens opens a screen now instead of filling your chat with a wall of scores. Used inside
+  your soul, it lists every region it found down one side - the same colours as the outlines it
+  still draws in the world - and explains the one you pick: its tier and how close it is to the
+  next, what counted and what to add next, how it is arranged, and what it grants. Used outside
+  your soul, it opens the same kind of screen for your buffs and where each one came from. Chat is
+  back to two short lines - "looking through your soul...", "nothing here to outline yet" - and
+  `/soulhome analyse` still reports in full to whoever asks it directly.

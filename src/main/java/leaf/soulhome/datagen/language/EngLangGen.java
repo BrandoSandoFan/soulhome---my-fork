@@ -148,6 +148,25 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_HIGHLIGHTED, "Use inside your soul to outline what was found");
         add(Constants.StringKeys.LENS_NOTHING_TO_SHOW, "Nothing here to outline yet.");
 
+        add(Constants.StringKeys.LENS_SCREEN_TITLE, "Soul Lens");
+        add(Constants.StringKeys.LENS_SCREEN_UNCLASSIFIED, "Not anything yet");
+        add(Constants.StringKeys.LENS_SCREEN_AMBIGUOUS, "Halfway between two rooms");
+        add(Constants.StringKeys.LENS_SCREEN_TIER, "Tier %s");
+        add(Constants.StringKeys.LENS_SCREEN_SCORE, "Score: %s");
+        add(Constants.StringKeys.LENS_SCREEN_NEXT_TIER, "%s more points to tier %s");
+        add(Constants.StringKeys.LENS_SCREEN_MAXED, "Nothing more to reach");
+        add(Constants.StringKeys.LENS_SCREEN_AMBIGUOUS_DETAIL, "Too close to call against %s (%s). Add more of what only one of them wants.");
+        add(Constants.StringKeys.LENS_SCREEN_COUNTS, "Your soul holds %s region(s), of which %s counts for something.");
+        add(Constants.StringKeys.LENS_SCREEN_SIGNALS_HEADER, "What counted");
+        add(Constants.StringKeys.LENS_SCREEN_MISSING_HEADER, "What to add next");
+        add(Constants.StringKeys.LENS_SCREEN_ARRANGEMENT_HEADER, "Arrangement");
+        add(Constants.StringKeys.LENS_SCREEN_GRANTS_HEADER, "Grants");
+        add(Constants.StringKeys.LENS_SCREEN_MORE, "...and %s more");
+        add(Constants.StringKeys.LENS_SCREEN_EMPTY_DETAIL, "No archetypes are loaded, so nothing here can ever count.");
+        add(Constants.StringKeys.LENS_SCREEN_BUFFS_TITLE, "Your Soul's Buffs");
+        add(Constants.StringKeys.LENS_SCREEN_BUFFS_FROM, "%s (%s room(s), best tier %s)");
+        add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
+
         //Buff types. Named rather than shown as ids, since a player reads these and a log does not
         add("buff.soulhome.saturation", "Saturation from food");
         add("buff.soulhome.sword_damage", "Sword damage");

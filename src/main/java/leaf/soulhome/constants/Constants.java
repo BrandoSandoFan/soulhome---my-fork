@@ -63,6 +63,27 @@ public class Constants
 
         public static final String LENS_HIGHLIGHTED = "message.soulhome.lens.highlighted";
         public static final String LENS_NOTHING_TO_SHOW = "message.soulhome.lens.nothing_to_show";
+
+        // The Soul Lens screen (#50): the report moved out of chat and onto a screen, so its
+        // copy lives here rather than as a message.soulhome.* line.
+        public static final String LENS_SCREEN_TITLE = "gui.soulhome.lens.title";
+        public static final String LENS_SCREEN_UNCLASSIFIED = "gui.soulhome.lens.unclassified";
+        public static final String LENS_SCREEN_AMBIGUOUS = "gui.soulhome.lens.ambiguous";
+        public static final String LENS_SCREEN_TIER = "gui.soulhome.lens.tier";
+        public static final String LENS_SCREEN_SCORE = "gui.soulhome.lens.score";
+        public static final String LENS_SCREEN_NEXT_TIER = "gui.soulhome.lens.next_tier";
+        public static final String LENS_SCREEN_MAXED = "gui.soulhome.lens.maxed";
+        public static final String LENS_SCREEN_AMBIGUOUS_DETAIL = "gui.soulhome.lens.ambiguous_detail";
+        public static final String LENS_SCREEN_COUNTS = "gui.soulhome.lens.counts_for";
+        public static final String LENS_SCREEN_SIGNALS_HEADER = "gui.soulhome.lens.signals_header";
+        public static final String LENS_SCREEN_MISSING_HEADER = "gui.soulhome.lens.missing_header";
+        public static final String LENS_SCREEN_ARRANGEMENT_HEADER = "gui.soulhome.lens.arrangement_header";
+        public static final String LENS_SCREEN_GRANTS_HEADER = "gui.soulhome.lens.grants_header";
+        public static final String LENS_SCREEN_MORE = "gui.soulhome.lens.more";
+        public static final String LENS_SCREEN_EMPTY_DETAIL = "gui.soulhome.lens.empty_detail";
+        public static final String LENS_SCREEN_BUFFS_TITLE = "gui.soulhome.lens.buffs_title";
+        public static final String LENS_SCREEN_BUFFS_FROM = "gui.soulhome.lens.buffs_from";
+        public static final String LENS_SCREEN_CLOSE = "gui.soulhome.lens.close";
     }
 
     public static class NBTKeys
