@@ -10,7 +10,7 @@
   "signals": [
     { "match": { "block": "irons_spellbooks:inscription_table" }, "weight": 8.0, "role": "core",    "cap": 2  },
     { "match": { "tag": "soulhome:arcane" },                      "weight": 2.0, "role": "arcane",  "cap": 24 },
-    { "match": { "tag": "minecraft:bookshelves" },                "weight": 1.5, "role": "lore",    "cap": 24 },
+    { "match": { "tag": "soulhome:bookshelves" },                "weight": 1.5, "role": "lore",    "cap": 24 },
     { "match": { "block": "minecraft:lectern" },                  "weight": 2.0, "role": "study",   "cap": 2  },
     { "match": { "tag": "soulhome:lighting" },                    "weight": 1.5, "role": "light",   "cap": 16 },
     { "match": { "tag": "soulhome:storage" },                     "weight": 1.0, "role": "storage", "cap": 8  }
@@ -39,7 +39,7 @@
       "elements": {
         "table":     { "block": "irons_spellbooks:inscription_table" },
         "pedestals": { "block": "irons_spellbooks:pedestal" },
-        "shelves":   { "tag": "minecraft:bookshelves" },
+        "shelves":   { "tag": "soulhome:bookshelves" },
         "candles":   { "tag": "minecraft:candles" }
       },
       "all": [

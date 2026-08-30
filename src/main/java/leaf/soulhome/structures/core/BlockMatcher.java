@@ -13,16 +13,19 @@ import java.util.function.Predicate;
  * Matches a block by id, by tag, or by a list of either.
  *
  * <pre>{@code
- * { "tag": "minecraft:bookshelves" }
+ * { "tag": "soulhome:bookshelves" }
  * { "block": "minecraft:lectern" }
  * { "block": ["minecraft:chest", "minecraft:barrel"] }
  * { "block": "minecraft:cauldron", "tag": "minecraft:candles" }
  * }</pre>
  *
  * <p>A matcher succeeds if <i>any</i> of its entries match. Prefer tags in shipped archetypes:
- * {@code minecraft:bookshelves} rather than {@code minecraft:bookshelf} means chiselled and
+ * {@code soulhome:bookshelves} rather than {@code minecraft:bookshelf} means chiselled and
  * modded variants count for free, which is most of the difference between a system that feels
- * creative and one that feels like a checklist.
+ * creative and one that feels like a checklist. There is no vanilla tag that already groups both
+ * kinds of bookshelf - {@code minecraft:enchantment_power_provider} exists, but deliberately
+ * excludes the chiseled one - so this is a case where the shipped archetypes lean on a
+ * {@code soulhome:} tag instead of a vanilla one.
  *
  * <p>Deserialisation lives in {@code ArchetypeCodecs}, so that this class - and the scoring that
  * depends on it - stays free of both Minecraft and DataFixerUpper and can be unit tested directly.

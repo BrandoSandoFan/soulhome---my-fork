@@ -25,7 +25,7 @@ public interface BlockSignature
     String id();
 
     /**
-     * Whether this block carries the given block tag, e.g. {@code "minecraft:bookshelves"}.
+     * Whether this block carries the given block tag, e.g. {@code "soulhome:bookshelves"}.
      *
      * @param tagId a namespaced tag id, without a leading {@code #}
      */

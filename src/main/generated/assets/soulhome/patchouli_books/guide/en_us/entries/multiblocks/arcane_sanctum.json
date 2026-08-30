@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)1 of Inscription Table$(p)Rewards, most first:$(li)Inscription Table$(li)$(l:soulhome:multiblocks/tags#arcane)any arcane$(/l)$(li)Lectern$(li)any bookshelves$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
+      "text": "Will not count without:$(li)1 of Inscription Table$(p)Rewards, most first:$(li)Inscription Table$(li)$(l:soulhome:multiblocks/tags#arcane)any arcane$(/l)$(li)Lectern$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
       "title": "What counts"
     },
     {

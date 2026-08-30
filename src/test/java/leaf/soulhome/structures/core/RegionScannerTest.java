@@ -168,10 +168,10 @@ class RegionScannerTest
 
         assertEquals(1, room.contents().count(BlockMatcher.ofBlocks("minecraft:lectern")),
                 "the lectern stands inside the room");
-        assertEquals(3, room.boundary().count(BlockMatcher.ofTags("minecraft:bookshelves")),
+        assertEquals(3, room.boundary().count(BlockMatcher.ofTags("soulhome:bookshelves")),
                 "the bookshelves are part of the wall");
         assertEquals(4, room.allBlocks().count(
-                        new BlockMatcher(List.of("minecraft:lectern"), List.of("minecraft:bookshelves"))),
+                        new BlockMatcher(List.of("minecraft:lectern"), List.of("soulhome:bookshelves"))),
                 "both feed the classifier");
     }
 
@@ -488,7 +488,7 @@ class RegionScannerTest
         assertEquals(20, countIn(field, "minecraft:crops"));
         assertEquals(20, field.allBlocks().count(BlockMatcher.ofBlocks("minecraft:farmland")),
                 "the ground the crops grow in is part of the farm");
-        assertEquals(0, countIn(field, "minecraft:bookshelves"),
+        assertEquals(0, countIn(field, "soulhome:bookshelves"),
                 "the bookshelves are in the field's bounding box but not in the field");
     }
 
@@ -533,7 +533,7 @@ class RegionScannerTest
                         "BBBBB"},
                 new String[]{"BBBBB", "BBBBB", "BBBBB", "BBBBB", "BBBBB"});
 
-        Predicate<BlockSignature> anyBookshelf = signature -> signature.hasTag("minecraft:bookshelves");
+        Predicate<BlockSignature> anyBookshelf = signature -> signature.hasTag("soulhome:bookshelves");
 
         List<SoulRegion> regions = RegionScanner.scan(study, anyBookshelf, ScanSettings.DEFAULTS);
         assertEquals(1, regions.size(), "the study, and nothing else");
@@ -839,11 +839,11 @@ class RegionScannerTest
     void cellsMatchingAgreesWithBlockCounts()
     {
         Predicate<BlockSignature> anyFurniture = signature ->
-                signature.hasTag("minecraft:bookshelves") || signature.id().equals("minecraft:lectern");
+                signature.hasTag("soulhome:bookshelves") || signature.id().equals("minecraft:lectern");
 
         SoulRegion room = scanWithGeometry(furnishedRoom(), anyFurniture).get(0);
 
-        BlockMatcher shelves = BlockMatcher.ofTags("minecraft:bookshelves");
+        BlockMatcher shelves = BlockMatcher.ofTags("soulhome:bookshelves");
         assertEquals(room.allBlocks().count(shelves), room.geometry().cellsMatching(shelves).size());
 
         BlockMatcher lectern = BlockMatcher.ofBlocks("minecraft:lectern");
@@ -855,7 +855,7 @@ class RegionScannerTest
     void geometryIsDeterministic()
     {
         Predicate<BlockSignature> anyFurniture = signature ->
-                signature.hasTag("minecraft:bookshelves") || signature.id().equals("minecraft:lectern");
+                signature.hasTag("soulhome:bookshelves") || signature.id().equals("minecraft:lectern");
 
         List<RegionGeometry.Cell> first = scanWithGeometry(furnishedRoom(), anyFurniture).get(0).geometry().cells();
         List<RegionGeometry.Cell> second = scanWithGeometry(furnishedRoom(), anyFurniture).get(0).geometry().cells();
@@ -900,7 +900,7 @@ class RegionScannerTest
     void truncationSetsFlagRatherThanThrowing()
     {
         ScanSettings tinyGeometry = new ScanSettings(4096, 4, 4, 64, 4_000_000L, 2);
-        Predicate<BlockSignature> anyBookshelf = signature -> signature.hasTag("minecraft:bookshelves");
+        Predicate<BlockSignature> anyBookshelf = signature -> signature.hasTag("soulhome:bookshelves");
 
         List<SoulRegion> regions = RegionScanner.scan(furnishedRoom(), ANY_CROP, anyBookshelf, tinyGeometry);
 

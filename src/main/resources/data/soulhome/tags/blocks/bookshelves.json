@@ -1,0 +1,8 @@
+{
+  "_comment": "Every block a player would call a bookshelf. minecraft:bookshelves does not exist as a vanilla tag - the closest thing, minecraft:enchantment_power_provider, holds only the plain bookshelf, since the chiseled one was deliberately left out of enchanting power. This tag exists so the archetypes can still treat both the same way, the way a player does.",
+  "replace": false,
+  "values": [
+    "minecraft:bookshelf",
+    "minecraft:chiseled_bookshelf"
+  ]
+}

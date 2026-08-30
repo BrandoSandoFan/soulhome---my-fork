@@ -106,7 +106,7 @@ class ArchetypeClassifierTest
     void shippedArchetypesLeanOnTags()
     {
         // the single biggest lever on whether the system feels creative or feels like a checklist:
-        // matching #minecraft:bookshelves rather than minecraft:bookshelf means chiselled and
+        // matching #soulhome:bookshelves rather than minecraft:bookshelf means chiselled and
         // modded variants count for free
         int taggedSignals = 0;
         int totalSignals = 0;
@@ -159,8 +159,8 @@ class ArchetypeClassifierTest
         ArchetypeScore studyScore = classifier.score(study, libraryArchetype);
         ArchetypeScore boxScore = classifier.score(box, libraryArchetype);
 
-        assertTrue(box.allBlocks().count(BlockMatcher.ofTags("minecraft:bookshelves"))
-                        > study.allBlocks().count(BlockMatcher.ofTags("minecraft:bookshelves")) * 4,
+        assertTrue(box.allBlocks().count(BlockMatcher.ofTags("soulhome:bookshelves"))
+                        > study.allBlocks().count(BlockMatcher.ofTags("soulhome:bookshelves")) * 4,
                 "the box really does contain far more bookshelves");
 
         assertTrue(studyScore.score() > boxScore.score(),
@@ -190,7 +190,7 @@ class ArchetypeClassifierTest
         // to be available to the feedback UX rather than reconstructed later
         ArchetypeScore libraryScore = scoreFor(result, "soulhome:library");
         assertFalse(libraryScore.failedRequirements().isEmpty());
-        assertEquals("needs 16 of #minecraft:bookshelves, found 0",
+        assertEquals("needs 16 of #soulhome:bookshelves, found 0",
                 libraryScore.failedRequirements().get(0).toString());
         assertFalse(libraryScore.missingSignals().isEmpty(), "should be able to say what is missing");
     }
@@ -731,7 +731,7 @@ class ArchetypeClassifierTest
                 1,
                 List.of(),
                 List.of(new ArchetypeDefinition.Signal(
-                        BlockMatcher.ofTags("minecraft:bookshelves"), 1.0d, "core", 100)),
+                        BlockMatcher.ofTags("soulhome:bookshelves"), 1.0d, "core", 100)),
                 List.of(),
                 List.of(new ArchetypeDefinition.Tier(0.5d, 1)),
                 List.of(new ArchetypeDefinition.BuffSpec("soulhome:nothing", 0.1d, 0.3d)),
@@ -749,7 +749,7 @@ class ArchetypeClassifierTest
                 1,
                 List.of(),
                 List.of(new ArchetypeDefinition.Signal(
-                        BlockMatcher.ofTags("minecraft:bookshelves"), 3.0d, "core", 32)),
+                        BlockMatcher.ofTags("soulhome:bookshelves"), 3.0d, "core", 32)),
                 List.of(),
                 List.of(new ArchetypeDefinition.Tier(1d, 1)),
                 List.of(new ArchetypeDefinition.BuffSpec("soulhome:nothing", 0.1d, 0.3d)),

@@ -4,11 +4,11 @@
   "min_volume": 27,
 
   "requirements": [
-    { "match": { "tag": "minecraft:bookshelves" }, "min_count": 16 }
+    { "match": { "tag": "soulhome:bookshelves" }, "min_count": 16 }
   ],
 
   "signals": [
-    { "match": { "tag": "minecraft:bookshelves" },  "weight": 3.0,  "role": "core",    "cap": 32 },
+    { "match": { "tag": "soulhome:bookshelves" },  "weight": 3.0,  "role": "core",    "cap": 32 },
     { "match": { "block": "minecraft:lectern" },    "weight": 5.0,  "role": "core",    "cap": 4  },
     { "match": { "tag": "soulhome:seating" },       "weight": 1.5,  "role": "comfort", "cap": 8  },
     { "match": { "tag": "soulhome:lighting" },      "weight": 0.5,  "role": "light",   "cap": 16 },
@@ -39,7 +39,7 @@
       "elements": {
         "lectern": { "block": "minecraft:lectern" },
         "seating": { "tag": "soulhome:seating" },
-        "shelves": { "tag": "minecraft:bookshelves" }
+        "shelves": { "tag": "soulhome:bookshelves" }
       },
       "all": [
         { "relation": "across", "of": "seating", "to": "lectern", "min_distance": 1, "max_distance": 3, "weight": 2.0 },

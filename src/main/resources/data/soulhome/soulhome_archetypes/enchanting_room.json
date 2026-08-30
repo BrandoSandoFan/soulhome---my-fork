@@ -9,7 +9,7 @@
 
   "signals": [
     { "match": { "block": "minecraft:enchanting_table" }, "weight": 8.0, "role": "core",   "cap": 2  },
-    { "match": { "tag": "minecraft:bookshelves" },        "weight": 2.0, "role": "power",  "cap": 24 },
+    { "match": { "tag": "soulhome:bookshelves" },        "weight": 2.0, "role": "power",  "cap": 24 },
     { "match": { "tag": "soulhome:arcane" },              "weight": 1.5, "role": "arcane", "cap": 16 },
     { "match": { "tag": "soulhome:lighting" },            "weight": 1.0, "role": "light",  "cap": 16 }
   ],
@@ -35,7 +35,7 @@
       "role": "arrangement",
       "elements": {
         "table":   { "block": "minecraft:enchanting_table" },
-        "shelves": { "tag": "minecraft:bookshelves" },
+        "shelves": { "tag": "soulhome:bookshelves" },
         "candles": { "tag": "minecraft:candles" }
       },
       "all": [

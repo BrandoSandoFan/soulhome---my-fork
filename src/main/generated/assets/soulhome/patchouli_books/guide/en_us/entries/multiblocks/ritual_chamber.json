@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)1 of Scroll Forge$(p)Rewards, most first:$(li)Scroll Forge$(li)Arcane Anvil$(li)Blood Cauldron or Alchemist Cauldron$(li)$(l:soulhome:multiblocks/tags#arcane)any arcane$(/l)$(li)Armor Pile$(p)Counts against it:$(li)any crops$(li)any bookshelves",
+      "text": "Will not count without:$(li)1 of Scroll Forge$(p)Rewards, most first:$(li)Scroll Forge$(li)Arcane Anvil$(li)Blood Cauldron or Alchemist Cauldron$(li)$(l:soulhome:multiblocks/tags#arcane)any arcane$(/l)$(li)Armor Pile$(p)Counts against it:$(li)any crops$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)",
       "title": "What counts"
     },
     {

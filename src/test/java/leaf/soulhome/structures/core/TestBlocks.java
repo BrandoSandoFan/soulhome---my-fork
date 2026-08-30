@@ -35,7 +35,8 @@ public final class TestBlocks
     public static final TestBlock DOOR = block("minecraft:oak_door", Passability.PARTIAL, "minecraft:doors");
 
     // library
-    public static final TestBlock BOOKSHELF = block("minecraft:bookshelf", Passability.BLOCKING, "minecraft:bookshelves");
+    public static final TestBlock BOOKSHELF = block("minecraft:bookshelf", Passability.BLOCKING, "soulhome:bookshelves");
+    public static final TestBlock CHISELED_BOOKSHELF = block("minecraft:chiseled_bookshelf", Passability.BLOCKING, "soulhome:bookshelves");
     public static final TestBlock LECTERN = block("minecraft:lectern", Passability.PARTIAL);
     public static final TestBlock CHAIR = block("minecraft:oak_stairs", Passability.PARTIAL, "minecraft:stairs", "soulhome:seating");
     public static final TestBlock CANDLE = block("minecraft:candle", Passability.PASSABLE, "minecraft:candles", "soulhome:lighting");

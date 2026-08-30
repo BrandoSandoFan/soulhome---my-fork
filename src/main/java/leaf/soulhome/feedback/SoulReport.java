@@ -261,7 +261,7 @@ public final class SoulReport
 
     /**
      * Nothing qualified. The closest archetype's gates are the actionable part, so they come
-     * first and in full - "needs 16 of #minecraft:bookshelves, found 3" is the sentence a stuck
+     * first and in full - "needs 16 of #soulhome:bookshelves, found 3" is the sentence a stuck
      * player needs.
      */
     private static List<Component> explainFailure(ArchetypeScore best, SoulRegion region)

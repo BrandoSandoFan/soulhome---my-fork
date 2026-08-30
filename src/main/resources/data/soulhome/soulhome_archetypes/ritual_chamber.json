@@ -21,7 +21,7 @@
 
   "detractors": [
     { "match": { "tag": "minecraft:crops" },       "weight": -1.0 },
-    { "match": { "tag": "minecraft:bookshelves" }, "weight": -1.0 }
+    { "match": { "tag": "soulhome:bookshelves" }, "weight": -1.0 }
   ],
 
   "tiers": [

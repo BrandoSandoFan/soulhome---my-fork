@@ -39,7 +39,7 @@ class ArchetypeSignalsTest
         ArchetypeDefinition archetype = new ArchetypeDefinition(
                 "soulhome:test", "archetype.soulhome.test", List.of(RegionType.ENCLOSED), 1,
                 List.of(),
-                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofTags("minecraft:bookshelves"), 1d, "core", 8)),
+                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofTags("soulhome:bookshelves"), 1d, "core", 8)),
                 List.of(),
                 List.of(new ArchetypeDefinition.Tier(1d, 1)),
                 List.of(),
@@ -78,7 +78,7 @@ class ArchetypeSignalsTest
         return new ArchetypeDefinition(
                 "soulhome:test", "archetype.soulhome.test", List.of(RegionType.ENCLOSED), 1,
                 List.of(),
-                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofTags("minecraft:bookshelves"), 1d, "core", 8)),
+                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofTags("soulhome:bookshelves"), 1d, "core", 8)),
                 List.of(),
                 List.of(new ArchetypeDefinition.Tier(1d, 1)),
                 List.of(),

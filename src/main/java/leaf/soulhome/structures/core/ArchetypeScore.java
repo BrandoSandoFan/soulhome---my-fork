@@ -100,7 +100,7 @@ public record ArchetypeScore(
 
     /**
      * A hard gate the region failed, phrased so it can be shown verbatim: "needs 16 of
-     * #minecraft:bookshelves, found 3".
+     * #soulhome:bookshelves, found 3".
      */
     public record FailedRequirement(String description, int required, int found)
     {
