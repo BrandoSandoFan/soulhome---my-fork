@@ -22,7 +22,20 @@ import net.minecraft.world.level.storage.LevelData;
 
 public class TeleportHelper
 {
+    /**
+     * Move an entity, possibly to another dimension.
+     *
+     * <p>Everything that reaches here is this mod moving something itself - the SoulKey, the way
+     * out, the fall through the floor of a soulhome - so it is marked as such for
+     * {@link SoulTravel}, which is what stops every other teleport in the game from crossing a
+     * soul dimension's boundary.
+     */
     public static void teleportEntity(Entity entity, ServerLevel destinationDimension, double x, double y, double z, float yRot, float xRot)
+    {
+        SoulTravel.asSoulTravel(() -> teleport(entity, destinationDimension, x, y, z, yRot, xRot));
+    }
+
+    private static void teleport(Entity entity, ServerLevel destinationDimension, double x, double y, double z, float yRot, float xRot)
     {
         if (entity == null || entity.level().isClientSide || !entity.canChangeDimensions())
         {

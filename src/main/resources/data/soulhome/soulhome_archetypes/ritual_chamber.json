@@ -1,0 +1,55 @@
+{
+  "display_name": "archetype.soulhome.ritual_chamber",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "irons_spellbooks:scroll_forge" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": "irons_spellbooks:scroll_forge" }, "weight": 8.0, "role": "core",    "cap": 2  },
+    { "match": { "block": "irons_spellbooks:arcane_anvil" }, "weight": 5.0, "role": "forge",   "cap": 2  },
+    { "match": { "block": ["irons_spellbooks:blood_cauldron", "irons_spellbooks:alchemist_cauldron"] },
+                                                             "weight": 3.0, "role": "vessel",  "cap": 4  },
+    { "match": { "tag": "soulhome:arcane" },                  "weight": 2.0, "role": "arcane",  "cap": 24 },
+    { "match": { "block": "irons_spellbooks:armor_pile" },    "weight": 2.0, "role": "trophy",  "cap": 8  },
+    { "match": { "block": ["minecraft:soul_sand", "minecraft:soul_soil"] },
+                                                             "weight": 1.0, "role": "offering", "cap": 12 },
+    { "match": { "tag": "soulhome:lighting" },                "weight": 1.0, "role": "light",   "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:crops" },       "weight": -1.0 },
+    { "match": { "tag": "minecraft:bookshelves" }, "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 8,  "tier": 1 },
+    { "min_score": 45,  "tier": 2 },
+    { "min_score": 72,  "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:spell_power", "per_tier": 0.10, "max": 0.30 }
+  ],
+
+  "structures": [
+    {
+      "name": "circle",
+      "weight": 6.0,
+      "role": "arrangement",
+      "elements": {
+        "forge":     { "block": "irons_spellbooks:scroll_forge" },
+        "pedestals": { "block": "irons_spellbooks:pedestal" },
+        "ground":    { "block": ["minecraft:soul_sand", "minecraft:soul_soil"] },
+        "light":     { "tag": "soulhome:lighting" }
+      },
+      "all": [
+        { "relation": "surrounds", "of": "pedestals", "to": "forge",  "min_radius": 1, "max_radius": 3, "weight": 2.0 },
+        { "shape": "soulhome:platform", "of": "ground", "min_area": 9, "ideal_area": 25, "weight": 1.5 },
+        { "relation": "at_range",  "of": "light",     "to": "forge",  "min_distance": 1, "max_distance": 5, "weight": 1.0 }
+      ]
+    }
+  ]
+}

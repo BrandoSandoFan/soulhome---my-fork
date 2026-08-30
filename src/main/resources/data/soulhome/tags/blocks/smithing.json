@@ -6,6 +6,10 @@
     "minecraft:damaged_anvil",
     "minecraft:smithing_table",
     "minecraft:grindstone",
-    "minecraft:blast_furnace"
+    "minecraft:blast_furnace",
+    {
+      "id": "irons_spellbooks:arcane_anvil",
+      "required": false
+    }
   ]
 }

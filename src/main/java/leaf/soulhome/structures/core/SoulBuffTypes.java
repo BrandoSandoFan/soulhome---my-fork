@@ -57,17 +57,35 @@ public final class SoulBuffTypes
     /** Hearth: seconds the target is set on fire by a sword hit. */
     public static final String FIRE_ASPECT = "soulhome:fire_aspect";
 
+    /**
+     * Arcane sanctum: extra maximum mana, as a flat amount.
+     *
+     * <p>Written against another mod's attribute, which most installs do not have. That is not a
+     * problem to solve: the room still classifies, the report still names the buff, and the
+     * magnitude simply has nothing to be applied to until Iron's Spells is installed. See
+     * {@code ManaEffect}.
+     */
+    public static final String MAX_MANA = "soulhome:max_mana";
+
+    /** Ritual chamber: stronger spells, as a fraction of the spell's own power. */
+    public static final String SPELL_POWER = "soulhome:spell_power";
+
+    /** Workshop: extra reach in blocks, for placing and for hitting alike. */
+    public static final String REACH = "soulhome:reach";
+
     public static final Set<String> BUILT_IN =
             Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
                     POTION_DURATION, HEALING, MINING_SPEED,
-                    SPEED, DOUBLE_JUMP, FALL_PROTECTION, FIRE_ASPECT);
+                    SPEED, DOUBLE_JUMP, FALL_PROTECTION, FIRE_ASPECT,
+                    MAX_MANA, SPELL_POWER, REACH);
 
     /**
      * Types measured as a flat amount rather than a proportion: a count of jumps, a number of
-     * seconds, a number of effective levels. Held as a set rather than a single special case now
-     * that enchanting power is no longer the only one.
+     * seconds, a number of effective levels, points of mana, blocks of reach. Held as a set rather
+     * than a single special case now that enchanting power is no longer the only one.
      */
-    private static final Set<String> NON_FRACTION = Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT);
+    private static final Set<String> NON_FRACTION =
+            Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT, MAX_MANA, REACH);
 
     private SoulBuffTypes()
     {

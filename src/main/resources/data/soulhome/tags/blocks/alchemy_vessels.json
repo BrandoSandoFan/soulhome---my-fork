@@ -4,6 +4,14 @@
     "minecraft:cauldron",
     "minecraft:water_cauldron",
     "minecraft:lava_cauldron",
-    "minecraft:powder_snow_cauldron"
+    "minecraft:powder_snow_cauldron",
+    {
+      "id": "irons_spellbooks:alchemist_cauldron",
+      "required": false
+    },
+    {
+      "id": "irons_spellbooks:blood_cauldron",
+      "required": false
+    }
   ]
 }

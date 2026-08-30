@@ -139,7 +139,11 @@ class LightingTagTest
 
             for (JsonElement element : array)
             {
-                values.add(element.getAsString());
+                //an entry for a block from another mod is written {"id": ..., "required": false},
+                //so the tag still loads on a server without that mod rather than being dropped
+                values.add(element.isJsonObject()
+                        ? element.getAsJsonObject().get("id").getAsString()
+                        : element.getAsString());
             }
 
             return values;

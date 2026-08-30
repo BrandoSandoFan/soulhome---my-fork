@@ -42,14 +42,39 @@ public final class TagDocs
     {
     }
 
-    /** One {@code soulhome:} block tag: its id and the entries in its {@code values} array. */
-    public record Tag(String id, List<String> values)
+    /**
+     * One {@code soulhome:} block tag: its id, the entries every game has, and the entries that
+     * only exist when some other mod is installed.
+     *
+     * <p>The split matters to a reader. A tag entry written as
+     * {@code {"id": "create:cogwheel", "required": false}} is how a block from another mod is
+     * added without dropping the whole tag on a server that does not have it - and a glossary
+     * page that listed a cogwheel among the plain entries would be promising something the game
+     * in front of the player cannot give them.
+     */
+    public record Tag(String id, List<String> values, List<String> optionalValues)
     {
+        public Tag
+        {
+            values = List.copyOf(values);
+            optionalValues = List.copyOf(optionalValues);
+        }
+
         /** {@code soulhome:lighting} to {@code lighting}. */
         public String path()
         {
             final int separator = id.indexOf(':');
             return separator < 0 ? id : id.substring(separator + 1);
+        }
+
+        /** Everything in the tag, whether or not it needs another mod. */
+        public List<String> allValues()
+        {
+            List<String> all = new ArrayList<>(values.size() + optionalValues.size());
+            all.addAll(values);
+            all.addAll(optionalValues);
+
+            return List.copyOf(all);
         }
     }
 
@@ -93,14 +118,34 @@ public final class TagDocs
 
             final JsonArray values = json.has("values") ? json.getAsJsonArray("values") : new JsonArray();
 
-            List<String> valueList = new ArrayList<>(values.size());
+            List<String> required = new ArrayList<>(values.size());
+            List<String> optional = new ArrayList<>();
 
             for (JsonElement value : values)
             {
-                valueList.add(value.getAsString());
+                //vanilla's two forms: a bare id, or {"id": ..., "required": false} for an entry
+                //that may not exist in this install
+                if (value.isJsonObject())
+                {
+                    final JsonObject entry = value.getAsJsonObject();
+                    final String entryId = entry.get("id").getAsString();
+
+                    if (entry.has("required") && !entry.get("required").getAsBoolean())
+                    {
+                        optional.add(entryId);
+                    }
+                    else
+                    {
+                        required.add(entryId);
+                    }
+                }
+                else
+                {
+                    required.add(value.getAsString());
+                }
             }
 
-            return new Tag(id, List.copyOf(valueList));
+            return new Tag(id, required, optional);
         }
         catch (IOException e)
         {

@@ -145,6 +145,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.BUFFS_SOURCE, "from your %s (%s room(s), best tier %s)");
         add(Constants.StringKeys.BUFFS_CAPPED, "(held at the cap)");
 
+        add(Constants.StringKeys.TRAVEL_BLOCKED, "Only a soul key crosses into a soul, and only a soul key leads back out.");
+
         add(Constants.StringKeys.LENS_HIGHLIGHTED, "Use inside your soul to outline what was found");
         add(Constants.StringKeys.LENS_NOTHING_TO_SHOW, "Nothing here to outline yet.");
 
@@ -179,6 +181,9 @@ public class EngLangGen extends LanguageProvider
         add("buff.soulhome.double_jump", "Extra jumps");
         add("buff.soulhome.fall_protection", "Fall damage reduction");
         add("buff.soulhome.fire_aspect", "Fire on hit");
+        add("buff.soulhome.max_mana", "Maximum mana");
+        add("buff.soulhome.spell_power", "Spell power");
+        add("buff.soulhome.reach", "Reach");
 
         //Archetypes. These are the 'display_name' keys the shipped archetype JSON names
         add("archetype.soulhome.farm", "Farm");
@@ -191,6 +196,9 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.track", "Track");
         add("archetype.soulhome.training_yard", "Training Yard");
         add("archetype.soulhome.hearth", "Hearth");
+        add("archetype.soulhome.arcane_sanctum", "Arcane Sanctum");
+        add("archetype.soulhome.ritual_chamber", "Ritual Chamber");
+        add("archetype.soulhome.workshop", "Workshop");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -255,6 +263,13 @@ public class EngLangGen extends LanguageProvider
 
         add("advancements.soulhome.hearth.title", "Playing With Fire");
         add("advancements.soulhome.hearth.description", "Build a hearth in your soul hot enough to temper a blade.");
+
+        add("advancements.soulhome.arcane_sanctum.title", "Deep Reserves");
+        add("advancements.soulhome.arcane_sanctum.description", "Make a place in your soul to study spells, and hold more magic for it.");
+        add("advancements.soulhome.ritual_chamber.title", "Circle Complete");
+        add("advancements.soulhome.ritual_chamber.description", "Set a room in your soul aside for the work spells are made in.");
+        add("advancements.soulhome.workshop.title", "Everything To Hand");
+        add("advancements.soulhome.workshop.description", "Fill a room in your soul with working machinery.");
 
         //misc
 

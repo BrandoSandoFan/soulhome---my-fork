@@ -143,7 +143,10 @@ public class BookStuff
 
 			if (!this.flag.isEmpty())
 			{
-				jsonobject.addProperty("advancement", this.flag);
+				//"flag", not "advancement": writing a flag into the advancement field would hide
+				//the entry behind an advancement that does not exist, which is every entry that
+				//ever uses this gone from the book
+				jsonobject.addProperty("flag", this.flag);
 			}
 
 			jsonobject.addProperty("priority", this.priority);

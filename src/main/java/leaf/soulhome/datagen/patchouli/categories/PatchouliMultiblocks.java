@@ -41,6 +41,19 @@ public class PatchouliMultiblocks
     /** How many signals a page lists before it stops being a hint and starts being a checklist. */
     private static final int LISTED_SIGNALS = 5;
 
+    /**
+     * Entries of a tag's glossary listing that fit on one Patchouli text page, once the header on
+     * the first page and the closing note on the last are allowed for.
+     */
+    private static final int GLOSSARY_ENTRIES_PER_PAGE = 10;
+
+    /**
+     * Pages one tag's listing may take before it stops being a glossary and becomes a catalogue.
+     * Long enough for every tag this mod ships today; a tag a pack has poured a hundred blocks
+     * into gets a count of what was left out instead.
+     */
+    private static final int GLOSSARY_MAX_PAGES = 4;
+
     public static void collect(List<BookStuff.Category> categories, List<BookStuff.Entry> entries)
     {
         BookStuff.Category multiblocks = new BookStuff.Category(
@@ -142,7 +155,7 @@ public class PatchouliMultiblocks
 
         for (TagDocs.Tag tag : TagDocs.shipped())
         {
-            pages.add(tagPage(tag));
+            tagPages(tag, pages);
         }
 
         entry.pages = pages.toArray(BookStuff.Page[]::new);
@@ -150,22 +163,91 @@ public class PatchouliMultiblocks
         return entry;
     }
 
-    private static BookStuff.Page tagPage(TagDocs.Tag tag)
+    /**
+     * One tag's glossary pages, in reading order. The first carries the anchor {@link #readable}
+     * links to.
+     *
+     * <p>Plural because a tag can be long: {@code soulhome:machinery} holds every machine part
+     * Create ships, and a Patchouli text page that overruns simply stops drawing - the reader
+     * gets a list that ends mid-sentence with no sign that anything is missing. Splitting is the
+     * only option that keeps the page honest, since the whole point of the entry is to say what
+     * actually counts.
+     */
+    private static void tagPages(TagDocs.Tag tag, List<BookStuff.Page> pages)
     {
-        StringBuilder text = new StringBuilder("$(item)").append(tag.id()).append("$(0)$(p)");
+        List<String> lines = new ArrayList<>();
 
         for (String value : tag.values())
         {
-            text.append("$(li)").append(readable(value));
+            lines.add("$(li)" + readable(value));
         }
 
-        text.append("$(p)Data packs and other mods can add to this list - nothing here replaces it.");
+        if (!tag.optionalValues().isEmpty())
+        {
+            //listed apart rather than mixed in: an entry that needs a mod the player may not have
+            //is not the same promise as one that always counts, and a glossary that blurs the two
+            //sends someone hunting for a block their game does not contain
+            lines.add("$(p)And, with the mod that adds them installed:");
 
-        BookStuff.Page page = new BookStuff.TextPage(text.toString())
-                .setTitle(StringHelper.fixCapitalisation(tag.path()));
-        page.anchor = tag.path();
+            for (String value : tag.optionalValues())
+            {
+                lines.add("$(li)" + readable(value));
+            }
+        }
 
-        return page;
+        //the header costs the first page two of its lines, and a truncation note costs the last
+        //page one more
+        final int capacity = GLOSSARY_ENTRIES_PER_PAGE * GLOSSARY_MAX_PAGES - 2;
+
+        if (lines.size() > capacity)
+        {
+            final int kept = capacity - 1;
+            final long dropped = lines.subList(kept, lines.size()).stream()
+                    .filter(line -> line.startsWith("$(li)"))
+                    .count();
+
+            lines = new ArrayList<>(lines.subList(0, kept));
+            lines.add("$(p)...and " + dropped + " more.");
+        }
+
+        final String title = StringHelper.fixCapitalisation(tag.path());
+
+        int index = 0;
+        boolean first = true;
+
+        while (index < lines.size())
+        {
+            StringBuilder text = new StringBuilder();
+
+            //the id header costs a couple of the page's lines, so the first page holds fewer
+            int room = first ? GLOSSARY_ENTRIES_PER_PAGE - 2 : GLOSSARY_ENTRIES_PER_PAGE;
+
+            if (first)
+            {
+                text.append("$(item)").append(tag.id()).append("$(0)$(p)");
+            }
+
+            for (; index < lines.size() && room > 0; index++, room--)
+            {
+                text.append(lines.get(index));
+            }
+
+            if (index == lines.size())
+            {
+                //the closing note belongs with the last of the list, not alone on a page of its own
+                text.append("$(p)Data packs and other mods can add to this list - nothing here replaces it.");
+            }
+
+            BookStuff.Page page = new BookStuff.TextPage(text.toString()).setTitle(title);
+
+            if (first)
+            {
+                page.anchor = tag.path();
+                first = false;
+            }
+
+            pages.add(page);
+        }
     }
 
     /**
@@ -299,18 +381,33 @@ public class PatchouliMultiblocks
     /**
      * The first plain block an archetype names, which is a better icon than the category's own -
      * and is chosen from the data rather than being another thing to keep in step by hand.
+     * Vanilla blocks are preferred over a modded one; see the comment inside.
      */
     private static String iconFor(ArchetypeDefinition archetype, BookStuff.Category category)
     {
+        String fallback = null;
+
         for (ArchetypeDefinition.Signal signal : archetype.signals())
         {
-            if (!signal.match().blocks().isEmpty())
+            for (String block : signal.match().blocks())
             {
-                return signal.match().blocks().get(0);
+                //a room written for another mod names that mod's blocks first, and Patchouli
+                //cannot draw an item the game in front of the reader does not have. Prefer a
+                //vanilla block, which every install owns; for the rooms that name none, the
+                //archetype's own first block is still better than the category's generic icon
+                if (block.startsWith("minecraft:"))
+                {
+                    return block;
+                }
+
+                if (fallback == null)
+                {
+                    fallback = block;
+                }
             }
         }
 
-        return category.icon;
+        return fallback == null ? category.icon : fallback;
     }
 
     /**

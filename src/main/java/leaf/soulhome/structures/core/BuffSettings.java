@@ -52,12 +52,17 @@ public record BuffSettings(
      * Double jump is a count of extra jumps, and one is exactly what the name promises - a second
      * jump, not a third or fourth, however generous a datapack's own magnitude gets. Fire aspect
      * is seconds of burn, and six is a long, deliberate punish for a sword rather than a graze.
+     * Mana is points of Iron's Spells' own resource, and sixty is somewhere between a robe and a
+     * full set of it. Reach is blocks, and two is the difference between reaching the top of a
+     * wall and not - three would put a player past the range the server rubber-bands them at.
      */
     public static final Map<String, Double> DEFAULT_TYPE_CAPS =
             Map.of(
                     SoulBuffTypes.ENCHANTMENT_POWER, 6.0d,
                     SoulBuffTypes.DOUBLE_JUMP, 1.0d,
-                    SoulBuffTypes.FIRE_ASPECT, 6.0d);
+                    SoulBuffTypes.FIRE_ASPECT, 6.0d,
+                    SoulBuffTypes.MAX_MANA, 60.0d,
+                    SoulBuffTypes.REACH, 2.0d);
 
     /** Suggested starting points - see the class-level ramp knob documentation. */
     public static final double DEFAULT_ENTRY_FRACTION = 0.10d;

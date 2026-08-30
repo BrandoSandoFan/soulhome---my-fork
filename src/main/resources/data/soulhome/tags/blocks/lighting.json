@@ -32,6 +32,14 @@
     "minecraft:respawn_anchor",
     "minecraft:cave_vines",
     "minecraft:cave_vines_plant",
-    "minecraft:light"
+    "minecraft:light",
+    {
+      "id": "irons_spellbooks:firefly_jar",
+      "required": false
+    },
+    {
+      "id": "create:rose_quartz_lamp",
+      "required": false
+    }
   ]
 }

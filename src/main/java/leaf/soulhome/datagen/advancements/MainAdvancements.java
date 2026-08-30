@@ -136,6 +136,15 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
         archetypeAdvancement(advancementConsumer, roomAdvancement, "track", Items.MINECART);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "training_yard", Items.SLIME_BALL);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "hearth", Items.BLAZE_POWDER);
+
+        // The three rooms built out of another mod's blocks. Their advancements exist whether or
+        // not that mod does - an advancement nobody in this install can earn is invisible until
+        // someone can, which is a great deal simpler than generating a different advancement tree
+        // per mod list - and each is given a vanilla icon, since the icon has to draw in a game
+        // that may not have the blocks the room is made of.
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "arcane_sanctum", Items.LAPIS_LAZULI);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "ritual_chamber", Items.SOUL_LANTERN);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "workshop", Items.PISTON);
     }
 
     /**

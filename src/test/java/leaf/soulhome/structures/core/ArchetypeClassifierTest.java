@@ -52,9 +52,9 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(10, shipped.size(),
-                "alchemy lab, armoury, bedchamber, enchanting room, farm, hearth, library, mine, "
-                        + "track, training yard");
+        assertEquals(13, shipped.size(),
+                "alchemy lab, arcane sanctum, armoury, bedchamber, enchanting room, farm, hearth, "
+                        + "library, mine, ritual chamber, track, training yard, workshop");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -226,6 +226,52 @@ class ArchetypeClassifierTest
         ArchetypeScore libraryScore = scoreFor(result, "soulhome:library");
         assertTrue(libraryScore.score() > 0, "it is genuinely library-ish, just less so");
         assertFalse(libraryScore.qualifies(), "but not enough to be a contender");
+    }
+
+    @Test
+    @DisplayName("a room built out of another mod's blocks classifies as the room written for it")
+    void compatRoomsClassifyAsThemselves()
+    {
+        // the three rooms written against mods this one does not depend on. Everything about them
+        // is data - block ids in an archetype file and ids in a tag file - so the only thing that
+        // can quietly break them is a typo, which is precisely what this catches. Iron's Spells
+        // and Create are not on the classpath; TestBlocks supplies blocks with their ids.
+        ClassificationResult sanctum = classifyOnly(arcaneSanctum());
+        assertEquals("soulhome:arcane_sanctum", sanctum.awardedArchetypeId().orElseThrow(),
+                "the sanctum should not be read as the enchanting room or library it borrows from");
+
+        ClassificationResult ritual = classifyOnly(ritualChamber());
+        assertEquals("soulhome:ritual_chamber", ritual.awardedArchetypeId().orElseThrow(),
+                "an arcane anvil makes the armoury a contender; the scroll forge should settle it");
+
+        ClassificationResult shop = classifyOnly(workshop());
+        assertEquals("soulhome:workshop", shop.awardedArchetypeId().orElseThrow(),
+                "a bench and an anvil among the machines should not make this an armoury");
+    }
+
+    @Test
+    @DisplayName("the rooms written for other mods are inert, not broken, without them")
+    void compatRoomsCannotBeClassifiedByAccident()
+    {
+        // the other half of the promise: a soulhome in a game without those mods must never have
+        // one of these rooms awarded to it. Each gates on a block or a tag only that mod fills,
+        // so an ordinary vanilla room cannot reach them however it is built.
+        for (String id : List.of("soulhome:arcane_sanctum", "soulhome:ritual_chamber", "soulhome:workshop"))
+        {
+            ArchetypeDefinition archetype = ArchetypeJsonReader.byId(shipped, id);
+
+            assertFalse(archetype.requirements().isEmpty(), id + " must gate on something");
+
+            for (GridVolume vanillaBuild : List.of(library(), enchantingRoom(), armoury(), alchemyLab()))
+            {
+                ArchetypeScore score = classifier.score(onlyRegion(vanillaBuild), archetype);
+
+                assertEquals(0d, score.score(), 1e-9,
+                        id + " should score nothing on a room built out of vanilla blocks");
+                assertFalse(score.failedRequirements().isEmpty(),
+                        id + " should say which gate the room failed, not simply score zero");
+            }
+        }
     }
 
     @Test
@@ -422,7 +468,10 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:library", TestBlocks.BOOKSHELF),
                 Map.entry("soulhome:mine", TestBlocks.ORE),
                 Map.entry("soulhome:track", TestBlocks.RAIL),
-                Map.entry("soulhome:training_yard", TestBlocks.SLIME_BLOCK));
+                Map.entry("soulhome:training_yard", TestBlocks.SLIME_BLOCK),
+                Map.entry("soulhome:arcane_sanctum", TestBlocks.INSCRIPTION_TABLE),
+                Map.entry("soulhome:ritual_chamber", TestBlocks.SCROLL_FORGE),
+                Map.entry("soulhome:workshop", TestBlocks.COGWHEEL));
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -597,7 +646,10 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:alchemy_lab", alchemyLab()),
                 Map.entry("soulhome:farm", farm()),
                 Map.entry("soulhome:enchanting_room", enchantingRoom()),
-                Map.entry("soulhome:armoury", armoury()));
+                Map.entry("soulhome:armoury", armoury()),
+                Map.entry("soulhome:arcane_sanctum", arcaneSanctum()),
+                Map.entry("soulhome:ritual_chamber", ritualChamber()),
+                Map.entry("soulhome:workshop", workshop()));
 
         assertEquals(shipped.size(), canonicalBuild.size(),
                 "every shipped archetype needs a canonical-build fixture here, or a newly added one goes untested");
@@ -800,6 +852,124 @@ class ArchetypeClassifierTest
                         "#.....#",
                         "#.....#",
                         "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    /**
+     * A study in Iron's Spells' idiom: the inscription table ringed by shelves, pedestals set
+     * around it, candles above, somewhere to read and somewhere to put things.
+     *
+     * <p>Iron's Spells is not on the test classpath and is not a dependency - see
+     * {@link TestBlocks}. What is being checked is the shipped archetype, which names those blocks
+     * by id, so a synthetic block with the same id and the same tags is exactly what the
+     * classifier would see in a game that had them.
+     */
+    private static GridVolume arcaneSanctum()
+    {
+        return GridVolume.of(
+                Map.of('T', TestBlocks.INSCRIPTION_TABLE,
+                        'P', TestBlocks.PEDESTAL,
+                        'J', TestBlocks.FIREFLY_JAR),
+                SLAB,
+                new String[]{
+                        "#BBBBB#",
+                        "#o...o#",
+                        "#.P.P.#",
+                        "#B.T.B#",
+                        "#.P.P.#",
+                        "#bL..o#",
+                        "#BBBBB#"},
+                new String[]{
+                        "#BBBBB#",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...J#",
+                        "#BBBBB#"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** A scroll forge on a soul sand floor, pedestals around it, the anvil and cauldrons at the wall. */
+    private static GridVolume ritualChamber()
+    {
+        return GridVolume.of(
+                Map.of('V', TestBlocks.SCROLL_FORGE,
+                        'P', TestBlocks.PEDESTAL,
+                        'K', TestBlocks.ARCANE_ANVIL,
+                        'R', TestBlocks.ARMOR_PILE,
+                        'U', TestBlocks.ALCHEMIST_CAULDRON,
+                        'J', TestBlocks.FIREFLY_JAR),
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#K.c.R#",
+                        "#.sss.#",
+                        "#.sss.#",
+                        "#.sss.#",
+                        "#U.o.J#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.P.P.#",
+                        "#..V..#",
+                        "#.P.P.#",
+                        "#.....#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** A line of machines along one wall, storage against it, a bench and an anvil to hand. */
+    private static GridVolume workshop()
+    {
+        return GridVolume.of(
+                Map.of('X', TestBlocks.COGWHEEL,
+                        'Z', TestBlocks.MECHANICAL_PRESS,
+                        '%', TestBlocks.BELT,
+                        'Q', TestBlocks.ITEM_VAULT,
+                        '+', TestBlocks.CRAFTING_TABLE),
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#XZX%X#",
+                        "#Q...b#",
+                        "#+...A#",
+                        "#.....#",
+                        "#..t..#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#X.Z.X#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#t...t#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#t...t#",
                         "#######"},
                 SLAB);
     }

@@ -1,0 +1,51 @@
+{
+  "display_name": "archetype.soulhome.workshop",
+
+  "region_types": ["enclosed", "open"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "tag": "soulhome:machinery" }, "min_count": 6 }
+  ],
+
+  "signals": [
+    { "match": { "tag": "soulhome:machinery" },      "weight": 2.5,  "role": "machine", "cap": 36 },
+    { "match": { "block": "minecraft:crafting_table" }, "weight": 3.0, "role": "bench",  "cap": 3  },
+    { "match": { "tag": "soulhome:smithing" },       "weight": 2.0,  "role": "tooling", "cap": 4  },
+    { "match": { "tag": "soulhome:storage" },        "weight": 1.5,  "role": "storage", "cap": 12 },
+    { "match": { "tag": "soulhome:lighting" },       "weight": 0.75, "role": "light",   "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:crops" }, "weight": -1.0 },
+    { "match": { "tag": "minecraft:beds" },  "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 6,  "tier": 1 },
+    { "min_score": 28,  "tier": 2 },
+    { "min_score": 45,  "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:reach", "per_tier": 0.5, "max": 1.5 }
+  ],
+
+  "structures": [
+    {
+      "name": "production_line",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "machines": { "tag": "soulhome:machinery" },
+        "storage":  { "tag": "soulhome:storage" },
+        "bench":    { "block": "minecraft:crafting_table" }
+      },
+      "all": [
+        { "shape": "soulhome:line", "of": "machines", "min_run": 4, "ideal_run": 10, "weight": 2.0 },
+        { "relation": "beside", "of": "storage", "to": "machines", "weight": 1.0 },
+        { "relation": "within", "of": "bench",   "to": "machines", "max_distance": 5, "weight": 1.0 }
+      ]
+    }
+  ]
+}

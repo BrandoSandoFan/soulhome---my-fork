@@ -1,4 +1,5 @@
 {
+  "_comment": "Arcane materials and furniture, whatever mod they come from. Entries from other mods are written as {\"id\": ..., \"required\": false} so the tag still loads when that mod is absent, rather than dropping the whole tag and taking the enchanting room's arcane signal with it. Iron's Spells' workstations - the inscription table, the scroll forge, the arcane anvil - are deliberately not here: each is the core its own room scores directly, and a block in both would count twice in the same room.",
   "replace": false,
   "values": [
     "minecraft:obsidian",
@@ -7,6 +8,14 @@
     "minecraft:amethyst_block",
     "minecraft:budding_amethyst",
     "minecraft:end_stone",
-    "minecraft:end_stone_bricks"
+    "minecraft:end_stone_bricks",
+    {
+      "id": "irons_spellbooks:arcane_debris",
+      "required": false
+    },
+    {
+      "id": "irons_spellbooks:pedestal",
+      "required": false
+    }
   ]
 }
