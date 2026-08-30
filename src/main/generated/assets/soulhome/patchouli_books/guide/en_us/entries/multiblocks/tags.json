@@ -12,7 +12,7 @@
     {
       "type": "text",
       "anchor": "alchemy_vessels",
-      "text": "$(item)soulhome:alchemy_vessels$(0)$(p)$(li)Cauldron$(li)Water Cauldron$(li)Lava Cauldron$(li)Powder Snow Cauldron$(p)And, with the mod that adds them installed:$(li)Alchemist Cauldron$(li)Blood Cauldron$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(item)soulhome:alchemy_vessels$(0)$(p)$(li)Cauldron$(li)Water Cauldron$(li)Lava Cauldron$(li)Powder Snow Cauldron$(p)And, with the mod that adds them installed:$(li)Alchemist Cauldron$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Alchemy Vessels"
     },
     {
@@ -23,7 +23,7 @@
     },
     {
       "type": "text",
-      "text": "$(li)Arcane Debris$(li)Pedestal$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(li)Pedestal$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Arcane"
     },
     {
