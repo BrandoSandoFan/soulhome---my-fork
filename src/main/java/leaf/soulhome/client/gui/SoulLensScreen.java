@@ -14,6 +14,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -29,6 +30,11 @@ import java.util.Locale;
  * <p>The world outlines {@code SoulLensRenderer} draws are untouched and keep drawing behind this
  * screen - they are the single most useful thing the lens does, and this screen explains rather
  * than replaces them.
+ *
+ * <p>The detail panel's content is entirely data-driven - block names, archetype display names,
+ * clause text, the number of signals a room matched - so nothing here bounds how wide or how tall
+ * it gets. It wraps to the panel width and scrolls rather than running off the screen (#67); see
+ * {@link ScrollableDetailPanel}.
  */
 @OnlyIn(Dist.CLIENT)
 public class SoulLensScreen extends Screen
@@ -39,6 +45,8 @@ public class SoulLensScreen extends Screen
     private static final int ROW_HEIGHT = 22;
 
     private static final int DETAIL_LEFT = LIST_LEFT + LIST_WIDTH + 14;
+    private static final int RIGHT_MARGIN = 10;
+    private static final int BOTTOM_MARGIN = 26;
     private static final int LINE_HEIGHT = 11;
 
     private static final int MAX_MATCHED_SHOWN = 6;
@@ -58,6 +66,7 @@ public class SoulLensScreen extends Screen
     private static final int COLOR_BAR_FILL = 0xFF55AAFF;
 
     private final List<LensRegionReport> regions;
+    private final ScrollableDetailPanel detailPanel = new ScrollableDetailPanel();
     private int selected;
 
     public SoulLensScreen(List<LensRegionReport> regions, int standingIn)
@@ -75,19 +84,23 @@ public class SoulLensScreen extends Screen
             final int index = i;
             final int y = LIST_TOP + i * ROW_HEIGHT;
 
-            if (y + ROW_HEIGHT > this.height - 26)
+            if (y + ROW_HEIGHT > this.height - BOTTOM_MARGIN)
             {
                 break;
             }
 
-            this.addRenderableWidget(Button.builder(rowLabel(this.regions.get(i)), button -> this.selected = index)
+            this.addRenderableWidget(Button.builder(rowLabel(this.regions.get(i)), button ->
+                    {
+                        this.selected = index;
+                        this.detailPanel.resetScroll();
+                    })
                     .bounds(LIST_LEFT, y, LIST_WIDTH, ROW_HEIGHT - 4)
                     .build());
         }
 
         this.addRenderableWidget(Button.builder(
                         Component.translatable(Constants.StringKeys.LENS_SCREEN_CLOSE), button -> this.onClose())
-                .bounds(this.width - 90, this.height - 26, 80, 20)
+                .bounds(this.width - 90, this.height - BOTTOM_MARGIN, 80, 20)
                 .build());
     }
 
@@ -98,7 +111,7 @@ public class SoulLensScreen extends Screen
 
         final int rowY = LIST_TOP + this.selected * ROW_HEIGHT;
 
-        if (this.selected < this.regions.size() && rowY + ROW_HEIGHT <= this.height - 26)
+        if (this.selected < this.regions.size() && rowY + ROW_HEIGHT <= this.height - BOTTOM_MARGIN)
         {
             graphics.fill(LIST_LEFT - 2, rowY - 2, LIST_LEFT + LIST_WIDTH + 2, rowY + ROW_HEIGHT - 2, 0x805599FF);
         }
@@ -116,6 +129,19 @@ public class SoulLensScreen extends Screen
     }
 
     @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta)
+    {
+        final int bottom = this.height - BOTTOM_MARGIN;
+
+        if (this.detailPanel.scroll(mouseX, mouseY, delta, DETAIL_LEFT, LIST_TOP, bottom))
+        {
+            return true;
+        }
+
+        return super.mouseScrolled(mouseX, mouseY, delta);
+    }
+
+    @Override
     public boolean isPauseScreen()
     {
         return false;
@@ -123,111 +149,92 @@ public class SoulLensScreen extends Screen
 
     private void drawDetail(GuiGraphics graphics, LensRegionReport region)
     {
-        int y = LIST_TOP;
-
         if (region.noArchetypes())
         {
             graphics.drawString(this.font,
-                    Component.translatable(Constants.StringKeys.LENS_SCREEN_EMPTY_DETAIL), DETAIL_LEFT, y, COLOR_MUTED);
+                    Component.translatable(Constants.StringKeys.LENS_SCREEN_EMPTY_DETAIL), DETAIL_LEFT, LIST_TOP, COLOR_MUTED);
             return;
         }
 
-        y = drawHeadline(graphics, region, y);
-        y = drawProgress(graphics, region, y);
+        final int right = this.width - RIGHT_MARGIN;
+        final int maxWidth = Math.max(20, right - DETAIL_LEFT);
+        final int bottom = this.height - BOTTOM_MARGIN;
+
+        final List<ScrollableDetailPanel.VisualLine> lines = buildDetailLines(region, maxWidth);
+
+        this.detailPanel.render(graphics, this.font, lines, DETAIL_LEFT, LIST_TOP, right, bottom,
+                160, COLOR_BAR_BACK, COLOR_BAR_FILL);
+    }
+
+    private List<ScrollableDetailPanel.VisualLine> buildDetailLines(LensRegionReport region, int maxWidth)
+    {
+        final List<ScrollableDetailPanel.VisualLine> out = new ArrayList<>();
+
+        out.addAll(wrap(headlineName(region), 0, COLOR_TEXT, maxWidth));
+
+        if (region.isClassified())
+        {
+            out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_TIER, region.tier()), 0, COLOR_HIT, maxWidth));
+        }
+
+        out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_SCORE, score(region.score())), 0, COLOR_MUTED, maxWidth));
+        out.add(ScrollableDetailPanel.VisualLine.spacer(4));
+
+        appendProgress(out, region, maxWidth);
 
         if (region.isAmbiguous() && region.hasRunnerUp())
         {
-            graphics.drawString(this.font, Component.translatable(
+            out.addAll(wrap(Component.translatable(
                             Constants.StringKeys.LENS_SCREEN_AMBIGUOUS_DETAIL,
                             Component.translatable(region.runnerUpDisplayName()),
                             score(region.runnerUpScore())),
-                    DETAIL_LEFT, y, COLOR_MUTED);
-            y += LINE_HEIGHT * 2;
+                    0, COLOR_MUTED, maxWidth));
+            out.add(ScrollableDetailPanel.VisualLine.spacer(LINE_HEIGHT));
         }
 
-        y = drawSignalSection(graphics, Constants.StringKeys.LENS_SCREEN_SIGNALS_HEADER,
-                region.matched(), MAX_MATCHED_SHOWN, y);
-        y = drawMissingSection(graphics, region.missing(), y);
-        y = drawArrangementSection(graphics, region, y);
-        drawGrantsSection(graphics, region, y);
+        appendSignalSection(out, Constants.StringKeys.LENS_SCREEN_SIGNALS_HEADER, region.matched(), MAX_MATCHED_SHOWN, maxWidth);
+        appendMissingSection(out, region.missing(), maxWidth);
+        appendArrangementSection(out, region, maxWidth);
+        appendGrantsSection(out, region, maxWidth);
+
+        return out;
     }
 
-    private int drawHeadline(GuiGraphics graphics, LensRegionReport region, int y)
-    {
-        graphics.drawString(this.font, headlineName(region), DETAIL_LEFT, y, COLOR_TEXT);
-        y += LINE_HEIGHT;
-
-        if (region.isClassified())
-        {
-            graphics.drawString(this.font,
-                    Component.translatable(Constants.StringKeys.LENS_SCREEN_TIER, region.tier()),
-                    DETAIL_LEFT, y, COLOR_HIT);
-        }
-
-        graphics.drawString(this.font,
-                Component.translatable(Constants.StringKeys.LENS_SCREEN_SCORE, score(region.score())),
-                DETAIL_LEFT + 60, y, COLOR_MUTED);
-
-        return y + LINE_HEIGHT + 4;
-    }
-
-    /** Mirrors {@code SoulReport#headline}: the winning archetype's name, or the generic label. */
-    private MutableComponent headlineName(LensRegionReport region)
-    {
-        if (region.isClassified())
-        {
-            return Component.translatable(region.displayName());
-        }
-
-        if (region.isAmbiguous())
-        {
-            return Component.translatable(Constants.StringKeys.LENS_SCREEN_AMBIGUOUS);
-        }
-
-        return Component.translatable(Constants.StringKeys.LENS_SCREEN_UNCLASSIFIED);
-    }
-
-    /** The bar toward the next tier - the "30.5 more points" line, made visible rather than read. */
-    private int drawProgress(GuiGraphics graphics, LensRegionReport region, int y)
+    private void appendProgress(List<ScrollableDetailPanel.VisualLine> out, LensRegionReport region, int maxWidth)
     {
         if (!region.hasNextTier())
         {
             if (region.isClassified())
             {
-                graphics.drawString(this.font,
-                        Component.translatable(Constants.StringKeys.LENS_SCREEN_MAXED), DETAIL_LEFT, y, COLOR_MUTED);
-                y += LINE_HEIGHT;
+                out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_MAXED), 0, COLOR_MUTED, maxWidth));
             }
 
-            return y + 4;
+            out.add(ScrollableDetailPanel.VisualLine.spacer(4));
+            return;
         }
 
-        final int barWidth = 160;
-        final int barLeft = DETAIL_LEFT;
         final double fraction = region.score() <= 0d
                 ? 0d
                 : region.score() / (region.score() + region.scoreToNextTier());
 
-        graphics.fill(barLeft, y, barLeft + barWidth, y + 6, COLOR_BAR_BACK);
-        graphics.fill(barLeft, y, barLeft + (int) Math.round(barWidth * Math.min(1d, Math.max(0d, fraction))), y + 6, COLOR_BAR_FILL);
-        y += 9;
+        out.add(ScrollableDetailPanel.VisualLine.bar(fraction, 9));
 
-        graphics.drawString(this.font, Component.translatable(
+        out.addAll(wrap(Component.translatable(
                         Constants.StringKeys.LENS_SCREEN_NEXT_TIER, score(region.scoreToNextTier()), region.tier() + 1),
-                DETAIL_LEFT, y, COLOR_MUTED);
+                0, COLOR_MUTED, maxWidth));
 
-        return y + LINE_HEIGHT + 4;
+        out.add(ScrollableDetailPanel.VisualLine.spacer(4));
     }
 
-    private int drawSignalSection(GuiGraphics graphics, String headerKey, List<LensRegionReport.Signal> signals, int max, int y)
+    private void appendSignalSection(List<ScrollableDetailPanel.VisualLine> out, String headerKey,
+                                      List<LensRegionReport.Signal> signals, int max, int maxWidth)
     {
         if (signals.isEmpty())
         {
-            return y;
+            return;
         }
 
-        graphics.drawString(this.font, Component.translatable(headerKey), DETAIL_LEFT, y, COLOR_HEADER);
-        y += LINE_HEIGHT;
+        out.addAll(wrap(Component.translatable(headerKey), 0, COLOR_HEADER, maxWidth));
 
         final int shown = Math.min(max, signals.size());
 
@@ -242,50 +249,42 @@ public class SoulLensScreen extends Screen
                 line += " *";
             }
 
-            graphics.drawString(this.font, Component.literal(line), DETAIL_LEFT + 4, y,
-                    signal.contribution() < 0 ? COLOR_MISS : (signal.isCapped() ? COLOR_CAPPED : COLOR_TEXT));
-            y += LINE_HEIGHT;
+            out.addAll(wrap(Component.literal(line), 4,
+                    signal.contribution() < 0 ? COLOR_MISS : (signal.isCapped() ? COLOR_CAPPED : COLOR_TEXT), maxWidth));
         }
 
-        y = drawMoreLine(graphics, signals.size(), shown, y);
-
-        return y + 4;
+        appendMoreLine(out, signals.size(), shown, maxWidth);
+        out.add(ScrollableDetailPanel.VisualLine.spacer(4));
     }
 
-    private int drawMissingSection(GuiGraphics graphics, List<String> missing, int y)
+    private void appendMissingSection(List<ScrollableDetailPanel.VisualLine> out, List<String> missing, int maxWidth)
     {
         if (missing.isEmpty())
         {
-            return y;
+            return;
         }
 
-        graphics.drawString(this.font,
-                Component.translatable(Constants.StringKeys.LENS_SCREEN_MISSING_HEADER), DETAIL_LEFT, y, COLOR_HEADER);
-        y += LINE_HEIGHT;
+        out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_MISSING_HEADER), 0, COLOR_HEADER, maxWidth));
 
         final int shown = Math.min(MAX_MISSING_SHOWN, missing.size());
 
         for (int i = 0; i < shown; i++)
         {
-            graphics.drawString(this.font, Component.literal(missing.get(i)), DETAIL_LEFT + 4, y, COLOR_MISSING);
-            y += LINE_HEIGHT;
+            out.addAll(wrap(Component.literal(missing.get(i)), 4, COLOR_MISSING, maxWidth));
         }
 
-        y = drawMoreLine(graphics, missing.size(), shown, y);
-
-        return y + 4;
+        appendMoreLine(out, missing.size(), shown, maxWidth);
+        out.add(ScrollableDetailPanel.VisualLine.spacer(4));
     }
 
-    private int drawArrangementSection(GuiGraphics graphics, LensRegionReport region, int y)
+    private void appendArrangementSection(List<ScrollableDetailPanel.VisualLine> out, LensRegionReport region, int maxWidth)
     {
         if (region.forms().isEmpty())
         {
-            return y;
+            return;
         }
 
-        graphics.drawString(this.font,
-                Component.translatable(Constants.StringKeys.LENS_SCREEN_ARRANGEMENT_HEADER), DETAIL_LEFT, y, COLOR_HEADER);
-        y += LINE_HEIGHT;
+        out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_ARRANGEMENT_HEADER), 0, COLOR_HEADER, maxWidth));
 
         int shownClauses = 0;
 
@@ -305,26 +304,23 @@ public class SoulLensScreen extends Screen
 
                 final String prefix = clause.hit() ? "+ " : "- ";
 
-                graphics.drawString(this.font, Component.literal(prefix + clause.text()), DETAIL_LEFT + 4, y,
-                        clause.hit() ? COLOR_HIT : COLOR_MISS);
-                y += LINE_HEIGHT;
+                out.addAll(wrap(Component.literal(prefix + clause.text()), 4,
+                        clause.hit() ? COLOR_HIT : COLOR_MISS, maxWidth));
                 shownClauses++;
             }
         }
 
-        return y + 4;
+        out.add(ScrollableDetailPanel.VisualLine.spacer(4));
     }
 
-    private void drawGrantsSection(GuiGraphics graphics, LensRegionReport region, int y)
+    private void appendGrantsSection(List<ScrollableDetailPanel.VisualLine> out, LensRegionReport region, int maxWidth)
     {
         if (region.buffs().isEmpty())
         {
             return;
         }
 
-        graphics.drawString(this.font,
-                Component.translatable(Constants.StringKeys.LENS_SCREEN_GRANTS_HEADER), DETAIL_LEFT, y, COLOR_HEADER);
-        y += LINE_HEIGHT;
+        out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_GRANTS_HEADER), 0, COLOR_HEADER, maxWidth));
 
         final int shown = Math.min(MAX_BUFFS_SHOWN, region.buffs().size());
 
@@ -332,23 +328,39 @@ public class SoulLensScreen extends Screen
         {
             final LensRegionReport.BuffEntry buff = region.buffs().get(i);
 
-            graphics.drawString(this.font, Component.literal(buff.buffType() + " +" + score(buff.magnitude())),
-                    DETAIL_LEFT + 4, y, COLOR_TEXT);
-            y += LINE_HEIGHT;
+            out.addAll(wrap(Component.literal(buff.buffType() + " +" + score(buff.magnitude())), 4, COLOR_TEXT, maxWidth));
         }
     }
 
-    private int drawMoreLine(GuiGraphics graphics, int total, int shown, int y)
+    private void appendMoreLine(List<ScrollableDetailPanel.VisualLine> out, int total, int shown, int maxWidth)
     {
         if (total <= shown)
         {
-            return y;
+            return;
         }
 
-        graphics.drawString(this.font,
-                Component.translatable(Constants.StringKeys.LENS_SCREEN_MORE, total - shown), DETAIL_LEFT + 4, y, COLOR_MUTED);
+        out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_MORE, total - shown), 4, COLOR_MUTED, maxWidth));
+    }
 
-        return y + LINE_HEIGHT;
+    private List<ScrollableDetailPanel.VisualLine> wrap(Component text, int indent, int color, int maxWidth)
+    {
+        return ScrollableDetailPanel.wrap(this.font, text, indent, color, maxWidth, LINE_HEIGHT);
+    }
+
+    /** Mirrors {@code SoulReport#headline}: the winning archetype's name, or the generic label. */
+    private MutableComponent headlineName(LensRegionReport region)
+    {
+        if (region.isClassified())
+        {
+            return Component.translatable(region.displayName());
+        }
+
+        if (region.isAmbiguous())
+        {
+            return Component.translatable(Constants.StringKeys.LENS_SCREEN_AMBIGUOUS);
+        }
+
+        return Component.translatable(Constants.StringKeys.LENS_SCREEN_UNCLASSIFIED);
     }
 
     private Component rowLabel(LensRegionReport region)

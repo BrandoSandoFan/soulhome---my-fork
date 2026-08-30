@@ -10,10 +10,6 @@
     "minecraft:end_stone",
     "minecraft:end_stone_bricks",
     {
-      "id": "irons_spellbooks:arcane_debris",
-      "required": false
-    },
-    {
       "id": "irons_spellbooks:pedestal",
       "required": false
     }
