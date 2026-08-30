@@ -112,6 +112,18 @@ public final class SnapshotBlockVolume implements BlockVolume
             return Passability.PARTIAL;
         }
 
+        // ladders and vines are how a player gets between floors, not a wall between them. Vines
+        // already fall out with an empty collision shape below, but a ladder's is a thin box
+        // against the wall it's mounted on - non-empty and short of a full cube - so without this
+        // it reads as PARTIAL and seals whatever gap it happens to be plugging. A single-wide
+        // shaft between two floors, connected only by a ladder, would then score as two sealed
+        // rooms instead of one build the player can walk between, purely because the ladder's
+        // footprint happened to cover the whole hole.
+        if (state.is(BlockTags.CLIMBABLE))
+        {
+            return Passability.PASSABLE;
+        }
+
         final VoxelShape collision = state.getCollisionShape(level, pos);
 
         // torches, carpets, crops, flowers, water: part of the build, but the room's air flows
