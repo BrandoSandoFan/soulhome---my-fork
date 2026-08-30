@@ -324,7 +324,7 @@ class BuffCalculatorTest
                 List.of(RegionType.ENCLOSED),
                 1,
                 List.of(),
-                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofTags("minecraft:bookshelves"), 1d, "core", 8)),
+                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofTags("soulhome:bookshelves"), 1d, "core", 8)),
                 List.of(),
                 List.of(new ArchetypeDefinition.Tier(0d, 1), new ArchetypeDefinition.Tier(100d, 3)),
                 // perTier is no longer read by magnitudeAt - see ArchetypeDefinition.BuffSpec

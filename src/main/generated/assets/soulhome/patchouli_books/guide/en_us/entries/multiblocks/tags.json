@@ -34,6 +34,12 @@
     },
     {
       "type": "text",
+      "anchor": "bookshelves",
+      "text": "$(item)soulhome:bookshelves$(0)$(p)$(li)Bookshelf$(li)Chiseled Bookshelf$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "title": "Bookshelves"
+    },
+    {
+      "type": "text",
       "anchor": "furnishing",
       "text": "$(item)soulhome:furnishing$(0)$(p)$(li)any wool$(li)any wool carpets$(li)any flower pots$(li)Bell$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Furnishing"

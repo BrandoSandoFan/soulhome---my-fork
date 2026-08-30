@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)1 of $(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(p)Rewards, most first:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any anvil$(li)$(l:soulhome:multiblocks/tags#armament)any armament$(/l)$(li)$(l:soulhome:multiblocks/tags#storage)any storage$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)any bookshelves",
+      "text": "Will not count without:$(li)1 of $(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(p)Rewards, most first:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any anvil$(li)$(l:soulhome:multiblocks/tags#armament)any armament$(/l)$(li)$(l:soulhome:multiblocks/tags#storage)any storage$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)",
       "title": "What counts"
     },
     {

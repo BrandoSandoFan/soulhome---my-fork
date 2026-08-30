@@ -22,8 +22,8 @@ class BlockMatcherTest
         assertTrue(BlockMatcher.ofBlocks("minecraft:lectern").test(TestBlocks.LECTERN));
         assertFalse(BlockMatcher.ofBlocks("minecraft:lectern").test(TestBlocks.BOOKSHELF));
 
-        assertTrue(BlockMatcher.ofTags("minecraft:bookshelves").test(TestBlocks.BOOKSHELF));
-        assertFalse(BlockMatcher.ofTags("minecraft:bookshelves").test(TestBlocks.LECTERN));
+        assertTrue(BlockMatcher.ofTags("soulhome:bookshelves").test(TestBlocks.BOOKSHELF));
+        assertFalse(BlockMatcher.ofTags("soulhome:bookshelves").test(TestBlocks.LECTERN));
     }
 
     @Test
@@ -31,7 +31,7 @@ class BlockMatcherTest
     void anyEntryMatches()
     {
         BlockMatcher matcher = new BlockMatcher(
-                List.of("minecraft:lectern"), List.of("minecraft:bookshelves"));
+                List.of("minecraft:lectern"), List.of("soulhome:bookshelves"));
 
         assertTrue(matcher.test(TestBlocks.LECTERN));
         assertTrue(matcher.test(TestBlocks.BOOKSHELF));
@@ -43,7 +43,7 @@ class BlockMatcherTest
     void idsAreNormalised()
     {
         // a leading '#' on a tag is the habit players bring from recipe files
-        assertTrue(new BlockMatcher(List.of(), List.of("#minecraft:bookshelves")).test(TestBlocks.BOOKSHELF));
+        assertTrue(new BlockMatcher(List.of(), List.of("#soulhome:bookshelves")).test(TestBlocks.BOOKSHELF));
 
         // an unqualified id means the minecraft namespace, as everywhere else in the game
         assertTrue(new BlockMatcher(List.of("lectern"), List.of()).test(TestBlocks.LECTERN));
@@ -87,7 +87,7 @@ class BlockMatcherTest
     @DisplayName("descriptions read the way players write them")
     void describeIsPlayerFacing()
     {
-        assertEquals("#minecraft:bookshelves", BlockMatcher.ofTags("minecraft:bookshelves").describe());
+        assertEquals("#soulhome:bookshelves", BlockMatcher.ofTags("soulhome:bookshelves").describe());
         assertEquals("minecraft:chest or minecraft:barrel",
                 BlockMatcher.ofBlocks("minecraft:chest", "minecraft:barrel").describe());
     }

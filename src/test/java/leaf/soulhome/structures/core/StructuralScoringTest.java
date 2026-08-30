@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class StructuralScoringTest
 {
-    private static final BlockMatcher BOOKSHELVES = BlockMatcher.ofTags("minecraft:bookshelves");
+    private static final BlockMatcher BOOKSHELVES = BlockMatcher.ofTags("soulhome:bookshelves");
 
     @Test
     @DisplayName("a room with a form at confidence 1.0 outscores the identical room with the form absent")

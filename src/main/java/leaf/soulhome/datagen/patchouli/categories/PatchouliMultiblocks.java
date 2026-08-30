@@ -432,10 +432,11 @@ public class PatchouliMultiblocks
     }
 
     /**
-     * Ids as a player should read them: {@code #minecraft:bookshelves} becomes "any bookshelves",
+     * Ids as a player should read them: {@code #soulhome:bookshelves} becomes "any bookshelves",
      * {@code minecraft:lectern} becomes "Lectern". A tag this mod defines - and therefore has a
      * glossary page for, see {@link #tagsGlossary} - links straight to that page (#49); a vanilla
-     * or Forge tag stays plain text, since there is no local page to send a reader to.
+     * or Forge tag, such as {@code #minecraft:crops}, stays plain text, since there is no local
+     * page to send a reader to.
      */
     static String readable(String description)
     {

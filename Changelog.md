@@ -267,3 +267,19 @@ Three new rooms written for mods this one does not depend on, and one door close
   fits now runs onto as many pages as it needs, up to four, and says how many were left out -
   before, a long list was drawn as far as the page went and then simply stopped, with nothing to
   say anything was missing.
+
+Bookshelves
+
+A shelf full of books that the game never counted.
+
+- Bookshelves now actually count in the Library, the Enchanting Room, the Arcane Sanctum, the
+  Ritual Chamber and the Armoury. Every one of them was written against a tag called
+  `minecraft:bookshelves`, which sounds exactly like something vanilla would ship and does not
+  exist - the real tag, `minecraft:enchantment_power_provider`, is both narrower (no chiseled
+  bookshelf) and not a name anyone would guess. An archetype gated or scored on a tag with no
+  members simply never sees it: the Library's 16-bookshelf requirement could not be met by any
+  number of bookshelves, and the other four rooms' bookshelf signal or detractor sat permanently
+  at zero, however many were actually standing in the room. This mod now ships its own
+  `soulhome:bookshelves` tag, holding both the plain and the chiseled bookshelf, and every
+  archetype and the guide book point at that instead. A buff to four rooms and a fix to a fifth
+  that could never have been built at all.

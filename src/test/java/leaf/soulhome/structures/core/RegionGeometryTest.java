@@ -59,7 +59,7 @@ class RegionGeometryTest
                 .add(2, 0, 0, TestBlocks.BOOKSHELF)
                 .build();
 
-        List<RegionGeometry.Cell> shelves = geometry.cellsMatching(BlockMatcher.ofTags("minecraft:bookshelves"));
+        List<RegionGeometry.Cell> shelves = geometry.cellsMatching(BlockMatcher.ofTags("soulhome:bookshelves"));
 
         assertEquals(2, shelves.size());
         assertTrue(shelves.stream().allMatch(cell -> cell.signature() == TestBlocks.BOOKSHELF));
@@ -89,8 +89,8 @@ class RegionGeometryTest
 
         // a different object, equal by value - BlockMatcher is a record, so this exercises the
         // cache's use of equals/hashCode rather than reference identity on the key
-        BlockMatcher first = BlockMatcher.ofTags("minecraft:bookshelves");
-        BlockMatcher second = BlockMatcher.ofTags("minecraft:bookshelves");
+        BlockMatcher first = BlockMatcher.ofTags("soulhome:bookshelves");
+        BlockMatcher second = BlockMatcher.ofTags("soulhome:bookshelves");
 
         assertSame(geometry.cellsMatching(first), geometry.cellsMatching(second),
                 "the second call should reuse the first call's list rather than recomputing it");

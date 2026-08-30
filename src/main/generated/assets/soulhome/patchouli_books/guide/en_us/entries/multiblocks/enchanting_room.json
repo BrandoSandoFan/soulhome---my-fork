@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)1 of Enchanting Table$(p)Rewards, most first:$(li)Enchanting Table$(li)any bookshelves$(li)$(l:soulhome:multiblocks/tags#arcane)any arcane$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)Lectern",
+      "text": "Will not count without:$(li)1 of Enchanting Table$(p)Rewards, most first:$(li)Enchanting Table$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)$(l:soulhome:multiblocks/tags#arcane)any arcane$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)Lectern",
       "title": "What counts"
     },
     {
