@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -22,12 +23,18 @@ import java.util.Locale;
  *
  * <p>Reads straight off {@link LensBuffReport}, the network shape of the same
  * {@code BuffBreakdown} the chat command and the buff registry itself are built from.
+ *
+ * <p>A player carrying several buffs, each with several source rooms, produces a list nothing here
+ * bounds the length of - it wraps and scrolls rather than running off the screen (#67); see
+ * {@link ScrollableDetailPanel}.
  */
 @OnlyIn(Dist.CLIENT)
 public class SoulLensBuffsScreen extends Screen
 {
     private static final int LEFT = 14;
     private static final int TOP = 30;
+    private static final int RIGHT_MARGIN = 10;
+    private static final int BOTTOM_MARGIN = 26;
     private static final int LINE_HEIGHT = 11;
 
     private static final int COLOR_TITLE = 0xE0E0FF;
@@ -35,8 +42,11 @@ public class SoulLensBuffsScreen extends Screen
     private static final int COLOR_TEXT = 0xE0E0E0;
     private static final int COLOR_MUTED = 0xA0A0A0;
     private static final int COLOR_CAPPED = 0xFFAA00;
+    private static final int COLOR_BAR_BACK = 0xFF2A2A2E;
+    private static final int COLOR_BAR_FILL = 0xFF55AAFF;
 
     private final List<LensBuffReport> buffs;
+    private final ScrollableDetailPanel panel = new ScrollableDetailPanel();
 
     public SoulLensBuffsScreen(List<LensBuffReport> buffs)
     {
@@ -49,7 +59,7 @@ public class SoulLensBuffsScreen extends Screen
     {
         this.addRenderableWidget(Button.builder(
                         Component.translatable(Constants.StringKeys.LENS_SCREEN_CLOSE), button -> this.onClose())
-                .bounds(this.width - 90, this.height - 26, 80, 20)
+                .bounds(this.width - 90, this.height - BOTTOM_MARGIN, 80, 20)
                 .build());
     }
 
@@ -67,7 +77,36 @@ public class SoulLensBuffsScreen extends Screen
             return;
         }
 
-        int y = TOP;
+        final int right = this.width - RIGHT_MARGIN;
+        final int maxWidth = Math.max(20, right - LEFT);
+        final int bottom = this.height - BOTTOM_MARGIN;
+
+        this.panel.render(graphics, this.font, buildLines(maxWidth), LEFT, TOP, right, bottom,
+                0, COLOR_BAR_BACK, COLOR_BAR_FILL);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta)
+    {
+        final int bottom = this.height - BOTTOM_MARGIN;
+
+        if (this.panel.scroll(mouseX, mouseY, delta, LEFT, TOP, bottom))
+        {
+            return true;
+        }
+
+        return super.mouseScrolled(mouseX, mouseY, delta);
+    }
+
+    @Override
+    public boolean isPauseScreen()
+    {
+        return false;
+    }
+
+    private List<ScrollableDetailPanel.VisualLine> buildLines(int maxWidth)
+    {
+        final List<ScrollableDetailPanel.VisualLine> out = new ArrayList<>();
 
         for (LensBuffReport buff : this.buffs)
         {
@@ -78,27 +117,25 @@ public class SoulLensBuffsScreen extends Screen
                 line += " *";
             }
 
-            graphics.drawString(this.font, Component.literal(line), LEFT, y,
-                    buff.capped() ? COLOR_CAPPED : COLOR_HEADER);
-            y += LINE_HEIGHT;
+            out.addAll(wrap(Component.literal(line), 0, buff.capped() ? COLOR_CAPPED : COLOR_HEADER, maxWidth));
 
             for (LensBuffReport.Source source : buff.sources())
             {
-                graphics.drawString(this.font, Component.translatable(
+                out.addAll(wrap(Component.translatable(
                                 Constants.StringKeys.LENS_SCREEN_BUFFS_FROM,
                                 Component.translatable(source.displayName()), source.rooms(), source.bestTier()),
-                        LEFT + 6, y, COLOR_TEXT);
-                y += LINE_HEIGHT;
+                        6, COLOR_TEXT, maxWidth));
             }
 
-            y += 3;
+            out.add(ScrollableDetailPanel.VisualLine.spacer(3));
         }
+
+        return out;
     }
 
-    @Override
-    public boolean isPauseScreen()
+    private List<ScrollableDetailPanel.VisualLine> wrap(Component text, int indent, int color, int maxWidth)
     {
-        return false;
+        return ScrollableDetailPanel.wrap(this.font, text, indent, color, maxWidth, LINE_HEIGHT);
     }
 
     private static String score(double value)

@@ -8,10 +8,6 @@
     {
       "id": "irons_spellbooks:alchemist_cauldron",
       "required": false
-    },
-    {
-      "id": "irons_spellbooks:blood_cauldron",
-      "required": false
     }
   ]
 }

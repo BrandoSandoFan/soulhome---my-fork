@@ -10,7 +10,7 @@
   "signals": [
     { "match": { "block": "irons_spellbooks:scroll_forge" }, "weight": 8.0, "role": "core",    "cap": 2  },
     { "match": { "block": "irons_spellbooks:arcane_anvil" }, "weight": 5.0, "role": "forge",   "cap": 2  },
-    { "match": { "block": ["irons_spellbooks:blood_cauldron", "irons_spellbooks:alchemist_cauldron"] },
+    { "match": { "block": "irons_spellbooks:alchemist_cauldron" },
                                                              "weight": 3.0, "role": "vessel",  "cap": 4  },
     { "match": { "tag": "soulhome:arcane" },                  "weight": 2.0, "role": "arcane",  "cap": 24 },
     { "match": { "block": "irons_spellbooks:armor_pile" },    "weight": 2.0, "role": "trophy",  "cap": 8  },

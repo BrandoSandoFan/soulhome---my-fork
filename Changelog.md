@@ -267,6 +267,11 @@ Three new rooms written for mods this one does not depend on, and one door close
   fits now runs onto as many pages as it needs, up to four, and says how many were left out -
   before, a long list was drawn as far as the page went and then simply stopped, with nothing to
   say anything was missing.
+- The Ritual Chamber and the arcane tag named two blocks Iron's Spells 'n Spellbooks does not
+  actually have - `blood_cauldron` and `arcane_debris`. Neither ever crashed anything (an id from
+  an absent block simply never matches), but neither could ever count for anything either. The
+  Ritual Chamber's vessel signal now looks for the alchemist's cauldron alone, and the arcane tag
+  no longer lists a block that was never going to show up.
 
 Bookshelves
 
@@ -283,3 +288,13 @@ A shelf full of books that the game never counted.
   `soulhome:bookshelves` tag, holding both the plain and the chiseled bookshelf, and every
   archetype and the guide book point at that instead. A buff to four rooms and a fix to a fifth
   that could never have been built at all.
+
+Soul Lens screen
+
+- The Soul Lens screen no longer runs text off either edge of the window. A long archetype name,
+  a block description, an arrangement clause - anything read straight off the scan - used to be
+  drawn as one line regardless of how wide it was, so it either spilled past the right edge of the
+  screen or, with enough regions, enough signals, or enough buffs, ran off the bottom where
+  nothing could be seen or clicked. The detail panel now wraps every line to the space it has and
+  scrolls with the mouse wheel instead, with a small thumb on the right when there is more below
+  than fits. The buffs screen you get outside a soul got the same fix, for the same reason.
