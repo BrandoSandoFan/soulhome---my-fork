@@ -101,8 +101,24 @@ The bridge is three small interfaces/records:
 | `network` | sync messages: buffs, regions, archetypes, dimension list |
 | `client` | Soul Lens rendering, client-side buff hooks |
 | `commands` | `/soulhome analyse`, `/soulhome buffs` |
+| `compat` | other mods' attributes, resolved by name so none of them is a hard dependency |
 | `datagen` | the Patchouli guide book, lang, recipes, advancements. Output is committed under `src/main/generated`. |
 | `mixin` | a handful of accessors; see `soulhome.mixins.json` |
+
+---
+
+## A soul is entered with a key, and nothing else
+
+`CommonEvents#onTravelToDimension` cancels any travel into or out of a soul dimension that this mod
+did not start. Waystones is what prompted it - a warp plate inside someone's soul is a public door
+into a private dimension, and a scroll out of one skips both the exit position saved on the way in
+and the rescan on the way out - but it is written against Forge's `EntityTravelToDimensionEvent`, so
+one rule covers every teleport in the game.
+
+Our own moves are exempt because `TeleportHelper#teleportEntity` wraps them in
+`SoulTravel#asSoulTravel`. **Anything new that moves a player in or out of a soulhome has to go
+through `TeleportHelper`**, or it will be cancelled by our own guard. `dimension.restrict_travel`
+turns the rule off for a pack that wants its own way in.
 
 ---
 
@@ -157,7 +173,7 @@ touching it - it explains each decision and why the obvious alternative is worse
 ## Archetypes are data, not code
 
 `data/<namespace>/soulhome_archetypes/<name>.json`, loaded by `ArchetypeManager`, parsed by
-`ArchetypeCodecs`/`FormCodecs`. Ten ship with the mod under
+`ArchetypeCodecs`/`FormCodecs`. Thirteen ship with the mod under
 `src/main/resources/data/soulhome/soulhome_archetypes/`. A malformed archetype is logged and
 skipped; it never fails the reload.
 
@@ -177,6 +193,26 @@ Shape of one:
 Which blocks the scanner even bothers clustering around is derived from the loaded archetypes by
 `ArchetypeSignals`, so a datapack that adds an archetype gets its blocks detected with no Java
 change. Tags live in `data/soulhome/tags/blocks/`.
+
+### Rooms written for mods this one does not depend on
+
+Three of the shipped thirteen - `arcane_sanctum`, `ritual_chamber` (Iron's Spells 'n Spellbooks)
+and `workshop` (Create) - name blocks that most installs do not have. Nothing about that is a
+special case in Java, and it must not become one:
+
+- **An archetype naming a missing block is fine.** `BlockMatcher` never touches a registry, so an
+  id from an absent mod simply never matches and the room can never be awarded.
+- **A tag entry naming a missing block is not.** A vanilla block tag with an unknown id fails to
+  load *and takes the whole tag with it*, so every cross-mod entry is written
+  `{"id": ..., "required": false}`. `TagDocs` and the tag tests read both forms; the glossary lists
+  the optional ones apart, since "you may not have this" is a different promise from "this counts".
+- **`soulhome:machinery` is the seam for tech mods.** Create fills it today; another mod is a
+  datapack away from the workshop, with no Java change.
+- **A buff written against another mod's attribute goes through `compat/ModAttributes`**, which
+  resolves by `ResourceLocation` and returns an empty `Optional` when the mod is absent. Never
+  import the other mod's classes: a class reference in the constant pool is a `NoClassDefFoundError`
+  the first time anything touches the effect. `AttributeBuffEffect` handles the rest - an effect
+  with no attributes to write to does nothing, and says so once in the log at startup.
 
 ---
 

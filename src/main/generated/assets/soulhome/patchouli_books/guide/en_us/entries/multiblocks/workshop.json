@@ -1,0 +1,26 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:crafting_table",
+  "name": "Workshop",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)reach, growing with the tier, up to +1.50.$(p)Tiers begin at a score of 6."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)6 of $(l:soulhome:multiblocks/tags#machinery)any machinery$(/l)$(p)Rewards, most first:$(li)Crafting Table$(li)$(l:soulhome:multiblocks/tags#machinery)any machinery$(/l)$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)$(l:soulhome:multiblocks/tags#storage)any storage$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)any crops$(li)any beds",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Machines runs in a line, and storage is beside machines, and bench is within 5 of machines.",
+      "title": "How you arrange it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 12
+}

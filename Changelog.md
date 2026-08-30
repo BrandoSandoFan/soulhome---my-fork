@@ -228,3 +228,42 @@ Rooms that classified correctly and then did nothing.
   down to whether the ladder's footprint happened to cover the whole gap. Ladders (and vines) are
   now always a way through, the same as a torch or a carpet: the room's air flows through them
   regardless of where they are placed.
+
+Other mods
+
+Three new rooms written for mods this one does not depend on, and one door closed.
+
+- Waystones - and every other teleport in the game - can no longer carry anyone into or out of a
+  soul. A warp plate built inside a soulhome was a public door into somebody's private dimension,
+  and a return scroll used in one was a free trip home that skipped the exit position saved on the
+  way in and the rescan on the way out, so the rooms you had just finished building went uncounted
+  and the way back pointed wherever you had last used the key. Crossing a soul's boundary by any
+  means but a soul key is now refused with a line saying so. Nothing about Waystones in particular
+  is singled out: this is written against the event every cross-dimension teleport goes through,
+  so portals and other mods' warps are covered by the same rule. `dimension.restrict_travel` in
+  the server config turns it off for a pack that wants its own way in.
+- **Arcane Sanctum**, for Iron's Spells 'n Spellbooks. An inscription table with shelves gathered
+  round it, pedestals set about, somewhere to read and something to read by. Grants up to +60
+  maximum mana, in the same units the mod's own robes are measured in.
+- **Ritual Chamber**, also for Iron's Spells. A scroll forge standing on soul sand, pedestals
+  ringing it, the arcane anvil and the cauldrons to hand. Grants up to +30% spell power - the
+  general kind, so a room in your soul never decides which school of magic you are.
+- **Workshop**, for Create. Six or more machine parts, laid out as something that runs, with a
+  bench, storage against the line and an anvil to hand. Grants up to +1.5 blocks of reach, for
+  placing and for hitting alike.
+- Iron's Spells' and Create's blocks now count toward the rooms that were already here. Arcane
+  debris and pedestals read as arcane, the alchemist's and blood cauldrons as vessels, the arcane
+  anvil as smithing, armour piles as armament, firefly jars and rose quartz lamps as lighting,
+  Create's seats as seating, its vaults and toolboxes as storage, and its casings, girders and
+  framed glass as structural. This is a buff to any room already built with them: they used to
+  count for nothing at all.
+- None of this needs the mods installed, and none of it breaks without them. Every entry added to
+  a tag is optional, so a tag never fails to load; every buff finds its attribute by name at
+  runtime rather than by importing a class that may not exist; and the three rooms simply cannot
+  be reached, because each gates on a block only that mod can place. A room that grants a buff
+  with nothing to act on still classifies and still reports what it would give, and the log says
+  once, at startup, which buffs are waiting on a mod.
+- The guide book's category glossary no longer overruns its page. A tag with more entries than
+  fits now runs onto as many pages as it needs, up to four, and says how many were left out -
+  before, a long list was drawn as far as the page went and then simply stopped, with nothing to
+  say anything was missing.

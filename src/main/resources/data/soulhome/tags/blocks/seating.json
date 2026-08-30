@@ -3,6 +3,10 @@
   "values": [
     "#minecraft:stairs",
     "#minecraft:wool_carpets",
-    "#minecraft:beds"
+    "#minecraft:beds",
+    {
+      "id": "#create:seats",
+      "required": false
+    }
   ]
 }

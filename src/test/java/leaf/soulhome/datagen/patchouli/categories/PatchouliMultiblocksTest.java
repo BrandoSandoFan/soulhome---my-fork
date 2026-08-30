@@ -105,39 +105,99 @@ class PatchouliMultiblocksTest
     }
 
     @Test
-    @DisplayName("the glossary has one page per shipped soulhome: tag, anchored on its path")
-    void glossaryHasOnePagePerTag()
+    @DisplayName("every shipped soulhome: tag is anchored, and its entries are listed under it")
+    void glossaryDocumentsEveryTag()
     {
         BookStuff.Category category = new BookStuff.Category("multiblocks", "desc", "soulhome:soul_lens");
         BookStuff.Entry glossary = PatchouliMultiblocks.tagsGlossary(category);
 
         List<TagDocs.Tag> tags = TagDocs.shipped();
 
-        // one introduction page, plus one per tag
-        assertTrue(glossary.pages.length == tags.size() + 1, "expected " + (tags.size() + 1) + " pages, got " + glossary.pages.length);
+        // one introduction page, then one or more per tag: a long tag - soulhome:machinery holds
+        // every machine part Create ships - runs onto continuation pages rather than overrunning
+        // one and being silently clipped
+        assertTrue(glossary.pages.length >= tags.size() + 1,
+                "expected at least " + (tags.size() + 1) + " pages, got " + glossary.pages.length);
 
-        for (TagDocs.Tag tag : tags)
+        for (int index = 0; index < tags.size(); index++)
         {
-            boolean found = false;
+            TagDocs.Tag tag = tags.get(index);
 
-            for (BookStuff.Page page : glossary.pages)
+            int anchored = -1;
+
+            for (int page = 0; page < glossary.pages.length; page++)
             {
-                if (tag.path().equals(page.anchor))
+                if (tag.path().equals(glossary.pages[page].anchor))
                 {
-                    found = true;
-                    assertTrue(page.text.contains(tag.id()), tag.id() + "'s page does not show its own id");
-
-                    for (String value : tag.values())
-                    {
-                        assertTrue(
-                                page.text.contains(PatchouliMultiblocks.readable(value)),
-                                tag.id() + "'s page does not list " + value);
-                    }
+                    anchored = page;
+                    assertTrue(glossary.pages[page].text.contains(tag.id()),
+                            tag.id() + "'s page does not show its own id");
                 }
             }
 
-            assertTrue(found, "no glossary page anchored on " + tag.path());
+            assertTrue(anchored >= 0, "no glossary page anchored on " + tag.path());
+
+            // the tag's own run of pages: from its anchor up to the next tag's
+            final String listing = listingFrom(glossary, anchored);
+
+            for (String value : tag.allValues())
+            {
+                assertTrue(
+                        listing.contains(PatchouliMultiblocks.readable(value))
+                                || listing.contains(" more."),
+                        tag.id() + "'s pages neither list " + value + " nor say how many were left out");
+            }
         }
+    }
+
+    @Test
+    @DisplayName("an entry that needs another mod is listed apart from one that always counts")
+    void glossarySeparatesOptionalEntries()
+    {
+        // a block from a mod the player may not have is a different promise from one every game
+        // has, and a glossary that blurs the two sends someone hunting for a block their install
+        // does not contain
+        BookStuff.Category category = new BookStuff.Category("multiblocks", "desc", "soulhome:soul_lens");
+        BookStuff.Entry glossary = PatchouliMultiblocks.tagsGlossary(category);
+
+        TagDocs.Tag arcane = TagDocs.shipped().stream()
+                .filter(tag -> tag.id().equals("soulhome:arcane"))
+                .findFirst()
+                .orElseThrow();
+
+        assertFalse(arcane.optionalValues().isEmpty(), "soulhome:arcane should carry optional entries");
+
+        int anchored = -1;
+
+        for (int page = 0; page < glossary.pages.length; page++)
+        {
+            if ("arcane".equals(glossary.pages[page].anchor))
+            {
+                anchored = page;
+            }
+        }
+
+        assertTrue(anchored >= 0);
+        assertTrue(listingFrom(glossary, anchored).contains("with the mod that adds them"),
+                "the optional entries should be called out as needing a mod");
+    }
+
+    /** Everything from a tag's anchored page up to the next anchored page, as one string. */
+    private static String listingFrom(BookStuff.Entry glossary, int anchored)
+    {
+        StringBuilder listing = new StringBuilder(glossary.pages[anchored].text);
+
+        for (int page = anchored + 1; page < glossary.pages.length; page++)
+        {
+            if (glossary.pages[page].anchor != null && !glossary.pages[page].anchor.isEmpty())
+            {
+                break;
+            }
+
+            listing.append(glossary.pages[page].text);
+        }
+
+        return listing.toString();
     }
 
     @Test

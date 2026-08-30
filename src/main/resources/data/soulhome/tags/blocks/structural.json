@@ -24,6 +24,30 @@
     "#minecraft:planks",
     "#minecraft:logs",
     "minecraft:glass",
-    "minecraft:glass_pane"
+    "minecraft:glass_pane",
+    {
+      "id": "#create:casing",
+      "required": false
+    },
+    {
+      "id": "create:industrial_iron_block",
+      "required": false
+    },
+    {
+      "id": "create:andesite_alloy_block",
+      "required": false
+    },
+    {
+      "id": "create:metal_girder",
+      "required": false
+    },
+    {
+      "id": "create:framed_glass",
+      "required": false
+    },
+    {
+      "id": "create:framed_glass_pane",
+      "required": false
+    }
   ]
 }

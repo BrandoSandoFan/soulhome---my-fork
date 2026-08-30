@@ -1,0 +1,52 @@
+{
+  "display_name": "archetype.soulhome.arcane_sanctum",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "irons_spellbooks:inscription_table" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": "irons_spellbooks:inscription_table" }, "weight": 8.0, "role": "core",    "cap": 2  },
+    { "match": { "tag": "soulhome:arcane" },                      "weight": 2.0, "role": "arcane",  "cap": 24 },
+    { "match": { "tag": "minecraft:bookshelves" },                "weight": 1.5, "role": "lore",    "cap": 24 },
+    { "match": { "block": "minecraft:lectern" },                  "weight": 2.0, "role": "study",   "cap": 2  },
+    { "match": { "tag": "soulhome:lighting" },                    "weight": 1.5, "role": "light",   "cap": 16 },
+    { "match": { "tag": "soulhome:storage" },                     "weight": 1.0, "role": "storage", "cap": 8  }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "soulhome:smithing" }, "weight": -2.0 },
+    { "match": { "tag": "minecraft:crops" },   "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 8,  "tier": 1 },
+    { "min_score": 36,  "tier": 2 },
+    { "min_score": 58,  "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:max_mana", "per_tier": 20.0, "max": 60.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "study",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "table":     { "block": "irons_spellbooks:inscription_table" },
+        "pedestals": { "block": "irons_spellbooks:pedestal" },
+        "shelves":   { "tag": "minecraft:bookshelves" },
+        "candles":   { "tag": "minecraft:candles" }
+      },
+      "all": [
+        { "relation": "surrounds", "of": "shelves",   "to": "table", "min_radius": 1, "max_radius": 3, "weight": 2.0 },
+        { "relation": "at_range",  "of": "pedestals", "to": "table", "min_distance": 1, "max_distance": 4, "weight": 1.5 },
+        { "relation": "at_range",  "of": "candles",   "to": "table", "min_distance": 0, "max_distance": 4, "weight": 1.0 }
+      ]
+    }
+  ]
+}

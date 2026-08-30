@@ -61,6 +61,10 @@ public class Constants
         public static final String BUFFS_SOURCE = "message.soulhome.buffs.source";
         public static final String BUFFS_CAPPED = "message.soulhome.buffs.capped";
 
+        // Refused travel across a soul dimension's boundary (see SoulTravel). A player who has
+        // just watched a warp scroll do nothing needs to be told why, or it reads as a broken mod.
+        public static final String TRAVEL_BLOCKED = "message.soulhome.travel.blocked";
+
         public static final String LENS_HIGHLIGHTED = "message.soulhome.lens.highlighted";
         public static final String LENS_NOTHING_TO_SHOW = "message.soulhome.lens.nothing_to_show";
 

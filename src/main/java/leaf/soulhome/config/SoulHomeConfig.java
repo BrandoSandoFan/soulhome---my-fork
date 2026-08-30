@@ -80,6 +80,17 @@ public final class SoulHomeConfig
         return snapshot.enabled();
     }
 
+    /**
+     * Whether a soul dimension may only be entered and left with a soul key. See
+     * {@code SoulTravel}; the knob exists because a pack that wants its own way in - a portal
+     * block, a command, another mod's teleport - needs one, and because "my warp scroll does
+     * nothing" is a support question best answered by a line in the config.
+     */
+    public static boolean restrictSoulTravel()
+    {
+        return snapshot.restrictSoulTravel();
+    }
+
     public static ScanSettings scanSettings()
     {
         return snapshot.scan();
@@ -144,6 +155,7 @@ public final class SoulHomeConfig
      */
     private record Snapshot(
             boolean enabled,
+            boolean restrictSoulTravel,
             ScanSettings scan,
             ScoringSettings scoring,
             BuffSettings buffs,
@@ -152,6 +164,7 @@ public final class SoulHomeConfig
             int checkIntervalTicks)
     {
         private static final Snapshot DEFAULTS = new Snapshot(
+                true,
                 true,
                 ScanSettings.DEFAULTS,
                 ScoringSettings.DEFAULTS,
@@ -166,6 +179,7 @@ public final class SoulHomeConfig
             {
                 return new Snapshot(
                         SERVER.enabled.get(),
+                        SERVER.restrictSoulTravel.get(),
                         new ScanSettings(
                                 SERVER.maxRoomVolume.get(),
                                 SERVER.clusterRadius.get(),
@@ -272,9 +286,12 @@ public final class SoulHomeConfig
         private static final List<String> DEFAULT_TYPE_CAPS = List.of(
                 "soulhome:enchantment_power=6.0",
                 "soulhome:double_jump=1.0",
-                "soulhome:fire_aspect=6.0");
+                "soulhome:fire_aspect=6.0",
+                "soulhome:max_mana=60.0",
+                "soulhome:reach=2.0");
 
         public final ForgeConfigSpec.BooleanValue enabled;
+        public final ForgeConfigSpec.BooleanValue restrictSoulTravel;
 
         public final ForgeConfigSpec.DoubleValue repeatedRoomFalloff;
         public final ForgeConfigSpec.IntValue maxRoomsPerArchetype;
@@ -306,6 +323,22 @@ public final class SoulHomeConfig
 
         private Server(ForgeConfigSpec.Builder builder)
         {
+            builder.comment("Getting into and out of a soul dimension.").push("dimension");
+
+            this.restrictSoulTravel = builder
+                    .comment(
+                            "Whether a soul dimension can only be entered and left with a soul key.",
+                            "With this on, every other way across the boundary is refused: a Waystones warp plate",
+                            "built inside a soulhome, a return scroll used in one, a portal, another mod's teleport.",
+                            "They all skip the exit position saved on the way in and the rescan on the way out that",
+                            "decides what the owner's rooms are currently worth, and a warp plate in a shared soul",
+                            "is a public door into somebody's private dimension.",
+                            "Turn it off if your pack wants its own way in - and expect players to arrive in a",
+                            "soulhome with no saved way back to where they came from.")
+                    .define("restrict_travel", true);
+
+            builder.pop();
+
             builder.comment("Structures built inside a soulhome, and the buffs they grant.").push("structure_buffs");
 
             this.enabled = builder

@@ -1,0 +1,254 @@
+{
+  "_comment": "Working machinery: the parts a player assembles into something that runs. What soulhome:workshop is built out of, and empty until a mod that adds machines is installed - every entry is {\"id\": ..., \"required\": false}, so the tag loads either way and simply never matches. Create is what ships here; any other tech mod is a data pack away from a workshop of its own, with no Java change. Casings, girders and framed glass are soulhome:structural instead, and toolboxes and vaults are soulhome:storage, so a wall or a chest does not read as a machine.",
+  "replace": false,
+  "values": [
+    {
+      "id": "create:cogwheel",
+      "required": false
+    },
+    {
+      "id": "create:large_cogwheel",
+      "required": false
+    },
+    {
+      "id": "create:shaft",
+      "required": false
+    },
+    {
+      "id": "create:powered_shaft",
+      "required": false
+    },
+    {
+      "id": "create:gearbox",
+      "required": false
+    },
+    {
+      "id": "create:gearshift",
+      "required": false
+    },
+    {
+      "id": "create:clutch",
+      "required": false
+    },
+    {
+      "id": "create:sequenced_gearshift",
+      "required": false
+    },
+    {
+      "id": "create:adjustable_chain_gearshift",
+      "required": false
+    },
+    {
+      "id": "create:encased_chain_drive",
+      "required": false
+    },
+    {
+      "id": "create:rotation_speed_controller",
+      "required": false
+    },
+    {
+      "id": "create:hand_crank",
+      "required": false
+    },
+    {
+      "id": "create:water_wheel",
+      "required": false
+    },
+    {
+      "id": "create:large_water_wheel",
+      "required": false
+    },
+    {
+      "id": "create:windmill_bearing",
+      "required": false
+    },
+    {
+      "id": "create:steam_engine",
+      "required": false
+    },
+    {
+      "id": "create:flywheel",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_press",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_mixer",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_saw",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_drill",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_crafter",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_arm",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_harvester",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_plough",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_roller",
+      "required": false
+    },
+    {
+      "id": "create:millstone",
+      "required": false
+    },
+    {
+      "id": "create:crushing_wheel",
+      "required": false
+    },
+    {
+      "id": "create:deployer",
+      "required": false
+    },
+    {
+      "id": "create:encased_fan",
+      "required": false
+    },
+    {
+      "id": "create:basin",
+      "required": false
+    },
+    {
+      "id": "create:depot",
+      "required": false
+    },
+    {
+      "id": "create:blaze_burner",
+      "required": false
+    },
+    {
+      "id": "create:lit_blaze_burner",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_bearing",
+      "required": false
+    },
+    {
+      "id": "create:clockwork_bearing",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_piston",
+      "required": false
+    },
+    {
+      "id": "create:sticky_mechanical_piston",
+      "required": false
+    },
+    {
+      "id": "create:gantry_shaft",
+      "required": false
+    },
+    {
+      "id": "create:gantry_carriage",
+      "required": false
+    },
+    {
+      "id": "create:rope_pulley",
+      "required": false
+    },
+    {
+      "id": "create:belt",
+      "required": false
+    },
+    {
+      "id": "create:chute",
+      "required": false
+    },
+    {
+      "id": "create:smart_chute",
+      "required": false
+    },
+    {
+      "id": "create:andesite_funnel",
+      "required": false
+    },
+    {
+      "id": "create:brass_funnel",
+      "required": false
+    },
+    {
+      "id": "create:andesite_tunnel",
+      "required": false
+    },
+    {
+      "id": "create:brass_tunnel",
+      "required": false
+    },
+    {
+      "id": "create:portable_storage_interface",
+      "required": false
+    },
+    {
+      "id": "create:portable_fluid_interface",
+      "required": false
+    },
+    {
+      "id": "create:fluid_pipe",
+      "required": false
+    },
+    {
+      "id": "create:encased_fluid_pipe",
+      "required": false
+    },
+    {
+      "id": "create:glass_fluid_pipe",
+      "required": false
+    },
+    {
+      "id": "create:smart_fluid_pipe",
+      "required": false
+    },
+    {
+      "id": "create:fluid_valve",
+      "required": false
+    },
+    {
+      "id": "create:mechanical_pump",
+      "required": false
+    },
+    {
+      "id": "create:fluid_tank",
+      "required": false
+    },
+    {
+      "id": "create:spout",
+      "required": false
+    },
+    {
+      "id": "create:item_drain",
+      "required": false
+    },
+    {
+      "id": "create:hose_pulley",
+      "required": false
+    },
+    {
+      "id": "create:speedometer",
+      "required": false
+    },
+    {
+      "id": "create:stressometer",
+      "required": false
+    }
+  ]
+}

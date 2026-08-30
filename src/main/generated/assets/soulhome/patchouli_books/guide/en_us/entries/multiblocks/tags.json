@@ -12,19 +12,24 @@
     {
       "type": "text",
       "anchor": "alchemy_vessels",
-      "text": "$(item)soulhome:alchemy_vessels$(0)$(p)$(li)Cauldron$(li)Water Cauldron$(li)Lava Cauldron$(li)Powder Snow Cauldron$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(item)soulhome:alchemy_vessels$(0)$(p)$(li)Cauldron$(li)Water Cauldron$(li)Lava Cauldron$(li)Powder Snow Cauldron$(p)And, with the mod that adds them installed:$(li)Alchemist Cauldron$(li)Blood Cauldron$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Alchemy Vessels"
     },
     {
       "type": "text",
       "anchor": "arcane",
-      "text": "$(item)soulhome:arcane$(0)$(p)$(li)Obsidian$(li)Crying Obsidian$(li)Lapis Block$(li)Amethyst Block$(li)Budding Amethyst$(li)End Stone$(li)End Stone Bricks$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(item)soulhome:arcane$(0)$(p)$(li)Obsidian$(li)Crying Obsidian$(li)Lapis Block$(li)Amethyst Block$(li)Budding Amethyst$(li)End Stone$(li)End Stone Bricks$(p)And, with the mod that adds them installed:",
+      "title": "Arcane"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Arcane Debris$(li)Pedestal$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Arcane"
     },
     {
       "type": "text",
       "anchor": "armament",
-      "text": "$(item)soulhome:armament$(0)$(p)$(li)any banners$(li)Iron Block$(li)Iron Bars$(li)Chain$(li)Cauldron$(li)Target$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(item)soulhome:armament$(0)$(p)$(li)any banners$(li)Iron Block$(li)Iron Bars$(li)Chain$(li)Cauldron$(li)Target$(p)And, with the mod that adds them installed:$(li)Armor Pile$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Armament"
     },
     {
@@ -36,8 +41,44 @@
     {
       "type": "text",
       "anchor": "lighting",
-      "text": "$(item)soulhome:lighting$(0)$(p)$(li)any candles$(li)Torch$(li)Wall Torch$(li)Soul Torch$(li)Soul Wall Torch$(li)Lantern$(li)Soul Lantern$(li)Sea Lantern$(li)Glowstone$(li)Shroomlight$(li)End Rod$(li)any campfires$(li)Redstone Lamp$(li)Jack O Lantern$(li)Ochre Froglight$(li)Verdant Froglight$(li)Pearlescent Froglight$(li)Glow Lichen$(li)Redstone Torch$(li)Redstone Wall Torch$(li)Amethyst Cluster$(li)Small Amethyst Bud$(li)Medium Amethyst Bud$(li)Large Amethyst Bud$(li)Sea Pickle$(li)Beacon$(li)Conduit$(li)Respawn Anchor$(li)Cave Vines$(li)Cave Vines Plant$(li)Light$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(item)soulhome:lighting$(0)$(p)$(li)any candles$(li)Torch$(li)Wall Torch$(li)Soul Torch$(li)Soul Wall Torch$(li)Lantern$(li)Soul Lantern$(li)Sea Lantern",
       "title": "Lighting"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Glowstone$(li)Shroomlight$(li)End Rod$(li)any campfires$(li)Redstone Lamp$(li)Jack O Lantern$(li)Ochre Froglight$(li)Verdant Froglight$(li)Pearlescent Froglight$(li)Glow Lichen",
+      "title": "Lighting"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Redstone Torch$(li)Redstone Wall Torch$(li)Amethyst Cluster$(li)Small Amethyst Bud$(li)Medium Amethyst Bud$(li)Large Amethyst Bud$(li)Sea Pickle$(li)Beacon$(li)Conduit$(li)Respawn Anchor",
+      "title": "Lighting"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Cave Vines$(li)Cave Vines Plant$(li)Light$(p)And, with the mod that adds them installed:$(li)Firefly Jar$(li)Rose Quartz Lamp$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "title": "Lighting"
+    },
+    {
+      "type": "text",
+      "anchor": "machinery",
+      "text": "$(item)soulhome:machinery$(0)$(p)$(p)And, with the mod that adds them installed:$(li)Cogwheel$(li)Large Cogwheel$(li)Shaft$(li)Powered Shaft$(li)Gearbox$(li)Gearshift$(li)Clutch",
+      "title": "Machinery"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Sequenced Gearshift$(li)Adjustable Chain Gearshift$(li)Encased Chain Drive$(li)Rotation Speed Controller$(li)Hand Crank$(li)Water Wheel$(li)Large Water Wheel$(li)Windmill Bearing$(li)Steam Engine$(li)Flywheel",
+      "title": "Machinery"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Mechanical Press$(li)Mechanical Mixer$(li)Mechanical Saw$(li)Mechanical Drill$(li)Mechanical Crafter$(li)Mechanical Arm$(li)Mechanical Harvester$(li)Mechanical Plough$(li)Mechanical Roller$(li)Millstone",
+      "title": "Machinery"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Crushing Wheel$(li)Deployer$(li)Encased Fan$(li)Basin$(li)Depot$(li)Blaze Burner$(li)Lit Blaze Burner$(li)Mechanical Bearing$(li)Clockwork Bearing$(p)...and 26 more.$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "title": "Machinery"
     },
     {
       "type": "text",
@@ -48,25 +89,40 @@
     {
       "type": "text",
       "anchor": "seating",
-      "text": "$(item)soulhome:seating$(0)$(p)$(li)any stairs$(li)any wool carpets$(li)any beds$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(item)soulhome:seating$(0)$(p)$(li)any stairs$(li)any wool carpets$(li)any beds$(p)And, with the mod that adds them installed:$(li)any seats$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Seating"
     },
     {
       "type": "text",
       "anchor": "smithing",
-      "text": "$(item)soulhome:smithing$(0)$(p)$(li)Anvil$(li)Chipped Anvil$(li)Damaged Anvil$(li)Smithing Table$(li)Grindstone$(li)Blast Furnace$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(item)soulhome:smithing$(0)$(p)$(li)Anvil$(li)Chipped Anvil$(li)Damaged Anvil$(li)Smithing Table$(li)Grindstone$(li)Blast Furnace$(p)And, with the mod that adds them installed:$(li)Arcane Anvil$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Smithing"
     },
     {
       "type": "text",
       "anchor": "storage",
-      "text": "$(item)soulhome:storage$(0)$(p)$(li)Chest$(li)Trapped Chest$(li)Barrel$(li)Ender Chest$(li)any shulker boxes$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(item)soulhome:storage$(0)$(p)$(li)Chest$(li)Trapped Chest$(li)Barrel$(li)Ender Chest$(li)any shulker boxes$(p)And, with the mod that adds them installed:$(li)Item Vault$(li)any toolboxes$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Storage"
     },
     {
       "type": "text",
       "anchor": "structural",
-      "text": "$(item)soulhome:structural$(0)$(p)$(li)Stone$(li)Cobblestone$(li)Mossy Cobblestone$(li)Stone Bricks$(li)Mossy Stone Bricks$(li)Cracked Stone Bricks$(li)Chiseled Stone Bricks$(li)Deepslate$(li)Cobbled Deepslate$(li)Deepslate Bricks$(li)Deepslate Tiles$(li)Bricks$(li)Nether Bricks$(li)Red Nether Bricks$(li)Sandstone$(li)Red Sandstone$(li)Blackstone$(li)Quartz Block$(li)Prismarine$(li)Dark Prismarine$(li)any planks$(li)any logs$(li)Glass$(li)Glass Pane$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "text": "$(item)soulhome:structural$(0)$(p)$(li)Stone$(li)Cobblestone$(li)Mossy Cobblestone$(li)Stone Bricks$(li)Mossy Stone Bricks$(li)Cracked Stone Bricks$(li)Chiseled Stone Bricks$(li)Deepslate",
+      "title": "Structural"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Cobbled Deepslate$(li)Deepslate Bricks$(li)Deepslate Tiles$(li)Bricks$(li)Nether Bricks$(li)Red Nether Bricks$(li)Sandstone$(li)Red Sandstone$(li)Blackstone$(li)Quartz Block",
+      "title": "Structural"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Prismarine$(li)Dark Prismarine$(li)any planks$(li)any logs$(li)Glass$(li)Glass Pane$(p)And, with the mod that adds them installed:$(li)any casing$(li)Industrial Iron Block$(li)Andesite Alloy Block",
+      "title": "Structural"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Metal Girder$(li)Framed Glass$(li)Framed Glass Pane$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Structural"
     }
   ],

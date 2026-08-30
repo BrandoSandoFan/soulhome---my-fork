@@ -99,6 +99,30 @@ public final class TestBlocks
     // lighting (#45): redstone lamps were missing from soulhome:lighting entirely
     public static final TestBlock REDSTONE_LAMP = block("minecraft:redstone_lamp", Passability.BLOCKING, "soulhome:lighting");
 
+    // workshop
+    public static final TestBlock CRAFTING_TABLE = block("minecraft:crafting_table", Passability.BLOCKING);
+
+    // Blocks from mods this one does not depend on, for the three rooms written against them. Tag
+    // membership mirrors the shipped tag files, where they are optional entries - a tag entry that
+    // is allowed not to exist. The classifier neither knows nor cares which mod a block came from,
+    // so these are ordinary palette entries; what they buy is a test that the rooms actually
+    // classify, rather than three archetypes nothing has ever scored.
+    //
+    // Passability mirrors the real blocks: a workstation, a pedestal and a cogwheel all stop the
+    // fill without filling their cell, the same as a vanilla anvil or fence.
+    public static final TestBlock INSCRIPTION_TABLE = block("irons_spellbooks:inscription_table", Passability.PARTIAL);
+    public static final TestBlock SCROLL_FORGE = block("irons_spellbooks:scroll_forge", Passability.PARTIAL);
+    public static final TestBlock PEDESTAL = block("irons_spellbooks:pedestal", Passability.PARTIAL, "soulhome:arcane");
+    public static final TestBlock ARCANE_ANVIL = block("irons_spellbooks:arcane_anvil", Passability.PARTIAL, "soulhome:smithing");
+    public static final TestBlock ARMOR_PILE = block("irons_spellbooks:armor_pile", Passability.PARTIAL, "soulhome:armament");
+    public static final TestBlock ALCHEMIST_CAULDRON = block("irons_spellbooks:alchemist_cauldron", Passability.PARTIAL, "soulhome:alchemy_vessels");
+    public static final TestBlock FIREFLY_JAR = block("irons_spellbooks:firefly_jar", Passability.PARTIAL, "soulhome:lighting");
+
+    public static final TestBlock COGWHEEL = block("create:cogwheel", Passability.PARTIAL, "soulhome:machinery");
+    public static final TestBlock MECHANICAL_PRESS = block("create:mechanical_press", Passability.PARTIAL, "soulhome:machinery");
+    public static final TestBlock BELT = block("create:belt", Passability.PARTIAL, "soulhome:machinery");
+    public static final TestBlock ITEM_VAULT = block("create:item_vault", Passability.BLOCKING, "soulhome:storage");
+
     private TestBlocks()
     {
     }

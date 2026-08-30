@@ -6,6 +6,10 @@
     "minecraft:iron_bars",
     "minecraft:chain",
     "minecraft:cauldron",
-    "minecraft:target"
+    "minecraft:target",
+    {
+      "id": "irons_spellbooks:armor_pile",
+      "required": false
+    }
   ]
 }

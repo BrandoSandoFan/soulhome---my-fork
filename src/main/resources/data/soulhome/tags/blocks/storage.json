@@ -5,6 +5,14 @@
     "minecraft:trapped_chest",
     "minecraft:barrel",
     "minecraft:ender_chest",
-    "#minecraft:shulker_boxes"
+    "#minecraft:shulker_boxes",
+    {
+      "id": "create:item_vault",
+      "required": false
+    },
+    {
+      "id": "#create:toolboxes",
+      "required": false
+    }
   ]
 }
