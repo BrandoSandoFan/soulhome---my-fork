@@ -220,6 +220,14 @@ Rooms that classified correctly and then did nothing.
   your soul, it opens the same kind of screen for your buffs and where each one came from. Chat is
   back to two short lines - "looking through your soul...", "nothing here to outline yet" - and
   `/soulhome analyse` still reports in full to whoever asks it directly.
+- A ladder connecting two floors no longer splits a build into two sealed rooms of its own accord.
+  A ladder's real hitbox is a thin sliver against the wall it is mounted on, neither empty nor a
+  full cube, so it fell into the same bucket as a fence or a slab and was treated as a wall - and
+  unlike a fence, a single ladder is often the only thing standing in a one-wide shaft between
+  floors, so whether the two floors read as one connected build or two disconnected rooms came
+  down to whether the ladder's footprint happened to cover the whole gap. Ladders (and vines) are
+  now always a way through, the same as a torch or a carpet: the room's air flows through them
+  regardless of where they are placed.
 
 Other mods
 

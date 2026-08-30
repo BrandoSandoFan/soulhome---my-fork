@@ -78,6 +78,30 @@ class RegionScannerTest
     }
 
     @Test
+    @DisplayName("several different partial blocks, each closing its own gap, together seal a room")
+    void severalPartialBlocksTogetherSealTheRoom()
+    {
+        // Passability#stopsFill() answers "does this seal a space" unconditionally for PARTIAL,
+        // regardless of how many other gaps the shell has - a fence in one gap and a wall in
+        // another each seal on their own, with no need to reason about them as a pair. A room
+        // whose enclosure depends on several ambiguous blocks at once is exactly the case #62's
+        // discussion worried would need special handling; it does not.
+        List<SoulRegion> regions = scan(GridVolume.of(
+                floor(),
+                new String[]{
+                        "#F###",
+                        "#...#",
+                        "|...#",
+                        "#...#",
+                        "#####"},
+                floor()));
+
+        assertEquals(1, regions.size());
+        assertEquals(9, regions.get(0).volume());
+        assertEquals(RegionType.ENCLOSED, regions.get(0).type());
+    }
+
+    @Test
     @DisplayName("a room with a hole in the roof is not a room")
     void holeInTheRoofIsNotARoom()
     {

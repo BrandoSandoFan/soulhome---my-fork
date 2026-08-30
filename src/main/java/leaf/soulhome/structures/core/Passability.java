@@ -36,8 +36,12 @@ public enum Passability
      * they are currently open. See {@link RegionScanner} for why doors are here rather than with
      * the passable blocks.
      *
-     * <p>Seals a room exactly like {@link #BLOCKING} does. What it does not do is separate two
-     * open-air builds from each other: you can see over a fence and step across a slab.
+     * <p>Seals a room exactly like {@link #BLOCKING} does, and unconditionally: a partial block
+     * plugging the only gap in a shell is enough on its own to make the pocket behind it read as
+     * enclosed, and several partial blocks each plugging their own gap seal it together with no
+     * extra reasoning needed - {@link #stopsFill()} does not care why a room's enclosure needs it,
+     * only that it does. What it does not do is separate two open-air builds from each other: you
+     * can see over a fence and step across a slab.
      */
     PARTIAL,
 
