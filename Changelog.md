@@ -316,3 +316,25 @@ Hearth and Track
   ice around it comfortably cleared what used to be the top score. The signal weights and tier
   thresholds are now tuned so a minimal lane just clears the first tier, and the top tier wants a
   long, lit, properly-shaped track, not a lap of cheap blocks.
+
+Six new rooms
+
+Six more shapes a soul can take, each with its own block palette and its own arrangement to build
+toward.
+
+- **Cold Storage**. Ice and snow, with your barrels and chests kept in a row rather than a heap.
+  Grants up to 45% less damage from fire and lava - taken straight off the hit, not the vanilla
+  status effect, so there is nothing to cure and nothing new on the buffs bar.
+- **Shrine**. A lodestone with candles ringing it. Grants up to 40% of the experience death would
+  otherwise take from you, left behind as orbs where you fell instead of lost outright.
+- **Greenhouse**. Flowers and leaves kept behind glass, not out in the open like a farm's crops.
+  Grants up to 35% slower hunger.
+- **Treasury**. A cluster of gold, diamond, emerald or netherite blocks - no cage, no guard, just a
+  hoard kept together rather than shelved and catalogued. Grants up to a 15% chance of an extra
+  drop breaking any block, anywhere, not only inside the room.
+- **Trophy Room**. Mob heads mounted on fence posts like pikes. A zombie's or a skeleton's is worth
+  little on its own; a wither skeleton's or an ender dragon's a great deal more, and a wall of
+  several different kinds beats a wall of one kind repeated. Grants up to +10% knockback
+  resistance.
+- **Aquarium**. Every part of the room that is not a wall or a solid decoration has to be water - a
+  tank with a dry corner in it does not count. Grants up to 35% faster swimming.

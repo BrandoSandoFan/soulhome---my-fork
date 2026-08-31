@@ -1,0 +1,46 @@
+{
+  "display_name": "archetype.soulhome.greenhouse",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "tag": "minecraft:flowers" }, "min_count": 9 }
+  ],
+
+  "signals": [
+    { "match": { "tag": "minecraft:flowers" },                         "weight": 2.0, "role": "core",    "cap": 48 },
+    { "match": { "tag": "minecraft:leaves" },                          "weight": 1.0, "role": "canopy",  "cap": 32 },
+    { "match": { "block": ["minecraft:glass", "minecraft:glass_pane"] }, "weight": 1.0, "role": "glazing", "cap": 24 },
+    { "match": { "tag": "soulhome:lighting" },                         "weight": 0.5, "role": "light",   "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:crops" },   "weight": -1.0 },
+    { "match": { "tag": "soulhome:smithing" }, "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 6,   "tier": 1 },
+    { "min_score": 26,  "tier": 2 },
+    { "min_score": 40,  "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:nourished", "per_tier": 0.10, "max": 0.35 }
+  ],
+
+  "structures": [
+    {
+      "name": "glasshouse",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "glass":  { "block": ["minecraft:glass", "minecraft:glass_pane"] },
+        "flora":  { "tag": "minecraft:flowers" }
+      },
+      "all": [
+        { "shape": "soulhome:enclosure", "of": "glass", "around": "flora", "min_coverage": 0.5, "weight": 1.0 }
+      ]
+    }
+  ]
+}

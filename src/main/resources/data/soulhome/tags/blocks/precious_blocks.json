@@ -1,0 +1,11 @@
+{
+  "_comment": "Storage-block-shaped wealth, for soulhome:treasury and soulhome:shrine - deliberately not forge:storage_blocks, which also covers iron and copper and would make any respectable smithy read as a hoard.",
+  "replace": false,
+  "values": [
+    "minecraft:gold_block",
+    "minecraft:diamond_block",
+    "minecraft:emerald_block",
+    "minecraft:netherite_block",
+    "minecraft:raw_gold_block"
+  ]
+}

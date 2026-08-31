@@ -124,6 +124,31 @@ public final class TestBlocks
     public static final TestBlock BELT = block("create:belt", Passability.PARTIAL, "soulhome:machinery");
     public static final TestBlock ITEM_VAULT = block("create:item_vault", Passability.BLOCKING, "soulhome:storage");
 
+    // cold storage
+    public static final TestBlock PACKED_ICE = block("minecraft:packed_ice", Passability.BLOCKING);
+
+    // shrine
+    public static final TestBlock LODESTONE = block("minecraft:lodestone", Passability.BLOCKING);
+    public static final TestBlock CHAIN = block("minecraft:chain", Passability.PARTIAL);
+
+    // greenhouse
+    public static final TestBlock POPPY = block("minecraft:poppy", Passability.PASSABLE, "minecraft:flowers");
+    public static final TestBlock LEAVES = block("minecraft:oak_leaves", Passability.BLOCKING, "minecraft:leaves");
+
+    // treasury
+    public static final TestBlock DIAMOND_BLOCK = block("minecraft:diamond_block", Passability.BLOCKING, "soulhome:precious_blocks");
+
+    // trophy room
+    public static final TestBlock ZOMBIE_HEAD = block("minecraft:zombie_head", Passability.PARTIAL);
+    public static final TestBlock SKELETON_SKULL = block("minecraft:skeleton_skull", Passability.PARTIAL);
+    public static final TestBlock CREEPER_HEAD = block("minecraft:creeper_head", Passability.PARTIAL);
+    public static final TestBlock PIGLIN_HEAD = block("minecraft:piglin_head", Passability.PARTIAL);
+    public static final TestBlock WITHER_SKELETON_SKULL = block("minecraft:wither_skeleton_skull", Passability.PARTIAL);
+    public static final TestBlock DRAGON_HEAD = block("minecraft:dragon_head", Passability.PARTIAL);
+
+    // aquarium
+    public static final TestBlock CORAL_BLOCK = block("minecraft:tube_coral_block", Passability.BLOCKING, "minecraft:coral_blocks");
+
     private TestBlocks()
     {
     }
