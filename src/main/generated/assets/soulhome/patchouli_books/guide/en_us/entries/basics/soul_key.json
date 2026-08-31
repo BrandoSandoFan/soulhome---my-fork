@@ -2,15 +2,15 @@
   "advancement": "soulhome:main/obtained_soul_key",
   "category": "soulhome:basics",
   "icon": "soulhome:soulkey",
-  "name": "Soul Key",
+  "name": "SoulKey",
   "pages": [
     {
       "type": "text",
-      "text": "Hey, well done! You've managed to obtain the centerpiece to this mod. Now you just need to enter your soul by holding [$(k:use)]. You'll see some particles start appearing at your feet, an every widening circle showing the area of effect."
+      "text": "Well done - you've got the centrepiece of this mod. Hold [$(k:use)] and you'll see particles gathering at your feet in an ever-widening circle, showing the area that is about to travel with you."
     },
     {
       "type": "text",
-      "text": "If you hold [$(k:use)] for the full duration, you and all other entities within the circle will be transported to your soul. This is how you'd bring friends and livestock into your soul."
+      "text": "Hold [$(k:use)] for the full duration and you, along with everything else inside the circle, are carried into your soul. This is how you'd bring friends and livestock along."
     },
     {
       "type": "patchouli:crafting",

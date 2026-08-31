@@ -11,6 +11,7 @@ import leaf.soulhome.datagen.patchouli.categories.data.BookStuff;
 import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.TagDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
+import leaf.soulhome.structures.core.BlockMatcher;
 import leaf.soulhome.structures.core.Form;
 import leaf.soulhome.structures.core.RegionType;
 import leaf.soulhome.structures.core.SoulBuffTypes;
@@ -35,7 +36,11 @@ import java.util.Optional;
  */
 public class PatchouliMultiblocks
 {
-    /** Everything here is readable once you have been inside your own soul. */
+    /**
+     * Most entries are readable as soon as you have been inside your own soul - the whole point
+     * of a guide is to say what to build before you have built it. {@link #entryFor} does not use
+     * this for an archetype {@link #needsAnotherMod} rules out.
+     */
     private static final String ADVANCEMENT = "soulhome:main/entered_soul_dimension";
 
     /** How many signals a page lists before it stops being a hint and starts being a checklist. */
@@ -111,7 +116,7 @@ public class PatchouliMultiblocks
      * One archetype's page, written from its definition: what it insists on, what it rewards, and
      * what it gives back.
      */
-    private static BookStuff.Entry entryFor(BookStuff.Category category, ArchetypeDefinition archetype, int sortnum)
+    static BookStuff.Entry entryFor(BookStuff.Category category, ArchetypeDefinition archetype, int sortnum)
     {
         final String path = ArchetypeDocs.pathOf(archetype);
 
@@ -123,10 +128,84 @@ public class PatchouliMultiblocks
         arrangementPage(archetype).ifPresent(pages::add);
 
         entry.sortnum = sortnum;
-        entry.advancement = ADVANCEMENT;
+        //an archetype only another mod can ever satisfy is gated behind classifying one, which an
+        //install without that mod can never do - see needsAnotherMod
+        entry.advancement = needsAnotherMod(archetype) ? "soulhome:main/" + path : ADVANCEMENT;
         entry.pages = pages.toArray(BookStuff.Page[]::new);
 
         return entry;
+    }
+
+    /**
+     * True if at least one of the archetype's hard requirements can never be met without another
+     * mod - the three rooms written for Iron's Spells and Create (see {@code CLAUDE.md}) are the
+     * shipped examples, but nothing here names them: this reads the same block and tag data the
+     * classifier itself reads, so a datapack's own compat archetype is covered for free.
+     *
+     * <p>Such an archetype can never be classified on an install that lacks the mod, so its
+     * {@code soulhome:main/&lt;archetype&gt;} advancement - built for every archetype in
+     * {@code MainAdvancements}, whether or not the mod exists - can never be earned either. Gating
+     * the entry behind that advancement instead of the usual "you have entered your soul" one is
+     * what actually keeps the page from ever appearing in a book that mod cannot see; naming this
+     * one is the piece that was missing before, and every entry silently used the same advancement.
+     */
+    static boolean needsAnotherMod(ArchetypeDefinition archetype)
+    {
+        for (ArchetypeDefinition.Requirement requirement : archetype.requirements())
+        {
+            if (unsatisfiableWithoutAnotherMod(requirement.match()))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A requirement is unsatisfiable without another mod only if <i>every</i> block or tag it would
+     * accept needs one - a matcher that also takes a vanilla block, or a tag with even one vanilla
+     * member, can still be met on its own.
+     */
+    private static boolean unsatisfiableWithoutAnotherMod(BlockMatcher matcher)
+    {
+        for (String block : matcher.blocks())
+        {
+            if (block.startsWith("minecraft:"))
+            {
+                return false;
+            }
+        }
+
+        for (String tag : matcher.tags())
+        {
+            if (!isModOnlyTag(tag))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * True for one of this mod's own tags that, today, has nothing but entries {@link TagDocs}
+     * marks optional - {@code soulhome:machinery} is entirely Create's blocks, for instance. A
+     * vanilla or Forge tag is never treated as mod-only here: this mod does not ship its contents,
+     * so there is no local way to know, and assuming the worst would hide an entry that should not
+     * be hidden.
+     */
+    private static boolean isModOnlyTag(String tagId)
+    {
+        for (TagDocs.Tag tag : TagDocs.shipped())
+        {
+            if (tag.id().equals(tagId))
+            {
+                return tag.values().isEmpty() && !tag.optionalValues().isEmpty();
+            }
+        }
+
+        return false;
     }
 
     /**

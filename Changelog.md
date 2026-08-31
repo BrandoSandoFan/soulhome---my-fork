@@ -338,3 +338,20 @@ toward.
   resistance.
 - **Aquarium**. Every part of the room that is not a wall or a solid decoration has to be water - a
   tank with a dry corner in it does not count. Grants up to 35% faster swimming.
+
+Guide book polish
+
+- The Arcane Sanctum, Ritual Chamber and Workshop pages no longer show up in the guide book on an
+  install that does not have Iron's Spells 'n Spellbooks or Create. Every room page was gated
+  behind the same "you have entered your soul" advancement, including the three written for
+  another mod's blocks, so a vanilla player could read all about a room they could never build.
+  Those three are now gated behind classifying one instead, which an install without the mod can
+  never do - so the page only appears once it can actually be built, on any install, not just the
+  three shipped this way.
+- The basics chapter no longer reads like a developer's diary. The welcome page dropped a
+  reference to another mod the book had no business mentioning and a "more exciting stuff coming"
+  line that had gone stale; the "entering your soul" pages lost a couple of asides that broke the
+  book's own voice. A widening circle of travel particles is now spelled correctly, and a doubled
+  paragraph break in the Bound Soulkey page is gone.
+- The Bound Soulkey's own page was titled "Personal Soul Key" - a name the item itself has never
+  had. It now reads "Bound Soulkey" everywhere the book names it, matching the item.

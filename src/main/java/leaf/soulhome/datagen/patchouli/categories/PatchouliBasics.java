@@ -24,9 +24,9 @@ public class PatchouliBasics
         BookStuff.Entry welcomeEntry = new BookStuff.Entry("welcome", basics, basics.icon);
         welcomeEntry.pages = new BookStuff.Page[]
                 {
-                    new BookStuff.TextPage("Hey, thanks for checking out this mod! It came about from my love of the $(item)Spectre Key$(0) from $(thing)RandomThings$(0). $(p)The idea of having a safe area in a different dimension that you could go to and come back from was very appealing. "),
-                    new BookStuff.TextPage("This current iteration of SoulHome is very basic, with a low barrier of entry on purpose. $(p)There's some exciting stuff coming in future versions though, so I hope you'll stick around!"),
-                    new BookStuff.TextPage("If you still aren't sure where to start, this book (as well as advancements) should help you find what the next step is. The book is set up to unlock new entries with every advancement completed.$(p) $(p)For now though, here's a tip:"),
+                    new BookStuff.TextPage("Your soul is a private dimension of your own - somewhere you can go, and always come back from.$(p)Nothing you build there is just for show. What you make of it changes what you can do out here."),
+                    new BookStuff.TextPage("There is no long setup. Craft a $(item)SoulKey$(0), step through it, and everything else grows from what you build inside."),
+                    new BookStuff.TextPage("If you still aren't sure where to start, this book (as well as advancements) should help you find what the next step is. The book is set up to unlock new entries with every advancement completed.$(p)For now though, here's a tip:"),
                     new BookStuff.CraftingPage("All you need is a little bit of iron and an ender pearl", "soulhome:soulkey").setTitle("SoulKey"),
                 };
         welcomeEntry.priority = true;
@@ -43,36 +43,38 @@ public class PatchouliBasics
         entries.add(bookEntry);
 
         BookStuff.Entry soulkeyEntry = new BookStuff.Entry("soul_key", basics, "soulhome:soulkey");
+        soulkeyEntry.setDisplayTitle("SoulKey");
         soulkeyEntry.sortnum = 3;
         soulkeyEntry.advancement = "soulhome:main/obtained_soul_key";
         soulkeyEntry.turnin = "soulhome:main/obtained_soul_key";
         soulkeyEntry.pages = new BookStuff.Page[]
                 {
-                        new BookStuff.TextPage("Hey, well done! You've managed to obtain the centerpiece to this mod. Now you just need to enter your soul by holding [$(k:use)]. You'll see some particles start appearing at your feet, an every widening circle showing the area of effect."),
-                        new BookStuff.TextPage("If you hold [$(k:use)] for the full duration, you and all other entities within the circle will be transported to your soul. This is how you'd bring friends and livestock into your soul."),
+                        new BookStuff.TextPage("Well done - you've got the centrepiece of this mod. Hold [$(k:use)] and you'll see particles gathering at your feet in an ever-widening circle, showing the area that is about to travel with you."),
+                        new BookStuff.TextPage("Hold [$(k:use)] for the full duration and you, along with everything else inside the circle, are carried into your soul. This is how you'd bring friends and livestock along."),
                         new BookStuff.CraftingPage("All you need is a little bit of iron and an ender pearl", "soulhome:soulkey").setTitle("SoulKey"),
 
                 };
         entries.add(soulkeyEntry);
 
         BookStuff.Entry personalSoulKey = new BookStuff.Entry("personal_soul_key", basics, "soulhome:personal_soulkey");
-        personalSoulKey.sortnum = 3;
+        personalSoulKey.setDisplayTitle("Bound Soulkey");
+        personalSoulKey.sortnum = 4;
         personalSoulKey.advancement = "soulhome:main/obtained_soul_key";
         personalSoulKey.turnin = "soulhome:main/obtained_soul_key";
         personalSoulKey.pages = new BookStuff.Page[]
                 {
-                        new BookStuff.TextPage("What if you have friends that you want to have access to your soul. Sounds dangerous to me, but hey, no judgement. $(p)$(p)Just like the other, hold [$(k:use)] for the full duration, you and all other entities within the circle will be transported to the soul that the key is set for."),
-                        new BookStuff.CraftingPage("Similar to the standard key, except you use an ender eye.", "soulhome:personal_soulkey").setTitle("SoulKey"),
+                        new BookStuff.TextPage("Want to let someone else in? A Bound Soulkey is set to a particular soul rather than your own, so you can hand it to a friend.$(p)Just like the standard key, hold [$(k:use)] for the full duration and everything within the circle travels to the soul the key is bound to."),
+                        new BookStuff.CraftingPage("Similar to the standard key, except you use an ender eye.", "soulhome:personal_soulkey").setTitle("Bound Soulkey"),
                 };
         entries.add(personalSoulKey);
 
         BookStuff.Entry enteredSoul = new BookStuff.Entry("soul", basics, basics.icon);
-        enteredSoul.sortnum = 4;
+        enteredSoul.sortnum = 5;
         enteredSoul.turnin = "soulhome:main/entered_soul_dimension";
         enteredSoul.advancement = "soulhome:main/obtained_soul_key";
         enteredSoul.pages = new BookStuff.Page[]
                 {
-                        new BookStuff.TextPage("Woo! Welcome to your soul. $(p)Kinda empty, isn't it? I wonder what that says about you, huh. $(p)So fill it. Build rooms in here and you'll carry what they mean out there - see $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."),
+                        new BookStuff.TextPage("Welcome to your soul. $(p)Kinda empty, isn't it? So fill it. Build rooms in here and you'll carry what they mean out there - see $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."),
                 };
         entries.add(enteredSoul);
 
