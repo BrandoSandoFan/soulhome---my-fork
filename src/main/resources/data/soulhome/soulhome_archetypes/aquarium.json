@@ -1,0 +1,47 @@
+{
+  "display_name": "archetype.soulhome.aquarium",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:water" }, "min_count": 27, "min_volume_fraction": 1.0 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:water" },        "weight": 2.0, "role": "core",    "cap": 64 },
+    { "match": { "tag": "minecraft:coral_blocks" },   "weight": 2.5, "role": "reef",    "cap": 24 },
+    { "match": { "block": ["minecraft:glass", "minecraft:glass_pane"] },
+                                                       "weight": 1.0, "role": "viewing", "cap": 24 },
+    { "match": { "tag": "soulhome:lighting" },        "weight": 0.5, "role": "light",   "cap": 16 }
+  ],
+
+  "detractors": [
+    { "match": { "block": "minecraft:lava" }, "weight": -3.0 },
+    { "match": { "tag": "minecraft:crops" },  "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 8,   "tier": 1 },
+    { "min_score": 32,  "tier": 2 },
+    { "min_score": 48,  "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:swim_speed", "per_tier": 0.10, "max": 0.35 }
+  ],
+
+  "structures": [
+    {
+      "name": "reef_display",
+      "weight": 3.0,
+      "role": "arrangement",
+      "elements": {
+        "reef":    { "tag": "minecraft:coral_blocks" },
+        "viewing": { "block": ["minecraft:glass", "minecraft:glass_pane"] }
+      },
+      "all": [
+        { "relation": "within", "of": "reef", "to": "viewing", "max_distance": 4, "weight": 1.0 }
+      ]
+    }
+  ]
+}

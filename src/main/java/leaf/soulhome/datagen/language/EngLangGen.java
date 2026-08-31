@@ -184,6 +184,12 @@ public class EngLangGen extends LanguageProvider
         add("buff.soulhome.max_mana", "Maximum mana");
         add("buff.soulhome.spell_power", "Spell power");
         add("buff.soulhome.reach", "Reach");
+        add("buff.soulhome.fire_resistance", "Fire damage reduction");
+        add("buff.soulhome.soul_ember", "Experience kept on death");
+        add("buff.soulhome.nourished", "Slower hunger");
+        add("buff.soulhome.fortune", "Bonus drops");
+        add("buff.soulhome.knockback_resistance", "Knockback resistance");
+        add("buff.soulhome.swim_speed", "Swim speed");
 
         //Archetypes. These are the 'display_name' keys the shipped archetype JSON names
         add("archetype.soulhome.farm", "Farm");
@@ -199,6 +205,12 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.arcane_sanctum", "Arcane Sanctum");
         add("archetype.soulhome.ritual_chamber", "Ritual Chamber");
         add("archetype.soulhome.workshop", "Workshop");
+        add("archetype.soulhome.cold_storage", "Cold Storage");
+        add("archetype.soulhome.shrine", "Shrine");
+        add("archetype.soulhome.greenhouse", "Greenhouse");
+        add("archetype.soulhome.treasury", "Treasury");
+        add("archetype.soulhome.trophy_room", "Trophy Room");
+        add("archetype.soulhome.aquarium", "Aquarium");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -270,6 +282,24 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.ritual_chamber.description", "Set a room in your soul aside for the work spells are made in.");
         add("advancements.soulhome.workshop.title", "Everything To Hand");
         add("advancements.soulhome.workshop.description", "Fill a room in your soul with working machinery.");
+
+        add("advancements.soulhome.cold_storage.title", "On Ice");
+        add("advancements.soulhome.cold_storage.description", "Keep a room in your soul cold enough that fire and lava barely touch you.");
+
+        add("advancements.soulhome.shrine.title", "Ember Kept");
+        add("advancements.soulhome.shrine.description", "Raise a shrine in your soul that holds a little of what death would take.");
+
+        add("advancements.soulhome.greenhouse.title", "Green Thumb");
+        add("advancements.soulhome.greenhouse.description", "Grow a greenhouse in your soul lush enough to keep you fed longer.");
+
+        add("advancements.soulhome.treasury.title", "Ill-Gotten");
+        add("advancements.soulhome.treasury.description", "Stock a treasury in your soul rich enough to draw a little extra from the ground.");
+
+        add("advancements.soulhome.trophy_room.title", "Mounted");
+        add("advancements.soulhome.trophy_room.description", "Hang enough of what you've beaten on the wall of your soul to stand your ground.");
+
+        add("advancements.soulhome.aquarium.title", "Deep End");
+        add("advancements.soulhome.aquarium.description", "Flood a room in your soul until it is an aquarium, and swim like you belong there.");
 
         //misc
 

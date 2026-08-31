@@ -145,6 +145,13 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
         archetypeAdvancement(advancementConsumer, roomAdvancement, "arcane_sanctum", Items.LAPIS_LAZULI);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "ritual_chamber", Items.SOUL_LANTERN);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "workshop", Items.PISTON);
+
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "cold_storage", Items.PACKED_ICE);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "shrine", Items.LODESTONE);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "greenhouse", Items.POPPY);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "treasury", Items.DIAMOND_BLOCK);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "trophy_room", Items.WITHER_SKELETON_SKULL);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "aquarium", Items.TROPICAL_FISH_BUCKET);
     }
 
     /**
