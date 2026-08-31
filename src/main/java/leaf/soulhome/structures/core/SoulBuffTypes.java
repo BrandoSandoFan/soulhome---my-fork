@@ -73,11 +73,30 @@ public final class SoulBuffTypes
     /** Workshop: extra reach in blocks, for placing and for hitting alike. */
     public static final String REACH = "soulhome:reach";
 
+    /** Cold storage: less damage taken from fire and lava, as a fraction of the hit. */
+    public static final String FIRE_RESISTANCE = "soulhome:fire_resistance";
+
+    /** Shrine: experience kept on death that would otherwise be lost, as a fraction of it. */
+    public static final String SOUL_EMBER = "soulhome:soul_ember";
+
+    /** Greenhouse: hunger builds up slower, as a fraction of the exhaustion it would otherwise cost. */
+    public static final String NOURISHED = "soulhome:nourished";
+
+    /** Treasury: a chance of an extra drop when breaking a block, as a fraction chance. */
+    public static final String FORTUNE = "soulhome:fortune";
+
+    /** Trophy room: harder to knock back, as a fraction added to the player's own resistance. */
+    public static final String KNOCKBACK_RESISTANCE = "soulhome:knockback_resistance";
+
+    /** Aquarium: faster swimming, as a fraction of the player's own swim speed. */
+    public static final String SWIM_SPEED = "soulhome:swim_speed";
+
     public static final Set<String> BUILT_IN =
             Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
                     POTION_DURATION, HEALING, MINING_SPEED,
                     SPEED, DOUBLE_JUMP, FALL_PROTECTION, FIRE_ASPECT,
-                    MAX_MANA, SPELL_POWER, REACH);
+                    MAX_MANA, SPELL_POWER, REACH,
+                    FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, SWIM_SPEED);
 
     /**
      * Types measured as a flat amount rather than a proportion: a count of jumps, a number of

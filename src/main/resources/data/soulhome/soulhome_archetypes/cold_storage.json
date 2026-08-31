@@ -1,0 +1,47 @@
+{
+  "display_name": "archetype.soulhome.cold_storage",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": ["minecraft:packed_ice", "minecraft:blue_ice", "minecraft:snow_block"] }, "min_count": 4 }
+  ],
+
+  "signals": [
+    { "match": { "block": ["minecraft:packed_ice", "minecraft:blue_ice", "minecraft:snow_block"] },
+                                                        "weight": 3.0, "role": "cold",    "cap": 24 },
+    { "match": { "block": "minecraft:powder_snow" },   "weight": 1.0, "role": "cold",    "cap": 8  },
+    { "match": { "tag": "soulhome:storage" },          "weight": 2.5, "role": "storage", "cap": 16 },
+    { "match": { "tag": "soulhome:lighting" },         "weight": 1.0, "role": "light",   "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "block": "minecraft:lava" },        "weight": -2.0 },
+    { "match": { "block": "minecraft:magma_block" }, "weight": -1.5 },
+    { "match": { "block": ["minecraft:furnace", "minecraft:campfire", "minecraft:soul_campfire"] }, "weight": -1.5 }
+  ],
+
+  "tiers": [
+    { "min_score": 6,   "tier": 1 },
+    { "min_score": 26,  "tier": 2 },
+    { "min_score": 40,  "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:fire_resistance", "per_tier": 0.15, "max": 0.45 }
+  ],
+
+  "structures": [
+    {
+      "name": "storage_row",
+      "weight": 4.0,
+      "role": "arrangement",
+      "elements": {
+        "storage": { "tag": "soulhome:storage" }
+      },
+      "all": [
+        { "shape": "soulhome:line", "of": "storage", "min_run": 4, "ideal_run": 8, "weight": 1.0 }
+      ]
+    }
+  ]
+}

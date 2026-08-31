@@ -1,0 +1,36 @@
+{
+  "parent": "soulhome:main/first_room",
+  "criteria": {
+    "classified_room": {
+      "conditions": {
+        "archetype": "soulhome:trophy_room",
+        "min_tier": 1
+      },
+      "trigger": "soulhome:classified_room"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.soulhome.trophy_room.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "minecraft:wither_skeleton_skull"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.soulhome.trophy_room.title"
+    }
+  },
+  "requirements": [
+    [
+      "classified_room"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}
