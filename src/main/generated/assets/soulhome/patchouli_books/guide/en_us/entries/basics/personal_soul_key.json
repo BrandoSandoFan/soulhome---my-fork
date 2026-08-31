@@ -2,22 +2,22 @@
   "advancement": "soulhome:main/obtained_soul_key",
   "category": "soulhome:basics",
   "icon": "soulhome:personal_soulkey",
-  "name": "Personal Soul Key",
+  "name": "Bound Soulkey",
   "pages": [
     {
       "type": "text",
-      "text": "What if you have friends that you want to have access to your soul. Sounds dangerous to me, but hey, no judgement. $(p)$(p)Just like the other, hold [$(k:use)] for the full duration, you and all other entities within the circle will be transported to the soul that the key is set for."
+      "text": "Want to let someone else in? A Bound Soulkey is set to a particular soul rather than your own, so you can hand it to a friend.$(p)Just like the standard key, hold [$(k:use)] for the full duration and everything within the circle travels to the soul the key is bound to."
     },
     {
       "type": "patchouli:crafting",
       "recipe": "soulhome:personal_soulkey",
       "text": "Similar to the standard key, except you use an ender eye.",
-      "title": "SoulKey"
+      "title": "Bound Soulkey"
     }
   ],
   "priority": false,
   "read_by_default": false,
   "secret": false,
-  "sortnum": 3,
+  "sortnum": 4,
   "turnin": "soulhome:main/obtained_soul_key"
 }
