@@ -50,12 +50,10 @@ public class FireAspectEffect implements SoulBuffEffect
             return;
         }
 
-        final int seconds = (int) Math.round(magnitudeFor(player));
-
-        if (seconds <= 0)
-        {
-            return;
-        }
+        // appliesTo() already guarantees magnitudeFor(player) > 0, but a bare-minimum hearth ramps
+        // in at entryFraction of the buff's max (e.g. 0.6s) - round that down to a burn time so
+        // short it reads as no fire at all. Floor it at 1 so a starting hearth always lands a tick.
+        final int seconds = Math.max(1, (int) Math.round(magnitudeFor(player)));
 
         event.getEntity().setSecondsOnFire(seconds);
     }

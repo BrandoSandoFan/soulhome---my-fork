@@ -467,7 +467,7 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:hearth", TestBlocks.FURNACE),
                 Map.entry("soulhome:library", TestBlocks.BOOKSHELF),
                 Map.entry("soulhome:mine", TestBlocks.ORE),
-                Map.entry("soulhome:track", TestBlocks.RAIL),
+                Map.entry("soulhome:track", TestBlocks.FENCE),
                 Map.entry("soulhome:training_yard", TestBlocks.SLIME_BLOCK),
                 Map.entry("soulhome:arcane_sanctum", TestBlocks.INSCRIPTION_TABLE),
                 Map.entry("soulhome:ritual_chamber", TestBlocks.SCROLL_FORGE),
@@ -1114,35 +1114,24 @@ class ArchetypeClassifierTest
                 SLAB);
     }
 
+    /** A track's own floor/ceiling - wider than {@link #SLAB} so two fence lines fit with a lane between. */
+    private static final String[] TRACK_SLAB = {
+            "#############", "#############", "#############"};
+
+    /**
+     * Two straight fence lines with a one-lane gap between them - #73's redesign away from a rail
+     * loop with ice underneath. Not a loop: {@code min_group_cells} on {@code soulhome:lane} only
+     * needs the two lines to be real lines, and this canonical build is a straight sprint, not a
+     * circuit, so it earns the {@code lane} structure but not the {@code circuit} bonus.
+     */
     private static GridVolume track()
     {
-        return GridVolume.of(
-                SLAB,
-                new String[]{
-                        "#FFFFF#",
-                        "#=====#",
-                        "#.....#",
-                        "#=====#",
-                        "#.....#",
-                        "#=====#",
-                        "#FFFFF#"},
-                new String[]{
-                        "#FFFFF#",
-                        "#I...I#",
-                        "#.....#",
-                        "#..h..#",
-                        "#.....#",
-                        "#I...I#",
-                        "#FFFFF#"},
-                new String[]{
-                        "#######",
-                        "#c...c#",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#c...c#",
-                        "#######"},
-                SLAB);
+        String[] lane = {
+                "#FFFFFFFFFFF#",
+                "#.....c.....#",
+                "#FFFFFFFFFFF#"};
+
+        return GridVolume.of(TRACK_SLAB, lane, lane, lane, TRACK_SLAB);
     }
 
     private static GridVolume trainingYard()
