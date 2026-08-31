@@ -215,15 +215,6 @@ public class EngLangGen extends LanguageProvider
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
 
-        add("category.basics", "Basics");
-        add("category.multiblock", "Multiblocks");
-
-        add("entry.welcome", "Welcome");
-        add("entry.soul", "Soul");
-        add("entry.soul_key", "SoulKey");
-        add("entry.guide", "Guide");
-
-
         //KeyBindings
         add(Constants.StringKeys.KEYS_CATEGORY, "SoulHome");
         add(Constants.StringKeys.KEY_SOUL_CHARGE, "Charge Key To Transport");
