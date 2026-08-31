@@ -298,3 +298,21 @@ Soul Lens screen
   nothing could be seen or clicked. The detail panel now wraps every line to the space it has and
   scrolls with the mouse wheel instead, with a small thumb on the right when there is more below
   than fits. The buffs screen you get outside a soul got the same fix, for the same reason.
+
+Hearth and Track
+
+- A brand-new hearth - one furnace or campfire, nothing else - now reliably sets its target on
+  fire. The buff ramps in gently from an archetype's own first tier, and a bare-minimum hearth was
+  landing well under half a second of burn: rounded to whole seconds, that could come out to
+  nothing at all, so a hit from a starting hearth sometimes lit nothing. Fire Aspect now always
+  grants at least one second once the buff is active, whatever the exact ramp gives underneath it.
+- The Track archetype no longer wants minecart rails with ice glued underneath them - a shape that
+  read as a minecart line, not something a player runs on. It is now built around two separate
+  fence lines with a gap of one to three blocks between them: the lane a player actually runs
+  through. A single fence loop still scores as a bonus if the lane curves into a real circuit, and
+  rails and ice/hay are now optional flavour on top rather than the point of the room. Fence gates
+  count as fence everywhere this applies, so a gate in the line does not split it in two.
+- Track was also far too easy to push to its top tier - a single loop of rail with some fence and
+  ice around it comfortably cleared what used to be the top score. The signal weights and tier
+  thresholds are now tuned so a minimal lane just clears the first tier, and the top tier wants a
+  long, lit, properly-shaped track, not a lap of cheap blocks.

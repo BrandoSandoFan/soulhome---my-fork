@@ -5,15 +5,14 @@
   "min_volume": 27,
 
   "requirements": [
-    { "match": { "tag": "minecraft:rails" }, "min_count": 8 }
+    { "match": { "tag": ["minecraft:fences", "minecraft:fence_gates"] }, "min_count": 16 }
   ],
 
   "signals": [
-    { "match": { "tag": "minecraft:rails" },  "weight": 3.0, "role": "track",    "cap": 32 },
-    { "match": { "tag": "minecraft:fences" }, "weight": 1.5, "role": "boundary", "cap": 24 },
-    { "match": { "block": "minecraft:hay_block" }, "weight": 2.0, "role": "surface", "cap": 16 },
-    { "match": { "block": ["minecraft:ice", "minecraft:packed_ice", "minecraft:blue_ice"] }, "weight": 1.5, "role": "surface", "cap": 16 },
-    { "match": { "tag": "soulhome:lighting" }, "weight": 0.5, "role": "light",    "cap": 16 }
+    { "match": { "tag": ["minecraft:fences", "minecraft:fence_gates"] }, "weight": 1.0, "role": "boundary", "cap": 60 },
+    { "match": { "tag": "soulhome:lighting" }, "weight": 0.5, "role": "light",   "cap": 16 },
+    { "match": { "block": ["minecraft:ice", "minecraft:packed_ice", "minecraft:blue_ice", "minecraft:hay_block"] }, "weight": 0.4, "role": "surface", "cap": 8 },
+    { "match": { "tag": "minecraft:rails" }, "weight": 0.3, "role": "accent", "cap": 6 }
   ],
 
   "detractors": [
@@ -22,9 +21,9 @@
   ],
 
   "tiers": [
-    { "min_score": 8,   "tier": 1 },
-    { "min_score": 35,  "tier": 2 },
-    { "min_score": 56,  "tier": 3 }
+    { "min_score": 4,   "tier": 1 },
+    { "min_score": 14,  "tier": 2 },
+    { "min_score": 26,  "tier": 3 }
   ],
 
   "buffs": [
@@ -33,33 +32,26 @@
 
   "structures": [
     {
-      "name": "circuit",
+      "name": "lane",
       "weight": 6.0,
       "role": "arrangement",
       "elements": {
-        "rails":   { "tag": "minecraft:rails" },
-        "surface": { "block": ["minecraft:ice", "minecraft:packed_ice", "minecraft:blue_ice", "minecraft:hay_block"] }
+        "fences": { "tag": ["minecraft:fences", "minecraft:fence_gates"] }
       },
       "all": [
-        { "shape": "soulhome:loop", "of": "rails", "min_cells": 12, "ideal_cells": 32, "weight": 2.0 },
-        { "any": [
-            { "relation": "above",     "of": "rails",   "to": "surface" },
-            { "relation": "surrounds", "of": "surface", "to": "rails" },
-            { "relation": "inside",    "of": "surface", "to": "rails" }
-          ], "weight": 1.0 }
+        { "shape": "soulhome:lane", "of": "fences", "min_distance": 1, "max_distance": 3, "min_group_cells": 6, "weight": 1.0 }
       ]
     },
     {
-      "name": "trackside",
-      "weight": 2.0,
+      "name": "circuit",
+      "weight": 3.0,
       "role": "arrangement",
       "elements": {
-        "fences": { "tag": "minecraft:fences" },
-        "rails":  { "tag": "minecraft:rails" }
+        "fences": { "tag": ["minecraft:fences", "minecraft:fence_gates"] }
       },
-      "relation": "beside",
-      "of": "fences",
-      "to": "rails"
+      "all": [
+        { "shape": "soulhome:loop", "of": "fences", "min_cells": 12, "ideal_cells": 40, "weight": 1.0 }
+      ]
     }
   ]
 }
