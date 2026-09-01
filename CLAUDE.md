@@ -100,10 +100,11 @@ The bridge is three small interfaces/records:
 | `feedback` | `SoulReport` (chat text for `/soulhome analyse`) and `RegionHighlight` (lens boxes) |
 | `network` | sync messages: buffs, regions, archetypes, dimension list |
 | `client` | Soul Lens rendering, client-side buff hooks |
-| `commands` | `/soulhome analyse`, `/soulhome buffs` |
+| `commands` | `/soulhome analyse`, `/soulhome buffs`, `/soulhome ascent` |
 | `compat` | other mods' attributes, resolved by name so none of them is a hard dependency |
 | `datagen` | the Patchouli guide book, lang, recipes, advancements. Output is committed under `src/main/generated`. |
 | `mixin` | a handful of accessors; see `soulhome.mixins.json` |
+| `handlers` | Forge event listeners: `CommonEvents` (the travel guard below), `StructureEvents` (scan triggers), `SoulBoundsEnforcement` (the box, below) |
 
 ---
 
@@ -119,6 +120,29 @@ Our own moves are exempt because `TeleportHelper#teleportEntity` wraps them in
 `SoulTravel#asSoulTravel`. **Anything new that moves a player in or out of a soulhome has to go
 through `TeleportHelper`**, or it will be cancelled by our own guard. `dimension.restrict_travel`
 turns the rule off for a pack that wants its own way in.
+
+---
+
+## The Ascent epic: a soulhome is a box, not an unbounded void
+
+`SoulBounds` (`structures/core`, Minecraft-free) is a floor, a ceiling and a square verge, sized by
+ascension rank via `SoulBounds.forRank`. The floor is exactly as load-bearing as the ceiling: in a
+void dimension a player denied a second storey just builds one downward instead, so both ends are
+enforced. `DEFAULT_FLOOR_Y` is **70**, matching `DimensionHelper.FLOOR_LEVEL` - the two are not
+linked in code (this package cannot import Minecraft), so keep them in sync by hand if either
+changes.
+
+`handlers/SoulBoundsEnforcement` refuses placement outside the box - block placement, bucket use and
+piston extension are each checked at the destination rather than the source, since that is the
+cheapest check that is still correct. Falling blocks, dispensers and TNT-cannon movement are **not**
+covered yet; that is a known gap, not an oversight. `ascent.enforce_bounds` (default on) turns the
+whole thing off, byte-for-byte reproducing pre-epic behaviour for a pack that wants no limit.
+
+Rank is not tracked yet - every soulhome currently reads as rank 0 - so a build that predates this
+epic is still granted its old, larger footprint forever (`SoulHomeBuffData`'s legacy-grant NBT,
+captured once on first post-update scan). `/soulhome ascent` reports the current box; `SyncSoulBoundsMessage`
+carries it to the client for the Soul Lens and the firmament/verge world rendering
+(`SoulBoundsRenderer`).
 
 ---
 
@@ -144,6 +168,10 @@ touching it - it explains each decision and why the obvious alternative is worse
 
 - **Doors are walls.** Doors, trapdoors and fence gates stop the fill whether open or shut.
   Otherwise buffs blink out every time a player walks through their own front door.
+- **Ladders and vines are passable**, checked via `BlockTags.CLIMBABLE` before the generic
+  collision-shape fallback. A ladder's real collision box is non-empty but short of a full cube, so
+  without the explicit check it fell through to `PARTIAL` - same bucket as a fence - and a one-wide
+  shaft between two floors would seal into separate rooms depending on incidental placement.
 - **`Passability` answers two different questions.** `stopsFill()` - does air get through, which is
   what seals a room; `isFullBlock()` - does it fill its cell, which is the *only* thing that
   separates one open-air build from the next. A fence, a wall, a pane, a slab, a stair or a chest
@@ -173,7 +201,7 @@ touching it - it explains each decision and why the obvious alternative is worse
 ## Archetypes are data, not code
 
 `data/<namespace>/soulhome_archetypes/<name>.json`, loaded by `ArchetypeManager`, parsed by
-`ArchetypeCodecs`/`FormCodecs`. Thirteen ship with the mod under
+`ArchetypeCodecs`/`FormCodecs`. Nineteen ship with the mod under
 `src/main/resources/data/soulhome/soulhome_archetypes/`. A malformed archetype is logged and
 skipped; it never fails the reload.
 
@@ -196,7 +224,7 @@ change. Tags live in `data/soulhome/tags/blocks/`.
 
 ### Rooms written for mods this one does not depend on
 
-Three of the shipped thirteen - `arcane_sanctum`, `ritual_chamber` (Iron's Spells 'n Spellbooks)
+Three of the shipped nineteen - `arcane_sanctum`, `ritual_chamber` (Iron's Spells 'n Spellbooks)
 and `workshop` (Create) - name blocks that most installs do not have. Nothing about that is a
 special case in Java, and it must not become one:
 
@@ -224,7 +252,9 @@ defaults with a log line rather than refusing to start - keep that property when
 
 `ScanSettings`, `ScoringSettings` and `BuffSettings` are records in `structures/core` and are the
 single source of truth for defaults; the config spec should reference their `DEFAULT_*` constants
-rather than repeating a number.
+rather than repeating a number. `SoulBounds` (see the Ascent section above) follows the same rule
+for the `ascent` knobs even though it is shaped as a per-rank factory rather than a flat settings
+record.
 
 ---
 
