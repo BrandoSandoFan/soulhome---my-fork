@@ -123,24 +123,20 @@ record PlatformClause(String of, int minArea, int idealArea, int heightTolerance
                 XZ point = stack.pop();
                 size++;
 
-                for (int dx = -1; dx <= 1; dx++)
+                // 4-connected, not 8: a diagonal touch is not a floor. Two blocks that only meet
+                // corner-to-corner is exactly the "scattered singles" case this clause exists to
+                // reject - a checkerboard is fully diagonally connected, so counting diagonals let
+                // it read as one contiguous field. See #98.
+                for (int[] offset : new int[][] { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } })
                 {
-                    for (int dz = -1; dz <= 1; dz++)
+                    XZ neighbour = new XZ(point.x() + offset[0], point.z() + offset[1]);
+                    Integer neighbourY = footprintY.get(neighbour);
+
+                    if (neighbourY != null
+                            && Math.abs(neighbourY - footprintY.get(point)) <= this.heightTolerance
+                            && visited.add(neighbour))
                     {
-                        if (dx == 0 && dz == 0)
-                        {
-                            continue;
-                        }
-
-                        XZ neighbour = new XZ(point.x() + dx, point.z() + dz);
-                        Integer neighbourY = footprintY.get(neighbour);
-
-                        if (neighbourY != null
-                                && Math.abs(neighbourY - footprintY.get(point)) <= this.heightTolerance
-                                && visited.add(neighbour))
-                        {
-                            stack.push(neighbour);
-                        }
+                        stack.push(neighbour);
                     }
                 }
             }

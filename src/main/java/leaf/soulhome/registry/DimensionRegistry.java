@@ -14,6 +14,7 @@ import leaf.soulhome.network.SyncDimensionListMessage;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.mixin.DefrostedRegistry;
+import leaf.soulhome.mixin.StructureTemplateAccessor;
 import net.minecraft.core.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -170,7 +171,42 @@ public class DimensionRegistry
 		if (templateOptional.isPresent())
 		{
 			StructureTemplate template = templateOptional.get();
-			BlockPos pos = new BlockPos(-template.getSize().getX() / 2, DimensionHelper.FLOOR_LEVEL - template.getSize().getY(), -template.getSize().getZ() / 2);
+
+			// Anchoring by the template's bounding-box height drops the player onto whatever the
+			// template's *tallest column* happens to be, not onto the ground under their feet - all
+			// three shipped islands carry air headroom (trees, hills) above their walkable surface,
+			// so the top of the box is sky and players fell 6-19 blocks before landing. Anchor by
+			// the highest solid block in the spawn column instead, so the entry point at
+			// FLOOR_LEVEL + 2 always lands the player one block above solid ground. See #97.
+			int localSpawnX = template.getSize().getX() / 2;
+			int localSpawnZ = template.getSize().getZ() / 2;
+			int highestSolidLocalY = highestSolidBlockY(template, localSpawnX, localSpawnZ);
+
+			if (highestSolidLocalY == Integer.MIN_VALUE)
+			{
+				// nothing solid directly under the spawn column (an odd or floating template) -
+				// fall back to the template's global highest solid block rather than dropping the
+				// player through open air regardless
+				highestSolidLocalY = highestSolidBlockY(template);
+			}
+
+			int originY = highestSolidLocalY == Integer.MIN_VALUE
+					// no solid block anywhere in the template - nothing to anchor to, keep the
+					// previous behaviour rather than guessing
+					? DimensionHelper.FLOOR_LEVEL - template.getSize().getY()
+					: DimensionHelper.FLOOR_LEVEL - highestSolidLocalY;
+
+			if (originY < 0)
+			{
+				// the dimension's min_y is 0; a template taller than FLOOR_LEVEL allows would
+				// otherwise be silently truncated by the world border instead of placed whole
+				LogHelper.warn("Soul island template '" + soulIslandLocation
+						+ "' is taller than the space below FLOOR_LEVEL allows (origin Y would be "
+						+ originY + "); clamping to 0.");
+				originY = 0;
+			}
+
+			BlockPos pos = new BlockPos(-template.getSize().getX() / 2, originY, -template.getSize().getZ() / 2);
 			template.placeInWorld(newSoulWorld, pos, new BlockPos(0, 0, 0), settings, newSoulWorld.random, 0);
 		}
 		else
@@ -199,5 +235,44 @@ public class DimensionRegistry
 	public static ServerLevel createSoulDimension(MinecraftServer server, ResourceKey<Level> worldKey)
 	{
 		return createSoulDimension(server, worldKey, UUID.randomUUID().toString());
+	}
+
+	// Highest local Y (template space, before placement) whose block is not air, restricted to one
+	// XZ column. Integer.MIN_VALUE if the column has no solid block at all.
+	private static int highestSolidBlockY(StructureTemplate template, int localX, int localZ)
+	{
+		int highest = Integer.MIN_VALUE;
+
+		for (StructureTemplate.Palette palette : ((StructureTemplateAccessor) template).getPalettes())
+		{
+			for (StructureTemplate.StructureBlockInfo info : palette.blocks())
+			{
+				if (info.pos.getX() == localX && info.pos.getZ() == localZ && !info.state.isAir())
+				{
+					highest = Math.max(highest, info.pos.getY());
+				}
+			}
+		}
+
+		return highest;
+	}
+
+	// Same, but across every column - the fallback when the spawn column itself is empty.
+	private static int highestSolidBlockY(StructureTemplate template)
+	{
+		int highest = Integer.MIN_VALUE;
+
+		for (StructureTemplate.Palette palette : ((StructureTemplateAccessor) template).getPalettes())
+		{
+			for (StructureTemplate.StructureBlockInfo info : palette.blocks())
+			{
+				if (!info.state.isAir())
+				{
+					highest = Math.max(highest, info.pos.getY());
+				}
+			}
+		}
+
+		return highest;
 	}
 }

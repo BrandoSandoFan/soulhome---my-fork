@@ -10,6 +10,7 @@ import leaf.soulhome.structures.core.BuffSettings;
 import leaf.soulhome.structures.core.ScanDebouncer;
 import leaf.soulhome.structures.core.ScanSettings;
 import leaf.soulhome.structures.core.ScoringSettings;
+import leaf.soulhome.structures.core.SoulBounds;
 import leaf.soulhome.utils.LogHelper;
 import org.apache.commons.lang3.tuple.Pair;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -106,6 +107,28 @@ public final class SoulHomeConfig
         return snapshot.buffs();
     }
 
+    /**
+     * Whether a soulhome is bounded at all. Off returns every ascent-related behaviour to exactly
+     * what it was before #79: no placement is refused, and the scan box falls back to
+     * {@code SnapshotBlockVolume.populatedBounds}.
+     */
+    public static boolean enforceBounds()
+    {
+        return snapshot.enforceBounds();
+    }
+
+    /**
+     * The box for the given ascension rank, from the {@code ascent} config section. Rank is not
+     * tracked yet - #84, later in the epic, is what saves and raises it - so every caller today
+     * passes a constant 0 and gets the starting box.
+     */
+    public static SoulBounds soulBounds(int rank)
+    {
+        return SoulBounds.forRank(
+                rank, snapshot.floorY(), snapshot.baseCeilingHeight(), snapshot.ceilingHeightPerRank(),
+                snapshot.baseVerge(), snapshot.vergePerRank());
+    }
+
     public static long quietPeriodMillis()
     {
         return snapshot.quietPeriodMillis();
@@ -161,7 +184,13 @@ public final class SoulHomeConfig
             BuffSettings buffs,
             long quietPeriodMillis,
             long maxScanDelayMillis,
-            int checkIntervalTicks)
+            int checkIntervalTicks,
+            boolean enforceBounds,
+            int floorY,
+            int baseCeilingHeight,
+            int ceilingHeightPerRank,
+            int baseVerge,
+            int vergePerRank)
     {
         private static final Snapshot DEFAULTS = new Snapshot(
                 true,
@@ -171,7 +200,13 @@ public final class SoulHomeConfig
                 BuffSettings.DEFAULTS,
                 ScanDebouncer.DEFAULT_QUIET_PERIOD_MILLIS,
                 ScanDebouncer.DEFAULT_MAX_DELAY_MILLIS,
-                20);
+                20,
+                true,
+                SoulBounds.DEFAULT_FLOOR_Y,
+                SoulBounds.DEFAULT_BASE_CEILING_HEIGHT,
+                SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
+                SoulBounds.DEFAULT_BASE_VERGE,
+                SoulBounds.DEFAULT_VERGE_PER_RANK);
 
         private static Snapshot read()
         {
@@ -206,7 +241,13 @@ public final class SoulHomeConfig
                                 SERVER.rampExponent.get()),
                         SERVER.quietPeriodMillis.get(),
                         SERVER.maxScanDelayMillis.get(),
-                        SERVER.checkIntervalTicks.get());
+                        SERVER.checkIntervalTicks.get(),
+                        SERVER.enforceBounds.get(),
+                        SERVER.floorY.get(),
+                        SERVER.baseCeilingHeight.get(),
+                        SERVER.ceilingHeightPerRank.get(),
+                        SERVER.baseVerge.get(),
+                        SERVER.vergePerRank.get());
             }
             catch (RuntimeException e)
             {
@@ -320,6 +361,13 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.LongValue quietPeriodMillis;
         public final ForgeConfigSpec.LongValue maxScanDelayMillis;
         public final ForgeConfigSpec.IntValue checkIntervalTicks;
+
+        public final ForgeConfigSpec.BooleanValue enforceBounds;
+        public final ForgeConfigSpec.IntValue floorY;
+        public final ForgeConfigSpec.IntValue baseCeilingHeight;
+        public final ForgeConfigSpec.IntValue ceilingHeightPerRank;
+        public final ForgeConfigSpec.IntValue baseVerge;
+        public final ForgeConfigSpec.IntValue vergePerRank;
 
         private Server(ForgeConfigSpec.Builder builder)
         {
@@ -518,6 +566,50 @@ public final class SoulHomeConfig
             this.checkIntervalTicks = builder
                     .comment("How often the pending set is checked, in ticks. Far finer than the debounce; rarely worth changing.")
                     .defineInRange("check_interval_ticks", 20, 1, 1200);
+
+            builder.pop();
+
+            builder.comment(
+                            "The box a soulhome may build inside of: a floor, a ceiling and four walls.",
+                            "A ceiling alone is not a limit in a void dimension - a player denied a second storey",
+                            "simply builds one downward instead - so the floor matters exactly as much as the",
+                            "ceiling. See #78/#79.")
+                    .push("ascent");
+
+            this.enforceBounds = builder
+                    .comment(
+                            "Whether a soulhome is bounded at all.",
+                            "Off returns everything to how it worked before this box existed: no placement is",
+                            "ever refused, and the scan box goes back to being inferred from populated chunks",
+                            "rather than declared.")
+                    .define("enforce_bounds", true);
+
+            this.floorY = builder
+                    .comment(
+                            "Absolute Y below which nothing may be placed. Constant across every rank - only the",
+                            "ceiling and the verge grow. Matches DimensionHelper.FLOOR_LEVEL by design: that is",
+                            "where every soulhome's entry point and starting island surface sit, and a floor set",
+                            "any higher would place a player's own arrival point outside their soulhome's box.")
+                    .defineInRange("floor_y", SoulBounds.DEFAULT_FLOOR_Y, 0, 2032);
+
+            this.baseCeilingHeight = builder
+                    .comment("Build layers at rank 0. Six is deliberately mean: a floor, four of air, a ceiling.")
+                    .defineInRange("base_ceiling_height", SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, 1, 4064);
+
+            this.ceilingHeightPerRank = builder
+                    .comment("Further build layers granted per ascension rank.")
+                    .defineInRange("ceiling_height_per_rank", SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK, 1, 4064);
+
+            this.baseVerge = builder
+                    .comment(
+                            "How far the buildable box reaches from the soulhome's origin on each horizontal axis,",
+                            "at rank 0. Keep rank V's verge (base + 5 * per-rank) inside the scanner's own search",
+                            "square, or builds near its edge start being clipped from scans silently.")
+                    .defineInRange("base_verge", SoulBounds.DEFAULT_BASE_VERGE, 1, 128);
+
+            this.vergePerRank = builder
+                    .comment("Further verge granted per ascension rank.")
+                    .defineInRange("verge_per_rank", SoulBounds.DEFAULT_VERGE_PER_RANK, 1, 128);
 
             builder.pop();
             builder.pop();

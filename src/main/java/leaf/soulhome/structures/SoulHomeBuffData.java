@@ -5,7 +5,9 @@
 package leaf.soulhome.structures;
 
 import leaf.soulhome.structures.core.AwardedRoom;
+import leaf.soulhome.structures.core.RegionBounds;
 import leaf.soulhome.structures.core.SoulRegion;
+import leaf.soulhome.utils.LogHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -14,6 +16,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * What the last scan of one soulhome found, saved with that soulhome's level.
@@ -38,12 +41,32 @@ public class SoulHomeBuffData extends SavedData
     private static final String KEY_CONTENT_HASH = "ContentHash";
     private static final String KEY_SCANNED = "Scanned";
 
+    // The legacy grant (#80): every soulhome that existed before the box in #79 landed is, by
+    // definition, already over the line - most of them by a lot, since 256 free blocks of vertical
+    // space made stacking floors the sensible thing to do. Rule 4 of the Ascent epic is that no
+    // build loses what it already earned, so a pre-existing soulhome's own footprint - captured
+    // once, on the first post-update scan that can actually see it - stays placeable and scannable
+    // forever, on top of whatever the current rank's box grants.
+    private static final String KEY_DATA_VERSION = "DataVersion";
+    private static final String KEY_LEGACY_BOX = "LegacyBox";
+
+    /**
+     * Bumped once, for the legacy grant. A save written before this field existed reads back as
+     * version 0 - {@code CompoundTag.getInt} on a missing key is 0 - and is exactly the set of
+     * soulhomes the migration in {@link #migrateLegacyBoundsIfNeeded} needs to look at.
+     */
+    private static final int CURRENT_DATA_VERSION = 1;
+
     private List<AwardedRoom> awardedRooms = List.of();
     private long contentHash;
     private boolean scanned;
+    private int dataVersion = CURRENT_DATA_VERSION;
+    private RegionBounds legacyBox;
 
     public SoulHomeBuffData()
     {
+        // a soulhome with no save file yet is a soulhome created after the box existed - it never
+        // gets a legacy grant, and needs no migration to skip
     }
 
     public static SoulHomeBuffData get(ServerLevel level)
@@ -77,6 +100,29 @@ public class SoulHomeBuffData extends SavedData
         data.awardedRooms = List.copyOf(rooms);
         data.contentHash = tag.getLong(KEY_CONTENT_HASH);
         data.scanned = tag.getBoolean(KEY_SCANNED);
+        // absent on any save written before the legacy grant existed - reads back as 0, which is
+        // exactly "not migrated yet"
+        data.dataVersion = tag.getInt(KEY_DATA_VERSION);
+
+        if (tag.contains(KEY_LEGACY_BOX))
+        {
+            int[] box = tag.getIntArray(KEY_LEGACY_BOX);
+
+            if (box.length == 6)
+            {
+                try
+                {
+                    data.legacyBox = new RegionBounds(box[0], box[1], box[2], box[3], box[4], box[5]);
+                }
+                catch (IllegalArgumentException e)
+                {
+                    // a hand-edited or corrupt box: drop it rather than carry an inverted region
+                    // forward forever. The next successful scan will just re-migrate.
+                    LogHelper.warn("Discarding an invalid legacy soulhome box: " + e);
+                    data.dataVersion = 0;
+                }
+            }
+        }
 
         return data;
     }
@@ -98,8 +144,69 @@ public class SoulHomeBuffData extends SavedData
         tag.put(KEY_ROOMS, list);
         tag.putLong(KEY_CONTENT_HASH, this.contentHash);
         tag.putBoolean(KEY_SCANNED, this.scanned);
+        tag.putInt(KEY_DATA_VERSION, this.dataVersion);
+
+        if (this.legacyBox != null)
+        {
+            tag.putIntArray(KEY_LEGACY_BOX, new int[] {
+                    this.legacyBox.minX(), this.legacyBox.minY(), this.legacyBox.minZ(),
+                    this.legacyBox.maxX(), this.legacyBox.maxY(), this.legacyBox.maxZ()
+            });
+        }
 
         return tag;
+    }
+
+    /**
+     * Whether this soulhome predates the box in #79 and so carries a legacy grant.
+     *
+     * @return the box captured at migration, or empty for a soulhome created after the box existed
+     */
+    public Optional<RegionBounds> legacyBox()
+    {
+        return Optional.ofNullable(this.legacyBox);
+    }
+
+    /**
+     * Whether this soulhome's legacy grant, if it has one, is still unknown. True only for the
+     * brief window between a save written before #79 loading and its first successful scan -
+     * placement enforcement treats this as "don't know yet, so don't block" rather than risk
+     * refusing a legacy player's own pre-existing build before the migration that would have
+     * protected it has had a chance to run.
+     */
+    public boolean needsLegacyMigration()
+    {
+        return this.dataVersion < CURRENT_DATA_VERSION;
+    }
+
+    /**
+     * Capture this soulhome's pre-existing footprint the first time it can actually be read, so
+     * rule 4 of the Ascent epic - no build loses what it already earned - holds for every soulhome
+     * that existed before the box did. A no-op once this has succeeded, and safe to call on every
+     * scan attempt until it does. <b>Server thread only</b>, same as the capture it reuses.
+     */
+    public void migrateLegacyBoundsIfNeeded(ServerLevel level)
+    {
+        if (this.dataVersion >= CURRENT_DATA_VERSION)
+        {
+            return;
+        }
+
+        if (!SnapshotBlockVolume.hasLoadedChunks(level))
+        {
+            // can't see this soulhome yet - try again on a later scan rather than concluding there
+            // is nothing to preserve
+            return;
+        }
+
+        final Optional<RegionBounds> found = SnapshotBlockVolume.populatedBounds(level);
+
+        this.legacyBox = found.orElse(null);
+        this.dataVersion = CURRENT_DATA_VERSION;
+        setDirty();
+
+        LogHelper.info("Migrated legacy soulhome bounds for " + level.dimension().location() + ": "
+                + found.map(RegionBounds::toString).orElse("nothing built yet"));
     }
 
     public List<AwardedRoom> awardedRooms()
