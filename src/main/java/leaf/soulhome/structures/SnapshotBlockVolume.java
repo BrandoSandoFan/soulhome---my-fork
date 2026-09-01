@@ -4,6 +4,7 @@
 
 package leaf.soulhome.structures;
 
+import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.structures.core.BlockSignature;
 import leaf.soulhome.structures.core.BlockVolume;
 import leaf.soulhome.structures.core.Passability;
@@ -167,6 +168,36 @@ public final class SnapshotBlockVolume implements BlockVolume
     }
 
     /**
+     * As {@link #hasLoadedChunks(ServerLevel)}, but restricted to one box's own chunks rather than
+     * the whole search square.
+     *
+     * <p>Once the scan box is declared (#79) rather than inferred, checking the full search square
+     * would call a soulhome "readable" on the strength of chunks nowhere near its actual box - and,
+     * just as wrongly, call it unreadable over a chunk far outside the box that happens not to be
+     * loaded. The box being scanned is the only thing that matters here.
+     */
+    public static boolean hasLoadedChunks(ServerLevel level, RegionBounds box)
+    {
+        final int minChunkX = box.minX() >> 4;
+        final int maxChunkX = box.maxX() >> 4;
+        final int minChunkZ = box.minZ() >> 4;
+        final int maxChunkZ = box.maxZ() >> 4;
+
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
+        {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++)
+            {
+                if (level.hasChunk(chunkX, chunkZ))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * The box worth scanning in this soulhome, derived from which chunk sections actually hold
      * blocks rather than from a fixed guess. A soulhome is one small island in an otherwise empty
      * 384-block-tall void; sweeping all of it would be almost entirely wasted work.
@@ -241,20 +272,44 @@ public final class SnapshotBlockVolume implements BlockVolume
      */
     public static Capture capture(ServerLevel level, ScanSettings settings)
     {
-        if (!hasLoadedChunks(level))
+        if (!SoulHomeConfig.enforceBounds())
+        {
+            // #79 off: byte-for-byte what this method did before the box existed
+            if (!hasLoadedChunks(level))
+            {
+                return Capture.of(Capture.Outcome.UNREADABLE);
+            }
+
+            Optional<RegionBounds> bounds = populatedBounds(level);
+
+            if (bounds.isEmpty())
+            {
+                return Capture.of(Capture.Outcome.EMPTY);
+            }
+
+            return captureBox(level, bounds.get(), settings);
+        }
+
+        // The scan box is declared, not inferred, once #79 is on - the box *is* the verge (plus
+        // whatever a legacy grant adds, #80), so there is no "chunks populated but the box is
+        // empty" case left to detect: an untouched box is just air, and the scanner returns no
+        // regions for it same as it always has. What still has to be checked, and checked against
+        // the declared box rather than the old full search square, is whether that box can
+        // currently be seen at all - see #hasLoadedChunks(ServerLevel, RegionBounds).
+        SoulHomeBuffData.get(level).migrateLegacyBoundsIfNeeded(level);
+
+        final RegionBounds box = declaredBox(level);
+
+        if (!hasLoadedChunks(level, box))
         {
             return Capture.of(Capture.Outcome.UNREADABLE);
         }
 
-        Optional<RegionBounds> bounds = populatedBounds(level);
+        return captureBox(level, box, settings);
+    }
 
-        if (bounds.isEmpty())
-        {
-            return Capture.of(Capture.Outcome.EMPTY);
-        }
-
-        final RegionBounds box = bounds.get();
-
+    private static Capture captureBox(ServerLevel level, RegionBounds box, ScanSettings settings)
+    {
         // asked before the arrays are allocated rather than after: a box past the limit would
         // otherwise be copied in full, at a byte and a reference per cell, only for the scan that
         // received it to refuse it
@@ -267,6 +322,28 @@ public final class SnapshotBlockVolume implements BlockVolume
         }
 
         return new Capture(Capture.Outcome.CAPTURED, capture(level, box));
+    }
+
+    /**
+     * The rank-0 box - rank is not tracked yet; see {@code SoulHomeConfig#soulBounds} - unioned
+     * with the legacy box if this soulhome has one. {@link RegionBounds} has no union of its own,
+     * so this takes the enclosing box of both rather than their true (possibly non-rectangular)
+     * combined shape; the only effect is that a soulhome with an oddly-placed legacy build may have
+     * slightly more of the void around it become placeable and scannable than strictly necessary,
+     * never less.
+     *
+     * <p>Shared with placement enforcement ({@code SoulBoundsEnforcement}), so a block that can be
+     * scanned is always a block that was allowed to be placed, and vice versa - the two can never
+     * disagree about where a soulhome's edge is.
+     */
+    public static RegionBounds declaredBox(ServerLevel level)
+    {
+        final RegionBounds rankBox = SoulHomeConfig.soulBounds(0).toRegionBounds();
+
+        return SoulHomeBuffData.get(level).legacyBox()
+                .map(legacy -> rankBox.encompass(legacy.minX(), legacy.minY(), legacy.minZ())
+                        .encompass(legacy.maxX(), legacy.maxY(), legacy.maxZ()))
+                .orElse(rankBox);
     }
 
     /**

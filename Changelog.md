@@ -355,3 +355,48 @@ Guide book polish
   paragraph break in the Bound Soulkey page is gone.
 - The Bound Soulkey's own page was titled "Personal Soul Key" - a name the item itself has never
   had. It now reads "Bound Soulkey" everywhere the book names it, matching the item.
+
+A checkerboard was a perfect floor
+
+- `soulhome:platform` - the clause that is supposed to tell a laid floor from a heap of the same
+  blocks - counted diagonal neighbours as touching, so a checkerboard with no two blocks actually
+  side by side, or a spiral climbing three storeys as a single block at a time, scored a flawless
+  1.000: the same as a solid slab. A player scattering farmland in a lattice got full credit for a
+  field they never laid. The fill is now four-connected instead of eight; a real floor, a
+  water-trenched farm and a terraced farm all still read as one surface, since a genuine slope or
+  trench runs along an axis rather than a diagonal.
+
+A long fall into your own soul
+
+- Entering a fresh soulhome used to drop you 6 to 19 blocks through empty air before you landed,
+  depending on which of the three starting islands your soul picked - harmless, since soulhomes
+  take no fall damage, but every new soul's first moment was an uncontrolled drop rather than
+  arriving on solid ground. The island was being placed by the height of its whole bounding box,
+  which includes the air and trees above its actual terrain; it is now placed by the height of the
+  ground under the entry point instead, so every island style lands you exactly where you are
+  meant to arrive.
+
+The Ascent, phase one: a soulhome is a box
+
+The first stage of a larger piece of work. A soulhome used to be 256 blocks of free vertical void
+with nothing marking where you may build - the sensible thing to do with that much free space was
+to fly up and stack a floor per room, and nothing about the space itself was ever a choice. A
+soulhome is now bounded: a floor, a ceiling and four walls, visible as a faint shimmer near the
+walls and the ceiling that fades the further away you build from them. Nothing can be built outside
+the box - a placed block, a bucket of fluid, or a piston pushing something across the wall are all
+refused, with one message if you keep trying rather than a flood of them.
+
+- Every soulhome that already existed keeps every block it has: a legacy soulhome's own built
+  footprint, captured once on its first scan after this update, stays placeable and scannable on
+  top of whatever the box currently grants, for as long as the box stays smaller than what was
+  already there. Nothing is deleted, and no room stops counting.
+- `/soulhome ascent` reports the box you currently have to build inside of: the floor and ceiling
+  heights, how far the walls reach, how many build layers that leaves, and - for a legacy soul -
+  how much further your own existing build still reaches beyond it.
+- The Soul Lens now opens on that same summary, so you know how much room you have left without
+  leaving the screen you already check your rooms from.
+- The climb that raises this box - ranks, essence, the pillar you build to earn one - is not part
+  of this stage. Every soulhome is rank 0 for now; the box above is what you have to work with
+  until the next stage lands.
+- Everything here can be turned off in the server config (`ascent.enforce_bounds`), which returns a
+  soulhome to exactly how it worked before this update.

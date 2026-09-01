@@ -147,6 +147,16 @@ public class EngLangGen extends LanguageProvider
 
         add(Constants.StringKeys.TRAVEL_BLOCKED, "Only a soul key crosses into a soul, and only a soul key leads back out.");
 
+        add(Constants.StringKeys.ASCENT_DENIED, "This is beyond your soul's reach right now.");
+        add(Constants.StringKeys.ASCENT_HEADER, "Your soul's reach:");
+        add(Constants.StringKeys.ASCENT_RANK, "Rank: %s");
+        add(Constants.StringKeys.ASCENT_BOX, "Floor y=%s, ceiling y=%s, walls %s blocks out from the centre");
+        add(Constants.StringKeys.ASCENT_BUILD_LAYERS, "%s build layers");
+        add(Constants.StringKeys.ASCENT_LEGACY, "Your soul predates this limit and also reaches %s, from what was already built.");
+        add(Constants.StringKeys.ASCENT_NOT_YET, "Ascending is not yet possible - this is the box you have to work with for now.");
+        add(Constants.StringKeys.ASCENT_DISABLED, "Soulhome bounds are switched off in the server config.");
+        add(Constants.StringKeys.ASCENT_NO_SOULHOME, "You have never opened your soul, so there is no box to report on.");
+
         add(Constants.StringKeys.LENS_HIGHLIGHTED, "Use inside your soul to outline what was found");
         add(Constants.StringKeys.LENS_NOTHING_TO_SHOW, "Nothing here to outline yet.");
 
@@ -168,6 +178,12 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_TITLE, "Your Soul's Buffs");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_FROM, "%s (%s room(s), best tier %s)");
         add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
+
+        add(Constants.StringKeys.LENS_SCREEN_BOX_HEADER, "Your soul's reach");
+        add(Constants.StringKeys.LENS_SCREEN_BOX_LAYERS, "%s build layers (floor y=%s to ceiling y=%s)");
+        add(Constants.StringKeys.LENS_SCREEN_BOX_VERGE, "walls %s blocks out from the centre");
+        add(Constants.StringKeys.LENS_SCREEN_BOX_RANK, "Rank %s");
+        add(Constants.StringKeys.LENS_SCREEN_BOX_LEGACY, "Your soul predates this limit and also reaches %s");
 
         //Buff types. Named rather than shown as ids, since a player reads these and a log does not
         add("buff.soulhome.saturation", "Saturation from food");
