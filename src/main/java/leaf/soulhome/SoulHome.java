@@ -54,7 +54,7 @@ public class SoulHome
         BiomeRegistry.BIOMES.register(modBus);
         DimensionRegistry.CHUNK_GENERATORS.register(modBus);
         //EffectsRegistry.EFFECTS.register(modBus);
-        LootModifierRegistry.LOOT_MODIFIERS.register(modBus);
+        //LootModifierRegistry.LOOT_MODIFIERS.register(modBus);
         //AttributesRegistry.ATTRIBUTES.register(modBus);
         //EntityRegistry.ENTITIES.register(modBus);
 

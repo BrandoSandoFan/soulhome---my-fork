@@ -17,7 +17,7 @@
     "frame": "task",
     "hidden": false,
     "icon": {
-      "item": "minecraft:oak_fence"
+      "item": "minecraft:minecart"
     },
     "show_toast": true,
     "title": {

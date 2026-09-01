@@ -11,7 +11,6 @@ package leaf.soulhome.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.commands.subcommands.AnalyseCommand;
-import leaf.soulhome.commands.subcommands.AscentCommand;
 import leaf.soulhome.commands.subcommands.BuffsCommand;
 import leaf.soulhome.commands.subcommands.SoulHomeCommand;
 import net.minecraft.commands.CommandSourceStack;
@@ -29,7 +28,6 @@ public class SoulCommand
                 //can build for
                 .then(AnalyseCommand.register())
                 .then(BuffsCommand.register())
-                .then(AscentCommand.register())
         );
     }
 }

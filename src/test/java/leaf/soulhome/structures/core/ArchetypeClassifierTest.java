@@ -52,10 +52,9 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(19, shipped.size(),
-                "alchemy lab, arcane sanctum, armoury, aquarium, bedchamber, cold storage, enchanting room, "
-                        + "farm, greenhouse, hearth, library, mine, ritual chamber, shrine, track, training yard, "
-                        + "treasury, trophy room, workshop");
+        assertEquals(13, shipped.size(),
+                "alchemy lab, arcane sanctum, armoury, bedchamber, enchanting room, farm, hearth, "
+                        + "library, mine, ritual chamber, track, training yard, workshop");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -468,17 +467,11 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:hearth", TestBlocks.FURNACE),
                 Map.entry("soulhome:library", TestBlocks.BOOKSHELF),
                 Map.entry("soulhome:mine", TestBlocks.ORE),
-                Map.entry("soulhome:track", TestBlocks.FENCE),
+                Map.entry("soulhome:track", TestBlocks.RAIL),
                 Map.entry("soulhome:training_yard", TestBlocks.SLIME_BLOCK),
                 Map.entry("soulhome:arcane_sanctum", TestBlocks.INSCRIPTION_TABLE),
                 Map.entry("soulhome:ritual_chamber", TestBlocks.SCROLL_FORGE),
-                Map.entry("soulhome:workshop", TestBlocks.COGWHEEL),
-                Map.entry("soulhome:cold_storage", TestBlocks.PACKED_ICE),
-                Map.entry("soulhome:shrine", TestBlocks.LODESTONE),
-                Map.entry("soulhome:greenhouse", TestBlocks.POPPY),
-                Map.entry("soulhome:treasury", TestBlocks.DIAMOND_BLOCK),
-                Map.entry("soulhome:trophy_room", TestBlocks.DRAGON_HEAD),
-                Map.entry("soulhome:aquarium", TestBlocks.WATER));
+                Map.entry("soulhome:workshop", TestBlocks.COGWHEEL));
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -656,13 +649,7 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:armoury", armoury()),
                 Map.entry("soulhome:arcane_sanctum", arcaneSanctum()),
                 Map.entry("soulhome:ritual_chamber", ritualChamber()),
-                Map.entry("soulhome:workshop", workshop()),
-                Map.entry("soulhome:cold_storage", coldStorage()),
-                Map.entry("soulhome:shrine", shrine()),
-                Map.entry("soulhome:greenhouse", greenhouse()),
-                Map.entry("soulhome:treasury", treasury()),
-                Map.entry("soulhome:trophy_room", trophyRoom()),
-                Map.entry("soulhome:aquarium", aquarium()));
+                Map.entry("soulhome:workshop", workshop()));
 
         assertEquals(shipped.size(), canonicalBuild.size(),
                 "every shipped archetype needs a canonical-build fixture here, or a newly added one goes untested");
@@ -987,162 +974,6 @@ class ArchetypeClassifierTest
                 SLAB);
     }
 
-    private static GridVolume coldStorage()
-    {
-        return GridVolume.of(
-                SLAB,
-                new String[]{
-                        "PPPPPPP",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#######"},
-                new String[]{
-                        "#######",
-                        "#bbbb.#",
-                        "#.....#",
-                        "#..t..#",
-                        "#.....#",
-                        "#t...t#",
-                        "#######"},
-                new String[]{
-                        "#######",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#######"},
-                SLAB);
-    }
-
-    private static GridVolume shrine()
-    {
-        return GridVolume.of(
-                SLAB,
-                new String[]{
-                        "#######",
-                        "#J...J#",
-                        "#.....#",
-                        "#..Q..#",
-                        "#.....#",
-                        "#J...J#",
-                        "#######"},
-                new String[]{
-                        "#######",
-                        "#c...c#",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#c...c#",
-                        "#######"},
-                new String[]{
-                        "#######",
-                        "#.....#",
-                        "#.....#",
-                        "#..H..#",
-                        "#.....#",
-                        "#.....#",
-                        "#######"},
-                SLAB);
-    }
-
-    private static GridVolume greenhouse()
-    {
-        return GridVolume.of(
-                SLAB,
-                new String[]{
-                        "ggggggg",
-                        "g.....g",
-                        "g.eee.g",
-                        "g.eee.g",
-                        "g.eee.g",
-                        "g.....g",
-                        "ggggggg"},
-                new String[]{
-                        "zzzzzzz",
-                        "z.....z",
-                        "z.....z",
-                        "z.....z",
-                        "z.....z",
-                        "z.....z",
-                        "zzzzzzz"},
-                SLAB,
-                SLAB);
-    }
-
-    private static GridVolume treasury()
-    {
-        return GridVolume.of(
-                SLAB,
-                new String[]{
-                        "#######",
-                        "#.....#",
-                        "#.JJ..#",
-                        "#.JJ..#",
-                        "#.....#",
-                        "#..b..#",
-                        "#######"},
-                new String[]{
-                        "#######",
-                        "#t...t#",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#t...t#",
-                        "#######"},
-                SLAB,
-                SLAB);
-    }
-
-    private static GridVolume trophyRoom()
-    {
-        return GridVolume.of(
-                SLAB,
-                new String[]{
-                        "#######",
-                        "#.....#",
-                        "#F.F.F#",
-                        "#.....#",
-                        "#F.F.F#",
-                        "#.....#",
-                        "#######"},
-                new String[]{
-                        "#######",
-                        "#.....#",
-                        "#U.V.X#",
-                        "#.....#",
-                        "#K.R.Z#",
-                        "#.....#",
-                        "#######"},
-                new String[]{
-                        "#######",
-                        "#t...t#",
-                        "#.....#",
-                        "#.....#",
-                        "#.....#",
-                        "#t...t#",
-                        "#######"},
-                SLAB);
-    }
-
-    /** Every interior cell water, not just some of them - see soulhome:aquarium's min_volume_fraction. */
-    private static GridVolume aquarium()
-    {
-        String[] tank = {
-                "gTgTgTg",
-                "T~~~~~T",
-                "g~~~~~g",
-                "T~~~~~T",
-                "g~~~~~g",
-                "T~~~~~T",
-                "gTgTgTg"};
-
-        return GridVolume.of(SLAB, tank, tank, tank, SLAB);
-    }
-
     private static GridVolume emptyRoom()
     {
         return GridVolume.of(
@@ -1283,24 +1114,35 @@ class ArchetypeClassifierTest
                 SLAB);
     }
 
-    /** A track's own floor/ceiling - wider than {@link #SLAB} so two fence lines fit with a lane between. */
-    private static final String[] TRACK_SLAB = {
-            "#############", "#############", "#############"};
-
-    /**
-     * Two straight fence lines with a one-lane gap between them - #73's redesign away from a rail
-     * loop with ice underneath. Not a loop: {@code min_group_cells} on {@code soulhome:lane} only
-     * needs the two lines to be real lines, and this canonical build is a straight sprint, not a
-     * circuit, so it earns the {@code lane} structure but not the {@code circuit} bonus.
-     */
     private static GridVolume track()
     {
-        String[] lane = {
-                "#FFFFFFFFFFF#",
-                "#.....c.....#",
-                "#FFFFFFFFFFF#"};
-
-        return GridVolume.of(TRACK_SLAB, lane, lane, lane, TRACK_SLAB);
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#FFFFF#",
+                        "#=====#",
+                        "#.....#",
+                        "#=====#",
+                        "#.....#",
+                        "#=====#",
+                        "#FFFFF#"},
+                new String[]{
+                        "#FFFFF#",
+                        "#I...I#",
+                        "#.....#",
+                        "#..h..#",
+                        "#.....#",
+                        "#I...I#",
+                        "#FFFFF#"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
     }
 
     private static GridVolume trainingYard()

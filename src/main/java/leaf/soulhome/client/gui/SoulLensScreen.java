@@ -6,8 +6,6 @@ package leaf.soulhome.client.gui;
 
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.feedback.LensRegionReport;
-import leaf.soulhome.network.SyncSoulBoundsMessage;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -43,8 +41,7 @@ public class SoulLensScreen extends Screen
 {
     private static final int LIST_WIDTH = 120;
     private static final int LIST_LEFT = 12;
-    private static final int BOX_SUMMARY_TOP = 20;
-    private static final int LIST_TOP = 55;
+    private static final int LIST_TOP = 30;
     private static final int ROW_HEIGHT = 22;
 
     private static final int DETAIL_LEFT = LIST_LEFT + LIST_WIDTH + 14;
@@ -122,7 +119,6 @@ public class SoulLensScreen extends Screen
         super.render(graphics, mouseX, mouseY, partialTick);
 
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 10, COLOR_TITLE);
-        drawBoxSummary(graphics);
 
         if (this.regions.isEmpty())
         {
@@ -130,63 +126,6 @@ public class SoulLensScreen extends Screen
         }
 
         drawDetail(graphics, this.regions.get(this.selected));
-    }
-
-    /**
-     * The box a soulhome is bounded by (#78/#79/#81), one line: rank, build layers, verge, and a
-     * legacy note if this soulhome predates the box. Rule 5 of the Ascent epic is that scarcity
-     * must be legible, and this is where a player already is when they are deciding whether they
-     * need more of it.
-     */
-    private void drawBoxSummary(GuiGraphics graphics)
-    {
-        final Minecraft minecraft = Minecraft.getInstance();
-
-        if (minecraft.level == null)
-        {
-            return;
-        }
-
-        final SyncSoulBoundsMessage bounds = SyncSoulBoundsMessage.ClientSoulBounds.forDimension(
-                minecraft.level.dimension().location().toString());
-
-        if (bounds.getCeilingY() <= bounds.getFloorY())
-        {
-            // no box known for this dimension - bounds are off, or nothing has synced one yet
-            return;
-        }
-
-        MutableComponent line = Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_RANK, "0")
-                .append(Component.literal("  "))
-                .append(Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_LAYERS,
-                        bounds.getCeilingY() - bounds.getFloorY(), bounds.getFloorY(), bounds.getCeilingY()))
-                .append(Component.literal("  "))
-                .append(Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_VERGE, bounds.getVergeHalfExtent()));
-
-        if (!bounds.getLegacyBox().isEmpty())
-        {
-            line = line.append(Component.literal("  "))
-                    .append(Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_LEGACY, legacyBoxText(bounds)));
-        }
-
-        final int maxWidth = Math.max(20, this.width - LIST_LEFT - RIGHT_MARGIN);
-        int y = BOX_SUMMARY_TOP;
-
-        for (ScrollableDetailPanel.VisualLine visualLine
-                : ScrollableDetailPanel.wrap(this.font, line, 0, COLOR_MUTED, maxWidth, LINE_HEIGHT))
-        {
-            graphics.drawString(this.font, visualLine.text(), LIST_LEFT, y, visualLine.color());
-            y += visualLine.height();
-        }
-    }
-
-    private static String legacyBoxText(SyncSoulBoundsMessage bounds)
-    {
-        final List<Integer> box = bounds.getLegacyBox();
-
-        return "x " + box.get(0) + ".." + box.get(3)
-                + ", y " + box.get(1) + ".." + box.get(4)
-                + ", z " + box.get(2) + ".." + box.get(5);
     }
 
     @Override

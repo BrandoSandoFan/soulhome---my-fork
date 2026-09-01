@@ -148,7 +148,7 @@ public final class ArchetypeClassifier
         final BlockCounts blocks = region.allBlocks();
 
         final String ineligibleReason = ineligibilityOf(region, archetype);
-        final List<ArchetypeScore.FailedRequirement> failedRequirements = failedRequirements(region, archetype);
+        final List<ArchetypeScore.FailedRequirement> failedRequirements = failedRequirements(blocks, archetype);
         final boolean gated = ineligibleReason != null || !failedRequirements.isEmpty();
 
         List<ArchetypeScore.SignalContribution> contributions = new ArrayList<>();
@@ -313,40 +313,22 @@ public final class ArchetypeClassifier
         return String.join(" or ", names);
     }
 
-    /**
-     * @param region supplies both the block counts a requirement is checked against and, for a
-     *               {@code minVolumeFraction} requirement, the {@link SoulRegion#volume()} that
-     *               fraction is taken of - see {@link ArchetypeDefinition.Requirement}.
-     */
-    private static List<ArchetypeScore.FailedRequirement> failedRequirements(SoulRegion region, ArchetypeDefinition archetype)
+    private static List<ArchetypeScore.FailedRequirement> failedRequirements(BlockCounts blocks, ArchetypeDefinition archetype)
     {
-        final BlockCounts blocks = region.allBlocks();
         List<ArchetypeScore.FailedRequirement> failed = new ArrayList<>();
 
         for (ArchetypeDefinition.Requirement requirement : archetype.requirements())
         {
             final int found = blocks.count(requirement.match());
-            final int threshold = effectiveThreshold(requirement, region.volume());
 
-            if (found < threshold)
+            if (found < requirement.minCount())
             {
                 failed.add(new ArchetypeScore.FailedRequirement(
-                        requirement.match().describe(), threshold, found));
+                        requirement.match().describe(), requirement.minCount(), found));
             }
         }
 
         return failed;
-    }
-
-    private static int effectiveThreshold(ArchetypeDefinition.Requirement requirement, int volume)
-    {
-        if (requirement.minVolumeFraction() <= 0d)
-        {
-            return requirement.minCount();
-        }
-
-        final int fromVolume = (int) Math.ceil(requirement.minVolumeFraction() * volume);
-        return Math.max(requirement.minCount(), fromVolume);
     }
 
     /**

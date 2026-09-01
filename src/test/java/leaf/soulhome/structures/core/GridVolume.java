@@ -146,19 +146,6 @@ public final class GridVolume implements BlockVolume
         palette.put('v', TestBlocks.LAVA);
         palette.put('m', TestBlocks.MAGMA);
         palette.put('k', TestBlocks.NETHERRACK);
-        palette.put('P', TestBlocks.PACKED_ICE);
-        palette.put('Q', TestBlocks.LODESTONE);
-        palette.put('H', TestBlocks.CHAIN);
-        palette.put('e', TestBlocks.POPPY);
-        palette.put('z', TestBlocks.LEAVES);
-        palette.put('J', TestBlocks.DIAMOND_BLOCK);
-        palette.put('K', TestBlocks.ZOMBIE_HEAD);
-        palette.put('U', TestBlocks.SKELETON_SKULL);
-        palette.put('V', TestBlocks.CREEPER_HEAD);
-        palette.put('X', TestBlocks.PIGLIN_HEAD);
-        palette.put('Z', TestBlocks.WITHER_SKELETON_SKULL);
-        palette.put('R', TestBlocks.DRAGON_HEAD);
-        palette.put('T', TestBlocks.CORAL_BLOCK);
         return palette;
     }
 

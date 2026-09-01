@@ -9,18 +9,12 @@ import leaf.soulhome.buffs.effects.DoubleJumpEffect;
 import leaf.soulhome.buffs.effects.EnchantmentPowerEffect;
 import leaf.soulhome.buffs.effects.FallProtectionEffect;
 import leaf.soulhome.buffs.effects.FireAspectEffect;
-import leaf.soulhome.buffs.effects.FireResistanceEffect;
-import leaf.soulhome.buffs.effects.FortuneEffect;
-import leaf.soulhome.buffs.effects.KnockbackResistanceEffect;
 import leaf.soulhome.buffs.effects.ManaEffect;
 import leaf.soulhome.buffs.effects.MiningSpeedEffect;
-import leaf.soulhome.buffs.effects.NourishedEffect;
 import leaf.soulhome.buffs.effects.PotionDurationEffect;
 import leaf.soulhome.buffs.effects.ReachEffect;
 import leaf.soulhome.buffs.effects.SaturationEffect;
-import leaf.soulhome.buffs.effects.SoulEmberEffect;
 import leaf.soulhome.buffs.effects.SpellPowerEffect;
-import leaf.soulhome.buffs.effects.SwimSpeedEffect;
 import leaf.soulhome.buffs.effects.SwordDamageEffect;
 import leaf.soulhome.buffs.effects.HealingEffect;
 import leaf.soulhome.buffs.effects.SpeedEffect;
@@ -67,11 +61,6 @@ public final class SoulBuffEffects
         register(new DoubleJumpEffect());
         register(new FallProtectionEffect());
         register(new FireAspectEffect());
-        register(new FireResistanceEffect());
-        register(new SoulEmberEffect());
-        register(new NourishedEffect());
-        register(new FortuneEffect());
-        register(new KnockbackResistanceEffect());
 
         //written against another mod's attributes, and registered whether or not that mod is
         //installed: the room, the report and the saved magnitude are all the same either way, and
@@ -79,7 +68,6 @@ public final class SoulBuffEffects
         register(new ManaEffect());
         register(new SpellPowerEffect());
         register(new ReachEffect());
-        register(new SwimSpeedEffect());
 
         LogHelper.info("Registered " + BY_TYPE.size() + " soul buff effect(s): " + BY_TYPE.keySet());
 

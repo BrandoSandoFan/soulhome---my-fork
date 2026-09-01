@@ -6,12 +6,12 @@
   "pages": [
     {
       "type": "text",
-      "text": "Welcome to your soul. $(p)Kinda empty, isn't it? So fill it. Build rooms in here and you'll carry what they mean out there - see $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."
+      "text": "Woo! Welcome to your soul. $(p)Kinda empty, isn't it? I wonder what that says about you, huh. $(p)So fill it. Build rooms in here and you'll carry what they mean out there - see $(l:soulhome:multiblocks/rooms)Soul Rooms$(/l)."
     }
   ],
   "priority": false,
   "read_by_default": false,
   "secret": false,
-  "sortnum": 5,
+  "sortnum": 4,
   "turnin": "soulhome:main/entered_soul_dimension"
 }

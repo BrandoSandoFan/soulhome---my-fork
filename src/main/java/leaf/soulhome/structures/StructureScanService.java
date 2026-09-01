@@ -7,15 +7,12 @@ package leaf.soulhome.structures;
 import leaf.soulhome.advancements.SoulAdvancements;
 import leaf.soulhome.buffs.SoulBuffs;
 import leaf.soulhome.config.SoulHomeConfig;
-import leaf.soulhome.network.Network;
-import leaf.soulhome.network.SyncSoulBoundsMessage;
 import leaf.soulhome.structures.core.AwardedRoom;
 import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.BuffCalculator;
 import leaf.soulhome.structures.core.ClassificationResult;
 import leaf.soulhome.structures.core.RegionScanner;
 import leaf.soulhome.structures.core.ScanDebouncer;
-import leaf.soulhome.structures.core.SoulBounds;
 import leaf.soulhome.structures.core.SoulBuffSet;
 import leaf.soulhome.structures.core.SoulRegion;
 import leaf.soulhome.utils.DimensionHelper;
@@ -406,33 +403,6 @@ public final class StructureScanService
         // a room earned while the owner was offline should still produce its toast when they
         // next log in, so the triggers are fired from the restore path too
         SoulAdvancements.onRoomsAwarded(player, awarded);
-
-        sendBounds(player, soulhome);
-    }
-
-    /**
-     * Tell this player's client the box their own soulhome is currently bounded by (#78/#79), so
-     * the firmament and verge can be drawn and the Soul Lens can report on them without either one
-     * needing to read server-only config directly. Sent alongside every other resync in
-     * {@link #refresh}, since the box only changes with rank and rank does not move on its own -
-     * there is no separate trigger for it yet.
-     */
-    private static void sendBounds(ServerPlayer player, ServerLevel soulhome)
-    {
-        if (!SoulHomeConfig.enforceBounds())
-        {
-            return;
-        }
-
-        final SoulBounds bounds = SoulHomeConfig.soulBounds(0);
-
-        final List<Integer> legacyBox = SoulHomeBuffData.get(soulhome).legacyBox()
-                .map(box -> List.of(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()))
-                .orElse(List.of());
-
-        Network.sendTo(new SyncSoulBoundsMessage(
-                soulhome.dimension().location().toString(), bounds.floorY(), bounds.ceilingY(),
-                bounds.vergeHalfExtent(), legacyBox), player);
     }
 
     /** The rooms this player's own soulhome has been awarded, as of its last scan. */

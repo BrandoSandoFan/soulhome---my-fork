@@ -147,16 +147,6 @@ public class EngLangGen extends LanguageProvider
 
         add(Constants.StringKeys.TRAVEL_BLOCKED, "Only a soul key crosses into a soul, and only a soul key leads back out.");
 
-        add(Constants.StringKeys.ASCENT_DENIED, "This is beyond your soul's reach right now.");
-        add(Constants.StringKeys.ASCENT_HEADER, "Your soul's reach:");
-        add(Constants.StringKeys.ASCENT_RANK, "Rank: %s");
-        add(Constants.StringKeys.ASCENT_BOX, "Floor y=%s, ceiling y=%s, walls %s blocks out from the centre");
-        add(Constants.StringKeys.ASCENT_BUILD_LAYERS, "%s build layers");
-        add(Constants.StringKeys.ASCENT_LEGACY, "Your soul predates this limit and also reaches %s, from what was already built.");
-        add(Constants.StringKeys.ASCENT_NOT_YET, "Ascending is not yet possible - this is the box you have to work with for now.");
-        add(Constants.StringKeys.ASCENT_DISABLED, "Soulhome bounds are switched off in the server config.");
-        add(Constants.StringKeys.ASCENT_NO_SOULHOME, "You have never opened your soul, so there is no box to report on.");
-
         add(Constants.StringKeys.LENS_HIGHLIGHTED, "Use inside your soul to outline what was found");
         add(Constants.StringKeys.LENS_NOTHING_TO_SHOW, "Nothing here to outline yet.");
 
@@ -179,12 +169,6 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_FROM, "%s (%s room(s), best tier %s)");
         add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
 
-        add(Constants.StringKeys.LENS_SCREEN_BOX_HEADER, "Your soul's reach");
-        add(Constants.StringKeys.LENS_SCREEN_BOX_LAYERS, "%s build layers (floor y=%s to ceiling y=%s)");
-        add(Constants.StringKeys.LENS_SCREEN_BOX_VERGE, "walls %s blocks out from the centre");
-        add(Constants.StringKeys.LENS_SCREEN_BOX_RANK, "Rank %s");
-        add(Constants.StringKeys.LENS_SCREEN_BOX_LEGACY, "Your soul predates this limit and also reaches %s");
-
         //Buff types. Named rather than shown as ids, since a player reads these and a log does not
         add("buff.soulhome.saturation", "Saturation from food");
         add("buff.soulhome.sword_damage", "Sword damage");
@@ -200,12 +184,6 @@ public class EngLangGen extends LanguageProvider
         add("buff.soulhome.max_mana", "Maximum mana");
         add("buff.soulhome.spell_power", "Spell power");
         add("buff.soulhome.reach", "Reach");
-        add("buff.soulhome.fire_resistance", "Fire damage reduction");
-        add("buff.soulhome.soul_ember", "Experience kept on death");
-        add("buff.soulhome.nourished", "Slower hunger");
-        add("buff.soulhome.fortune", "Bonus drops");
-        add("buff.soulhome.knockback_resistance", "Knockback resistance");
-        add("buff.soulhome.swim_speed", "Swim speed");
 
         //Archetypes. These are the 'display_name' keys the shipped archetype JSON names
         add("archetype.soulhome.farm", "Farm");
@@ -221,15 +199,18 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.arcane_sanctum", "Arcane Sanctum");
         add("archetype.soulhome.ritual_chamber", "Ritual Chamber");
         add("archetype.soulhome.workshop", "Workshop");
-        add("archetype.soulhome.cold_storage", "Cold Storage");
-        add("archetype.soulhome.shrine", "Shrine");
-        add("archetype.soulhome.greenhouse", "Greenhouse");
-        add("archetype.soulhome.treasury", "Treasury");
-        add("archetype.soulhome.trophy_room", "Trophy Room");
-        add("archetype.soulhome.aquarium", "Aquarium");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
+
+        add("category.basics", "Basics");
+        add("category.multiblock", "Multiblocks");
+
+        add("entry.welcome", "Welcome");
+        add("entry.soul", "Soul");
+        add("entry.soul_key", "SoulKey");
+        add("entry.guide", "Guide");
+
 
         //KeyBindings
         add(Constants.StringKeys.KEYS_CATEGORY, "SoulHome");
@@ -289,24 +270,6 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.ritual_chamber.description", "Set a room in your soul aside for the work spells are made in.");
         add("advancements.soulhome.workshop.title", "Everything To Hand");
         add("advancements.soulhome.workshop.description", "Fill a room in your soul with working machinery.");
-
-        add("advancements.soulhome.cold_storage.title", "On Ice");
-        add("advancements.soulhome.cold_storage.description", "Keep a room in your soul cold enough that fire and lava barely touch you.");
-
-        add("advancements.soulhome.shrine.title", "Ember Kept");
-        add("advancements.soulhome.shrine.description", "Raise a shrine in your soul that holds a little of what death would take.");
-
-        add("advancements.soulhome.greenhouse.title", "Green Thumb");
-        add("advancements.soulhome.greenhouse.description", "Grow a greenhouse in your soul lush enough to keep you fed longer.");
-
-        add("advancements.soulhome.treasury.title", "Ill-Gotten");
-        add("advancements.soulhome.treasury.description", "Stock a treasury in your soul rich enough to draw a little extra from the ground.");
-
-        add("advancements.soulhome.trophy_room.title", "Mounted");
-        add("advancements.soulhome.trophy_room.description", "Hang enough of what you've beaten on the wall of your soul to stand your ground.");
-
-        add("advancements.soulhome.aquarium.title", "Deep End");
-        add("advancements.soulhome.aquarium.description", "Flood a room in your soul until it is an aquarium, and swim like you belong there.");
 
         //misc
 

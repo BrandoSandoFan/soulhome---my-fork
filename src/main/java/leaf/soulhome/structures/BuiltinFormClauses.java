@@ -15,7 +15,6 @@ import leaf.soulhome.structures.core.EnclosureClauseType;
 import leaf.soulhome.structures.core.FormClauseRegistry;
 import leaf.soulhome.structures.core.FormClauseType;
 import leaf.soulhome.structures.core.InsideClauseType;
-import leaf.soulhome.structures.core.LaneClauseType;
 import leaf.soulhome.structures.core.LineClauseType;
 import leaf.soulhome.structures.core.LoopClauseType;
 import leaf.soulhome.structures.core.PlatformClauseType;
@@ -80,9 +79,6 @@ public final class BuiltinFormClauses
         register(registry, new EnclosureClauseType());
         register(registry, new LineClauseType());
         register(registry, new ClusterClauseType());
-
-        // #73 - two groups of the same element with a gap between them, e.g. a fenced running lane
-        register(registry, new LaneClauseType());
     }
 
     private static void register(FormClauseRegistry registry, FormClauseType type)

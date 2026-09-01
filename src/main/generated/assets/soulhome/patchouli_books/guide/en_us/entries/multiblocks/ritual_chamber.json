@@ -1,5 +1,5 @@
 {
-  "advancement": "soulhome:main/ritual_chamber",
+  "advancement": "soulhome:main/entered_soul_dimension",
   "category": "soulhome:multiblocks",
   "icon": "minecraft:soul_sand",
   "name": "Ritual Chamber",

@@ -7,8 +7,7 @@
   "mixins": [
     "DefrostedRegistry",
     "LivingEntityAccessor",
-    "MobEffectInstanceAccessor",
-    "StructureTemplateAccessor"
+    "MobEffectInstanceAccessor"
   ],
   "client": [
     "EffectInstanceMixin",

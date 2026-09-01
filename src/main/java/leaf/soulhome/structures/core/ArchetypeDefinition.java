@@ -177,12 +177,6 @@ public record ArchetypeDefinition(
             {
                 errors.add("requirements[" + i + "]: 'min_count' must be at least 1");
             }
-
-            if (requirement.minVolumeFraction() < 0d || requirement.minVolumeFraction() > 1d)
-            {
-                errors.add("requirements[" + i + "]: 'min_volume_fraction' must be between 0 and 1, got "
-                        + requirement.minVolumeFraction());
-            }
         }
 
         collectSignalErrors(errors, "signals", this.signals, true);
@@ -271,23 +265,9 @@ public record ArchetypeDefinition(
     /**
      * A hard gate. Fail one and the region scores zero for this archetype regardless of anything
      * else, which is what stops a farm with one lonely bookshelf from registering as a library.
-     *
-     * @param minVolumeFraction beyond a flat {@code minCount}, some rooms are only themselves when
-     *                          they leave almost nothing else standing - an aquarium is not one
-     *                          with a dry corner in it. {@code 0} (the default) means this plays no
-     *                          part and only {@code minCount} gates; above {@code 0} the effective
-     *                          threshold is {@code max(minCount, ceil(minVolumeFraction * volume))},
-     *                          checked against the region's own {@link SoulRegion#volume()} - which
-     *                          already excludes both the shell and anything solid enough to stand
-     *                          in the room, since neither one is ever part of an enclosed region's
-     *                          interior fill in the first place. See {@link ArchetypeClassifier}.
      */
-    public record Requirement(BlockMatcher match, int minCount, double minVolumeFraction)
+    public record Requirement(BlockMatcher match, int minCount)
     {
-        public Requirement(BlockMatcher match, int minCount)
-        {
-            this(match, minCount, 0d);
-        }
     }
 
     /**

@@ -143,8 +143,7 @@ public final class ArchetypeJsonReader
             JsonObject entry = element.getAsJsonObject();
             requirements.add(new ArchetypeDefinition.Requirement(
                     readMatcher(entry.getAsJsonObject("match")),
-                    entry.has("min_count") ? entry.get("min_count").getAsInt() : 1,
-                    entry.has("min_volume_fraction") ? entry.get("min_volume_fraction").getAsDouble() : 0d));
+                    entry.has("min_count") ? entry.get("min_count").getAsInt() : 1));
         }
 
         return requirements;

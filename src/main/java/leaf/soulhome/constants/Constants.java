@@ -65,17 +65,6 @@ public class Constants
         // just watched a warp scroll do nothing needs to be told why, or it reads as a broken mod.
         public static final String TRAVEL_BLOCKED = "message.soulhome.travel.blocked";
 
-        // The Ascent (#78/#79): a soulhome is a box, and building stops at its walls.
-        public static final String ASCENT_DENIED = "message.soulhome.ascent.denied";
-        public static final String ASCENT_HEADER = "message.soulhome.ascent.header";
-        public static final String ASCENT_RANK = "message.soulhome.ascent.rank";
-        public static final String ASCENT_BOX = "message.soulhome.ascent.box";
-        public static final String ASCENT_BUILD_LAYERS = "message.soulhome.ascent.build_layers";
-        public static final String ASCENT_LEGACY = "message.soulhome.ascent.legacy";
-        public static final String ASCENT_NOT_YET = "message.soulhome.ascent.not_yet";
-        public static final String ASCENT_DISABLED = "message.soulhome.ascent.disabled";
-        public static final String ASCENT_NO_SOULHOME = "message.soulhome.ascent.no_soulhome";
-
         public static final String LENS_HIGHLIGHTED = "message.soulhome.lens.highlighted";
         public static final String LENS_NOTHING_TO_SHOW = "message.soulhome.lens.nothing_to_show";
 
@@ -99,14 +88,6 @@ public class Constants
         public static final String LENS_SCREEN_BUFFS_TITLE = "gui.soulhome.lens.buffs_title";
         public static final String LENS_SCREEN_BUFFS_FROM = "gui.soulhome.lens.buffs_from";
         public static final String LENS_SCREEN_CLOSE = "gui.soulhome.lens.close";
-
-        // The box (#78/#79/#81): scarcity has to be legible, so the lens says what it is as
-        // plainly as it says what a room scored.
-        public static final String LENS_SCREEN_BOX_HEADER = "gui.soulhome.lens.box_header";
-        public static final String LENS_SCREEN_BOX_LAYERS = "gui.soulhome.lens.box_layers";
-        public static final String LENS_SCREEN_BOX_VERGE = "gui.soulhome.lens.box_verge";
-        public static final String LENS_SCREEN_BOX_RANK = "gui.soulhome.lens.box_rank";
-        public static final String LENS_SCREEN_BOX_LEGACY = "gui.soulhome.lens.box_legacy";
     }
 
     public static class NBTKeys

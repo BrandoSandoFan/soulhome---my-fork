@@ -66,9 +66,7 @@ public final class ArchetypeCodecs
                             BLOCK_MATCHER.fieldOf("match")
                                     .forGetter(ArchetypeDefinition.Requirement::match),
                             Codec.INT.optionalFieldOf("min_count", 1)
-                                    .forGetter(ArchetypeDefinition.Requirement::minCount),
-                            Codec.DOUBLE.optionalFieldOf("min_volume_fraction", 0d)
-                                    .forGetter(ArchetypeDefinition.Requirement::minVolumeFraction))
+                                    .forGetter(ArchetypeDefinition.Requirement::minCount))
                     .apply(instance, ArchetypeDefinition.Requirement::new));
 
     public static final Codec<ArchetypeDefinition.Signal> SIGNAL =

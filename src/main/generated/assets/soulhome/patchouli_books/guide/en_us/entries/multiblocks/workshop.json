@@ -1,5 +1,5 @@
 {
-  "advancement": "soulhome:main/workshop",
+  "advancement": "soulhome:main/entered_soul_dimension",
   "category": "soulhome:multiblocks",
   "icon": "minecraft:crafting_table",
   "name": "Workshop",
