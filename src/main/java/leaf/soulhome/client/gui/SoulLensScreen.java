@@ -7,6 +7,7 @@ package leaf.soulhome.client.gui;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.feedback.LensRegionReport;
 import leaf.soulhome.network.SyncSoulBoundsMessage;
+import leaf.soulhome.structures.core.SoulBounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -156,7 +157,8 @@ public class SoulLensScreen extends Screen
             return;
         }
 
-        MutableComponent line = Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_RANK, "0")
+        MutableComponent line = Component.translatable(
+                        Constants.StringKeys.LENS_SCREEN_BOX_RANK, SoulBounds.rankLabel(bounds.getRank()))
                 .append(Component.literal("  "))
                 .append(Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_LAYERS,
                         bounds.getCeilingY() - bounds.getFloorY(), bounds.getFloorY(), bounds.getCeilingY()))

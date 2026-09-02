@@ -124,6 +124,52 @@ class SoulBoundsTest
     }
 
     @Test
+    @DisplayName("max_rank = 3 produces a three-rung ladder with no dead ranks and no out-of-bounds lookup")
+    void configurableMaxRankProducesAShorterLadder()
+    {
+        final int maxRank = 3;
+        SoulBounds previous = SoulBounds.forRank(0, maxRank, SoulBounds.DEFAULT_FLOOR_Y,
+                SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
+                SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK);
+
+        for (int rank = 1; rank <= maxRank; rank++)
+        {
+            SoulBounds current = SoulBounds.forRank(rank, maxRank, SoulBounds.DEFAULT_FLOOR_Y,
+                    SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
+                    SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK);
+
+            assertTrue(current.ceilingY() > previous.ceilingY(), "rank " + rank + " did not grow the ceiling");
+            previous = current;
+        }
+
+        // a rank past the configured max is clamped to it, not to the shipped MAX_RANK of 5
+        SoulBounds atMax = SoulBounds.forRank(maxRank, maxRank, SoulBounds.DEFAULT_FLOOR_Y,
+                SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
+                SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK);
+        SoulBounds pastMax = SoulBounds.forRank(maxRank + 50, maxRank, SoulBounds.DEFAULT_FLOOR_Y,
+                SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
+                SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK);
+
+        assertEquals(atMax, pastMax);
+        assertTrue(atMax.ceilingY() < SoulBounds.forRank(SoulBounds.MAX_RANK).ceilingY(),
+                "a three-rung ladder should not reach as high as the shipped five-rung one");
+    }
+
+    @Test
+    @DisplayName("rank 0 reads as unascended, every other rank as a Roman numeral")
+    void rankLabelIsRomanAboveZero()
+    {
+        assertEquals("0 (unascended)", SoulBounds.rankLabel(0));
+        assertEquals("0 (unascended)", SoulBounds.rankLabel(-1));
+        assertEquals("I", SoulBounds.rankLabel(1));
+        assertEquals("II", SoulBounds.rankLabel(2));
+        assertEquals("III", SoulBounds.rankLabel(3));
+        assertEquals("IV", SoulBounds.rankLabel(4));
+        assertEquals("V", SoulBounds.rankLabel(5));
+        assertEquals("IX", SoulBounds.rankLabel(9));
+    }
+
+    @Test
     @DisplayName("toRegionBounds is inclusive on every face, matching the scanner's own coordinate convention")
     void toRegionBoundsIsInclusive()
     {

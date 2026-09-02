@@ -19,8 +19,8 @@ package leaf.soulhome.structures.core;
  * first tick. This package cannot import {@code DimensionHelper} to enforce the two constants
  * staying equal directly (it stays Minecraft-free on purpose); keep them in sync by hand.
  *
- * <p>Rank is not tracked yet - the ascension mechanism that raises it is a later stage of the same
- * epic (#82-#84) - so every caller today passes rank 0 and gets the starting box.
+ * <p>Rank itself lives in {@code SoulHomeBuffData}, saved per soulhome and raised by the ascension
+ * ritual (#83) - see #84. This record only turns a rank number into a box.
  */
 public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
 {
@@ -54,13 +54,16 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
 
     /**
      * The box for one rank, from the config knobs under {@code ascent}. Rank is clamped to
-     * {@code [0, MAX_RANK]} rather than rejected outright - a corrupt or future save holding an
-     * out-of-range rank should not take a scan down with it.
+     * {@code [0, maxRank]} rather than rejected outright - a corrupt or future save holding an
+     * out-of-range rank should not take a scan down with it. {@code maxRank} is itself a config
+     * knob (#84's {@code max_rank}), so a pack that wants a three-rung ladder passes 3 here and
+     * gets one, with no dead ranks and no out-of-bounds lookup.
      */
     public static SoulBounds forRank(
-            int rank, int floorY, int baseCeilingHeight, int ceilingHeightPerRank, int baseVerge, int vergePerRank)
+            int rank, int maxRank, int floorY, int baseCeilingHeight, int ceilingHeightPerRank, int baseVerge,
+            int vergePerRank)
     {
-        final int clampedRank = Math.max(0, Math.min(MAX_RANK, rank));
+        final int clampedRank = Math.max(0, Math.min(Math.max(0, maxRank), rank));
 
         return new SoulBounds(
                 floorY,
@@ -71,8 +74,44 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
     /** As above, at the suggested defaults - what a fresh install reads before any config exists. */
     public static SoulBounds forRank(int rank)
     {
-        return forRank(rank, DEFAULT_FLOOR_Y, DEFAULT_BASE_CEILING_HEIGHT, DEFAULT_CEILING_HEIGHT_PER_RANK,
+        return forRank(rank, MAX_RANK, DEFAULT_FLOOR_Y, DEFAULT_BASE_CEILING_HEIGHT, DEFAULT_CEILING_HEIGHT_PER_RANK,
                 DEFAULT_BASE_VERGE, DEFAULT_VERGE_PER_RANK);
+    }
+
+    /**
+     * How a rank reads in a message: "0 (unascended)" for rank 0, a Roman numeral above that. Roman
+     * numerals because #78's spec asked for them by name ("Sublime Essence I-V"), and this is the
+     * one place both {@code /soulhome ascent} and the Soul Lens screen turn a rank into text, so
+     * they can never disagree on how to spell it.
+     */
+    public static String rankLabel(int rank)
+    {
+        if (rank <= 0)
+        {
+            return "0 (unascended)";
+        }
+
+        return toRomanNumeral(rank);
+    }
+
+    private static final int[] ROMAN_VALUES = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+    private static final String[] ROMAN_SYMBOLS = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+
+    private static String toRomanNumeral(int value)
+    {
+        StringBuilder result = new StringBuilder();
+        int remaining = value;
+
+        for (int i = 0; i < ROMAN_VALUES.length && remaining > 0; i++)
+        {
+            while (remaining >= ROMAN_VALUES[i])
+            {
+                remaining -= ROMAN_VALUES[i];
+                result.append(ROMAN_SYMBOLS[i]);
+            }
+        }
+
+        return result.toString();
     }
 
     /**

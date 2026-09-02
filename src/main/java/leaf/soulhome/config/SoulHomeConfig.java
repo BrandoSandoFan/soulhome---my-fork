@@ -118,15 +118,26 @@ public final class SoulHomeConfig
     }
 
     /**
-     * The box for the given ascension rank, from the {@code ascent} config section. Rank is not
-     * tracked yet - #84, later in the epic, is what saves and raises it - so every caller today
-     * passes a constant 0 and gets the starting box.
+     * The box for the given ascension rank, from the {@code ascent} config section. Rank itself
+     * lives in {@code SoulHomeBuffData} (#84); callers read it from there and pass it in here.
      */
     public static SoulBounds soulBounds(int rank)
     {
         return SoulBounds.forRank(
-                rank, snapshot.floorY(), snapshot.baseCeilingHeight(), snapshot.ceilingHeightPerRank(),
-                snapshot.baseVerge(), snapshot.vergePerRank());
+                rank, snapshot.maxRank(), snapshot.floorY(), snapshot.baseCeilingHeight(),
+                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank());
+    }
+
+    /** Highest ascension rank a soulhome can reach. A pack shortening or lengthening the ladder. */
+    public static int maxRank()
+    {
+        return snapshot.maxRank();
+    }
+
+    /** Rank a soulhome with no save file yet starts at - for packs that hand out a larger soul from the start. */
+    public static int startingRank()
+    {
+        return snapshot.startingRank();
     }
 
     public static long quietPeriodMillis()
@@ -190,7 +201,9 @@ public final class SoulHomeConfig
             int baseCeilingHeight,
             int ceilingHeightPerRank,
             int baseVerge,
-            int vergePerRank)
+            int vergePerRank,
+            int maxRank,
+            int startingRank)
     {
         private static final Snapshot DEFAULTS = new Snapshot(
                 true,
@@ -206,7 +219,9 @@ public final class SoulHomeConfig
                 SoulBounds.DEFAULT_BASE_CEILING_HEIGHT,
                 SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
                 SoulBounds.DEFAULT_BASE_VERGE,
-                SoulBounds.DEFAULT_VERGE_PER_RANK);
+                SoulBounds.DEFAULT_VERGE_PER_RANK,
+                SoulBounds.MAX_RANK,
+                0);
 
         private static Snapshot read()
         {
@@ -247,7 +262,9 @@ public final class SoulHomeConfig
                         SERVER.baseCeilingHeight.get(),
                         SERVER.ceilingHeightPerRank.get(),
                         SERVER.baseVerge.get(),
-                        SERVER.vergePerRank.get());
+                        SERVER.vergePerRank.get(),
+                        SERVER.maxRank.get(),
+                        SERVER.startingRank.get());
             }
             catch (RuntimeException e)
             {
@@ -368,6 +385,8 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.IntValue ceilingHeightPerRank;
         public final ForgeConfigSpec.IntValue baseVerge;
         public final ForgeConfigSpec.IntValue vergePerRank;
+        public final ForgeConfigSpec.IntValue maxRank;
+        public final ForgeConfigSpec.IntValue startingRank;
 
         private Server(ForgeConfigSpec.Builder builder)
         {
@@ -610,6 +629,21 @@ public final class SoulHomeConfig
             this.vergePerRank = builder
                     .comment("Further verge granted per ascension rank.")
                     .defineInRange("verge_per_rank", SoulBounds.DEFAULT_VERGE_PER_RANK, 1, 128);
+
+            this.maxRank = builder
+                    .comment(
+                            "Highest ascension rank a soulhome can reach. The shipped ladder runs 0 (unascended) to",
+                            "5 (V); shortening or lengthening it changes how far base_ceiling_height/base_verge and",
+                            "their per-rank steps above are ever multiplied out to - there is no separate table to",
+                            "edit alongside it.")
+                    .defineInRange("max_rank", SoulBounds.MAX_RANK, 0, 20);
+
+            this.startingRank = builder
+                    .comment(
+                            "Rank a soulhome starts at when it is first created - not when this config is loaded, so",
+                            "an existing soulhome's own rank is never touched by changing this. For a pack that wants",
+                            "to hand out a larger soul from the start rather than making every player climb from 0.")
+                    .defineInRange("starting_rank", 0, 0, 20);
 
             builder.pop();
             builder.pop();

@@ -4,6 +4,7 @@
 
 package leaf.soulhome.structures;
 
+import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.structures.core.AwardedRoom;
 import leaf.soulhome.structures.core.RegionBounds;
 import leaf.soulhome.structures.core.SoulRegion;
@@ -50,6 +51,11 @@ public class SoulHomeBuffData extends SavedData
     private static final String KEY_DATA_VERSION = "DataVersion";
     private static final String KEY_LEGACY_BOX = "LegacyBox";
 
+    // The Ascent, phase two (#84): rank lives here, not on the player and not on the Soul Anchor
+    // block (#83) - a soul can be visited by more than one person, rank is the *soul's*, and
+    // breaking the anchor with a stray pickaxe swing must not cost four ranks of progress.
+    private static final String KEY_ASCENSION_RANK = "AscensionRank";
+
     /**
      * Bumped once, for the legacy grant. A save written before this field existed reads back as
      * version 0 - {@code CompoundTag.getInt} on a missing key is 0 - and is exactly the set of
@@ -62,11 +68,20 @@ public class SoulHomeBuffData extends SavedData
     private boolean scanned;
     private int dataVersion = CURRENT_DATA_VERSION;
     private RegionBounds legacyBox;
+    private int ascensionRank;
 
     public SoulHomeBuffData()
     {
         // a soulhome with no save file yet is a soulhome created after the box existed - it never
-        // gets a legacy grant, and needs no migration to skip
+        // gets a legacy grant, and needs no migration to skip.
+        //
+        // starting_rank is read here, not as a field default, because load() below always
+        // overwrites this with the saved value afterwards - reading it here reaches only the one
+        // case starting_rank is for: a soulhome that has never been saved before. A save written
+        // before this field existed reads back as rank 0 via the same missing-key default every
+        // other field in this class already relies on, never as whatever starting_rank happens to
+        // be configured to today.
+        this.ascensionRank = SoulHomeConfig.startingRank();
     }
 
     public static SoulHomeBuffData get(ServerLevel level)
@@ -103,6 +118,9 @@ public class SoulHomeBuffData extends SavedData
         // absent on any save written before the legacy grant existed - reads back as 0, which is
         // exactly "not migrated yet"
         data.dataVersion = tag.getInt(KEY_DATA_VERSION);
+        // absent on any save written before rank existed - reads back as 0, same as every soulhome
+        // actually was before the ascension ritual (#83) could raise it
+        data.ascensionRank = tag.getInt(KEY_ASCENSION_RANK);
 
         if (tag.contains(KEY_LEGACY_BOX))
         {
@@ -145,6 +163,7 @@ public class SoulHomeBuffData extends SavedData
         tag.putLong(KEY_CONTENT_HASH, this.contentHash);
         tag.putBoolean(KEY_SCANNED, this.scanned);
         tag.putInt(KEY_DATA_VERSION, this.dataVersion);
+        tag.putInt(KEY_ASCENSION_RANK, this.ascensionRank);
 
         if (this.legacyBox != null)
         {
@@ -212,6 +231,39 @@ public class SoulHomeBuffData extends SavedData
     public List<AwardedRoom> awardedRooms()
     {
         return this.awardedRooms;
+    }
+
+    /**
+     * This soulhome's ascension rank, 0 (unascended) upward. Not clamped against the configured
+     * {@code max_rank} here - {@link leaf.soulhome.structures.core.SoulBounds#forRank} is where
+     * that clamp lives, so a pack that later lowers {@code max_rank} below a rank a soulhome
+     * already reached loses nothing on disk, it is just clamped back down wherever the box is
+     * computed from it.
+     */
+    public int ascensionRank()
+    {
+        return this.ascensionRank;
+    }
+
+    /**
+     * Set this soulhome's ascension rank directly - used by the ascension ritual (#83) on success
+     * and by {@code /soulhome ascent set} for operators. Clamped to a non-negative value only;
+     * see {@link #ascensionRank()} for why the upper bound is not enforced here.
+     *
+     * @return whether the rank actually changed, and so whether this needs writing to disk
+     */
+    public boolean setAscensionRank(int rank)
+    {
+        final int clamped = Math.max(0, rank);
+
+        if (clamped == this.ascensionRank)
+        {
+            return false;
+        }
+
+        this.ascensionRank = clamped;
+        setDirty();
+        return true;
     }
 
     /** Whether this soulhome has ever been scanned, as distinct from scanned and found empty. */
