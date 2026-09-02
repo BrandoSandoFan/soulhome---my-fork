@@ -247,9 +247,9 @@ public class DimensionRegistry
 		{
 			for (StructureTemplate.StructureBlockInfo info : palette.blocks())
 			{
-				if (info.pos.getX() == localX && info.pos.getZ() == localZ && !info.state.isAir())
+				if (info.pos().getX() == localX && info.pos().getZ() == localZ && !info.state().isAir())
 				{
-					highest = Math.max(highest, info.pos.getY());
+					highest = Math.max(highest, info.pos().getY());
 				}
 			}
 		}
@@ -266,9 +266,9 @@ public class DimensionRegistry
 		{
 			for (StructureTemplate.StructureBlockInfo info : palette.blocks())
 			{
-				if (!info.state.isAir())
+				if (!info.state().isAir())
 				{
-					highest = Math.max(highest, info.pos.getY());
+					highest = Math.max(highest, info.pos().getY());
 				}
 			}
 		}
