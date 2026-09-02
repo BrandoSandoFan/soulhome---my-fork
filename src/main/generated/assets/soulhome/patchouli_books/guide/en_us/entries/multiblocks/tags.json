@@ -88,6 +88,12 @@
     },
     {
       "type": "text",
+      "anchor": "precious_blocks",
+      "text": "$(item)soulhome:precious_blocks$(0)$(p)$(li)Gold Block$(li)Diamond Block$(li)Emerald Block$(li)Netherite Block$(li)Raw Gold Block$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "title": "Precious Blocks"
+    },
+    {
+      "type": "text",
       "anchor": "reagents",
       "text": "$(item)soulhome:reagents$(0)$(p)$(li)Nether Wart$(li)Soul Sand$(li)Soul Soil$(li)Sugar Cane$(li)Brown Mushroom$(li)Red Mushroom$(li)Redstone Block$(li)Honey Block$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Reagents"

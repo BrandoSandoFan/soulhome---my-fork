@@ -1,0 +1,26 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:water",
+  "name": "Aquarium",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)swim speed, growing with the tier, up to +35%%.$(p)Tiers begin at a score of 8."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)27 of Water$(p)Rewards, most first:$(li)any coral blocks$(li)Water$(li)Glass or Glass Pane$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)Lava$(li)any crops",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Reef is within 4 of viewing.",
+      "title": "How you arrange it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 1
+}

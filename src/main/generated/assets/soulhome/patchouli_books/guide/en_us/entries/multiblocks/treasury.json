@@ -1,0 +1,26 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "soulhome:soul_lens",
+  "name": "Treasury",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)fortune, growing with the tier, up to +15%%.$(p)Tiers begin at a score of 6."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)4 of $(l:soulhome:multiblocks/tags#precious_blocks)any precious blocks$(/l)$(p)Rewards, most first:$(li)$(l:soulhome:multiblocks/tags#precious_blocks)any precious blocks$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)$(l:soulhome:multiblocks/tags#storage)any storage$(/l)$(p)Counts against it:$(li)any crops$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Wealth forms one cluster.",
+      "title": "How you arrange it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 16
+}
