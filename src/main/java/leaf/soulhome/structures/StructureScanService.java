@@ -411,11 +411,12 @@ public final class StructureScanService
     }
 
     /**
-     * Tell this player's client the box their own soulhome is currently bounded by (#78/#79), so
-     * the firmament and verge can be drawn and the Soul Lens can report on them without either one
-     * needing to read server-only config directly. Sent alongside every other resync in
-     * {@link #refresh}, since the box only changes with rank and rank does not move on its own -
-     * there is no separate trigger for it yet.
+     * Tell this player's client the box - and the rank that produced it (#84) - their own soulhome
+     * is currently bounded by (#78/#79), so the firmament and verge can be drawn and the Soul Lens
+     * can report on them without either one needing to read server-only config directly. Sent
+     * alongside every other resync in {@link #refresh}; anything that raises a rank - the ascension
+     * ritual (#83), {@code /soulhome ascent set} - calls {@link #refresh} afterwards for exactly
+     * this reason, rather than only touching the saved data.
      */
     private static void sendBounds(ServerPlayer player, ServerLevel soulhome)
     {
@@ -424,14 +425,16 @@ public final class StructureScanService
             return;
         }
 
-        final SoulBounds bounds = SoulHomeConfig.soulBounds(0);
+        final SoulHomeBuffData data = SoulHomeBuffData.get(soulhome);
+        final int rank = data.ascensionRank();
+        final SoulBounds bounds = SoulHomeConfig.soulBounds(rank);
 
-        final List<Integer> legacyBox = SoulHomeBuffData.get(soulhome).legacyBox()
+        final List<Integer> legacyBox = data.legacyBox()
                 .map(box -> List.of(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()))
                 .orElse(List.of());
 
         Network.sendTo(new SyncSoulBoundsMessage(
-                soulhome.dimension().location().toString(), bounds.floorY(), bounds.ceilingY(),
+                soulhome.dimension().location().toString(), rank, bounds.floorY(), bounds.ceilingY(),
                 bounds.vergeHalfExtent(), legacyBox), player);
     }
 

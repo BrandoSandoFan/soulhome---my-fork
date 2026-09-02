@@ -325,22 +325,26 @@ public final class SnapshotBlockVolume implements BlockVolume
     }
 
     /**
-     * The rank-0 box - rank is not tracked yet; see {@code SoulHomeConfig#soulBounds} - unioned
-     * with the legacy box if this soulhome has one. {@link RegionBounds} has no union of its own,
-     * so this takes the enclosing box of both rather than their true (possibly non-rectangular)
-     * combined shape; the only effect is that a soulhome with an oddly-placed legacy build may have
-     * slightly more of the void around it become placeable and scannable than strictly necessary,
-     * never less.
+     * The box for this soulhome's current ascension rank (#84), unioned with the legacy box if this
+     * soulhome has one. {@link RegionBounds} has no union of its own, so this takes the enclosing
+     * box of both rather than their true (possibly non-rectangular) combined shape; the only effect
+     * is that a soulhome with an oddly-placed legacy build may have slightly more of the void around
+     * it become placeable and scannable than strictly necessary, never less.
      *
      * <p>Shared with placement enforcement ({@code SoulBoundsEnforcement}), so a block that can be
      * scanned is always a block that was allowed to be placed, and vice versa - the two can never
      * disagree about where a soulhome's edge is.
+     *
+     * <p><b>Server thread only</b>, same as the capture that is this method's main caller: rank is
+     * read once here, before the box is handed off to a worker thread, which is what keeps an
+     * ascension landing mid-scan from producing a half-ranked result (#84).
      */
     public static RegionBounds declaredBox(ServerLevel level)
     {
-        final RegionBounds rankBox = SoulHomeConfig.soulBounds(0).toRegionBounds();
+        final SoulHomeBuffData data = SoulHomeBuffData.get(level);
+        final RegionBounds rankBox = SoulHomeConfig.soulBounds(data.ascensionRank()).toRegionBounds();
 
-        return SoulHomeBuffData.get(level).legacyBox()
+        return data.legacyBox()
                 .map(legacy -> rankBox.encompass(legacy.minX(), legacy.minY(), legacy.minZ())
                         .encompass(legacy.maxX(), legacy.maxY(), legacy.maxZ()))
                 .orElse(rankBox);

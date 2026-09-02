@@ -154,8 +154,12 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ASCENT_BUILD_LAYERS, "%s build layers");
         add(Constants.StringKeys.ASCENT_LEGACY, "Your soul predates this limit and also reaches %s, from what was already built.");
         add(Constants.StringKeys.ASCENT_NOT_YET, "Ascending is not yet possible - this is the box you have to work with for now.");
+        add(Constants.StringKeys.ASCENT_MAXED, "Your soul has reached the highest rank this server allows.");
         add(Constants.StringKeys.ASCENT_DISABLED, "Soulhome bounds are switched off in the server config.");
         add(Constants.StringKeys.ASCENT_NO_SOULHOME, "You have never opened your soul, so there is no box to report on.");
+
+        add(Constants.StringKeys.ASCENT_SET_SUCCESS, "Your soul is now rank %s.");
+        add(Constants.StringKeys.ASCENT_SET_OUT_OF_RANGE, "This server's max_rank is %s - you cannot set a rank above it.");
 
         add(Constants.StringKeys.LENS_HIGHLIGHTED, "Use inside your soul to outline what was found");
         add(Constants.StringKeys.LENS_NOTHING_TO_SHOW, "Nothing here to outline yet.");

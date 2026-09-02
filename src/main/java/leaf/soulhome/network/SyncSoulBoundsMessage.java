@@ -23,15 +23,19 @@ import java.util.function.Consumer;
  * has a legacy grant (#80), or empty when it does not - {@code structures.core}'s own bounds type
  * would need a codec it has no other reason to carry, so the six numbers travel loose instead and
  * are reassembled client-side.
+ *
+ * <p>{@code rank} rides along too (#84): the client needs it to label the firmament with the same
+ * rank the server actually used to compute this box, rather than guessing from the box's size.
  */
 public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
 {
-    public static final SyncSoulBoundsMessage INVALID = new SyncSoulBoundsMessage("", 0, 1, 1, List.of());
+    public static final SyncSoulBoundsMessage INVALID = new SyncSoulBoundsMessage("", 0, 0, 1, 1, List.of());
 
     public static final Codec<SyncSoulBoundsMessage> CODEC =
             RecordCodecBuilder.create(instance -> instance
                     .group(
                             Codec.STRING.fieldOf("dimension").forGetter(SyncSoulBoundsMessage::getDimension),
+                            Codec.INT.fieldOf("rank").forGetter(SyncSoulBoundsMessage::getRank),
                             Codec.INT.fieldOf("floor_y").forGetter(SyncSoulBoundsMessage::getFloorY),
                             Codec.INT.fieldOf("ceiling_y").forGetter(SyncSoulBoundsMessage::getCeilingY),
                             Codec.INT.fieldOf("verge_half_extent").forGetter(SyncSoulBoundsMessage::getVergeHalfExtent),
@@ -39,18 +43,26 @@ public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
                     .apply(instance, SyncSoulBoundsMessage::new));
 
     private final String dimension;
+    private final int rank;
     private final int floorY;
     private final int ceilingY;
     private final int vergeHalfExtent;
     private final List<Integer> legacyBox;
 
-    public SyncSoulBoundsMessage(String dimension, int floorY, int ceilingY, int vergeHalfExtent, List<Integer> legacyBox)
+    public SyncSoulBoundsMessage(
+            String dimension, int rank, int floorY, int ceilingY, int vergeHalfExtent, List<Integer> legacyBox)
     {
         this.dimension = dimension == null ? "" : dimension;
+        this.rank = rank;
         this.floorY = floorY;
         this.ceilingY = ceilingY;
         this.vergeHalfExtent = vergeHalfExtent;
         this.legacyBox = legacyBox == null || legacyBox.size() != 6 ? List.of() : List.copyOf(legacyBox);
+    }
+
+    public int getRank()
+    {
+        return this.rank;
     }
 
     public String getDimension()

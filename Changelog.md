@@ -400,3 +400,20 @@ refused, with one message if you keep trying rather than a flood of them.
   until the next stage lands.
 - Everything here can be turned off in the server config (`ascent.enforce_bounds`), which returns a
   soulhome to exactly how it worked before this update.
+
+The Ascent, phase two: a rank that actually holds
+
+Phase one gave every soulhome a box, but rank itself was a constant zero wired through every part
+of it - nothing could raise it, and the Soul Lens's own rank line was a hardcoded "0" rather than
+anything read from a soulhome. Rank is now real, saved data: it lives with the rest of a soulhome's
+state, survives a server restart, and reaches the client the same way the box itself already did.
+
+- `/soulhome ascent` and the Soul Lens now report your soulhome's actual rank, in Roman numerals
+  from I upward, instead of always showing 0.
+- `/soulhome ascent set <rank>` lets an operator jump a soulhome straight to a rank, for testing -
+  useful now, and necessary once the real climb (essence, willpower, a pillar to stand on) lands,
+  since nobody should have to ascend for real five times over just to look at rank V.
+- Two new server config knobs under `ascent`: `max_rank` (default 5) shortens or lengthens the
+  ladder, and `starting_rank` (default 0) hands freshly-created soulhomes a head start.
+- Nothing about how a rank is earned exists yet - there is no essence, no pillar, no ritual. This
+  is the plumbing every later stage of the climb reads from and writes to.
