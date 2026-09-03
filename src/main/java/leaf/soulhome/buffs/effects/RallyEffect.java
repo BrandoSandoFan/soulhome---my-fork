@@ -103,7 +103,10 @@ public class RallyEffect implements SoulActiveEffect
             rallied++;
         }
 
-        level.playSound(null, player.blockPosition(), SoundEvents.RAID_HORN, SoundSource.PLAYERS, 0.7f, 1.0f);
+        // RAID_HORN is one of the handful of SoundEvents fields held as a Holder.Reference rather
+        // than a bare SoundEvent, so it needs unwrapping where the others do not
+        level.playSound(
+                null, player.blockPosition(), SoundEvents.RAID_HORN.value(), SoundSource.PLAYERS, 0.7f, 1.0f);
 
         player.displayClientMessage(
                 rallied == 0
