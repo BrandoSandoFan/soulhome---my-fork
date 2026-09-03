@@ -20,6 +20,7 @@ import java.util.List;
 public final class SoulAdvancements
 {
     public static ClassifiedRoomTrigger CLASSIFIED_ROOM;
+    public static AscensionTrigger ASCENDED;
 
     private SoulAdvancements()
     {
@@ -31,6 +32,11 @@ public final class SoulAdvancements
         if (CLASSIFIED_ROOM == null)
         {
             CLASSIFIED_ROOM = CriteriaTriggers.register(new ClassifiedRoomTrigger());
+        }
+
+        if (ASCENDED == null)
+        {
+            ASCENDED = CriteriaTriggers.register(new AscensionTrigger());
         }
     }
 
@@ -50,5 +56,16 @@ public final class SoulAdvancements
         {
             CLASSIFIED_ROOM.trigger(player, room.archetypeId(), room.tier());
         }
+    }
+
+    /** The ascension ritual (#83) just raised a soulhome to {@code newRank}. */
+    public static void onAscended(ServerPlayer player, int newRank)
+    {
+        if (ASCENDED == null || player == null)
+        {
+            return;
+        }
+
+        ASCENDED.trigger(player, newRank);
     }
 }

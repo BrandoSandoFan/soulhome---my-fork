@@ -6,6 +6,7 @@ package leaf.soulhome.config;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.structures.ArchetypeManager;
+import leaf.soulhome.structures.core.AscensionSettings;
 import leaf.soulhome.structures.core.BuffSettings;
 import leaf.soulhome.structures.core.EssenceSettings;
 import leaf.soulhome.structures.core.ScanDebouncer;
@@ -157,6 +158,12 @@ public final class SoulHomeConfig
         return snapshot.essence();
     }
 
+    /** The ascension ritual's four requirements, minus the pillar itself. See {@link AscensionSettings}. */
+    public static AscensionSettings ascensionSettings()
+    {
+        return snapshot.ascension();
+    }
+
     public static long quietPeriodMillis()
     {
         return snapshot.quietPeriodMillis();
@@ -222,7 +229,8 @@ public final class SoulHomeConfig
             int maxRank,
             int startingRank,
             boolean residueTapEnabled,
-            EssenceSettings essence)
+            EssenceSettings essence,
+            AscensionSettings ascension)
     {
         private static final Snapshot DEFAULTS = new Snapshot(
                 true,
@@ -242,7 +250,8 @@ public final class SoulHomeConfig
                 SoulBounds.MAX_RANK,
                 0,
                 true,
-                EssenceSettings.DEFAULTS);
+                EssenceSettings.DEFAULTS,
+                AscensionSettings.DEFAULTS);
 
         private static Snapshot read()
         {
@@ -289,7 +298,13 @@ public final class SoulHomeConfig
                         SERVER.residueTapEnabled.get(),
                         new EssenceSettings(
                                 SERVER.residueRateMultiplier.get(),
-                                SERVER.residueToEssenceRate.get()));
+                                SERVER.residueToEssenceRate.get()),
+                        new AscensionSettings(
+                                SERVER.essenceCountPerRank.get(),
+                                SERVER.ritualDurationTicks.get(),
+                                SERVER.baseWillpowerThreshold.get(),
+                                SERVER.willpowerPerRank.get(),
+                                SERVER.pillarSearchRadius.get()));
             }
             catch (RuntimeException e)
             {
@@ -416,6 +431,12 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.BooleanValue residueTapEnabled;
         public final ForgeConfigSpec.DoubleValue residueRateMultiplier;
         public final ForgeConfigSpec.DoubleValue residueToEssenceRate;
+
+        public final ForgeConfigSpec.IntValue essenceCountPerRank;
+        public final ForgeConfigSpec.IntValue ritualDurationTicks;
+        public final ForgeConfigSpec.DoubleValue baseWillpowerThreshold;
+        public final ForgeConfigSpec.DoubleValue willpowerPerRank;
+        public final ForgeConfigSpec.IntValue pillarSearchRadius;
 
         private Server(ForgeConfigSpec.Builder builder)
         {
@@ -700,6 +721,44 @@ public final class SoulHomeConfig
                     .comment("How much soul residue converts into one Essence I at the Soul Anchor (#83).")
                     .defineInRange(
                             "residue_to_essence_rate", EssenceSettings.DEFAULT_RESIDUE_TO_ESSENCE_RATE, 0.001d, 1_000_000d);
+
+            builder.pop();
+
+            builder.comment(
+                            "The ascension ritual (#83): a pillar, willpower, essence, and holding the cap. The box",
+                            "in the ascent section above only grows once this actually raises the rank.")
+                    .push("ritual");
+
+            this.essenceCountPerRank = builder
+                    .comment("How many of the target rank's Sublime Essence the ritual consumes on success.")
+                    .defineInRange(
+                            "essence_count_per_rank", AscensionSettings.DEFAULT_ESSENCE_COUNT_PER_RANK, 1, 64);
+
+            this.ritualDurationTicks = builder
+                    .comment("How long a player must hold the pillar's cap for one ascension, in ticks.")
+                    .defineInRange(
+                            "ritual_duration_ticks", AscensionSettings.DEFAULT_RITUAL_DURATION_TICKS, 1, 24_000);
+
+            this.baseWillpowerThreshold = builder
+                    .comment(
+                            "Total awarded room score a soulhome needs to ascend to rank I. A tall empty pillar is",
+                            "not an ascension - this is what makes the soul's own substance the thing pushing back",
+                            "against the sky.")
+                    .defineInRange(
+                            "base_willpower_threshold", AscensionSettings.DEFAULT_BASE_WILLPOWER_THRESHOLD, 0d, 1_000_000d);
+
+            this.willpowerPerRank = builder
+                    .comment("Further total awarded room score required for every rank past the first.")
+                    .defineInRange(
+                            "willpower_per_rank", AscensionSettings.DEFAULT_WILLPOWER_PER_RANK, 0d, 1_000_000d);
+
+            this.pillarSearchRadius = builder
+                    .comment(
+                            "How many blocks from the Soul Anchor the pillar's 3x3 base may sit - \"a few blocks\",",
+                            "per #83. Also bounds how far the pillar is allowed to widen above its base before the",
+                            "ritual simply stops looking, so raising this scales the cost of every check.")
+                    .defineInRange(
+                            "pillar_search_radius", AscensionSettings.DEFAULT_PILLAR_SEARCH_RADIUS, 2, 16);
 
             builder.pop();
             builder.pop();

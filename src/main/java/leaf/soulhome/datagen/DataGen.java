@@ -9,8 +9,10 @@ package leaf.soulhome.datagen;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.datagen.advancements.AdvancementGen;
+import leaf.soulhome.datagen.blocks.BlockStatesGen;
 import leaf.soulhome.datagen.items.ItemModelsGen;
 import leaf.soulhome.datagen.language.EngLangGen;
+import leaf.soulhome.datagen.loot.LootTablesGen;
 import leaf.soulhome.datagen.patchouli.PatchouliGen;
 import leaf.soulhome.datagen.recipe.RecipeGen;
 import leaf.soulhome.structures.BuiltinFormClauses;
@@ -49,6 +51,8 @@ public class DataGen
 
         generator.addProvider(true, new AdvancementGen(packOutput));
         generator.addProvider(true, new ItemModelsGen(packOutput, existingFileHelper));
+        generator.addProvider(true, new BlockStatesGen(packOutput, existingFileHelper));
+        generator.addProvider(true, new LootTablesGen(packOutput));
         generator.addProvider(true, new RecipeGen(packOutput));
 
         generator.addProvider(true, new PatchouliGen(packOutput));

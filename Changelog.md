@@ -446,3 +446,36 @@ spend - the first half of the actual climb, still short of the ritual that spend
   entirely for a pack that would rather ascension be paid for than grown.
 - What actually spends the essence - the Soul Anchor, the pillar you build to earn a rank, and the
   ritual itself - is not part of this update. This is the wallet; the till comes next.
+
+The Soul Anchor and the Pillar of Ascent
+
+The till. Rank has lived in a soulhome's save file since phase two, and essence has had somewhere
+to come from since the last update, but nothing could actually spend either of them - every
+soulhome sat at rank 0 whatever it had built or banked. It no longer does.
+
+- A new block, the Soul Anchor, craftable from obsidian, an amethyst block and a corner of
+  Essence I. Place one in your soulhome - only one is ever needed, and only one is ever allowed -
+  and right-click it to hear exactly what your next ascension still needs: whether a pillar
+  stands, how much willpower your soulhome still has to find, and how much essence you are
+  carrying. The same click also draws down any soul residue you have banked into whole units of
+  Essence I, so you never have to go looking for a separate way to cash it in.
+- To ascend, build a pillar: a solid 3x3 base of full blocks somewhere within a few blocks of your
+  anchor, running unbroken all the way up to your soulhome's current firmament. What it is made of
+  and what shape it takes above that base is entirely up to you - a plain post and an ornamented
+  buttressed tower both count, the same way two libraries that look nothing alike both count.
+  Stand on top of it, and as long as your soulhome's total room score already clears the rank's
+  threshold and you are carrying enough Sublime Essence of the right rank, the ritual begins on
+  its own: no button, no menu, just the sky pressing down. Hold your ground under Slowness and
+  Mining Fatigue for the ritual's duration and your rank rises, your box grows, and the essence is
+  spent. Step off the pillar, or let it break under you, and the ritual fails with every scrap of
+  essence handed straight back - an ascension should never cost you anything for a push you never
+  chose to take.
+- Only one ascension can run in a soulhome at a time, so two players standing on two different
+  pillars can never both spend the same soulhome's one payment of progress.
+- Breaking the Soul Anchor loses nothing. Rank and residue were never stored on the block - they
+  never have been - so a stray pickaxe swing costs you a block to replace, not a single rank of
+  progress.
+- Four new server config knobs under `ascent.ritual`: how much essence one ascension costs, how
+  long the ritual takes to hold, and the willpower threshold for the first rank and for every rank
+  after it. A fifth, `pillar_search_radius`, sets how far from the anchor the pillar's base may
+  sit.
