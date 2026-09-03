@@ -57,9 +57,11 @@ public interface SoulActiveEffect extends SoulBuffEffect
      * not when the game raises something - and Forge throws on registering a listener object with
      * no handler methods on it. So the default subscription is deliberately not inherited.
      *
-     * <p>An active that genuinely does need a passive hook - {@code AegisEffect} has to watch for
-     * damage to spend its absorption - overrides this again and calls
-     * {@code SoulBuffEffect.super.register()}.
+     * <p>An active that does need a passive hook - {@code CallOfTheHerdEffect} has to watch for a
+     * player mounting something - overrides this again and subscribes itself. It cannot delegate to
+     * {@code SoulBuffEffect}'s default: that interface is a superinterface of this one rather than
+     * of the class, and {@code Interface.super.method()} only reaches an interface the class
+     * implements directly.
      */
     @Override
     default void register()

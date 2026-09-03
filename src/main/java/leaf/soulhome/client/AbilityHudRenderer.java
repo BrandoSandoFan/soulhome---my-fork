@@ -6,7 +6,6 @@ package leaf.soulhome.client;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.ClientSoulAbilities;
-import leaf.soulhome.constants.Constants;
 import leaf.soulhome.network.SyncSoulAbilitiesMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -86,8 +85,6 @@ public class RuptureEffect implements SoulActiveEffect
         final Vec3 look = player.getLookAngle().normalize();
         final double cosHalfAngle = Math.cos(halfAngle);
 
-        int caught = 0;
-
         for (LivingEntity target : level.getEntitiesOfClass(
                 LivingEntity.class, player.getBoundingBox().inflate(range)))
         {
@@ -120,8 +117,6 @@ public class RuptureEffect implements SoulActiveEffect
 
             level.playSound(
                     null, target.blockPosition(), SoundEvents.SCULK_SHRIEKER_SHRIEK, SoundSource.HOSTILE, 0.5f, 0.7f);
-
-            caught++;
         }
 
         drawWave(level, origin, look, range);

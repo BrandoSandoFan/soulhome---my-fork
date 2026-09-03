@@ -5,7 +5,6 @@
 package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulActiveEffect;
-import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.structures.SnapshotBlockVolume;
@@ -26,6 +25,7 @@ import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityMountEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -80,11 +80,16 @@ public class CallOfTheHerdEffect implements SoulActiveEffect
     /**
      * The one active that does need a passive hook: something has to notice which mount was last
      * ridden, and that is a Forge event rather than a keypress.
+     *
+     * <p>Subscribes directly rather than delegating to {@code SoulBuffEffect}'s default. That
+     * default is not reachable from here - {@code SoulBuffEffect} is a superinterface of
+     * {@link SoulActiveEffect} rather than of this class, and Java only allows
+     * {@code Interface.super.method()} for an interface the class implements itself.
      */
     @Override
     public void register()
     {
-        SoulBuffEffect.super.register();
+        MinecraftForge.EVENT_BUS.register(this);
     }
 
     @SubscribeEvent
