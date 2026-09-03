@@ -95,6 +95,7 @@ public final class SoulKeybinds
         }
 
         ClientSoulAbilities.tick();
+        SurveyedBlocks.tick();
 
         boolean used = false;
 

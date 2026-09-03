@@ -152,6 +152,17 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
         archetypeAdvancement(advancementConsumer, roomAdvancement, "treasury", Items.DIAMOND_BLOCK);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "trophy_room", Items.WITHER_SKELETON_SKULL);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "aquarium", Items.TROPICAL_FISH_BUCKET);
+
+        // The eight rooms that grant an active ability (#88-#92, #94-#96). Nothing about them is a
+        // special case here - a room is a room, whether what it pays out is carried or pressed.
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "watchtower", Items.SPYGLASS);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "bulwark", Items.IRON_BARS);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "rift_chamber", Items.AMETHYST_SHARD);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "mead_hall", Items.BARREL);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "stable", Items.SADDLE);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "storm_spire", Items.LIGHTNING_ROD);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "powder_magazine", Items.TNT);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "infected_grotto", Items.SCULK_CATALYST);
     }
 
     /**

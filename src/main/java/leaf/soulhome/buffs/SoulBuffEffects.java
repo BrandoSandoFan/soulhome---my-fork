@@ -4,7 +4,10 @@
 
 package leaf.soulhome.buffs;
 
+import leaf.soulhome.buffs.effects.AegisEffect;
 import leaf.soulhome.buffs.effects.AttributeBuffEffect;
+import leaf.soulhome.buffs.effects.BarrageEffect;
+import leaf.soulhome.buffs.effects.CallOfTheHerdEffect;
 import leaf.soulhome.buffs.effects.DoubleJumpEffect;
 import leaf.soulhome.buffs.effects.EnchantmentPowerEffect;
 import leaf.soulhome.buffs.effects.FallProtectionEffect;
@@ -16,12 +19,17 @@ import leaf.soulhome.buffs.effects.ManaEffect;
 import leaf.soulhome.buffs.effects.MiningSpeedEffect;
 import leaf.soulhome.buffs.effects.NourishedEffect;
 import leaf.soulhome.buffs.effects.PotionDurationEffect;
+import leaf.soulhome.buffs.effects.RallyEffect;
 import leaf.soulhome.buffs.effects.ReachEffect;
+import leaf.soulhome.buffs.effects.RuptureEffect;
 import leaf.soulhome.buffs.effects.SaturationEffect;
 import leaf.soulhome.buffs.effects.SoulEmberEffect;
+import leaf.soulhome.buffs.effects.SoulStepEffect;
 import leaf.soulhome.buffs.effects.SpellPowerEffect;
 import leaf.soulhome.buffs.effects.SwimSpeedEffect;
+import leaf.soulhome.buffs.effects.SurveyorsEyeEffect;
 import leaf.soulhome.buffs.effects.SwordDamageEffect;
+import leaf.soulhome.buffs.effects.ThunderclapEffect;
 import leaf.soulhome.buffs.effects.HealingEffect;
 import leaf.soulhome.buffs.effects.SpeedEffect;
 import leaf.soulhome.buffs.effects.XpGainEffect;
@@ -80,6 +88,19 @@ public final class SoulBuffEffects
         register(new SpellPowerEffect());
         register(new ReachEffect());
         register(new SwimSpeedEffect());
+
+        //the actives (#87). Registered in the same list as everything else, because to an archetype
+        //and to the classifier they are the same kind of thing; what makes them different is a
+        //bank of charges and something that happens when a player asks, not how they are declared.
+        //Order matters a little - it is the order the cycle key walks.
+        register(new SurveyorsEyeEffect());
+        register(new AegisEffect());
+        register(new SoulStepEffect());
+        register(new RallyEffect());
+        register(new CallOfTheHerdEffect());
+        register(new ThunderclapEffect());
+        register(new BarrageEffect());
+        register(new RuptureEffect());
 
         LogHelper.info("Registered " + BY_TYPE.size() + " soul buff effect(s): " + BY_TYPE.keySet());
 

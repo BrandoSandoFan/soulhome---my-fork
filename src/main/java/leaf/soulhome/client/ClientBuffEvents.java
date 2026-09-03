@@ -38,5 +38,6 @@ public final class ClientBuffEvents
         // the same reasoning for the ability HUD (#87): a stale charge count drawn over a server
         // that has never heard of this mod is worse than an empty corner
         ClientSoulAbilities.clear();
+        SurveyedBlocks.clear();
     }
 }

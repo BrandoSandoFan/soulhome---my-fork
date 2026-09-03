@@ -1,0 +1,26 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:lightning_rod",
+  "name": "Storm Spire",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Wants open ground rather than a sealed room. At least 27 blocks of space.$(p)Grants:$(li)thunderclap, growing with the tier, up to +3.$(p)Tiers begin at a score of 8."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)1 of Lightning Rod$(p)Rewards, most first:$(li)Lightning Rod$(li)$(l:soulhome:multiblocks/tags#conductive)any conductive$(/l)$(li)Chain$(li)$(l:soulhome:multiblocks/tags#structural)any structural$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)any crops$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Rod crowns the structure, and mast runs in a line.",
+      "title": "How you arrange it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 20
+}
