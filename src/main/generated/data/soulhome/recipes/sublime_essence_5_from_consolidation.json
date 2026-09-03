@@ -2,15 +2,33 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    { "item": "soulhome:sublime_essence_4" },
-    { "item": "soulhome:sublime_essence_4" },
-    { "item": "soulhome:sublime_essence_4" },
-    { "item": "soulhome:sublime_essence_4" },
-    { "item": "soulhome:sublime_essence_4" },
-    { "item": "soulhome:sublime_essence_4" },
-    { "item": "soulhome:sublime_essence_4" },
-    { "item": "soulhome:sublime_essence_4" },
-    { "item": "soulhome:sublime_essence_4" }
+    {
+      "item": "soulhome:sublime_essence_4"
+    },
+    {
+      "item": "soulhome:sublime_essence_4"
+    },
+    {
+      "item": "soulhome:sublime_essence_4"
+    },
+    {
+      "item": "soulhome:sublime_essence_4"
+    },
+    {
+      "item": "soulhome:sublime_essence_4"
+    },
+    {
+      "item": "soulhome:sublime_essence_4"
+    },
+    {
+      "item": "soulhome:sublime_essence_4"
+    },
+    {
+      "item": "soulhome:sublime_essence_4"
+    },
+    {
+      "item": "soulhome:sublime_essence_4"
+    }
   ],
   "result": {
     "item": "soulhome:sublime_essence_5"

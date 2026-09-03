@@ -2,7 +2,9 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    { "item": "minecraft:nether_star" }
+    {
+      "item": "minecraft:nether_star"
+    }
   ],
   "result": {
     "item": "soulhome:sublime_essence_5"
