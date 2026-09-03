@@ -417,3 +417,32 @@ state, survives a server restart, and reaches the client the same way the box it
   ladder, and `starting_rank` (default 0) hands freshly-created soulhomes a head start.
 - Nothing about how a rank is earned exists yet - there is no essence, no pillar, no ritual. This
   is the plumbing every later stage of the climb reads from and writes to.
+
+Sublime Essence: the currency the climb spends
+
+Phase two gave rank somewhere to live. This gives the Ascent something to earn and something to
+spend - the first half of the actual climb, still short of the ritual that spends it.
+
+- A new item family, Sublime Essence I through V. One item per rank, not one per rank per
+  placeable block: the essence is spent on the ascension itself, never on the blocks you build
+  with, so nothing about what you may build above a given rank narrows.
+- Your soulhome now earns soul residue on its own, for free, just by holding rooms the game
+  recognises - the same total score `/soulhome analyse` already adds up. A soulhome with nothing
+  built in it earns nothing; a well-built one earns steadily, whether or not you are watching it
+  happen, and whether or not you are even logged in. There is no daily cap and no online-time
+  requirement - only a curve that flattens hard as your soulhome's score climbs, so a soulhome
+  with many good rooms earns a few times what a modest one does, not many times over.
+- Residue survives a server restart along with the rest of your soulhome's saved state, and a
+  soulhome that predates this update starts earning from the moment it updates rather than being
+  billed for however long it already existed.
+- Essence can also be crafted directly from vanilla materials that get harder to find at each
+  rank - amethyst shard, echo shard, heart of the sea, netherite scrap, nether star - for anyone
+  who would rather not wait on residue, or whose soulhome cannot score highly yet.
+- Nine of one rank's essence can be consolidated into one of the next, so a player stuck on one
+  path - no ocean nearby for a heart of the sea, say - is never fully blocked. It is deliberately
+  the worst-value way to get there: nobody should prefer it over the direct craft.
+- Two new server config knobs under `ascent.essence`: a multiplier on how fast residue accrues,
+  and how much residue converts into Essence I. A third, `residue_tap_enabled`, turns residue off
+  entirely for a pack that would rather ascension be paid for than grown.
+- What actually spends the essence - the Soul Anchor, the pillar you build to earn a rank, and the
+  ritual itself - is not part of this update. This is the wallet; the till comes next.

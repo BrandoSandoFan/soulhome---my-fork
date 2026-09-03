@@ -54,6 +54,26 @@ public class EngLangGen extends LanguageProvider
                     case "Soul Lens":
                         tooltipString = "Shows what your soul is made of, and what it is worth";
                         break;
+                    case "Sublime Essence 1":
+                        localisedString = "Sublime Essence I";
+                        tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
+                        break;
+                    case "Sublime Essence 2":
+                        localisedString = "Sublime Essence II";
+                        tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
+                        break;
+                    case "Sublime Essence 3":
+                        localisedString = "Sublime Essence III";
+                        tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
+                        break;
+                    case "Sublime Essence 4":
+                        localisedString = "Sublime Essence IV";
+                        tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
+                        break;
+                    case "Sublime Essence 5":
+                        localisedString = "Sublime Essence V";
+                        tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
+                        break;
                 }
 
                 if (item instanceof BoundSoulkey)

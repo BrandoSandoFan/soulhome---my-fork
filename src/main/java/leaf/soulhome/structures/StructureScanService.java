@@ -347,7 +347,21 @@ public final class StructureScanService
             return;
         }
 
-        SoulHomeBuffData.get(level).update(awarded, contentHash);
+        final SoulHomeBuffData data = SoulHomeBuffData.get(level);
+
+        data.update(awarded, contentHash);
+
+        // Sublime Essence's soul-residue tap (#82): "the same schedule the scan service already
+        // runs on; no new timer". Rate is set by the same total awarded room score BuffCalculator
+        // already computes, so an unbuilt soulhome (awarded is empty, total is 0) accrues nothing.
+        double totalScore = 0;
+
+        for (AwardedRoom room : awarded)
+        {
+            totalScore += room.score();
+        }
+
+        data.accrueResidue(totalScore);
 
         // Pushed on every completed scan, not only when the saved results changed. A soulhome
         // whose rooms are unchanged can still have an owner whose buffs are not: what a player is
