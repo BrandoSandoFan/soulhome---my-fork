@@ -81,6 +81,30 @@ public class Constants
         public static final String ASCENT_SET_SUCCESS = "message.soulhome.ascent.set_success";
         public static final String ASCENT_SET_OUT_OF_RANGE = "message.soulhome.ascent.set_out_of_range";
 
+        // The Soul Anchor and the ascension ritual (#83): the climb itself, rather than merely the
+        // box it climbs against.
+        public static final String ANCHOR_NOT_HERE = "message.soulhome.anchor.not_here";
+        public static final String ANCHOR_ALREADY_EXISTS = "message.soulhome.anchor.already_exists";
+        public static final String ANCHOR_HEADER = "message.soulhome.anchor.header";
+        public static final String ANCHOR_RANK = "message.soulhome.anchor.rank";
+        public static final String ANCHOR_MAXED = "message.soulhome.anchor.maxed";
+        public static final String ANCHOR_READY = "message.soulhome.anchor.ready";
+        public static final String ANCHOR_RESIDUE_CONVERTED = "message.soulhome.anchor.residue_converted";
+
+        public static final String ANCHOR_PILLAR_OK = "message.soulhome.anchor.pillar_ok";
+        public static final String ANCHOR_PILLAR_NO_BASE = "message.soulhome.anchor.pillar_no_base";
+        public static final String ANCHOR_PILLAR_GAP = "message.soulhome.anchor.pillar_gap";
+        public static final String ANCHOR_WILLPOWER_OK = "message.soulhome.anchor.willpower_ok";
+        public static final String ANCHOR_WILLPOWER_MISSING = "message.soulhome.anchor.willpower_missing";
+        public static final String ANCHOR_ESSENCE_OK = "message.soulhome.anchor.essence_ok";
+        public static final String ANCHOR_ESSENCE_MISSING = "message.soulhome.anchor.essence_missing";
+
+        public static final String ANCHOR_RITUAL_IN_PROGRESS = "message.soulhome.anchor.ritual_in_progress";
+        public static final String ANCHOR_RITUAL_STARTED = "message.soulhome.anchor.ritual_started";
+        public static final String ANCHOR_RITUAL_ABORTED_MOVED = "message.soulhome.anchor.ritual_aborted_moved";
+        public static final String ANCHOR_RITUAL_ABORTED_PILLAR = "message.soulhome.anchor.ritual_aborted_pillar";
+        public static final String ANCHOR_RITUAL_SUCCESS = "message.soulhome.anchor.ritual_success";
+
         public static final String LENS_HIGHLIGHTED = "message.soulhome.lens.highlighted";
         public static final String LENS_NOTHING_TO_SHOW = "message.soulhome.lens.nothing_to_show";
 

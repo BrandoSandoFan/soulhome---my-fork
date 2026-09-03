@@ -74,6 +74,9 @@ public class EngLangGen extends LanguageProvider
                         localisedString = "Sublime Essence V";
                         tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
                         break;
+                    case "Soul Anchor":
+                        tooltipString = "Right-click to hear what your soulhome's next ascension still needs.";
+                        break;
                 }
 
                 if (item instanceof BoundSoulkey)
@@ -173,13 +176,36 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ASCENT_BOX, "Floor y=%s, ceiling y=%s, walls %s blocks out from the centre");
         add(Constants.StringKeys.ASCENT_BUILD_LAYERS, "%s build layers");
         add(Constants.StringKeys.ASCENT_LEGACY, "Your soul predates this limit and also reaches %s, from what was already built.");
-        add(Constants.StringKeys.ASCENT_NOT_YET, "Ascending is not yet possible - this is the box you have to work with for now.");
+        add(Constants.StringKeys.ASCENT_NOT_YET, "Find your Soul Anchor to see what your next ascension needs.");
         add(Constants.StringKeys.ASCENT_MAXED, "Your soul has reached the highest rank this server allows.");
         add(Constants.StringKeys.ASCENT_DISABLED, "Soulhome bounds are switched off in the server config.");
         add(Constants.StringKeys.ASCENT_NO_SOULHOME, "You have never opened your soul, so there is no box to report on.");
 
         add(Constants.StringKeys.ASCENT_SET_SUCCESS, "Your soul is now rank %s.");
         add(Constants.StringKeys.ASCENT_SET_OUT_OF_RANGE, "This server's max_rank is %s - you cannot set a rank above it.");
+
+        // The Soul Anchor and the ascension ritual (#83)
+        add(Constants.StringKeys.ANCHOR_NOT_HERE, "The Soul Anchor only answers inside a soulhome.");
+        add(Constants.StringKeys.ANCHOR_ALREADY_EXISTS, "This soulhome already has a Soul Anchor. Break it first if you want to move it.");
+        add(Constants.StringKeys.ANCHOR_HEADER, "The Soul Anchor stirs:");
+        add(Constants.StringKeys.ANCHOR_RANK, "Rank: %s");
+        add(Constants.StringKeys.ANCHOR_MAXED, "This soul has reached the highest rank this server allows.");
+        add(Constants.StringKeys.ANCHOR_READY, "Everything is in place. Stand on the pillar's cap and hold.");
+        add(Constants.StringKeys.ANCHOR_RESIDUE_CONVERTED, "Converted your soul's residue into %s Essence I.");
+
+        add(Constants.StringKeys.ANCHOR_PILLAR_OK, "Pillar: stands unbroken to the firmament.");
+        add(Constants.StringKeys.ANCHOR_PILLAR_NO_BASE, "Pillar: no 3x3 base of full blocks stands near this anchor.");
+        add(Constants.StringKeys.ANCHOR_PILLAR_GAP, "Pillar: stops %s block(s) short of the firmament.");
+        add(Constants.StringKeys.ANCHOR_WILLPOWER_OK, "Willpower: %s / %s - your soul's own substance is enough.");
+        add(Constants.StringKeys.ANCHOR_WILLPOWER_MISSING, "Willpower: %s / %s - build more before you climb.");
+        add(Constants.StringKeys.ANCHOR_ESSENCE_OK, "Essence: %s / %s Sublime Essence %s carried.");
+        add(Constants.StringKeys.ANCHOR_ESSENCE_MISSING, "Essence: %s / %s Sublime Essence %s carried.");
+
+        add(Constants.StringKeys.ANCHOR_RITUAL_IN_PROGRESS, "Another ascension is already underway in this soulhome.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_STARTED, "The sky presses down. Hold your ground.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_MOVED, "You left the pillar's cap. The ritual fails, and your essence is returned.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_PILLAR, "The pillar gave way beneath the ritual. Your essence is returned.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_SUCCESS, "Your soul ascends to rank %s.");
 
         add(Constants.StringKeys.LENS_HIGHLIGHTED, "Use inside your soul to outline what was found");
         add(Constants.StringKeys.LENS_NOTHING_TO_SHOW, "Nothing here to outline yet.");

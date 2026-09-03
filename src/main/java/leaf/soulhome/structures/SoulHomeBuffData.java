@@ -9,6 +9,7 @@ import leaf.soulhome.structures.core.AwardedRoom;
 import leaf.soulhome.structures.core.RegionBounds;
 import leaf.soulhome.structures.core.SoulRegion;
 import leaf.soulhome.utils.LogHelper;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -63,6 +64,12 @@ public class SoulHomeBuffData extends SavedData
     private static final String KEY_RESIDUE = "Residue";
     private static final String KEY_LAST_RESIDUE_ACCRUAL_MILLIS = "LastResidueAccrualMillis";
 
+    // The Soul Anchor (#83): also the soulhome's, not a value read off the block itself. Rank
+    // lives here rather than on the anchor for exactly this reason, and the anchor's own position
+    // does too - a stray pickaxe swing loses the placement, never the progress, and a second scan
+    // of the whole dimension to relocate a missing anchor is a cost this saves entirely.
+    private static final String KEY_ANCHOR_POS = "AnchorPos";
+
     /**
      * Bumped once, for the legacy grant. A save written before this field existed reads back as
      * version 0 - {@code CompoundTag.getInt} on a missing key is 0 - and is exactly the set of
@@ -78,6 +85,7 @@ public class SoulHomeBuffData extends SavedData
     private int ascensionRank;
     private double residue;
     private long lastResidueAccrualMillis;
+    private BlockPos anchorPos;
 
     public SoulHomeBuffData()
     {
@@ -136,6 +144,16 @@ public class SoulHomeBuffData extends SavedData
         // actual instant in 1970 to bill for
         data.lastResidueAccrualMillis = tag.getLong(KEY_LAST_RESIDUE_ACCRUAL_MILLIS);
 
+        if (tag.contains(KEY_ANCHOR_POS))
+        {
+            int[] pos = tag.getIntArray(KEY_ANCHOR_POS);
+
+            if (pos.length == 3)
+            {
+                data.anchorPos = new BlockPos(pos[0], pos[1], pos[2]);
+            }
+        }
+
         if (tag.contains(KEY_LEGACY_BOX))
         {
             int[] box = tag.getIntArray(KEY_LEGACY_BOX);
@@ -180,6 +198,11 @@ public class SoulHomeBuffData extends SavedData
         tag.putInt(KEY_ASCENSION_RANK, this.ascensionRank);
         tag.putDouble(KEY_RESIDUE, this.residue);
         tag.putLong(KEY_LAST_RESIDUE_ACCRUAL_MILLIS, this.lastResidueAccrualMillis);
+
+        if (this.anchorPos != null)
+        {
+            tag.putIntArray(KEY_ANCHOR_POS, new int[] {this.anchorPos.getX(), this.anchorPos.getY(), this.anchorPos.getZ()});
+        }
 
         if (this.legacyBox != null)
         {
@@ -282,7 +305,75 @@ public class SoulHomeBuffData extends SavedData
         return true;
     }
 
+    /**
+     * Total score across every currently awarded room - the same "willpower" figure the ascension
+     * ritual (#83) checks and the residue tap (#82) already rates its accrual by. A tall empty
+     * pillar is not an ascension; this is the number that says whether a soul actually has the
+     * substance to push back against the sky.
+     */
+    public double totalScore()
+    {
+        double total = 0;
+
+        for (AwardedRoom room : this.awardedRooms)
+        {
+            total += room.score();
+        }
+
+        return total;
+    }
+
+    /** Where this soulhome's Soul Anchor sits, or empty if none has been placed yet. */
+    public Optional<BlockPos> anchorPos()
+    {
+        return Optional.ofNullable(this.anchorPos);
+    }
+
+    /** Record a newly placed Soul Anchor. There is exactly one per soulhome; see {@code SoulAnchorBlock}. */
+    public void setAnchorPos(BlockPos pos)
+    {
+        this.anchorPos = pos.immutable();
+        setDirty();
+    }
+
+    /**
+     * The anchor was broken. Rank lives in this class, not on the block, so nothing about an
+     * ascension already earned is lost - a replacement anchor placed anywhere in the soulhome
+     * picks up exactly where this one left off.
+     */
+    public void clearAnchorPos()
+    {
+        if (this.anchorPos == null)
+        {
+            return;
+        }
+
+        this.anchorPos = null;
+        setDirty();
+    }
+
     /** Soul residue accrued so far - the primary tap of Sublime Essence (#82), spent at the Soul Anchor (#83). */
+    /**
+     * Convert as much residue as {@code rate} allows into whole units of Essence I, at the Soul
+     * Anchor (#83). Deducts only what was actually converted - a fractional remainder stays
+     * banked rather than being lost to rounding.
+     *
+     * @return how many whole units of Essence I this converted, 0 if not enough residue for even one
+     */
+    public int claimEssenceFromResidue(double rate)
+    {
+        final int units = (int) (this.residue / rate);
+
+        if (units <= 0)
+        {
+            return 0;
+        }
+
+        this.residue -= units * rate;
+        setDirty();
+        return units;
+    }
+
     public double residue()
     {
         return this.residue;

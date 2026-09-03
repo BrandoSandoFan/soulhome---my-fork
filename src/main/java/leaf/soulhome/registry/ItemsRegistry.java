@@ -14,6 +14,7 @@ import leaf.soulhome.items.BoundSoulkey;
 import leaf.soulhome.items.SoulKeyItem;
 import leaf.soulhome.items.SoulLensItem;
 import leaf.soulhome.items.SublimeEssenceItem;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -45,6 +46,10 @@ public class ItemsRegistry
             ITEMS.register("sublime_essence_3", () -> createItem(new SublimeEssenceItem(3))),
             ITEMS.register("sublime_essence_4", () -> createItem(new SublimeEssenceItem(4))),
             ITEMS.register("sublime_essence_5", () -> createItem(new SublimeEssenceItem(5))));
+
+    /** The Soul Anchor's own {@link BlockItem} (#83) - registered here so it shares the creative tab every other item does. */
+    public static final RegistryObject<Item> SOUL_ANCHOR =
+            ITEMS.register("soul_anchor", () -> new BlockItem(BlocksRegistry.SOUL_ANCHOR.get(), new Item.Properties()));
 
 
     private static <T extends net.minecraft.world.item.Item> T createItem(T item)

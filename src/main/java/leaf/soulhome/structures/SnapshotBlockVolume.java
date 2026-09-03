@@ -97,7 +97,13 @@ public final class SnapshotBlockVolume implements BlockVolume
         return snapshot;
     }
 
-    private static Passability passabilityOf(ServerLevel level, BlockPos pos, BlockState state)
+    /**
+     * Package-private rather than private: {@code LiveBlockVolume} (#83) reuses this exact
+     * judgment for the ascension ritual's pillar check, live against the world rather than off a
+     * captured snapshot - the ritual re-checks every tick, and a pillar has to be seen as solid or
+     * not by the same rule a scan would use, or the two could disagree about the same block.
+     */
+    static Passability passabilityOf(ServerLevel level, BlockPos pos, BlockState state)
     {
         if (state.isAir())
         {

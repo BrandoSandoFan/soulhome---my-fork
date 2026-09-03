@@ -49,6 +49,7 @@ public class SoulHome
         MinecraftForge.EVENT_BUS.register(this);
 
         //Register our deferred registries
+        BlocksRegistry.BLOCKS.register(modBus);
         ItemsRegistry.ITEMS.register(modBus);
         CreativeTabsRegistry.CREATIVE_TABS.register(modBus);
         BiomeRegistry.BIOMES.register(modBus);

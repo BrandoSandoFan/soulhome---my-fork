@@ -72,6 +72,19 @@ public class RecipeGen extends RecipeProvider implements IConditionBuilder
                 .save(consumer);
 
         buildEssenceRecipes(consumer);
+
+        // the Soul Anchor (#83) - obsidian frame, an amethyst block core, and a corner of Essence I
+        // to mark that it is the ascension's own fixture rather than just another decoration
+        ShapedRecipeBuilder
+                .shaped(RecipeCategory.DECORATIONS, ItemsRegistry.SOUL_ANCHOR.get())
+                .define('E', ItemsRegistry.SUBLIME_ESSENCE.get(0).get())
+                .define('O', Items.OBSIDIAN)
+                .define('A', Items.AMETHYST_BLOCK)
+                .pattern("EOE")
+                .pattern("OAO")
+                .pattern("EOE")
+                .unlockedBy("has_essence", has(ItemsRegistry.SUBLIME_ESSENCE.get(0).get()))
+                .save(consumer);
     }
 
     /**
