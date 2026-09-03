@@ -14,7 +14,6 @@ import leaf.soulhome.network.UseSoulAbilityMessage;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -34,8 +33,11 @@ import org.lwjgl.glfw.GLFW;
  *
  * <p>The press is sent, never acted on. Everything about whether it did anything is decided
  * server-side; see {@code UseSoulAbilityMessage}.
+ *
+ * <p>The mappings are held here and registered by {@code ClientRegistry}, which is where this mod
+ * does its client-side mod-bus registration. This class only owns them and reads them.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID)
+@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class SoulKeybinds
 {
     public static final KeyMapping USE_ABILITY = new KeyMapping(
@@ -54,21 +56,6 @@ public final class SoulKeybinds
 
     private SoulKeybinds()
     {
-    }
-
-    @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
-    public static final class Registration
-    {
-        private Registration()
-        {
-        }
-
-        @SubscribeEvent
-        public static void onRegisterKeys(RegisterKeyMappingsEvent event)
-        {
-            event.register(USE_ABILITY);
-            event.register(CYCLE_ABILITY);
-        }
     }
 
     /**
