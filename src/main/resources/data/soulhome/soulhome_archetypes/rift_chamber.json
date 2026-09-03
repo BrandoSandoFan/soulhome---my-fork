@@ -1,0 +1,55 @@
+{
+  "display_name": "archetype.soulhome.rift_chamber",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": ["minecraft:amethyst_block", "minecraft:budding_amethyst"] }, "min_count": 4 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:amethyst_block" },     "weight": 2.5, "role": "resonance", "cap": 16 },
+    { "match": { "block": "minecraft:budding_amethyst" },   "weight": 5.0, "role": "resonance", "cap": 4  },
+    { "match": { "tag": "minecraft:crystal_sound_blocks" }, "weight": 1.0, "role": "resonance", "cap": 24 },
+    { "match": { "block": "minecraft:end_rod" },            "weight": 2.0, "role": "conduit",   "cap": 12 },
+    { "match": { "block": "minecraft:obsidian" },           "weight": 1.5, "role": "frame",     "cap": 24 },
+    { "match": { "block": "minecraft:crying_obsidian" },    "weight": 3.0, "role": "frame",     "cap": 8  },
+    { "match": { "block": "minecraft:ender_chest" },        "weight": 5.0, "role": "elsewhere", "cap": 2  },
+    { "match": { "tag": "minecraft:purpur_blocks" },        "weight": 1.5, "role": "elsewhere", "cap": 16 },
+    { "match": { "tag": "soulhome:lighting" },              "weight": 0.4, "role": "light",     "cap": 8  }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "soulhome:bookshelves" }, "weight": -2.0 },
+    { "match": { "tag": "soulhome:smithing" },    "weight": -1.5 },
+    { "match": { "tag": "minecraft:crops" },      "weight": -1.5 }
+  ],
+
+  "tiers": [
+    { "min_score": 6, "tier": 1 },
+    { "min_score": 40, "tier": 2 },
+    { "min_score": 70, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:soul_step", "per_tier": 2.0, "max": 6.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "the_gate",
+      "weight": 8.0,
+      "role": "arrangement",
+      "elements": {
+        "frame":     { "block": ["minecraft:obsidian", "minecraft:crying_obsidian"] },
+        "resonance": { "block": ["minecraft:amethyst_block", "minecraft:budding_amethyst"] },
+        "conduit":   { "block": "minecraft:end_rod" }
+      },
+      "any": [
+        { "relation": "surrounds", "of": "frame", "to": "resonance", "max_radius": 3, "weight": 2.0 },
+        { "relation": "above", "of": "conduit", "to": "resonance", "max_drop": 2, "weight": 1.5 },
+        { "shape": "soulhome:loop", "of": "frame", "min_cells": 8, "ideal_cells": 24, "weight": 2.0 }
+      ]
+    }
+  ]
+}

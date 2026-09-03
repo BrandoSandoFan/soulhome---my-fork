@@ -1,0 +1,54 @@
+{
+  "display_name": "archetype.soulhome.powder_magazine",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:tnt" }, "min_count": 4 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:tnt" },            "weight": 3.0, "role": "ordnance",  "cap": 12 },
+    { "match": { "block": "minecraft:dispenser" },      "weight": 3.0, "role": "battery",   "cap": 6  },
+    { "match": { "block": "minecraft:redstone_block" }, "weight": 2.0, "role": "charge",    "cap": 8  },
+    { "match": { "block": ["minecraft:piston", "minecraft:sticky_piston"] },
+                                                         "weight": 1.5, "role": "mechanism", "cap": 8 },
+    { "match": { "block": "minecraft:observer" },       "weight": 1.5, "role": "mechanism", "cap": 6  },
+    { "match": { "tag": "soulhome:storage" },           "weight": 0.8, "role": "magazine",  "cap": 8  },
+    { "match": { "tag": "soulhome:lighting" },          "weight": 0.4, "role": "light",     "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "soulhome:seating" },     "weight": -1.5 },
+    { "match": { "tag": "minecraft:crops" },      "weight": -1.5 },
+    { "match": { "tag": "soulhome:bookshelves" }, "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 6, "tier": 1 },
+    { "min_score": 38, "tier": 2 },
+    { "min_score": 66, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:barrage", "per_tier": 2.0, "max": 6.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "racked_and_ready",
+      "weight": 6.0,
+      "role": "arrangement",
+      "elements": {
+        "ordnance": { "block": "minecraft:tnt" },
+        "battery":  { "block": "minecraft:dispenser" },
+        "charge":   { "block": "minecraft:redstone_block" }
+      },
+      "all": [
+        { "shape": "soulhome:cluster", "of": "ordnance", "weight": 2.0 },
+        { "relation": "within", "of": "battery", "to": "ordnance", "max_distance": 4, "weight": 1.5 },
+        { "relation": "within", "of": "charge",  "to": "battery",  "max_distance": 3, "weight": 1.0 }
+      ]
+    }
+  ]
+}

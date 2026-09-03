@@ -52,10 +52,11 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(19, shipped.size(),
-                "alchemy lab, arcane sanctum, armoury, aquarium, bedchamber, cold storage, enchanting room, "
-                        + "farm, greenhouse, hearth, library, mine, ritual chamber, shrine, track, training yard, "
-                        + "treasury, trophy room, workshop");
+        assertEquals(27, shipped.size(),
+                "alchemy lab, arcane sanctum, armoury, aquarium, bedchamber, bulwark, cold storage, "
+                        + "enchanting room, farm, greenhouse, hearth, infected grotto, library, mead hall, mine, "
+                        + "powder magazine, rift chamber, ritual chamber, shrine, stable, storm spire, track, "
+                        + "training yard, treasury, trophy room, watchtower, workshop");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -478,7 +479,15 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:greenhouse", TestBlocks.POPPY),
                 Map.entry("soulhome:treasury", TestBlocks.DIAMOND_BLOCK),
                 Map.entry("soulhome:trophy_room", TestBlocks.DRAGON_HEAD),
-                Map.entry("soulhome:aquarium", TestBlocks.WATER));
+                Map.entry("soulhome:aquarium", TestBlocks.WATER),
+                Map.entry("soulhome:watchtower", TestBlocks.GLASS),
+                Map.entry("soulhome:bulwark", TestBlocks.IRON_BARS),
+                Map.entry("soulhome:rift_chamber", TestBlocks.AMETHYST_BLOCK),
+                Map.entry("soulhome:mead_hall", TestBlocks.BARREL),
+                Map.entry("soulhome:stable", TestBlocks.HAY),
+                Map.entry("soulhome:storm_spire", TestBlocks.LIGHTNING_ROD),
+                Map.entry("soulhome:powder_magazine", TestBlocks.TNT),
+                Map.entry("soulhome:infected_grotto", TestBlocks.SCULK_CATALYST));
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -662,7 +671,15 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:greenhouse", greenhouse()),
                 Map.entry("soulhome:treasury", treasury()),
                 Map.entry("soulhome:trophy_room", trophyRoom()),
-                Map.entry("soulhome:aquarium", aquarium()));
+                Map.entry("soulhome:aquarium", aquarium()),
+                Map.entry("soulhome:watchtower", watchtower()),
+                Map.entry("soulhome:bulwark", bulwark()),
+                Map.entry("soulhome:rift_chamber", riftChamber()),
+                Map.entry("soulhome:mead_hall", meadHall()),
+                Map.entry("soulhome:stable", stable()),
+                Map.entry("soulhome:storm_spire", stormSpire()),
+                Map.entry("soulhome:powder_magazine", powderMagazine()),
+                Map.entry("soulhome:infected_grotto", infectedGrotto()));
 
         assertEquals(shipped.size(), canonicalBuild.size(),
                 "every shipped archetype needs a canonical-build fixture here, or a newly added one goes untested");
@@ -1173,6 +1190,308 @@ class ArchetypeClassifierTest
                         "#######"},
                 SLAB);
     }
+
+    // region the eight ability rooms (#88-#92, #94-#96)
+
+    /** A deepslate shell, for the rooms whose form reads {@code soulhome:structural}. */
+    private static final String[] DEEP_SLAB = {
+            "&&&&&&&", "&&&&&&&", "&&&&&&&", "&&&&&&&", "&&&&&&&", "&&&&&&&", "&&&&&&&"};
+
+    /** Glass on every side, a ladder running up one corner, a lodestone to sight by, a bell. */
+    private static GridVolume watchtower()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "ggggggg",
+                        "g..l..g",
+                        "g.....g",
+                        "g..Q..g",
+                        "g.....g",
+                        "gn...ng",
+                        "ggggggg"},
+                new String[]{
+                        "ggggggg",
+                        "g..l..g",
+                        "g.....g",
+                        "g.....g",
+                        "g.....g",
+                        "gc...cg",
+                        "ggggggg"},
+                new String[]{
+                        "ggggggg",
+                        "g..l..g",
+                        "g.....g",
+                        "g..!..g",
+                        "g.....g",
+                        "g.....g",
+                        "ggggggg"},
+                SLAB);
+    }
+
+    /** Bars and chains packed against heavy stone, banners on the walls, a target to drill at. */
+    private static GridVolume bulwark()
+    {
+        return GridVolume.of(
+                DEEP_SLAB,
+                new String[]{
+                        "&&&&&&&",
+                        "&1...1&",
+                        "&.....&",
+                        "&..*..&",
+                        "&.....&",
+                        "&1...1&",
+                        "&&&&&&&"},
+                new String[]{
+                        "&&&&&&&",
+                        "&1...1&",
+                        "&.....&",
+                        "&.o.o.&",
+                        "&.....&",
+                        "&1...1&",
+                        "&&&&&&&"},
+                new String[]{
+                        "&&&&&&&",
+                        "&n...n&",
+                        "&.....&",
+                        "&.....&",
+                        "&.....&",
+                        "&H...H&",
+                        "&&&&&&&"},
+                DEEP_SLAB);
+    }
+
+    /** An obsidian ring closed around amethyst, end rods standing over it. */
+    private static GridVolume riftChamber()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#ooooo#",
+                        "#o2%2o#",
+                        "#o2.2o#",
+                        "#o222o#",
+                        "#ooooo#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.333.#",
+                        "#.3.3.#",
+                        "#.333.#",
+                        "#.....#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** A long table with benches down both flanks, barrels at the corners, banners overhead. */
+    private static GridVolume meadHall()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#b...b#",
+                        "#SSSSS#",
+                        "#-----#",
+                        "#SSSSS#",
+                        "#b...b#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#n...n#",
+                        "#.....#",
+                        "#..u..#",
+                        "#.....#",
+                        "#n...n#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#c...c#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** Stalls of fence with gates, hay to feed and a water cauldron to drink from, bedding above. */
+    private static GridVolume stable()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#FFyFF#",
+                        "#F.h.F#",
+                        "#F.h.F#",
+                        "#Fh+hF#",
+                        "#FFyFF#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.xxx.#",
+                        "#.xxx.#",
+                        "#.xxx.#",
+                        "#.....#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#t...t#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#t...t#",
+                        "#######"},
+                SLAB);
+    }
+
+    /**
+     * A copper mast under open sky with the rod at its tip - and deliberately no roof, since a
+     * spire under one is a pole in a shed.
+     */
+    private static GridVolume stormSpire()
+    {
+        String[] empty = {
+                ".......", ".......", ".......", ".......", ".......", ".......", "......."};
+
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        ".......",
+                        ".......",
+                        "..555..",
+                        "..555..",
+                        "..555..",
+                        ".......",
+                        "......."},
+                new String[]{
+                        ".......",
+                        ".......",
+                        ".......",
+                        "...5...",
+                        ".......",
+                        ".......",
+                        "......."},
+                new String[]{
+                        ".......",
+                        ".......",
+                        ".......",
+                        "...5...",
+                        ".......",
+                        ".......",
+                        "......."},
+                new String[]{
+                        ".......",
+                        ".......",
+                        ".......",
+                        "...5...",
+                        ".......",
+                        ".......",
+                        "......."},
+                new String[]{
+                        ".......",
+                        ".......",
+                        ".......",
+                        "...4...",
+                        ".......",
+                        ".......",
+                        "......."},
+                empty);
+    }
+
+    /** Crated charges stored together, dispensers racked beside them, redstone to fire them. */
+    private static GridVolume powderMagazine()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.66..#",
+                        "#.66..#",
+                        "#.....#",
+                        "#..7..#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.66..#",
+                        "#.....#",
+                        "#.....#",
+                        "#.8...#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#c...c#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** Sculk spreading over deepslate in a hollow, and deliberately unlit. */
+    private static GridVolume infectedGrotto()
+    {
+        return GridVolume.of(
+                DEEP_SLAB,
+                new String[]{
+                        "&&&&&&&",
+                        "&.....&",
+                        "&.000.&",
+                        "&.090.&",
+                        "&.000.&",
+                        "&.....&",
+                        "&&&&&&&"},
+                new String[]{
+                        "&&&&&&&",
+                        "&.....&",
+                        "&..0..&",
+                        "&.....&",
+                        "&..$..&",
+                        "&.....&",
+                        "&&&&&&&"},
+                new String[]{
+                        "&&&&&&&",
+                        "&.....&",
+                        "&.....&",
+                        "&.....&",
+                        "&.....&",
+                        "&.....&",
+                        "&&&&&&&"},
+                new String[]{
+                        "&&&&&&&",
+                        "&.....&",
+                        "&.....&",
+                        "&.....&",
+                        "&.....&",
+                        "&.....&",
+                        "&&&&&&&"},
+                DEEP_SLAB);
+    }
+
+    // endregion
 
     private static GridVolume bookshelfBox()
     {

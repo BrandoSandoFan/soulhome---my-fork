@@ -42,6 +42,11 @@ public class Network
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulLensReportMessage.CODEC, SyncSoulLensReportMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulLensBuffsMessage.CODEC, SyncSoulLensBuffsMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulBoundsMessage.CODEC, SyncSoulBoundsMessage.INVALID);
+        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAbilitiesMessage.CODEC, SyncSoulAbilitiesMessage.INVALID);
+
+        //the only two that travel client to server - see UseSoulAbilityMessage on why that matters
+        registerCodecPacket(id++, NETWORK_CHANNEL, UseSoulAbilityMessage.CODEC, UseSoulAbilityMessage.INVALID);
+        registerCodecPacket(id++, NETWORK_CHANNEL, CycleSoulAbilityMessage.CODEC, CycleSoulAbilityMessage.INVALID);
     }
 
     public static <PACKET extends Consumer<NetworkEvent.Context>> void registerCodecPacket(int id, SimpleChannel channel, Codec<PACKET> codec, PACKET defaultPacket)

@@ -1,0 +1,54 @@
+{
+  "display_name": "archetype.soulhome.watchtower",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "tag": "minecraft:impermeable" }, "min_count": 12 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:glass_pane" },   "weight": 1.0, "role": "window",  "cap": 32 },
+    { "match": { "tag": "minecraft:impermeable" },    "weight": 1.2, "role": "window",  "cap": 32 },
+    { "match": { "block": "minecraft:lodestone" },    "weight": 6.0, "role": "sighting", "cap": 2 },
+    { "match": { "block": "minecraft:bell" },         "weight": 4.0, "role": "alarm",   "cap": 2 },
+    { "match": { "tag": "minecraft:climbable" },      "weight": 1.5, "role": "ascent",  "cap": 12 },
+    { "match": { "block": "minecraft:scaffolding" },  "weight": 0.8, "role": "ascent",  "cap": 16 },
+    { "match": { "tag": "soulhome:lighting" },        "weight": 1.0, "role": "beacon",  "cap": 8 },
+    { "match": { "tag": "minecraft:banners" },        "weight": 0.8, "role": "colours", "cap": 6 }
+  ],
+
+  "detractors": [
+    { "match": { "block": "minecraft:water" },   "weight": -2.0 },
+    { "match": { "tag": "minecraft:crops" },     "weight": -1.5 },
+    { "match": { "tag": "soulhome:smithing" },   "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 4, "tier": 1 },
+    { "min_score": 30, "tier": 2 },
+    { "min_score": 52, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:surveyors_eye", "per_tier": 1.0, "max": 3.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "commanding_view",
+      "weight": 7.0,
+      "role": "arrangement",
+      "elements": {
+        "windows": { "tag": "minecraft:impermeable" },
+        "way_up":  { "tag": "minecraft:climbable" },
+        "sight":   { "block": ["minecraft:lodestone", "minecraft:bell"] }
+      },
+      "all": [
+        { "shape": "soulhome:enclosure", "of": "windows", "weight": 2.0 },
+        { "shape": "soulhome:line", "of": "way_up", "min_run": 3, "ideal_run": 5, "weight": 1.0 },
+        { "relation": "within", "of": "sight", "to": "windows", "max_distance": 6, "weight": 1.0 }
+      ]
+    }
+  ]
+}

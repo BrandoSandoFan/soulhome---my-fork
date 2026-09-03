@@ -91,20 +91,65 @@ public final class SoulBuffTypes
     /** Aquarium: faster swimming, as a fraction of the player's own swim speed. */
     public static final String SWIM_SPEED = "soulhome:swim_speed";
 
+    /** Watchtower: ores and hostiles outlined through terrain. Active (#88). */
+    public static final String SURVEYORS_EYE = "soulhome:surveyors_eye";
+
+    /** Bulwark: a bank of absorption that refills on its own. Active (#89). */
+    public static final String AEGIS = "soulhome:aegis";
+
+    /** Rift chamber: a short blink through blocks, landing in the first safe space. Active (#90). */
+    public static final String SOUL_STEP = "soulhome:soul_step";
+
+    /** Mead hall: a share of your own buffs to everyone nearby, and Strength either way. Active (#91). */
+    public static final String RALLY = "soulhome:rally";
+
+    /** Stable: summons your last-ridden tamed mount. Active (#92). */
+    public static final String CALL_OF_THE_HERD = "soulhome:call_of_the_herd";
+
+    /** Storm spire: lightning called down on hostiles nearby. Active (#94). */
+    public static final String THUNDERCLAP = "soulhome:thunderclap";
+
+    /** Powder magazine: a spread of explosive shots that break nothing. Active (#95). */
+    public static final String BARRAGE = "soulhome:barrage";
+
+    /** Infected grotto: an expanding shockwave in a cone. Active (#96). */
+    public static final String RUPTURE = "soulhome:rupture";
+
+    /**
+     * The buffs that are pressed rather than carried (#87). Held apart from {@link #BUILT_IN}
+     * because two things need to ask "is this an active" without knowing every id: the config's
+     * per-ability switches, and the feedback that has to describe a magnitude as charges and a
+     * radius rather than as a percentage.
+     */
+    public static final Set<String> ACTIVE =
+            Set.of(SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE);
+
     public static final Set<String> BUILT_IN =
             Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
                     POTION_DURATION, HEALING, MINING_SPEED,
                     SPEED, DOUBLE_JUMP, FALL_PROTECTION, FIRE_ASPECT,
                     MAX_MANA, SPELL_POWER, REACH,
-                    FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, SWIM_SPEED);
+                    FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, SWIM_SPEED,
+                    SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE);
 
     /**
      * Types measured as a flat amount rather than a proportion: a count of jumps, a number of
      * seconds, a number of effective levels, points of mana, blocks of reach. Held as a set rather
      * than a single special case now that enchanting power is no longer the only one.
+     *
+     * <p>Every active is in here too. An active's magnitude is not a proportion of anything - it is
+     * the tier-scaled number its own effect reads to work out charges, radius and recharge, so
+     * showing it as "+200%" would be inventing a unit it does not have.
      */
     private static final Set<String> NON_FRACTION =
-            Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT, MAX_MANA, REACH);
+            Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT, MAX_MANA, REACH,
+                    SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE);
+
+    /** Whether this buff is pressed rather than carried - see {@link #ACTIVE}. */
+    public static boolean isActive(String buffType)
+    {
+        return ACTIVE.contains(buffType);
+    }
 
     private SoulBuffTypes()
     {

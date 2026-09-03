@@ -6,6 +6,7 @@ package leaf.soulhome.config;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.structures.ArchetypeManager;
+import leaf.soulhome.structures.core.ActiveAbilitySettings;
 import leaf.soulhome.structures.core.AscensionSettings;
 import leaf.soulhome.structures.core.BuffSettings;
 import leaf.soulhome.structures.core.EssenceSettings;
@@ -23,9 +24,11 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Every number the structure-buff feature can be tuned by, in one server-side config file.
@@ -164,6 +167,23 @@ public final class SoulHomeConfig
         return snapshot.ascension();
     }
 
+    /** The bounds every active ability is subject to (#87). See {@link ActiveAbilitySettings}. */
+    public static ActiveAbilitySettings activeAbilitySettings()
+    {
+        return snapshot.activeAbilities();
+    }
+
+    /**
+     * Whether one particular ability may be used. A server that is happy with Aegis may not be
+     * happy with Soul Step near its spawn protection, so the switch is per ability rather than only
+     * the master one - and it is a deny list rather than eight booleans so that an ability a
+     * datapack adds can be switched off the same way as a shipped one.
+     */
+    public static boolean isAbilityEnabled(String abilityType)
+    {
+        return snapshot.activeAbilities().enabled() && !snapshot.disabledAbilities().contains(abilityType);
+    }
+
     public static long quietPeriodMillis()
     {
         return snapshot.quietPeriodMillis();
@@ -230,7 +250,9 @@ public final class SoulHomeConfig
             int startingRank,
             boolean residueTapEnabled,
             EssenceSettings essence,
-            AscensionSettings ascension)
+            AscensionSettings ascension,
+            ActiveAbilitySettings activeAbilities,
+            Set<String> disabledAbilities)
     {
         private static final Snapshot DEFAULTS = new Snapshot(
                 true,
@@ -251,7 +273,9 @@ public final class SoulHomeConfig
                 0,
                 true,
                 EssenceSettings.DEFAULTS,
-                AscensionSettings.DEFAULTS);
+                AscensionSettings.DEFAULTS,
+                ActiveAbilitySettings.DEFAULTS,
+                Set.of());
 
         private static Snapshot read()
         {
@@ -304,7 +328,13 @@ public final class SoulHomeConfig
                                 SERVER.ritualDurationTicks.get(),
                                 SERVER.baseWillpowerThreshold.get(),
                                 SERVER.willpowerPerRank.get(),
-                                SERVER.pillarSearchRadius.get()));
+                                SERVER.pillarSearchRadius.get()),
+                        new ActiveAbilitySettings(
+                                SERVER.abilitiesEnabled.get(),
+                                SERVER.abilityCooldownMultiplier.get(),
+                                SERVER.abilityMinCooldownTicks.get(),
+                                SERVER.abilityMaxCharges.get()),
+                        readAbilityIds(SERVER.disabledAbilities.get()));
             }
             catch (RuntimeException e)
             {
@@ -313,6 +343,29 @@ public final class SoulHomeConfig
                 LogHelper.error("Could not read the soulhome config, falling back to defaults: " + e);
                 return DEFAULTS;
             }
+        }
+
+        /**
+         * Reads a list of plain ability ids - the deny list behind {@link #isAbilityEnabled}.
+         * Blank and commented lines are skipped, and ids are lowercased so a config written with
+         * {@code Soulhome:Soul_Step} still switches off {@code soulhome:soul_step} rather than
+         * silently matching nothing.
+         */
+        private static Set<String> readAbilityIds(List<? extends String> entries)
+        {
+            Set<String> ids = new LinkedHashSet<>();
+
+            for (String entry : entries)
+            {
+                if (entry == null || entry.isBlank() || entry.startsWith("#"))
+                {
+                    continue;
+                }
+
+                ids.add(entry.trim().toLowerCase(Locale.ROOT));
+            }
+
+            return Set.copyOf(ids);
         }
 
         /**
@@ -437,6 +490,12 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.DoubleValue baseWillpowerThreshold;
         public final ForgeConfigSpec.DoubleValue willpowerPerRank;
         public final ForgeConfigSpec.IntValue pillarSearchRadius;
+
+        public final ForgeConfigSpec.BooleanValue abilitiesEnabled;
+        public final ForgeConfigSpec.DoubleValue abilityCooldownMultiplier;
+        public final ForgeConfigSpec.IntValue abilityMinCooldownTicks;
+        public final ForgeConfigSpec.IntValue abilityMaxCharges;
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> disabledAbilities;
 
         private Server(ForgeConfigSpec.Builder builder)
         {
@@ -759,6 +818,52 @@ public final class SoulHomeConfig
                             "ritual simply stops looking, so raising this scales the cost of every check.")
                     .defineInRange(
                             "pillar_search_radius", AscensionSettings.DEFAULT_PILLAR_SEARCH_RADIUS, 2, 16);
+
+            builder.pop();
+
+            builder.comment(
+                            "Active abilities (#87): the buffs a player presses a key for rather than simply",
+                            "carries. Everything here bounds all of them at once; how far Soul Step blinks or how",
+                            "wide Rupture opens is the ability's own business, scaled by the room's tier and by rank.")
+                    .push("abilities");
+
+            this.abilitiesEnabled = builder
+                    .comment(
+                            "The master switch. Off leaves the rooms that grant abilities classifying and scoring",
+                            "exactly as they do now - they simply grant nothing usable, the HUD never appears, and",
+                            "the two keys do nothing. For a server that wants the building and not the combat.")
+                    .define("enabled", ActiveAbilitySettings.DEFAULTS.enabled());
+
+            this.abilityCooldownMultiplier = builder
+                    .comment(
+                            "Scales every ability's recharge. Above 1 makes abilities rarer, below 1 more frequent.",
+                            "The floor below is applied afterwards, so this cannot drive a cooldown to nothing.")
+                    .defineInRange(
+                            "cooldown_multiplier", ActiveAbilitySettings.DEFAULT_COOLDOWN_MULTIPLIER, 0.01d, 100d);
+
+            this.abilityMinCooldownTicks = builder
+                    .comment(
+                            "The shortest any recharge may become, in ticks, after magnitude, rank and the",
+                            "multiplier above have all had their say. This is what stops a high enough rank turning",
+                            "an ability into a key that can be held down.")
+                    .defineInRange(
+                            "min_cooldown_ticks", ActiveAbilitySettings.DEFAULT_MIN_COOLDOWN_TICKS, 1, 24_000);
+
+            this.abilityMaxCharges = builder
+                    .comment("The most charges any one ability may bank, whatever its tier and the player's rank.")
+                    .defineInRange("max_charges", ActiveAbilitySettings.DEFAULT_MAX_CHARGES, 1, 64);
+
+            this.disabledAbilities = builder
+                    .comment(
+                            "Abilities switched off by id, one per line, e.g. 'soulhome:soul_step'. A server that is",
+                            "happy with Aegis may not be happy with a blink near its spawn protection, and there is",
+                            "no claim-mod API on 1.20.1 to consult about it - so this is the honest answer rather",
+                            "than a pretence of integration. The room still classifies and still scores; it simply",
+                            "grants nothing usable. Ids a datapack added work here too.",
+                            "The shipped ids are: soulhome:surveyors_eye, soulhome:aegis, soulhome:soul_step,",
+                            "soulhome:rally, soulhome:call_of_the_herd, soulhome:thunderclap, soulhome:barrage,",
+                            "soulhome:rupture")
+                    .defineList("disabled", List.of(), entry -> entry instanceof String);
 
             builder.pop();
             builder.pop();

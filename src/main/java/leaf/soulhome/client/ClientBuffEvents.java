@@ -5,6 +5,7 @@
 package leaf.soulhome.client;
 
 import leaf.soulhome.SoulHome;
+import leaf.soulhome.buffs.ClientSoulAbilities;
 import leaf.soulhome.buffs.ClientSoulBuffs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -33,5 +34,9 @@ public final class ClientBuffEvents
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event)
     {
         ClientSoulBuffs.clear();
+
+        // the same reasoning for the ability HUD (#87): a stale charge count drawn over a server
+        // that has never heard of this mod is worse than an empty corner
+        ClientSoulAbilities.clear();
     }
 }
