@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_essence": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "soulhome:sublime_essence_4"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "soulhome:sublime_essence_5_from_consolidation"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_essence",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "soulhome:sublime_essence_5_from_consolidation"
+    ]
+  },
+  "sends_telemetry_event": false
+}

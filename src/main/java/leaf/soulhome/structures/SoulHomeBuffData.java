@@ -56,6 +56,13 @@ public class SoulHomeBuffData extends SavedData
     // breaking the anchor with a stray pickaxe swing must not cost four ranks of progress.
     private static final String KEY_ASCENSION_RANK = "AscensionRank";
 
+    // Sublime Essence's soul-residue tap (#82): also the soulhome's, not the player's or the
+    // anchor's, for exactly the same reason rank is. LastResidueAccrualMillis is real wall-clock
+    // time, not a tick count, because residue has to keep earning while nobody is around to tick it
+    // - see accrueResidue.
+    private static final String KEY_RESIDUE = "Residue";
+    private static final String KEY_LAST_RESIDUE_ACCRUAL_MILLIS = "LastResidueAccrualMillis";
+
     /**
      * Bumped once, for the legacy grant. A save written before this field existed reads back as
      * version 0 - {@code CompoundTag.getInt} on a missing key is 0 - and is exactly the set of
@@ -69,6 +76,8 @@ public class SoulHomeBuffData extends SavedData
     private int dataVersion = CURRENT_DATA_VERSION;
     private RegionBounds legacyBox;
     private int ascensionRank;
+    private double residue;
+    private long lastResidueAccrualMillis;
 
     public SoulHomeBuffData()
     {
@@ -121,6 +130,11 @@ public class SoulHomeBuffData extends SavedData
         // absent on any save written before rank existed - reads back as 0, same as every soulhome
         // actually was before the ascension ritual (#83) could raise it
         data.ascensionRank = tag.getInt(KEY_ASCENSION_RANK);
+        data.residue = tag.getDouble(KEY_RESIDUE);
+        // absent on any save written before residue existed, and on a soulhome's very first save -
+        // reads back as 0, which accrueResidue treats as "start the clock now" rather than as an
+        // actual instant in 1970 to bill for
+        data.lastResidueAccrualMillis = tag.getLong(KEY_LAST_RESIDUE_ACCRUAL_MILLIS);
 
         if (tag.contains(KEY_LEGACY_BOX))
         {
@@ -164,6 +178,8 @@ public class SoulHomeBuffData extends SavedData
         tag.putBoolean(KEY_SCANNED, this.scanned);
         tag.putInt(KEY_DATA_VERSION, this.dataVersion);
         tag.putInt(KEY_ASCENSION_RANK, this.ascensionRank);
+        tag.putDouble(KEY_RESIDUE, this.residue);
+        tag.putLong(KEY_LAST_RESIDUE_ACCRUAL_MILLIS, this.lastResidueAccrualMillis);
 
         if (this.legacyBox != null)
         {
@@ -262,6 +278,61 @@ public class SoulHomeBuffData extends SavedData
         }
 
         this.ascensionRank = clamped;
+        setDirty();
+        return true;
+    }
+
+    /** Soul residue accrued so far - the primary tap of Sublime Essence (#82), spent at the Soul Anchor (#83). */
+    public double residue()
+    {
+        return this.residue;
+    }
+
+    /**
+     * Credit this soulhome for whatever real time has passed since it was last measured, at a rate
+     * set by {@code totalScore} - the same total awarded room score {@code BuffCalculator} already
+     * computes. Called after every completed scan, which is the schedule #82 asks for ("the same
+     * schedule the scan service already runs on; no new timer") and also the one that happens to
+     * fire on login even for a soulhome nobody has opened in days - so residue keeps accruing
+     * across being offline, not just across being online and idle.
+     *
+     * <p>The first call ever made for a soulhome - a fresh save, or one written before residue
+     * existed - only starts the clock. Crediting the gap between 1970 and now would hand every
+     * soulhome that already exists years of backlogged residue the instant this update lands.
+     *
+     * @return whether anything changed, and so whether this needs writing to disk
+     */
+    public boolean accrueResidue(double totalScore)
+    {
+        final long now = System.currentTimeMillis();
+
+        if (this.lastResidueAccrualMillis <= 0L)
+        {
+            this.lastResidueAccrualMillis = now;
+            setDirty();
+            return true;
+        }
+
+        final long elapsed = now - this.lastResidueAccrualMillis;
+
+        if (elapsed <= 0)
+        {
+            // clock went backwards, or two accruals landed in the same millisecond: neither is
+            // worth crediting, and leaving the stamp alone means the next genuine gap still counts
+            return false;
+        }
+
+        if (!SoulHomeConfig.residueTapEnabled())
+        {
+            this.lastResidueAccrualMillis = now;
+            setDirty();
+            return true;
+        }
+
+        final double gained = SoulHomeConfig.essenceSettings().residueGained(totalScore, elapsed);
+
+        this.lastResidueAccrualMillis = now;
+        this.residue += gained;
         setDirty();
         return true;
     }

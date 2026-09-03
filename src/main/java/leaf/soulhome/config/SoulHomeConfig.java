@@ -7,6 +7,7 @@ package leaf.soulhome.config;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.structures.ArchetypeManager;
 import leaf.soulhome.structures.core.BuffSettings;
+import leaf.soulhome.structures.core.EssenceSettings;
 import leaf.soulhome.structures.core.ScanDebouncer;
 import leaf.soulhome.structures.core.ScanSettings;
 import leaf.soulhome.structures.core.ScoringSettings;
@@ -140,6 +141,22 @@ public final class SoulHomeConfig
         return snapshot.startingRank();
     }
 
+    /**
+     * Whether the soul-residue tap of Sublime Essence (#82) is switched on. Off stops residue from
+     * accruing at all - the overworld crafting ladder and consolidation are untouched by this knob,
+     * since they need no per-tick state to keep working.
+     */
+    public static boolean residueTapEnabled()
+    {
+        return snapshot.residueTapEnabled();
+    }
+
+    /** The soul-residue accrual curve and its conversion rate into Essence I. See {@link EssenceSettings}. */
+    public static EssenceSettings essenceSettings()
+    {
+        return snapshot.essence();
+    }
+
     public static long quietPeriodMillis()
     {
         return snapshot.quietPeriodMillis();
@@ -203,7 +220,9 @@ public final class SoulHomeConfig
             int baseVerge,
             int vergePerRank,
             int maxRank,
-            int startingRank)
+            int startingRank,
+            boolean residueTapEnabled,
+            EssenceSettings essence)
     {
         private static final Snapshot DEFAULTS = new Snapshot(
                 true,
@@ -221,7 +240,9 @@ public final class SoulHomeConfig
                 SoulBounds.DEFAULT_BASE_VERGE,
                 SoulBounds.DEFAULT_VERGE_PER_RANK,
                 SoulBounds.MAX_RANK,
-                0);
+                0,
+                true,
+                EssenceSettings.DEFAULTS);
 
         private static Snapshot read()
         {
@@ -264,7 +285,11 @@ public final class SoulHomeConfig
                         SERVER.baseVerge.get(),
                         SERVER.vergePerRank.get(),
                         SERVER.maxRank.get(),
-                        SERVER.startingRank.get());
+                        SERVER.startingRank.get(),
+                        SERVER.residueTapEnabled.get(),
+                        new EssenceSettings(
+                                SERVER.residueRateMultiplier.get(),
+                                SERVER.residueToEssenceRate.get()));
             }
             catch (RuntimeException e)
             {
@@ -387,6 +412,10 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.IntValue vergePerRank;
         public final ForgeConfigSpec.IntValue maxRank;
         public final ForgeConfigSpec.IntValue startingRank;
+
+        public final ForgeConfigSpec.BooleanValue residueTapEnabled;
+        public final ForgeConfigSpec.DoubleValue residueRateMultiplier;
+        public final ForgeConfigSpec.DoubleValue residueToEssenceRate;
 
         private Server(ForgeConfigSpec.Builder builder)
         {
@@ -645,6 +674,34 @@ public final class SoulHomeConfig
                             "to hand out a larger soul from the start rather than making every player climb from 0.")
                     .defineInRange("starting_rank", 0, 0, 20);
 
+            builder.comment(
+                            "Sublime Essence (#82): the currency the ascension ritual spends. The soul-residue tap",
+                            "lives here; the overworld crafting ladder and the nine-into-one consolidation need no",
+                            "config of their own, since a datapack can already remove or recolour a recipe the",
+                            "ordinary way.")
+                    .push("essence");
+
+            this.residueTapEnabled = builder
+                    .comment(
+                            "Whether a soulhome earns soul residue from its own built quality at all. Off makes",
+                            "Sublime Essence purely craftable and consolidatable, for a pack that wants ascension",
+                            "paid for rather than grown.")
+                    .define("residue_tap_enabled", true);
+
+            this.residueRateMultiplier = builder
+                    .comment(
+                            "Scales how fast a soulhome earns soul residue. The underlying curve is the square",
+                            "root of the soulhome's total awarded room score, so a soulhome scoring four times as",
+                            "much earns twice the residue, not four times - this only scales the whole curve up",
+                            "or down.")
+                    .defineInRange("residue_rate_multiplier", EssenceSettings.DEFAULT_RESIDUE_RATE_MULTIPLIER, 0d, 1000d);
+
+            this.residueToEssenceRate = builder
+                    .comment("How much soul residue converts into one Essence I at the Soul Anchor (#83).")
+                    .defineInRange(
+                            "residue_to_essence_rate", EssenceSettings.DEFAULT_RESIDUE_TO_ESSENCE_RATE, 0.001d, 1_000_000d);
+
+            builder.pop();
             builder.pop();
             builder.pop();
         }

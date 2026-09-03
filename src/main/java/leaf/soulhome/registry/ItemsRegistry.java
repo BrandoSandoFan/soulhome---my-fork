@@ -13,10 +13,13 @@ import leaf.soulhome.items.GuideItem;
 import leaf.soulhome.items.BoundSoulkey;
 import leaf.soulhome.items.SoulKeyItem;
 import leaf.soulhome.items.SoulLensItem;
+import leaf.soulhome.items.SublimeEssenceItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+
+import java.util.List;
 
 
 public class ItemsRegistry
@@ -30,6 +33,18 @@ public class ItemsRegistry
 
     /** Shows what the structure classifier can see. See {@link SoulLensItem}. */
     public static final RegistryObject<Item> SOUL_LENS = ITEMS.register("soul_lens", () -> createItem(new SoulLensItem()));
+
+    /**
+     * Sublime Essence I through V (#82), indexed by rank - {@code SUBLIME_ESSENCE.get(0)} is
+     * Essence I. Registered as a list rather than five named fields so the recipes for the
+     * crafting ladder and the nine-into-one consolidation can both be written as a loop.
+     */
+    public static final List<RegistryObject<Item>> SUBLIME_ESSENCE = List.of(
+            ITEMS.register("sublime_essence_1", () -> createItem(new SublimeEssenceItem(1))),
+            ITEMS.register("sublime_essence_2", () -> createItem(new SublimeEssenceItem(2))),
+            ITEMS.register("sublime_essence_3", () -> createItem(new SublimeEssenceItem(3))),
+            ITEMS.register("sublime_essence_4", () -> createItem(new SublimeEssenceItem(4))),
+            ITEMS.register("sublime_essence_5", () -> createItem(new SublimeEssenceItem(5))));
 
 
     private static <T extends net.minecraft.world.item.Item> T createItem(T item)

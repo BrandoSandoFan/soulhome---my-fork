@@ -70,5 +70,46 @@ public class RecipeGen extends RecipeProvider implements IConditionBuilder
                 .pattern("  E") //bottom row
                 .unlockedBy("has_material", has(Items.ENDER_EYE))
                 .save(consumer);
+
+        buildEssenceRecipes(consumer);
+    }
+
+    /**
+     * Sublime Essence's three taps (#82). The overworld ladder is one craft per rank, each keyed to
+     * a vanilla material genuinely harder to get than the one before it - exact counts are a
+     * balance-pass decision, the ladder itself is not. Consolidation (nine of one rank into one of
+     * the next) is deliberately worse value than the direct craft at every rank: it exists only so a
+     * player who cannot reach one tap - no ancient city on their seed, a skyblock pack with no ocean
+     * monument - is never hard-blocked, not so anyone would prefer it.
+     */
+    private void buildEssenceRecipes(Consumer<FinishedRecipe> consumer)
+    {
+        final Item[] keyedMaterials = {
+                Items.AMETHYST_SHARD, Items.ECHO_SHARD, Items.HEART_OF_THE_SEA, Items.NETHERITE_SCRAP, Items.NETHER_STAR
+        };
+        final int[] counts = {4, 3, 2, 1, 1};
+
+        for (int rank = 1; rank <= 5; rank++)
+        {
+            final Item essence = ItemsRegistry.SUBLIME_ESSENCE.get(rank - 1).get();
+            final Item material = keyedMaterials[rank - 1];
+
+            ShapelessRecipeBuilder
+                    .shapeless(RecipeCategory.MISC, essence)
+                    .requires(material, counts[rank - 1])
+                    .unlockedBy("has_material", has(material))
+                    .save(consumer, ResourceLocationHelper.prefix("sublime_essence_" + rank + "_from_crafting"));
+
+            if (rank < 5)
+            {
+                final Item nextEssence = ItemsRegistry.SUBLIME_ESSENCE.get(rank).get();
+
+                ShapelessRecipeBuilder
+                        .shapeless(RecipeCategory.MISC, nextEssence)
+                        .requires(essence, 9)
+                        .unlockedBy("has_essence", has(essence))
+                        .save(consumer, ResourceLocationHelper.prefix("sublime_essence_" + (rank + 1) + "_from_consolidation"));
+            }
+        }
     }
 }

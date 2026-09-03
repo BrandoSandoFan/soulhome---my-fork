@@ -114,6 +114,11 @@
   "item.soulhome.personal_soulkey": "Bound Soulkey",
   "item.soulhome.soul_lens": "Soul Lens",
   "item.soulhome.soulkey": "Soulkey",
+  "item.soulhome.sublime_essence_1": "Sublime Essence I",
+  "item.soulhome.sublime_essence_2": "Sublime Essence II",
+  "item.soulhome.sublime_essence_3": "Sublime Essence III",
+  "item.soulhome.sublime_essence_4": "Sublime Essence IV",
+  "item.soulhome.sublime_essence_5": "Sublime Essence V",
   "key.soulhome.soul.charge": "Charge Key To Transport",
   "keys.soulhome.main": "SoulHome",
   "message.soulhome.analyse.disabled": "Soulhome structure buffs are switched off in the server config.",
@@ -174,5 +179,10 @@
   "tooltip.item.soulhome.personal_soulkey": "",
   "tooltip.item.soulhome.soul_lens": "Shows what your soul is made of, and what it is worth",
   "tooltip.item.soulhome.soulkey": "The key to accessing your own soul. Use for the full duration and it will take you there. As well as anything else nearby.",
+  "tooltip.item.soulhome.sublime_essence_1": "Spent on the ascension ritual that raises your soulhome's rank.",
+  "tooltip.item.soulhome.sublime_essence_2": "Spent on the ascension ritual that raises your soulhome's rank.",
+  "tooltip.item.soulhome.sublime_essence_3": "Spent on the ascension ritual that raises your soulhome's rank.",
+  "tooltip.item.soulhome.sublime_essence_4": "Spent on the ascension ritual that raises your soulhome's rank.",
+  "tooltip.item.soulhome.sublime_essence_5": "Spent on the ascension ritual that raises your soulhome's rank.",
   "tooltip.soulhome.patchouli.not_installed": "Patchouli is not installed"
 }
