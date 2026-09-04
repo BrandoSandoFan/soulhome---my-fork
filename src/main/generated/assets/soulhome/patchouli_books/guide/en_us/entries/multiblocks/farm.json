@@ -6,16 +6,21 @@
   "pages": [
     {
       "type": "text",
-      "text": "Works as a room or as open ground. At least 9 blocks of space.$(p)Grants:$(li)saturation, growing with the tier, up to +45%%.$(p)Tiers begin at a score of 6."
+      "text": "Works as a room or as open ground. At least 9 blocks of space.$(p)Grants:$(li)Saturation from food, growing with the tier, up to +45%%.$(p)Tiers begin at a score of 6."
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)9 of any crops$(p)Rewards, most first:$(li)Composter$(li)Beehive or Bee Nest$(li)Water$(li)any crops$(li)Hay Block",
+      "text": "Will not count without:$(li)9 of any crops$(p)Rewards, most first:$(li)Composter$(li)Beehive or Bee Nest$(li)Water$(li)any crops$(li)Hay Bale",
       "title": "What counts"
     },
     {
       "type": "text",
       "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Soil forms a contiguous platform, and crops is within 1 of soil, and water is 0-4 from soil.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Soil: Farmland$(li)Crops: any crops$(li)Water: Water",
       "title": "How you arrange it"
     }
   ],

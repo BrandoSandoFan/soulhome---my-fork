@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)mining speed, growing with the tier, up to +30%%.$(p)Tiers begin at a score of 6."
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Mining speed, growing with the tier, up to +30%%.$(p)Tiers begin at a score of 6."
     },
     {
       "type": "text",
@@ -15,7 +15,12 @@
     },
     {
       "type": "text",
-      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Rails runs in a line, and supports runs along rails, and ores is within 3 of rails.",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Rails runs in a line of at least 4, best at 12, and supports runs along rails, and ores is within 3 of rails.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Rails: any rails$(li)Supports: Ladder$(li)Ores: any ores",
       "title": "How you arrange it"
     }
   ],

@@ -6,19 +6,22 @@ package leaf.soulhome.datagen.patchouli.categories;
 
 import leaf.soulhome.datagen.patchouli.categories.data.ArchetypeDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.BookStuff;
+import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.TagDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.BlockMatcher;
+import leaf.soulhome.structures.core.Form;
+import leaf.soulhome.utils.StringHelper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,16 +39,50 @@ class PatchouliMultiblocksTest
     {
         for (ArchetypeDefinition archetype : ArchetypeDocs.shipped())
         {
-            Optional<BookStuff.Page> page = PatchouliMultiblocks.arrangementPage(archetype);
+            List<BookStuff.Page> pages = PatchouliMultiblocks.arrangementPages(archetype);
 
             if (archetype.structures().isEmpty())
             {
-                assertTrue(page.isEmpty(), archetype.id() + " has no forms, so should have no arrangement page");
+                assertTrue(pages.isEmpty(), archetype.id() + " has no forms, so should have no arrangement page");
             }
             else
             {
-                assertTrue(page.isPresent(), archetype.id() + " has forms, so should document them");
-                assertFalse(page.get().text.isBlank(), archetype.id() + "'s arrangement page has no text");
+                assertFalse(pages.isEmpty(), archetype.id() + " has forms, so should document them");
+
+                for (BookStuff.Page page : pages)
+                {
+                    assertFalse(page.text.isBlank(), archetype.id() + "'s arrangement page has no text");
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("the arrangement pages say what every element the sentence names is made of")
+    void arrangementPagesCarryTheirLegend()
+    {
+        for (ArchetypeDefinition archetype : ArchetypeDocs.shipped())
+        {
+            if (archetype.structures().isEmpty())
+            {
+                continue;
+            }
+
+            final String text = PatchouliMultiblocks.arrangementPages(archetype).stream()
+                    .map(page -> page.text)
+                    .collect(Collectors.joining(" "));
+
+            for (Form form : archetype.structures())
+            {
+                for (String element : form.elements().keySet())
+                {
+                    // the sentence names the element; somewhere on these pages has to say which
+                    // blocks that is, or the page is telling a player to arrange something it
+                    // never identifies - the defect this test exists for
+                    assertTrue(
+                            text.contains(FormDocs.label(element) + ": "),
+                            archetype.id() + " names '" + element + "' without ever saying what it is");
+                }
             }
         }
     }
@@ -63,7 +100,7 @@ class PatchouliMultiblocksTest
                 List.of(),
                 List.of());
 
-        assertTrue(PatchouliMultiblocks.arrangementPage(noForms).isEmpty());
+        assertTrue(PatchouliMultiblocks.arrangementPages(noForms).isEmpty());
     }
 
     /**
@@ -130,8 +167,14 @@ class PatchouliMultiblocksTest
                 if (tag.path().equals(glossary.pages[page].anchor))
                 {
                     anchored = page;
-                    assertTrue(glossary.pages[page].text.contains(tag.id()),
-                            tag.id() + "'s page does not show its own id");
+
+                    // the page is titled with the category's name; it used to open with the raw
+                    // tag id as well, which told a player nothing they could act on - #103
+                    assertEquals(
+                            StringHelper.fixCapitalisation(tag.path()), glossary.pages[page].title,
+                            tag.id() + "'s page is not titled with its own name");
+                    assertFalse(glossary.pages[page].text.contains(tag.id()),
+                            tag.id() + "'s page shows a registry id to the player");
                 }
             }
 

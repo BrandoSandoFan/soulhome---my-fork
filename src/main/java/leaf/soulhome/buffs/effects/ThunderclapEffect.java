@@ -4,6 +4,7 @@
 
 package leaf.soulhome.buffs.effects;
 
+import leaf.soulhome.buffs.AbilityDamage;
 import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.structures.core.SoulBuffTypes;
@@ -12,6 +13,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.LightningBolt;
@@ -50,6 +53,9 @@ public class ThunderclapEffect implements SoulActiveEffect
     /**
      * Damage per bolt, flat and deliberately not scaled by magnitude. This is the cap #94 asks for,
      * expressed as the simplest thing that cannot be got round: there is nothing to grow.
+     *
+     * <p>Dealt as lightning rather than as magic, and past the target's invulnerability window -
+     * see {@link AbilityDamage} for what each of those was costing.
      */
     private static final float DAMAGE_PER_BOLT = 6.0f;
 
@@ -101,16 +107,33 @@ public class ThunderclapEffect implements SoulActiveEffect
         hostiles.sort(Comparator.comparingDouble(target -> target.distanceToSqr(player)));
 
         final int struck = Math.min(bolts, hostiles.size());
+        final DamageSource lightning = AbilityDamage.sourceOf(level, DamageTypes.LIGHTNING_BOLT, player);
+
+        int hurt = 0;
 
         for (int i = 0; i < struck; i++)
         {
-            strike(level, player, hostiles.get(i));
+            if (strike(level, player, hostiles.get(i), lightning))
+            {
+                hurt++;
+            }
+        }
+
+        if (hurt == 0)
+        {
+            // the bolts fell and nothing took damage from them - a mob immune to lightning, or
+            // another mod refusing the hit. Either way the player watched an ability do nothing,
+            // and charging them for it on top would be the mod taking payment for nothing
+            player.displayClientMessage(
+                    Component.translatable(Constants.StringKeys.ABILITY_NO_DAMAGE), true);
+            return false;
         }
 
         return true;
     }
 
-    private void strike(ServerLevel level, ServerPlayer caster, LivingEntity target)
+    /** One bolt, and whether what it landed on actually took damage. */
+    private boolean strike(ServerLevel level, ServerPlayer caster, LivingEntity target, DamageSource lightning)
     {
         LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level);
 
@@ -132,6 +155,6 @@ public class ThunderclapEffect implements SoulActiveEffect
                     null, target.blockPosition(), SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.WEATHER, 1.0f, 1.0f);
         }
 
-        target.hurt(level.damageSources().indirectMagic(caster, caster), DAMAGE_PER_BOLT);
+        return AbilityDamage.hit(target, lightning, DAMAGE_PER_BOLT);
     }
 }

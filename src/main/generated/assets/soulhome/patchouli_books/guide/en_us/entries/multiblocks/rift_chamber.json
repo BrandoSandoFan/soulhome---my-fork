@@ -6,16 +6,21 @@
   "pages": [
     {
       "type": "text",
-      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)soul step, growing with the tier, up to +6.$(p)Tiers begin at a score of 6."
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)Soul Step, growing with the tier, up to +6.$(p)Tiers begin at a score of 6."
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)4 of Amethyst Block or Budding Amethyst$(p)Rewards, most first:$(li)Budding Amethyst$(li)Ender Chest$(li)Crying Obsidian$(li)Amethyst Block$(li)End Rod$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
+      "text": "Will not count without:$(li)4 of Block of Amethyst or Budding Amethyst$(p)Rewards, most first:$(li)Budding Amethyst$(li)Ender Chest$(li)Crying Obsidian$(li)Block of Amethyst$(li)End Rod$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
       "title": "What counts"
     },
     {
       "type": "text",
       "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Frame surrounds resonance, or conduit sits over resonance, or frame forms a closed circuit.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Frame: Obsidian or Crying Obsidian$(li)Resonance: Block of Amethyst or Budding Amethyst$(li)Conduit: End Rod",
       "title": "How you arrange it"
     }
   ],

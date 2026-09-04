@@ -148,7 +148,11 @@ record ApexClause(String of, int tolerance) implements FormClause
     @Override
     public String describe()
     {
-        return "'" + this.of + "' crowns the structure";
+        final String reach = this.tolerance <= 0
+                ? ""
+                : ", within " + this.tolerance + " of its highest layer";
+
+        return "'" + this.of + "' crowns the structure" + reach;
     }
 
     @Override

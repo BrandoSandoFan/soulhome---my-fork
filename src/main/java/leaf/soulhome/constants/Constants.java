@@ -156,6 +156,12 @@ public class Constants
         public static final String ABILITY_RALLY_SHARED = "message.soulhome.ability.rally.shared";
         public static final String ABILITY_THUNDERCLAP_NOTHING = "message.soulhome.ability.thunderclap.nothing";
 
+        // Two refusals every active shares. A press that does nothing and says nothing is
+        // indistinguishable from a mod that is broken, which is how a recharging Thunderclap and
+        // one whose damage was refused elsewhere both read as "this ability does not work".
+        public static final String ABILITY_RECHARGING = "message.soulhome.ability.recharging";
+        public static final String ABILITY_NO_DAMAGE = "message.soulhome.ability.no_damage";
+
         // The ability names themselves, for the HUD and the report. Kept apart from the
         // archetype display names: a room and the thing it grants are not the same noun.
         public static final String ABILITY_NAME_SURVEYORS_EYE = "ability.soulhome.surveyors_eye";

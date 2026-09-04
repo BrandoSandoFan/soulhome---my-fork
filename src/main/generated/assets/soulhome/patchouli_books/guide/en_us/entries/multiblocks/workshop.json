@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)reach, growing with the tier, up to +1.50.$(p)Tiers begin at a score of 6."
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Reach, growing with the tier, up to +1.50.$(p)Tiers begin at a score of 6."
     },
     {
       "type": "text",
@@ -15,7 +15,12 @@
     },
     {
       "type": "text",
-      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Machines runs in a line, and storage is beside machines, and bench is within 5 of machines.",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Machines runs in a line of at least 4, best at 10, and storage is beside machines, and bench is within 5 of machines.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Machines: $(l:soulhome:multiblocks/tags#machinery)any machinery$(/l)$(li)Storage: $(l:soulhome:multiblocks/tags#storage)any storage$(/l)$(li)Bench: Crafting Table",
       "title": "How you arrange it"
     }
   ],

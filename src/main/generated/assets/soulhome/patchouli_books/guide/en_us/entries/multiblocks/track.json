@@ -6,16 +6,21 @@
   "pages": [
     {
       "type": "text",
-      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)speed, growing with the tier, up to +24%%.$(p)Tiers begin at a score of 4."
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Movement speed, growing with the tier, up to +24%%.$(p)Tiers begin at a score of 4."
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)16 of any fences or any fence gates$(p)Rewards, most first:$(li)any fences or any fence gates$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Ice or Packed Ice or Blue Ice or Hay Block$(li)any rails$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
+      "text": "Will not count without:$(li)16 of any fences or any fence gates$(p)Rewards, most first:$(li)any fences or any fence gates$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Ice or Packed Ice or Blue Ice or Hay Bale$(li)any rails$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
       "title": "What counts"
     },
     {
       "type": "text",
       "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Fences forms two separate groups, 1-3 apart.$(li)Fences forms a closed circuit.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Fences: any fences or any fence gates",
       "title": "How you arrange it"
     }
   ],

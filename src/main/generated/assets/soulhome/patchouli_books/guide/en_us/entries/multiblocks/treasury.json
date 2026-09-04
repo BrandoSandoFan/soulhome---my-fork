@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)fortune, growing with the tier, up to +15%%.$(p)Tiers begin at a score of 6."
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)Bonus drops, growing with the tier, up to +15%%.$(p)Tiers begin at a score of 6."
     },
     {
       "type": "text",
@@ -16,6 +16,11 @@
     {
       "type": "text",
       "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Wealth forms one cluster.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Wealth: $(l:soulhome:multiblocks/tags#precious_blocks)any precious blocks$(/l)",
       "title": "How you arrange it"
     }
   ],

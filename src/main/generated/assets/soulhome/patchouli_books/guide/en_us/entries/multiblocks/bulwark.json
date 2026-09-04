@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)aegis, growing with the tier, up to +12.$(p)Tiers begin at a score of 4."
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)Aegis, growing with the tier, up to +12.$(p)Tiers begin at a score of 4."
     },
     {
       "type": "text",
@@ -16,6 +16,11 @@
     {
       "type": "text",
       "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Masonry encloses the room, and grille is within 2 of masonry, and colours is beside masonry.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Masonry: $(l:soulhome:multiblocks/tags#structural)any structural$(/l)$(li)Grille: Iron Bars or Chain$(li)Colours: any banners",
       "title": "How you arrange it"
     }
   ],

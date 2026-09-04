@@ -523,3 +523,41 @@ a key that does something is felt in a way that damage going from +27% to +31% i
   irregularity, and it is deliberately a small bonus for going out of your way rather than a
   tax for building the way the block grid nudges everyone to build: a perfectly square grotto
   still counts as a grotto, and still earns its tier on what is in it.
+
+Abilities that actually land, and pages that say what they mean
+
+Four fixes to what the last release shipped. Three of them are the same failure in different
+places: the mod knew something and did not say it.
+
+- **Every ability was capped at a fraction of what its room promised.** An ability's magnitude is
+  a count - bolts called, blocks blinked, absorption banked - and each of the eight was inheriting
+  the ceiling meant for buffs measured as percentages. A Bulwark's page offered up to twelve points
+  of absorption and Aegis handed out one, half a heart, at every tier and every rank. Thunderclap
+  could never call a second bolt, Rally could never reach Strength II, and Call of the Herd's
+  healing and hastening of your mount were unreachable at any score. Each of the eight now has its
+  own ceiling, set to what its room already claimed, so a tier 3 room is worth three times a tier 1
+  one instead of exactly the same. This is a large buff to every ability room, and an existing
+  server's config file does not need editing for it: a buff type the file has never heard of now
+  takes the mod's own ceiling rather than falling through to the percentage default.
+- **Thunderclap and Rupture dealt magic damage, which another mod could quietly refuse.** The bolt
+  fell, the mob flinched, and its health did not move. Thunderclap now deals lightning damage and
+  Rupture deals the warden's own, both credited to you - so what they kill counts as your kill and
+  what survives turns on you rather than on nobody. All three offensive abilities also land past
+  the half-second of invulnerability a mob gets from being hit: pressing one in the middle of your
+  own swing used to be swallowed whole, silently, with the charge spent anyway.
+- **A press that does nothing now says so.** An ability still recharging answered with complete
+  silence, which is indistinguishable from an ability that does not work. It now says how long is
+  left. If a strike lands and nothing takes damage from it, that is said too, and the charge is
+  handed back rather than spent on nothing.
+- **The book explains its own arrangement pages.** A room page would tell you that "mast runs in a
+  line" without anywhere saying what a mast was - the word was a key out of the archetype file,
+  never a thing you could go and build. Every arrangement page now lists what each part it names is
+  made of, with the same links to the category glossary the rest of the page uses, and the
+  clauses that had numbers hidden behind them now state them: how long a line has to run, how close
+  to the top the rod has to sit.
+- **Ids stopped leaking into prose.** `/soulhome analyse` and the Soul Lens named blocks by
+  registry id - "needs 1 of minecraft:lightning_rod" - and now use the name the block has in your
+  hands, translated by your own client. The category glossary no longer opens each page with the
+  raw tag id, room pages name a buff the way `/soulhome buffs` names it rather than as a flattened
+  id, and blocks whose name is not their id read correctly at last: TNT, a Hay Bale, a Block of
+  Copper.
