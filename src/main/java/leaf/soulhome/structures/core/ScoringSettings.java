@@ -5,7 +5,8 @@
 package leaf.soulhome.structures.core;
 
 /**
- * Tuning for {@link ArchetypeClassifier}. Becomes Forge config in the balance pass.
+ * Tuning for {@link ArchetypeClassifier}, exposed as Forge config under {@code scoring}. As with
+ * {@link ScanSettings}, {@link #DEFAULTS} is where the numbers themselves live.
  *
  * @param diversityBonusPerRole  score multiplier added for each distinct signal role beyond the
  *                               first. The lever that rewards a room with books, seating, lighting

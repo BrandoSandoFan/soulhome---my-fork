@@ -1,4 +1,10 @@
-// 1.20.1	2025-01-10T18:36:01.0231884	Item Models: soulhome
+// 1.20.1	2026-09-04T21:21:41.294812739	Item Models: soulhome
 660a3df24c34fc76fed65cd1cced5562ccc1f0c5 assets/soulhome/models/item/guide.json
 8fff5c47fd35351bb5cbc73467b3ef985fe83c6f assets/soulhome/models/item/personal_soulkey.json
+a2969c322612d0ea8dd2631af6f2b159591646a4 assets/soulhome/models/item/soul_lens.json
 e2c457d7e9bbf56a8a29b9186b84ca4265b46c23 assets/soulhome/models/item/soulkey.json
+3fd71e9dd95418271720ee9b5bc4b9d5dc38b9fa assets/soulhome/models/item/sublime_essence_1.json
+e93c31d2ebe825aa17fd913eff20b7a7a24ea283 assets/soulhome/models/item/sublime_essence_2.json
+db85c9665649bae7265c0f54f31e75f0b4b55601 assets/soulhome/models/item/sublime_essence_3.json
+6b898a69f87dcacdbbf74edb35da1829780a88e6 assets/soulhome/models/item/sublime_essence_4.json
+dca844b101a91940e29f7027a5d7dbf2a83c889f assets/soulhome/models/item/sublime_essence_5.json

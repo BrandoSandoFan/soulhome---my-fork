@@ -5,17 +5,18 @@
 package leaf.soulhome.client.gui;
 
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.feedback.BuffNames;
 import leaf.soulhome.feedback.LensBuffReport;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * What the Soul Lens shows when used outside a soul (#50, deliverable D) - the question a player
@@ -110,19 +111,21 @@ public class SoulLensBuffsScreen extends Screen
 
         for (LensBuffReport buff : this.buffs)
         {
-            String line = buff.buffType() + " +" + score(buff.magnitude());
+            MutableComponent line = BuffNames.name(buff.buffType())
+                    .append(Component.literal(" " + BuffNames.magnitude(buff.buffType(), buff.magnitude())));
 
             if (buff.capped())
             {
-                line += " *";
+                line = line.append(Component.literal(" *"));
             }
 
-            out.addAll(wrap(Component.literal(line), 0, buff.capped() ? COLOR_CAPPED : COLOR_HEADER, maxWidth));
+            out.addAll(wrap(line, 0, buff.capped() ? COLOR_CAPPED : COLOR_HEADER, maxWidth));
 
             if (buff.rankBonus() > 0d)
             {
                 out.addAll(wrap(Component.translatable(
-                                Constants.StringKeys.LENS_SCREEN_BUFFS_RANK_BONUS, score(buff.rankBonus())),
+                                Constants.StringKeys.LENS_SCREEN_BUFFS_RANK_BONUS,
+                                BuffNames.magnitude(buff.buffType(), buff.rankBonus())),
                         6, COLOR_TEXT, maxWidth));
             }
 
@@ -143,10 +146,5 @@ public class SoulLensBuffsScreen extends Screen
     private List<ScrollableDetailPanel.VisualLine> wrap(Component text, int indent, int color, int maxWidth)
     {
         return ScrollableDetailPanel.wrap(this.font, text, indent, color, maxWidth, LINE_HEIGHT);
-    }
-
-    private static String score(double value)
-    {
-        return String.format(Locale.ROOT, "%.1f", value);
     }
 }

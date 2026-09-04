@@ -583,3 +583,37 @@ built stronger too.
 - Two new server config knobs under `buffs`: `ascension_per_rank` (default 0.15) and
   `ascension_cap_per_rank` (default 0.10), so a pack can tune how transformative climbing feels
   independently of how far above the normal ceiling a soul may reach.
+
+Small things that were wrong
+
+Nothing here changes what a room is worth. One thing that stopped the mod building at all, and five
+that were saying the wrong thing, showing the wrong thing, or quietly not showing it at all.
+
+- **Rank now survives your own death, and the mod compiles again.** Rank raises the ceiling every
+  buff is held to, so the code that carries buffs across a respawn has to carry the rank with them;
+  it copied the magnitudes alone, which would have handed a rank V player their own numbers clamped
+  back to a rank 0 cap the first time they died. Nobody was ever bitten by it, because the same
+  mismatch stopped the source compiling - the rank release above has no build for anyone to have
+  played. Both halves are fixed here.
+- **The Soul Lens still named your buffs by their ids.** Every other surface had been cleaned up
+  last release - the book, the block names in a room's report, `/soulhome analyse` - but the two
+  lens screens kept printing "sword_damage +0.2" where `/soulhome buffs` says "Sword damage +20%".
+  The same buff and the same number underneath, but a different name and a different unit
+  depending on where you looked it up, which is exactly the thing that makes a player distrust
+  both. The lens now reads a buff the one way the rest of the mod already did.
+- **Aegis could take absorption away.** Pressing it while already carrying more absorption than
+  your Bulwark banks - a golden apple's four hearts, most obviously - replaced what you had with
+  the smaller amount, so an ability whose whole job is keeping you alive spent a charge to make you
+  easier to kill. It now tops up to whichever is higher and never reduces. A buff, in the cases
+  where it was ever felt.
+- **A busy soul hid most of its own regions.** The lens lists what the scan found down the left
+  side, and any row past the bottom of the window was simply never drawn. A scan may return
+  sixty-four regions and about ten rows fit on screen, so most of a well-built soul had nothing to
+  click on and no way to be looked at. The list scrolls now.
+- **The soul key's charging ring was lopsided.** The soul fire that circles you while the key
+  charges was placed from an angle in degrees handed to maths that wanted radians. Every particle
+  still landed on the ring - that much is unavoidable - but in an arbitrary order rather than
+  spaced around it, so the ring came out clumped. Cosmetic, and now a ring.
+- **Two messages that did not say anything.** The "Well Read" advancement had a blank description,
+  and the Soul Anchor reported your essence with the same sentence whether you had enough of it or
+  not, while the willpower line directly above it has always told you which way it went.

@@ -201,8 +201,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ANCHOR_PILLAR_GAP, "Pillar: stops %s block(s) short of the firmament.");
         add(Constants.StringKeys.ANCHOR_WILLPOWER_OK, "Willpower: %s / %s - your soul's own substance is enough.");
         add(Constants.StringKeys.ANCHOR_WILLPOWER_MISSING, "Willpower: %s / %s - build more before you climb.");
-        add(Constants.StringKeys.ANCHOR_ESSENCE_OK, "Essence: %s / %s Sublime Essence %s carried.");
-        add(Constants.StringKeys.ANCHOR_ESSENCE_MISSING, "Essence: %s / %s Sublime Essence %s carried.");
+        add(Constants.StringKeys.ANCHOR_ESSENCE_OK, "Essence: %s / %s Sublime Essence %s - enough to spend on the climb.");
+        add(Constants.StringKeys.ANCHOR_ESSENCE_MISSING, "Essence: %s / %s Sublime Essence %s - find or craft more first.");
 
         add(Constants.StringKeys.ANCHOR_RITUAL_IN_PROGRESS, "Another ascension is already underway in this soulhome.");
         add(Constants.StringKeys.ANCHOR_RITUAL_STARTED, "The sky presses down. Hold your ground.");
@@ -230,6 +230,7 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_EMPTY_DETAIL, "No archetypes are loaded, so nothing here can ever count.");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_TITLE, "Your Soul's Buffs");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_FROM, "%s (%s room(s), best tier %s)");
+        add(Constants.StringKeys.LENS_SCREEN_BUFFS_RANK_BONUS, "of which %s is from your soul's rank");
         add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
 
         add(Constants.StringKeys.LENS_SCREEN_BOX_HEADER, "Your soul's reach");
@@ -324,7 +325,7 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.entered_soul_dimension.description", "Hey wait, why is it so empty in here?");
 
         add("advancements.soulhome.obtained_guide.title", "Well Read");
-        add("advancements.soulhome.obtained_guide.description", "");
+        add("advancements.soulhome.obtained_guide.description", "Get hold of the guide, and read up on what a soul is for.");
 
         add("advancements.soulhome.first_room.title", "Furnished");
         add("advancements.soulhome.first_room.description", "Build something in your soul that the world recognises.");

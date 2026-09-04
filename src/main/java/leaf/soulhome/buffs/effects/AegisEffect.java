@@ -23,8 +23,12 @@ import net.minecraft.sounds.SoundSource;
  * HUD would be worse in every way that matters.
  *
  * <p>Pressing it while it is still up tops the bank back to full and spends the charge, per #89.
- * That is deliberately not a stacking mechanic: {@code setAbsorptionAmount} replaces rather than
- * adds, so no amount of pressing gets a player past this room's ceiling.
+ * That is deliberately not a stacking mechanic: the bank is set to this room's ceiling rather than
+ * added to it, so no amount of pressing gets a player past it.
+ *
+ * <p>It tops up rather than overwriting, though. A player who ate a golden apple on the way into a
+ * fight is carrying four absorption hearts from it, and an Aegis that banks fewer than that would
+ * otherwise take some of them away - an ability that costs a charge to make you weaker.
  */
 public class AegisEffect implements SoulActiveEffect
 {
@@ -71,7 +75,7 @@ public class AegisEffect implements SoulActiveEffect
             return false;
         }
 
-        player.setAbsorptionAmount(banked);
+        player.setAbsorptionAmount(Math.max(player.getAbsorptionAmount(), banked));
 
         player.serverLevel().playSound(
                 null, player.blockPosition(), SoundEvents.ANVIL_LAND, SoundSource.PLAYERS, 0.35f, 1.6f);

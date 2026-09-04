@@ -5,6 +5,7 @@
 package leaf.soulhome.client.gui;
 
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.feedback.BuffNames;
 import leaf.soulhome.feedback.LensRegionReport;
 import leaf.soulhome.network.SyncSoulBoundsMessage;
 import leaf.soulhome.structures.core.SoulBounds;
@@ -37,7 +38,8 @@ import java.util.Locale;
  * <p>The detail panel's content is entirely data-driven - block names, archetype display names,
  * clause text, the number of signals a room matched - so nothing here bounds how wide or how tall
  * it gets. It wraps to the panel width and scrolls rather than running off the screen (#67); see
- * {@link ScrollableDetailPanel}.
+ * {@link ScrollableDetailPanel}. The region list down the left has the same problem in the other
+ * direction - a soulhome may hold far more regions than there are rows for - and scrolls too.
  */
 @OnlyIn(Dist.CLIENT)
 public class SoulLensScreen extends Screen
@@ -73,6 +75,9 @@ public class SoulLensScreen extends Screen
     private final ScrollableDetailPanel detailPanel = new ScrollableDetailPanel();
     private int selected;
 
+    /** Index of the region drawn in the top row. See {@link #rebuildRows()}. */
+    private int listOffset;
+
     public SoulLensScreen(List<LensRegionReport> regions, int standingIn)
     {
         super(Component.translatable(Constants.StringKeys.LENS_SCREEN_TITLE));
@@ -83,22 +88,42 @@ public class SoulLensScreen extends Screen
     @Override
     protected void init()
     {
-        for (int i = 0; i < this.regions.size(); i++)
+        // start showing the row that is already selected. Without this, walking into the tenth
+        // region of a busy soulhome opens the lens on a list scrolled to the top and a detail
+        // panel describing a room whose row is nowhere on screen
+        this.listOffset = Math.max(0, Math.min(this.selected, this.regions.size() - visibleRows()));
+
+        rebuildRows();
+    }
+
+    /** How many list rows fit between the box summary and the close button. */
+    private int visibleRows()
+    {
+        return Math.max(1, (this.height - BOTTOM_MARGIN - LIST_TOP) / ROW_HEIGHT);
+    }
+
+    /**
+     * The list is a column of buttons rather than a scrolling widget, so scrolling it means
+     * rebuilding the rows at the new offset. {@code max_regions} allows 64 regions and about ten
+     * rows fit on a default window, so without this the rest of a full soulhome had no row to
+     * click and could not be looked at at all.
+     */
+    private void rebuildRows()
+    {
+        this.clearWidgets();
+
+        final int last = Math.min(this.regions.size(), this.listOffset + visibleRows());
+
+        for (int i = this.listOffset; i < last; i++)
         {
             final int index = i;
-            final int y = LIST_TOP + i * ROW_HEIGHT;
-
-            if (y + ROW_HEIGHT > this.height - BOTTOM_MARGIN)
-            {
-                break;
-            }
 
             this.addRenderableWidget(Button.builder(rowLabel(this.regions.get(i)), button ->
                     {
                         this.selected = index;
                         this.detailPanel.resetScroll();
                     })
-                    .bounds(LIST_LEFT, y, LIST_WIDTH, ROW_HEIGHT - 4)
+                    .bounds(LIST_LEFT, rowY(i), LIST_WIDTH, ROW_HEIGHT - 4)
                     .build());
         }
 
@@ -108,15 +133,21 @@ public class SoulLensScreen extends Screen
                 .build());
     }
 
+    private int rowY(int index)
+    {
+        return LIST_TOP + (index - this.listOffset) * ROW_HEIGHT;
+    }
+
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
     {
         this.renderBackground(graphics);
 
-        final int rowY = LIST_TOP + this.selected * ROW_HEIGHT;
-
-        if (this.selected < this.regions.size() && rowY + ROW_HEIGHT <= this.height - BOTTOM_MARGIN)
+        if (this.selected >= this.listOffset && this.selected < this.listOffset + visibleRows()
+                && this.selected < this.regions.size())
         {
+            final int rowY = rowY(this.selected);
+
             graphics.fill(LIST_LEFT - 2, rowY - 2, LIST_LEFT + LIST_WIDTH + 2, rowY + ROW_HEIGHT - 2, 0x805599FF);
         }
 
@@ -201,7 +232,34 @@ public class SoulLensScreen extends Screen
             return true;
         }
 
+        if (scrollList(mouseX, mouseY, delta, bottom))
+        {
+            return true;
+        }
+
         return super.mouseScrolled(mouseX, mouseY, delta);
+    }
+
+    /** @return true if the cursor was over the region list and the scroll moved it. */
+    private boolean scrollList(double mouseX, double mouseY, double delta, int bottom)
+    {
+        if (mouseX < LIST_LEFT - 2 || mouseX > LIST_LEFT + LIST_WIDTH + 2 || mouseY < LIST_TOP || mouseY > bottom)
+        {
+            return false;
+        }
+
+        final int furthest = Math.max(0, this.regions.size() - visibleRows());
+        final int moved = Math.max(0, Math.min(furthest, this.listOffset - (int) Math.signum(delta)));
+
+        if (moved == this.listOffset)
+        {
+            return false;
+        }
+
+        this.listOffset = moved;
+        rebuildRows();
+
+        return true;
     }
 
     @Override
@@ -391,7 +449,9 @@ public class SoulLensScreen extends Screen
         {
             final LensRegionReport.BuffEntry buff = region.buffs().get(i);
 
-            out.addAll(wrap(Component.literal(buff.buffType() + " +" + score(buff.magnitude())), 4, COLOR_TEXT, maxWidth));
+            out.addAll(wrap(BuffNames.name(buff.buffType())
+                            .append(Component.literal(" " + BuffNames.magnitude(buff.buffType(), buff.magnitude()))),
+                    4, COLOR_TEXT, maxWidth));
         }
     }
 

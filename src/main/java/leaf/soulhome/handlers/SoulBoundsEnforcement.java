@@ -21,6 +21,7 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.level.PistonEvent;
@@ -201,6 +202,17 @@ public final class SoulBoundsEnforcement
         {
             notify(player);
         }
+    }
+
+    /**
+     * The cooldown map is keyed by player and nothing else ever removes from it, so without this a
+     * server holds one entry for every player who has ever bumped into their own wall, for as long
+     * as it runs. The same reason {@code DoubleJumpEffect} clears its own per-player state here.
+     */
+    @SubscribeEvent
+    public static void onLoggedOut(PlayerEvent.PlayerLoggedOutEvent event)
+    {
+        lastDeniedAtMillis.remove(event.getEntity().getUUID());
     }
 
     private static void notify(ServerPlayer player)

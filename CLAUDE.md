@@ -173,7 +173,7 @@ touching it - it explains each decision and why the obvious alternative is worse
 ## Archetypes are data, not code
 
 `data/<namespace>/soulhome_archetypes/<name>.json`, loaded by `ArchetypeManager`, parsed by
-`ArchetypeCodecs`/`FormCodecs`. Thirteen ship with the mod under
+`ArchetypeCodecs`/`FormCodecs`. Twenty-seven ship with the mod under
 `src/main/resources/data/soulhome/soulhome_archetypes/`. A malformed archetype is logged and
 skipped; it never fails the reload.
 
@@ -196,7 +196,7 @@ change. Tags live in `data/soulhome/tags/blocks/`.
 
 ### Rooms written for mods this one does not depend on
 
-Three of the shipped thirteen - `arcane_sanctum`, `ritual_chamber` (Iron's Spells 'n Spellbooks)
+Three of the shipped twenty-seven - `arcane_sanctum`, `ritual_chamber` (Iron's Spells 'n Spellbooks)
 and `workshop` (Create) - name blocks that most installs do not have. Nothing about that is a
 special case in Java, and it must not become one:
 
@@ -258,9 +258,11 @@ Its layouts are the clearest documentation of what the scanner is supposed to do
   wrong, what it looked like from the player's side, what it is now, and whether it is a buff or a
   nerf.
 - **Generated files are committed.** `src/main/generated/**` is datagen output and is on the
-  resource path. If you change a datagen source (e.g. `PatchouliMultiblocks`), update the
-  corresponding JSON under `src/main/generated` to match - nothing in CI checks that they agree, so
-  a drift ships silently.
+  resource path. If you change a datagen source (e.g. `PatchouliMultiblocks` or `EngLangGen`),
+  update the corresponding JSON under `src/main/generated` to match. CI runs `./gradlew runData`
+  and fails on any diff outside `src/main/generated/.cache`, so a drift is caught rather than
+  shipped - but it is caught late, after a full ForgeGradle setup, so it is worth getting right
+  the first time.
 - The guide book runs in Patchouli's i18n mode, which pushes every string through `String.format`.
   A lone `%` renders the page as "Format error:". `PatchouliFormatSafetyTest` guards this.
 - Git: develop on the branch you were given; do not open a pull request unless asked.

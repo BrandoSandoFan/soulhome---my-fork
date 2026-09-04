@@ -103,15 +103,19 @@ public class SoulKeyItem extends BaseItem
             float bits = 360f / particlesToCreate;
             float radius = percentage * maxRadius;
 
-            for (int i = particlesToCreate; i >= 0; --i)
+            //the angle is stepped in degrees but sin and cos want radians, so it is converted
+            //rather than wrapped. Wrapping to [-180, 180) and reading that as radians still put
+            //every particle on the ring - sin and cos always do - but it spread one turn's worth
+            //of steps over fifty-seven of them, so the ring came out clumped rather than even.
+            for (int i = 0; i < particlesToCreate; i++)
             {
-                float ang = (bits * i);
+                float ang = (bits * i) * Mth.DEG_TO_RAD;
 
                 livingEntity.level().addParticle(
                         ParticleTypes.SOUL_FIRE_FLAME,
-                        livingEntity.getX() + Mth.sin(Mth.wrapDegrees(ang)) * radius,
+                        livingEntity.getX() + Mth.sin(ang) * radius,
                         livingEntity.getY(),
-                        livingEntity.getZ() + Mth.cos(Mth.wrapDegrees(ang)) * radius,
+                        livingEntity.getZ() + Mth.cos(ang) * radius,
                         0.0D,
                         0.0D,
                         0.0D);

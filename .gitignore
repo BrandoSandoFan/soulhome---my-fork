@@ -21,5 +21,9 @@ build
 eclipse
 run
 
+# Forge's log4j config writes here from the repo root, so every ./gradlew build leaves a logs/
+# behind in the working tree - test output, not anything the mod ships.
+logs
+
 # Files from Forge MDK
 forge*changelog.txt
