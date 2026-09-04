@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Turns a soulhome's classified rooms into the buffs its owner walks around with.
  *
- * <p>Four rules, applied in order:
+ * <p>Five rules, applied in order:
  *
  * <ol>
  *   <li><b>Repeated rooms fall off.</b> The best library counts fully, the second half as much,
@@ -26,8 +26,15 @@ import java.util.Map;
  *       JSON is the most that archetype can ever be worth, however many rooms feed it.</li>
  *   <li><b>Each archetype is then scaled by its config multiplier</b>, so a pack can turn one
  *       archetype down without editing a file it does not own.</li>
- *   <li><b>Every buff type is capped globally.</b> Two archetypes granting the same buff cannot
- *       between them exceed that type's ceiling - see {@link BuffSettings#capFor}.</li>
+ *   <li><b>Rank amplifies what is left</b> (#85), for every buff type
+ *       {@link SoulBuffTypes#amplifiesWithRank} allows - {@code rankFactor = 1 + ascensionPerRank *
+ *       rank}. An unascended soul always multiplies by exactly 1, so this rule is invisible until a
+ *       player actually climbs.</li>
+ *   <li><b>Every buff type is capped globally</b>, at a ceiling rank also raises
+ *       (see {@link BuffSettings#capFor(String, int)}) - otherwise the players who climbed
+ *       furthest, by building the most, would be exactly the ones already pinned at the old cap,
+ *       and rank would amplify nothing for them. Two archetypes granting the same buff still cannot
+ *       between them exceed that raised ceiling.</li>
  * </ol>
  *
  * <p>Ambiguous and unclassified regions contribute nothing - they are not buffs a player has not
@@ -50,7 +57,17 @@ public final class BuffCalculator
             Collection<ArchetypeDefinition> archetypes,
             BuffSettings settings)
     {
-        return computeFromAwarded(AwardedRoom.from(results), archetypes, settings);
+        return compute(results, archetypes, settings, 0);
+    }
+
+    /** As {@link #compute}, amplified for an ascended soul (#85) - see {@link BuffSettings#rankFactor}. */
+    public static SoulBuffSet compute(
+            List<ClassificationResult> results,
+            Collection<ArchetypeDefinition> archetypes,
+            BuffSettings settings,
+            int rank)
+    {
+        return computeFromAwarded(AwardedRoom.from(results), archetypes, settings, rank);
     }
 
     /**
@@ -61,7 +78,17 @@ public final class BuffCalculator
             Collection<ArchetypeDefinition> archetypes,
             BuffSettings settings)
     {
-        return explain(awarded, archetypes, settings).totals();
+        return computeFromAwarded(awarded, archetypes, settings, 0);
+    }
+
+    /** As {@link #computeFromAwarded}, amplified for an ascended soul (#85). */
+    public static SoulBuffSet computeFromAwarded(
+            List<AwardedRoom> awarded,
+            Collection<ArchetypeDefinition> archetypes,
+            BuffSettings settings,
+            int rank)
+    {
+        return explain(awarded, archetypes, settings, rank).totals();
     }
 
     /**
@@ -71,6 +98,16 @@ public final class BuffCalculator
             List<AwardedRoom> awarded,
             Collection<ArchetypeDefinition> archetypes,
             BuffSettings settings)
+    {
+        return explain(awarded, archetypes, settings, 0);
+    }
+
+    /** As {@link #explain}, amplified for an ascended soul (#85). */
+    public static BuffBreakdown explain(
+            List<AwardedRoom> awarded,
+            Collection<ArchetypeDefinition> archetypes,
+            BuffSettings settings,
+            int rank)
     {
         Map<String, ArchetypeDefinition> byId = new HashMap<>();
 
@@ -92,12 +129,12 @@ public final class BuffCalculator
                 continue;
             }
 
-            accumulate(totals, sources, archetype, group.getValue(), settings);
+            accumulate(totals, sources, archetype, group.getValue(), settings, rank);
         }
 
         for (Map.Entry<String, Double> entry : totals.entrySet())
         {
-            entry.setValue(Math.min(entry.getValue(), settings.capFor(entry.getKey())));
+            entry.setValue(Math.min(entry.getValue(), settings.capFor(entry.getKey(), rank)));
         }
 
         return new BuffBreakdown(SoulBuffSet.of(totals), sources);
@@ -129,7 +166,8 @@ public final class BuffCalculator
             List<BuffBreakdown.Source> sources,
             ArchetypeDefinition archetype,
             List<AwardedRoom> awarded,
-            BuffSettings settings)
+            BuffSettings settings,
+            int rank)
     {
         final int contributing = Math.min(awarded.size(), settings.maxRoomsPerArchetype());
         final double multiplier = settings.multiplierFor(archetype.id());
@@ -160,8 +198,16 @@ public final class BuffCalculator
 
         for (Map.Entry<String, Double> subtotal : subtotals.entrySet())
         {
-            final double ceiling = ceilings.getOrDefault(subtotal.getKey(), Double.MAX_VALUE);
-            final double granted = Math.min(subtotal.getValue(), ceiling) * multiplier;
+            final String buffType = subtotal.getKey();
+            final double ceiling = ceilings.getOrDefault(buffType, Double.MAX_VALUE);
+            final double beforeRank = Math.min(subtotal.getValue(), ceiling) * multiplier;
+
+            // rank amplification (#85): applied after the archetype's own max and the multiplier,
+            // before the global type cap - and skipped for the handful of buffs #86 has to fix
+            // before more of them is a benefit rather than a liability. See SoulBuffTypes.
+            final double granted = SoulBuffTypes.amplifiesWithRank(buffType)
+                    ? beforeRank * settings.rankFactor(rank)
+                    : beforeRank;
 
             if (granted <= 0d)
             {
@@ -169,14 +215,15 @@ public final class BuffCalculator
                 continue;
             }
 
-            totals.merge(subtotal.getKey(), granted, Double::sum);
+            totals.merge(buffType, granted, Double::sum);
             sources.add(new BuffBreakdown.Source(
-                    subtotal.getKey(),
+                    buffType,
                     archetype.id(),
                     archetype.displayName(),
                     contributing,
                     bestTier,
-                    granted));
+                    granted,
+                    granted - beforeRank));
         }
     }
 }

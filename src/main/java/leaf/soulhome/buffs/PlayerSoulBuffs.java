@@ -33,6 +33,7 @@ public class PlayerSoulBuffs
      */
     private static final String ABILITIES_KEY = "$abilities";
     private static final String SELECTED_KEY = "$selected";
+    private static final String RANK_KEY = "$rank";
     private static final String CHARGES_KEY = "charges";
     private static final String CLOCK_KEY = "clock";
 
@@ -40,17 +41,35 @@ public class PlayerSoulBuffs
     private final Map<String, AbilityCharges> abilities = new LinkedHashMap<>();
     private String selectedAbility = "";
 
+    // The ascension rank (#84) these buffs were computed at, cached here rather than looked up
+    // fresh: SoulBuffs.magnitude() re-clamps every read against the buff type's cap (#85 raises
+    // that cap per rank), and it is called on every hit and every block broken - a level and
+    // SavedData lookup on that path is a cost every effect would pay for a number that is already
+    // known the moment these buffs were set.
+    private int rank;
+
     public SoulBuffSet get()
     {
         return this.buffs;
     }
 
+    /** The rank {@link #get()} was computed at - see the field's own doc for why this is cached. */
+    public int rank()
+    {
+        return this.rank;
+    }
+
     /**
      * @return whether this actually changed anything, so callers can skip a pointless client sync
      */
-    public boolean set(SoulBuffSet newBuffs)
+    public boolean set(SoulBuffSet newBuffs, int newRank)
     {
         SoulBuffSet replacement = newBuffs == null ? SoulBuffSet.empty() : newBuffs;
+
+        // cached regardless of whether the buffs themselves changed: a rank raised with
+        // ascensionPerRank at 0 still has to be remembered, or the very next magnitude read
+        // reclamps against the un-raised cap.
+        this.rank = Math.max(0, newRank);
 
         if (this.buffs.equals(replacement))
         {
@@ -142,6 +161,7 @@ public class PlayerSoulBuffs
 
         tag.put(ABILITIES_KEY, abilityTag);
         tag.putString(SELECTED_KEY, this.selectedAbility);
+        tag.putInt(RANK_KEY, this.rank);
 
         return tag;
     }
@@ -150,6 +170,7 @@ public class PlayerSoulBuffs
     {
         this.abilities.clear();
         this.selectedAbility = "";
+        this.rank = 0;
 
         if (tag == null)
         {
@@ -186,5 +207,9 @@ public class PlayerSoulBuffs
         }
 
         this.selectedAbility = tag.getString(SELECTED_KEY);
+
+        // absent on any save written before rank existed - reads back as 0, matching a soulhome
+        // that has never ascended, same as SoulHomeBuffData's own missing-key default
+        this.rank = Math.max(0, tag.getInt(RANK_KEY));
     }
 }

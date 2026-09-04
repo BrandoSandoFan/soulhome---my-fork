@@ -13,8 +13,8 @@ package leaf.soulhome.structures.core;
  * at all, how much longer their cooldowns should be, and the floor those cooldowns may never fall
  * through.
  *
- * <p><b>{@link #minCooldownTicks} is the load-bearing one.</b> #85 makes rank amplify magnitude,
- * and magnitude shortens a recharge; without a floor, a high enough rank turns every ability into
+ * <p><b>{@link #minCooldownTicks} is the load-bearing one.</b> Rank amplifies magnitude (#85), and
+ * magnitude shortens a recharge; without a floor, a high enough rank turns every ability into
  * a key that can be held down. The floor is applied last, after the magnitude scaling and after
  * {@link #cooldownMultiplier}, so no combination of the two can get underneath it.
  */

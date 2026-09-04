@@ -60,6 +60,7 @@ public class Constants
         public static final String BUFFS_ENTRY = "message.soulhome.buffs.entry";
         public static final String BUFFS_SOURCE = "message.soulhome.buffs.source";
         public static final String BUFFS_CAPPED = "message.soulhome.buffs.capped";
+        public static final String BUFFS_RANK_BONUS = "message.soulhome.buffs.rank_bonus";
 
         // Refused travel across a soul dimension's boundary (see SoulTravel). A player who has
         // just watched a warp scroll do nothing needs to be told why, or it reads as a broken mod.
@@ -127,6 +128,7 @@ public class Constants
         public static final String LENS_SCREEN_EMPTY_DETAIL = "gui.soulhome.lens.empty_detail";
         public static final String LENS_SCREEN_BUFFS_TITLE = "gui.soulhome.lens.buffs_title";
         public static final String LENS_SCREEN_BUFFS_FROM = "gui.soulhome.lens.buffs_from";
+        public static final String LENS_SCREEN_BUFFS_RANK_BONUS = "gui.soulhome.lens.buffs_rank_bonus";
         public static final String LENS_SCREEN_CLOSE = "gui.soulhome.lens.close";
 
         // The box (#78/#79/#81): scarcity has to be legible, so the lens says what it is as

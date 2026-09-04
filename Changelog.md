@@ -561,3 +561,25 @@ places: the mod knew something and did not say it.
   raw tag id, room pages name a buff the way `/soulhome buffs` names it rather than as a flattened
   id, and blocks whose name is not their id read correctly at last: TNT, a Hay Bale, a Block of
   Copper.
+
+Rank makes the rooms you already have better
+
+Ascending used to be worth exactly the floor space it granted - a real reward, but one a player
+happy with their four rooms had no reason to ever chase again. Rank now makes what you already
+built stronger too.
+
+- **Every buff amplifies with rank**, except the four movement and mining ones that stop being a
+  benefit long before they stop growing - those are untouched until they have somewhere better to
+  put the extra. Rank V multiplies the rest by x1.75 by default, applied after a room's own ceiling
+  and after the falloff on repeated rooms, so an unascended soul's numbers never move: rank 0 is
+  always exactly x1, whatever the server tunes the multiplier to.
+- **Rank raises the ceiling those buffs are held to, not only the value.** The players who climb
+  furthest do it by building a lot of good rooms, which means they are exactly the players already
+  sitting at today's cap - without this, rank would amplify nothing for precisely the soul it exists
+  for. The ceiling itself now rises a smaller amount per rank, so a soul held back by the cap at
+  rank 0 sees its magnitude actually move once it ascends.
+- `/soulhome buffs` and the Soul Lens both now say how much of a buff's total came from rank, as
+  their own line under the total.
+- Two new server config knobs under `buffs`: `ascension_per_rank` (default 0.15) and
+  `ascension_cap_per_rank` (default 0.10), so a pack can tune how transformative climbing feels
+  independently of how far above the normal ceiling a soul may reach.

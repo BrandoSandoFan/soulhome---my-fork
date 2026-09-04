@@ -30,8 +30,8 @@ class LensBuffReportTest
         BuffBreakdown breakdown = new BuffBreakdown(
                 SoulBuffSet.of(Map.of("soulhome:xp_gain", 0.5d)),
                 List.of(
-                        new BuffBreakdown.Source("soulhome:xp_gain", "soulhome:library", "archetype.soulhome.library", 2, 3, 0.3d),
-                        new BuffBreakdown.Source("soulhome:xp_gain", "soulhome:enchanting_room", "archetype.soulhome.enchanting_room", 1, 1, 0.3d)));
+                        new BuffBreakdown.Source("soulhome:xp_gain", "soulhome:library", "archetype.soulhome.library", 2, 3, 0.3d, 0d),
+                        new BuffBreakdown.Source("soulhome:xp_gain", "soulhome:enchanting_room", "archetype.soulhome.enchanting_room", 1, 1, 0.3d, 0d)));
 
         List<LensBuffReport> reports = LensBuffReport.of(breakdown);
 
@@ -57,7 +57,7 @@ class LensBuffReportTest
     {
         BuffBreakdown breakdown = new BuffBreakdown(
                 SoulBuffSet.of(Map.of("soulhome:saturation", 0.1d)),
-                List.of(new BuffBreakdown.Source("soulhome:saturation", "soulhome:farm", "archetype.soulhome.farm", 1, 1, 0.1d)));
+                List.of(new BuffBreakdown.Source("soulhome:saturation", "soulhome:farm", "archetype.soulhome.farm", 1, 1, 0.1d, 0d)));
 
         LensBuffReport report = LensBuffReport.of(breakdown).get(0);
 

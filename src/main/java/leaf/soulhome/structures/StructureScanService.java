@@ -362,10 +362,10 @@ public final class StructureScanService
         // carrying and what their soulhome says they earned drifting apart is the one failure this
         // feature cannot explain to them, since /soulhome buffs reads the saved side. Costs
         // nothing to rule out - SoulBuffs.set is already a no-op when nothing is different.
-        DimensionHelper.soulOwner(level).ifPresent(owner -> pushBuffs(server, owner, awarded));
+        DimensionHelper.soulOwner(level).ifPresent(owner -> pushBuffs(server, owner, awarded, data.ascensionRank()));
     }
 
-    private static void pushBuffs(MinecraftServer server, UUID owner, List<AwardedRoom> awarded)
+    private static void pushBuffs(MinecraftServer server, UUID owner, List<AwardedRoom> awarded, int rank)
     {
         final ServerPlayer player = server.getPlayerList().getPlayer(owner);
 
@@ -375,7 +375,7 @@ public final class StructureScanService
             return;
         }
 
-        SoulBuffs.set(player, buffsFrom(awarded));
+        SoulBuffs.set(player, buffsFrom(awarded, rank), rank);
         SoulAdvancements.onRoomsAwarded(player, awarded);
     }
 
@@ -406,9 +406,11 @@ public final class StructureScanService
             return;
         }
 
-        final List<AwardedRoom> awarded = SoulHomeBuffData.get(soulhome).awardedRooms();
+        final SoulHomeBuffData data = SoulHomeBuffData.get(soulhome);
+        final List<AwardedRoom> awarded = data.awardedRooms();
+        final int rank = data.ascensionRank();
 
-        SoulBuffs.set(player, buffsFrom(awarded));
+        SoulBuffs.set(player, buffsFrom(awarded, rank), rank);
         SoulBuffs.sync(player);
 
         // a room earned while the owner was offline should still produce its toast when they
@@ -474,7 +476,23 @@ public final class StructureScanService
         }
 
         return BuffCalculator.explain(
-                awardedRoomsOf(player), ArchetypeManager.archetypes(), SoulHomeConfig.buffSettings());
+                awardedRoomsOf(player), ArchetypeManager.archetypes(), SoulHomeConfig.buffSettings(),
+                ascensionRankOf(player));
+    }
+
+    /** This player's own soulhome's ascension rank (#84), or 0 if they have never opened one. */
+    private static int ascensionRankOf(ServerPlayer player)
+    {
+        final MinecraftServer server = player.getServer();
+
+        if (server == null)
+        {
+            return 0;
+        }
+
+        final ServerLevel soulhome = server.getLevel(soulDimensionKeyOf(player));
+
+        return soulhome == null ? 0 : SoulHomeBuffData.get(soulhome).ascensionRank();
     }
 
     /** This player's own soul dimension, or null if they have never opened it. */
@@ -484,7 +502,7 @@ public final class StructureScanService
         return server == null ? null : server.getLevel(soulDimensionKeyOf(player));
     }
 
-    private static SoulBuffSet buffsFrom(List<AwardedRoom> awarded)
+    private static SoulBuffSet buffsFrom(List<AwardedRoom> awarded, int rank)
     {
         if (!SoulHomeConfig.enabled())
         {
@@ -492,7 +510,7 @@ public final class StructureScanService
         }
 
         return BuffCalculator.computeFromAwarded(
-                awarded, ArchetypeManager.archetypes(), SoulHomeConfig.buffSettings());
+                awarded, ArchetypeManager.archetypes(), SoulHomeConfig.buffSettings(), rank);
     }
 
     private static ResourceKey<Level> soulDimensionKeyOf(ServerPlayer player)

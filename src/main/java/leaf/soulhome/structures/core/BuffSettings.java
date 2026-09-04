@@ -35,6 +35,16 @@ import java.util.Map;
  *                             linear; above 1 the payout back-loads towards the top of the range,
  *                             which is what stops a bigger pile of the same one thing from being
  *                             worth much more than a smaller one. Must be positive and finite.
+ * @param ascensionPerRank     how much stronger a rank makes every amplification-friendly buff
+ *                             (#85) - {@code rankFactor = 1 + ascensionPerRank * rank}. Applied to
+ *                             an archetype's subtotal after its own {@code max} and after the
+ *                             repeated-room falloff, before the global type cap. Zero reproduces
+ *                             unascended numbers exactly, whatever the rank.
+ * @param ascensionCapPerRank  how much rank raises the global type ceiling itself, separately from
+ *                             the value - {@code effectiveCap = declaredCap * (1 + ascensionCapPerRank
+ *                             * rank)}. Without this, the players who climbed furthest are exactly
+ *                             the ones already pinned at the old cap, and {@code ascensionPerRank}
+ *                             would do nothing for them.
  */
 public record BuffSettings(
         double repeatedRoomFalloff,
@@ -43,7 +53,9 @@ public record BuffSettings(
         Map<String, Double> archetypeMultipliers,
         Map<String, Double> buffTypeCaps,
         double entryFraction,
-        double rampExponent)
+        double rampExponent,
+        double ascensionPerRank,
+        double ascensionCapPerRank)
 {
     /**
      * Ceilings for the buff types that are not proportions, so {@code globalMaxMagnitude} - a
@@ -82,14 +94,22 @@ public record BuffSettings(
     public static final double DEFAULT_ENTRY_FRACTION = 0.10d;
     public static final double DEFAULT_RAMP_EXPONENT = 1.5d;
 
-    public static final BuffSettings DEFAULTS = new BuffSettings(
-            0.5d, 3, 1.0d, Map.of(), DEFAULT_TYPE_CAPS, DEFAULT_ENTRY_FRACTION, DEFAULT_RAMP_EXPONENT);
+    /** Rank V (#78's ladder tops out at 5) lands at 1 + 0.15 * 5 = x1.75 - substantial, not transformative. */
+    public static final double DEFAULT_ASCENSION_PER_RANK = 0.15d;
 
-    /** The common case: no per-archetype tuning, and the built-in type ceilings and ramp. */
+    /** Smaller than {@link #DEFAULT_ASCENSION_PER_RANK} on purpose - see the class-level doc. */
+    public static final double DEFAULT_ASCENSION_CAP_PER_RANK = 0.10d;
+
+    public static final BuffSettings DEFAULTS = new BuffSettings(
+            0.5d, 3, 1.0d, Map.of(), DEFAULT_TYPE_CAPS, DEFAULT_ENTRY_FRACTION, DEFAULT_RAMP_EXPONENT,
+            DEFAULT_ASCENSION_PER_RANK, DEFAULT_ASCENSION_CAP_PER_RANK);
+
+    /** The common case: no per-archetype tuning, and the built-in type ceilings, ramp and rank curve. */
     public BuffSettings(double repeatedRoomFalloff, int maxRoomsPerArchetype, double globalMaxMagnitude)
     {
         this(repeatedRoomFalloff, maxRoomsPerArchetype, globalMaxMagnitude, Map.of(), DEFAULT_TYPE_CAPS,
-                DEFAULT_ENTRY_FRACTION, DEFAULT_RAMP_EXPONENT);
+                DEFAULT_ENTRY_FRACTION, DEFAULT_RAMP_EXPONENT, DEFAULT_ASCENSION_PER_RANK,
+                DEFAULT_ASCENSION_CAP_PER_RANK);
     }
 
     public BuffSettings(
@@ -99,7 +119,22 @@ public record BuffSettings(
             Map<String, Double> archetypeMultipliers)
     {
         this(repeatedRoomFalloff, maxRoomsPerArchetype, globalMaxMagnitude, archetypeMultipliers, DEFAULT_TYPE_CAPS,
-                DEFAULT_ENTRY_FRACTION, DEFAULT_RAMP_EXPONENT);
+                DEFAULT_ENTRY_FRACTION, DEFAULT_RAMP_EXPONENT, DEFAULT_ASCENSION_PER_RANK,
+                DEFAULT_ASCENSION_CAP_PER_RANK);
+    }
+
+    /** Pre-#85 shape, kept for callers that do not care about rank amplification's two knobs. */
+    public BuffSettings(
+            double repeatedRoomFalloff,
+            int maxRoomsPerArchetype,
+            double globalMaxMagnitude,
+            Map<String, Double> archetypeMultipliers,
+            Map<String, Double> buffTypeCaps,
+            double entryFraction,
+            double rampExponent)
+    {
+        this(repeatedRoomFalloff, maxRoomsPerArchetype, globalMaxMagnitude, archetypeMultipliers, buffTypeCaps,
+                entryFraction, rampExponent, DEFAULT_ASCENSION_PER_RANK, DEFAULT_ASCENSION_CAP_PER_RANK);
     }
 
     public BuffSettings
@@ -138,6 +173,18 @@ public record BuffSettings(
             throw new IllegalArgumentException(
                     "rampExponent must be positive and finite, got " + rampExponent);
         }
+
+        if (!Double.isFinite(ascensionPerRank) || ascensionPerRank < 0)
+        {
+            throw new IllegalArgumentException(
+                    "ascensionPerRank must not be negative, got " + ascensionPerRank);
+        }
+
+        if (!Double.isFinite(ascensionCapPerRank) || ascensionCapPerRank < 0)
+        {
+            throw new IllegalArgumentException(
+                    "ascensionCapPerRank must not be negative, got " + ascensionCapPerRank);
+        }
     }
 
     /** This archetype's magnitude multiplier, defaulting to unchanged. */
@@ -168,5 +215,25 @@ public record BuffSettings(
         final Double fallback = DEFAULT_TYPE_CAPS.get(buffType);
 
         return fallback == null ? this.globalMaxMagnitude : Math.max(0d, fallback);
+    }
+
+    /**
+     * This buff type's ceiling, raised for rank (#85) the same way its magnitude is - see
+     * {@link #rankFactor}. Without this, a soul that already sits at today's cap - which is exactly
+     * what climbing far enough to reach a high rank tends to produce - would see rank do nothing.
+     */
+    public double capFor(String buffType, int rank)
+    {
+        return capFor(buffType) * (1d + this.ascensionCapPerRank * Math.max(0, rank));
+    }
+
+    /**
+     * The multiplier rank applies to an archetype's subtotal for an amplification-friendly buff
+     * (#85) - see {@link SoulBuffTypes#amplifiesWithRank}. Rank 0 always returns exactly 1, so an
+     * unascended soul is untouched by this feature however {@link #ascensionPerRank} is tuned.
+     */
+    public double rankFactor(int rank)
+    {
+        return 1d + this.ascensionPerRank * Math.max(0, rank);
     }
 }

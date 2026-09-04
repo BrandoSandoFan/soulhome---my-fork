@@ -119,6 +119,13 @@ public class SoulLensBuffsScreen extends Screen
 
             out.addAll(wrap(Component.literal(line), 0, buff.capped() ? COLOR_CAPPED : COLOR_HEADER, maxWidth));
 
+            if (buff.rankBonus() > 0d)
+            {
+                out.addAll(wrap(Component.translatable(
+                                Constants.StringKeys.LENS_SCREEN_BUFFS_RANK_BONUS, score(buff.rankBonus())),
+                        6, COLOR_TEXT, maxWidth));
+            }
+
             for (LensBuffReport.Source source : buff.sources())
             {
                 out.addAll(wrap(Component.translatable(
