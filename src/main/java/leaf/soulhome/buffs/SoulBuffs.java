@@ -86,7 +86,15 @@ public final class SoulBuffs
             return raw;
         }
 
-        return Math.min(raw, SoulHomeConfig.buffSettings().capFor(buffType));
+        // rank-aware (#85): reclamping against the plain, un-raised cap here would silently strip
+        // back off exactly the amplification a rank raised the ceiling for, on every single read.
+        // The rank is cached on the capability rather than looked up from the soulhome level, since
+        // this runs on every hit and every block broken - see PlayerSoulBuffs.rank().
+        final int rank = player.getCapability(SoulBuffsProvider.CAPABILITY)
+                .map(PlayerSoulBuffs::rank)
+                .orElse(0);
+
+        return Math.min(raw, SoulHomeConfig.buffSettings().capFor(buffType, rank));
     }
 
     public static boolean has(Player player, String buffType)
@@ -99,8 +107,12 @@ public final class SoulBuffs
      *
      * <p>Server-authoritative: the client copy exists so the interface can render without a
      * round-trip, and is never what an effect reads.
+     *
+     * @param rank the ascension rank (#84) {@code buffs} was computed at - cached alongside them so
+     *             {@link #magnitude} can reclamp against the right, rank-raised cap (#85) without a
+     *             level lookup on every read. See {@link PlayerSoulBuffs#rank()}.
      */
-    public static void set(ServerPlayer player, SoulBuffSet buffs)
+    public static void set(ServerPlayer player, SoulBuffSet buffs, int rank)
     {
         if (player == null || player instanceof FakePlayer)
         {
@@ -109,7 +121,7 @@ public final class SoulBuffs
 
         player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held ->
         {
-            if (held.set(buffs))
+            if (held.set(buffs, rank))
             {
                 sync(player);
             }

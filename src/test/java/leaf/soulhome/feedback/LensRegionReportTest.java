@@ -50,7 +50,7 @@ class LensRegionReportTest
 
         BuffBreakdown breakdown = new BuffBreakdown(
                 SoulBuffSet.of(java.util.Map.of("soulhome:xp_gain", 0.2d)),
-                List.of(new BuffBreakdown.Source("soulhome:xp_gain", "soulhome:library", "archetype.soulhome.library", 1, 2, 0.2d)));
+                List.of(new BuffBreakdown.Source("soulhome:xp_gain", "soulhome:library", "archetype.soulhome.library", 1, 2, 0.2d, 0d)));
 
         LensRegionReport report = LensRegionReport.of(result, 0, breakdown);
 

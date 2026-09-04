@@ -64,11 +64,32 @@ public record BuffBreakdown(SoulBuffSet totals, List<Source> sources)
     }
 
     /**
+     * How much of this buff type's total rank (#85) alone is responsible for - zero for a buff
+     * exempt from amplification, or for an unascended soul. Summed from every source rather than
+     * read off the total directly, for the same reason {@link #explain} computes totals and
+     * attribution together: one pass, so the two can never disagree.
+     */
+    public double rankBonusOf(String buffType)
+    {
+        double bonus = 0d;
+
+        for (Source source : sourcesOf(buffType))
+        {
+            bonus += source.rankBonus();
+        }
+
+        return bonus;
+    }
+
+    /**
      * One archetype's contribution to one buff type.
      *
-     * @param rooms    how many rooms of this archetype counted, after the repeat falloff cut off
-     *                 the rest
-     * @param bestTier the highest tier among those rooms
+     * @param rooms      how many rooms of this archetype counted, after the repeat falloff cut off
+     *                   the rest
+     * @param bestTier   the highest tier among those rooms
+     * @param magnitude  what was granted, rank included
+     * @param rankBonus  how much of {@code magnitude} rank (#85) alone added - 0 for an unascended
+     *                   soul, or for a buff type {@link SoulBuffTypes#amplifiesWithRank} excludes
      */
     public record Source(
             String buffType,
@@ -76,7 +97,8 @@ public record BuffBreakdown(SoulBuffSet totals, List<Source> sources)
             String displayName,
             int rooms,
             int bestTier,
-            double magnitude)
+            double magnitude,
+            double rankBonus)
     {
     }
 }

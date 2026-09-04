@@ -21,13 +21,14 @@ import java.util.Map;
  * network shape, following the same rule as {@link LensRegionReport} - read off the synced score,
  * never recomputed client-side.
  */
-public record LensBuffReport(String buffType, double magnitude, boolean capped, List<Source> sources)
+public record LensBuffReport(String buffType, double magnitude, boolean capped, double rankBonus, List<Source> sources)
 {
     public static final Codec<LensBuffReport> CODEC = RecordCodecBuilder.create(instance -> instance
             .group(
                     Codec.STRING.fieldOf("buff_type").forGetter(LensBuffReport::buffType),
                     Codec.DOUBLE.fieldOf("magnitude").forGetter(LensBuffReport::magnitude),
                     Codec.BOOL.optionalFieldOf("capped", false).forGetter(LensBuffReport::capped),
+                    Codec.DOUBLE.optionalFieldOf("rank_bonus", 0d).forGetter(LensBuffReport::rankBonus),
                     Source.CODEC.listOf().optionalFieldOf("sources", List.of()).forGetter(LensBuffReport::sources))
             .apply(instance, LensBuffReport::new));
 
@@ -50,7 +51,8 @@ public record LensBuffReport(String buffType, double magnitude, boolean capped, 
                 sources.add(new Source(source.archetypeId(), source.displayName(), source.rooms(), source.bestTier(), source.magnitude()));
             }
 
-            reports.add(new LensBuffReport(buffType, total.getValue(), breakdown.isCapped(buffType), sources));
+            reports.add(new LensBuffReport(
+                    buffType, total.getValue(), breakdown.isCapped(buffType), breakdown.rankBonusOf(buffType), sources));
         }
 
         return reports;

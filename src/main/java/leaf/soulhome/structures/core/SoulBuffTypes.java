@@ -151,6 +151,22 @@ public final class SoulBuffTypes
         return ACTIVE.contains(buffType);
     }
 
+    /**
+     * The four buffs that stop being worth having long before they stop growing (#86, unshipped):
+     * speed, mining speed, reach and swim speed. Rank amplification (#85) skips these rather than
+     * multiplying a value that has nowhere good to put the extra - a rank V player would otherwise
+     * get sprint they cannot steer, or a mining speed the game itself cannot render usefully faster.
+     * Held apart until #86 gives them a real conversion to grow into instead.
+     */
+    public static final Set<String> RANK_AMPLIFICATION_EXEMPT =
+            Set.of(SPEED, MINING_SPEED, REACH, SWIM_SPEED);
+
+    /** Whether rank (#85) amplifies this buff type's magnitude at all - see {@link #RANK_AMPLIFICATION_EXEMPT}. */
+    public static boolean amplifiesWithRank(String buffType)
+    {
+        return !RANK_AMPLIFICATION_EXEMPT.contains(buffType);
+    }
+
     private SoulBuffTypes()
     {
     }

@@ -171,6 +171,16 @@ public final class SoulReport
 
             lines.add(line);
 
+            final double rankBonus = breakdown.rankBonusOf(buffType);
+
+            if (rankBonus > 0d)
+            {
+                lines.add(indent(translated(
+                        Constants.StringKeys.BUFFS_RANK_BONUS,
+                        magnitude(buffType, rankBonus)))
+                        .withStyle(ChatFormatting.DARK_AQUA));
+            }
+
             for (BuffBreakdown.Source source : breakdown.sourcesOf(buffType))
             {
                 lines.add(indent(translated(

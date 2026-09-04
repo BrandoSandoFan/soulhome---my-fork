@@ -307,7 +307,9 @@ public final class SoulHomeConfig
                                 readPairs(SERVER.archetypeMultipliers.get(), "archetype multiplier"),
                                 readPairs(SERVER.buffTypeCaps.get(), "buff type cap"),
                                 SERVER.entryFraction.get(),
-                                SERVER.rampExponent.get()),
+                                SERVER.rampExponent.get(),
+                                SERVER.ascensionPerRank.get(),
+                                SERVER.ascensionCapPerRank.get()),
                         SERVER.quietPeriodMillis.get(),
                         SERVER.maxScanDelayMillis.get(),
                         SERVER.checkIntervalTicks.get(),
@@ -459,6 +461,8 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> buffTypeCaps;
         public final ForgeConfigSpec.DoubleValue entryFraction;
         public final ForgeConfigSpec.DoubleValue rampExponent;
+        public final ForgeConfigSpec.DoubleValue ascensionPerRank;
+        public final ForgeConfigSpec.DoubleValue ascensionCapPerRank;
 
         public final ForgeConfigSpec.DoubleValue diversityBonusPerRole;
         public final ForgeConfigSpec.DoubleValue densityFloor;
@@ -593,6 +597,23 @@ public final class SoulHomeConfig
                             "more than a smaller pile of the same thing. Below 1 front-loads instead - legal, but",
                             "works against that intent.")
                     .defineInRange("ramp_exponent", BuffSettings.DEFAULT_RAMP_EXPONENT, 0.01d, 10d);
+
+            this.ascensionPerRank = builder
+                    .comment(
+                            "How much stronger a rank (#84) makes every amplification-friendly buff: rankFactor =",
+                            "1 + ascension_per_rank * rank. Applied after an archetype's own max and its multiplier,",
+                            "before the global type cap. Zero reproduces an unascended soul's numbers exactly at",
+                            "every rank. Speed, mining speed, reach and swim speed are never amplified by this -",
+                            "they stop being a benefit long before they stop growing.")
+                    .defineInRange("ascension_per_rank", BuffSettings.DEFAULT_ASCENSION_PER_RANK, 0d, 100d);
+
+            this.ascensionCapPerRank = builder
+                    .comment(
+                            "How much rank raises the global type ceiling itself, separately from ascension_per_rank:",
+                            "effectiveCap = declaredCap * (1 + ascension_cap_per_rank * rank). Without this, a soul",
+                            "that already sits at today's cap - which is exactly what climbing far enough to reach a",
+                            "high rank tends to produce - would see rank amplify nothing for it.")
+                    .defineInRange("ascension_cap_per_rank", BuffSettings.DEFAULT_ASCENSION_CAP_PER_RANK, 0d, 100d);
 
             builder.pop();
 

@@ -300,6 +300,108 @@ class BuffCalculatorTest
         assertEquals(Map.of(SATURATION, 0.2d), buffs.asMap());
     }
 
+    // region rank amplification (#85)
+
+    @Test
+    @DisplayName("rank 0 reproduces the un-amplified numbers exactly")
+    void rankZeroChangesNothing()
+    {
+        List<ClassificationResult> results = List.of(awarded("soulhome:library", 2, 60d));
+        List<ArchetypeDefinition> archetypes = List.of(
+                archetype("soulhome:library", XP, 0.30d),
+                archetype("soulhome:farm", SATURATION, 0.45d));
+
+        assertEquals(
+                BuffCalculator.compute(results, archetypes, LINEAR).magnitude(XP),
+                BuffCalculator.compute(results, archetypes, LINEAR, 0).magnitude(XP),
+                1e-9);
+    }
+
+    @Test
+    @DisplayName("rank amplifies an amplification-friendly buff by exactly its rank factor")
+    void rankAmplifiesEligibleBuffs()
+    {
+        List<ClassificationResult> results = List.of(awarded("soulhome:library", 2, 60d));
+        List<ArchetypeDefinition> archetypes = List.of(
+                archetype("soulhome:library", XP, 0.30d),
+                archetype("soulhome:farm", SATURATION, 0.45d));
+
+        double rank0 = BuffCalculator.compute(results, archetypes, LINEAR, 0).magnitude(XP);
+        double rank5 = BuffCalculator.compute(results, archetypes, LINEAR, 5).magnitude(XP);
+
+        assertEquals(0.18d, rank0, 1e-9);
+        assertEquals(rank0 * 1.75d, rank5, 1e-9, "rank V is x(1 + 0.15 * 5) = x1.75");
+    }
+
+    @Test
+    @DisplayName("rank does not amplify the four buffs #86 has not yet given anywhere to grow")
+    void rankSkipsAmplificationExemptBuffs()
+    {
+        List<ArchetypeDefinition> archetypes = List.of(archetype("soulhome:track", SoulBuffTypes.SPEED, 0.30d));
+        List<AwardedRoom> rooms = List.of(new AwardedRoom("soulhome:track", 2, 60d));
+
+        double rank0 = BuffCalculator.computeFromAwarded(rooms, archetypes, LINEAR, 0).magnitude(SoulBuffTypes.SPEED);
+        double rank5 = BuffCalculator.computeFromAwarded(rooms, archetypes, LINEAR, 5).magnitude(SoulBuffTypes.SPEED);
+
+        assertTrue(rank0 > 0d, "sanity: the room actually grants something to compare");
+        assertEquals(rank0, rank5, 1e-9, "speed must not be amplified until #86 gives it somewhere to go");
+    }
+
+    @Test
+    @DisplayName("ascensionPerRank = 0 reproduces today's numbers exactly, whatever the rank")
+    void zeroAscensionPerRankIsANoOp()
+    {
+        BuffSettings noAmplification = new BuffSettings(
+                0.5d, 3, 1.0d, Map.of(), BuffSettings.DEFAULT_TYPE_CAPS, 0d, 1d, 0d, 0d);
+
+        List<ClassificationResult> results = List.of(awarded("soulhome:library", 2, 60d));
+        List<ArchetypeDefinition> archetypes = List.of(archetype("soulhome:library", XP, 0.30d));
+
+        double rank0 = BuffCalculator.compute(results, archetypes, noAmplification, 0).magnitude(XP);
+        double rank5 = BuffCalculator.compute(results, archetypes, noAmplification, 5).magnitude(XP);
+
+        assertEquals(rank0, rank5, 1e-9);
+    }
+
+    @Test
+    @DisplayName("rank raises the global cap too, so a soul already pinned at it is not left behind")
+    void rankRaisesTheGlobalCeilingToo()
+    {
+        BuffSettings tightCap = new BuffSettings(0.5d, 3, 0.20d);
+
+        List<ArchetypeDefinition> archetypes = List.of(
+                archetype("soulhome:library", XP, 0.30d),
+                archetype("soulhome:scriptorium", XP, 0.30d));
+        List<AwardedRoom> rooms = List.of(
+                new AwardedRoom("soulhome:library", 3, 100d),
+                new AwardedRoom("soulhome:scriptorium", 3, 100d));
+
+        double rank0 = BuffCalculator.computeFromAwarded(rooms, archetypes, tightCap, 0).magnitude(XP);
+        double rank5 = BuffCalculator.computeFromAwarded(rooms, archetypes, tightCap, 5).magnitude(XP);
+
+        assertEquals(0.20d, rank0, 1e-9, "held at today's cap, unascended");
+        assertEquals(0.30d, rank5, 1e-9, "cap raised by 1 + 0.10 * 5 = x1.5, and then hit again");
+    }
+
+    @Test
+    @DisplayName("the breakdown attributes exactly how much of a source's magnitude rank added")
+    void breakdownAttributesTheRankPortionSeparately()
+    {
+        BuffBreakdown breakdown = BuffCalculator.explain(
+                List.of(new AwardedRoom("soulhome:library", 2, 60d)),
+                List.of(archetype("soulhome:library", XP, 0.30d)),
+                LINEAR,
+                5);
+
+        BuffBreakdown.Source source = breakdown.sourcesOf(XP).get(0);
+
+        assertEquals(0.18d * 1.75d, source.magnitude(), 1e-9);
+        assertEquals(0.18d * 0.75d, source.rankBonus(), 1e-9, "x1.75 minus the unamplified x1 is a x0.75 bonus");
+        assertEquals(source.rankBonus(), breakdown.rankBonusOf(XP), 1e-9);
+    }
+
+    // endregion
+
     // region helpers
 
     private static SoulBuffSet compute(List<ClassificationResult> results)
