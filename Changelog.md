@@ -479,3 +479,47 @@ soulhome sat at rank 0 whatever it had built or banked. It no longer does.
   long the ritual takes to hold, and the willpower threshold for the first rank and for every rank
   after it. A fifth, `pillar_search_radius`, sets how far from the anchor the pillar's base may
   sit.
+
+Eight new rooms, and buffs you press
+
+Every room in the mod so far pays out something you carry: a percentage, a duration, a count of
+extra jumps. That works until it does not - four of those buffs stop being worth having long
+before they stop growing, and a rank that multiplies them has nowhere good to put the extra. So
+there is now a second kind of buff. Charges, reach and duration stay meaningful as they grow, and
+a key that does something is felt in a way that damage going from +27% to +31% is not.
+
+- Eight new rooms, each granting one ability. A **Watchtower** of glass and ladders grants
+  Surveyor's Eye, which outlines ore and hostiles through solid stone. A **Bulwark** of bars and
+  heavy stone grants Aegis, a bank of absorption for the hit you were not going to survive. A
+  **Rift Chamber** of amethyst framed in obsidian grants Soul Step, a short blink through walls. A
+  **Mead Hall** with a long table grants Rally. A **Stable** grants Call of the Herd, which brings
+  your mount to you. A **Storm Spire** - a copper mast under open sky, rod at the tip - grants
+  Thunderclap. A **Powder Magazine** grants Barrage. An **Infected Grotto**, sculk spreading over
+  a carved hollow, grants Rupture.
+- Two new keys, unbound conflicts aside: one to use your selected ability, one to cycle between
+  them. A small display above the hotbar shows what is selected, how many charges are banked and
+  how far along the next one is. Build no room that grants an ability and you will never see it -
+  the mod adds nothing to your screen until you have earned it.
+- The Watchtower is deliberately the room rank 0 cannot really build. A watchtower wants height,
+  and rank 0 grants six build layers, so wanting one is a reason to climb. That is the point of
+  it, not an oversight.
+- Charges do not survive death, and cooldowns reset with them. They do survive logging out: come
+  back halfway through a recharge and you are still halfway through it.
+- Rally always does something for you alone - Strength and Resistance land on you whether or not
+  anyone is nearby - and does more with a group around you. A room that did nothing single-player
+  is a room most players would never build.
+- Nothing an ability does can wreck a world. Thunderclap's lightning lights no fires and turns no
+  pigs into piglins. Barrage breaks no blocks, primes no TNT and consumes nothing - the crates in
+  your magazine are scenery and stay scenery. Soul Step cannot cross dimensions, and inside a
+  soulhome it cannot land you outside your own box.
+- Server owners get a master switch for the whole system, a cooldown multiplier, a floor no
+  cooldown can fall below however high your rank climbs, a charge ceiling, and a per-ability
+  off switch by id. That last one is there because there is no way for this mod to ask a claim
+  protection mod whether a blink is allowed near spawn - so rather than pretend otherwise, a
+  server uneasy about Soul Step can simply switch that one ability off and keep the rest.
+- Two new ways a room can be judged on its shape. A Storm Spire scores for its rod actually
+  crowning the mast rather than sitting at its foot, and an Infected Grotto scores for being
+  carved rather than squared off. The second is the first thing in the mod that rewards
+  irregularity, and it is deliberately a small bonus for going out of your way rather than a
+  tax for building the way the block grid nudges everyone to build: a perfectly square grotto
+  still counts as a grotto, and still earns its tier on what is in it.

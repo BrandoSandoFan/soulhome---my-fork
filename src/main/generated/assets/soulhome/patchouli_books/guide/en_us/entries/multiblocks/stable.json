@@ -1,0 +1,26 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:hay_block",
+  "name": "Stable",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)call of the herd, growing with the tier, up to +3.$(p)Tiers begin at a score of 4."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)4 of Hay Block$(p)Rewards, most first:$(li)Water Cauldron$(li)any fence gates$(li)Hay Block$(li)Cauldron$(li)any fences$(p)Counts against it:$(li)any crops$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Stall encloses the room, and gate runs along stall, and feed is inside stall, or trough is inside stall.",
+      "title": "How you arrange it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 19
+}

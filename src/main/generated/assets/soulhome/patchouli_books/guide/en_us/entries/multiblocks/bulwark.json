@@ -1,0 +1,26 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:iron_bars",
+  "name": "Bulwark",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)aegis, growing with the tier, up to +12.$(p)Tiers begin at a score of 4."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)8 of Iron Bars or Chain$(p)Rewards, most first:$(li)Obsidian or Crying Obsidian$(li)Target$(li)Iron Bars$(li)Chain$(li)any walls$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)any crops",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Masonry encloses the room, and grille is within 2 of masonry, and colours is beside masonry.",
+      "title": "How you arrange it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 5
+}

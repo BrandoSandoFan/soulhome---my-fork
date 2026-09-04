@@ -1,0 +1,55 @@
+{
+  "display_name": "archetype.soulhome.bulwark",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": ["minecraft:iron_bars", "minecraft:chain"] }, "min_count": 8 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:iron_bars" },      "weight": 1.5, "role": "grille",    "cap": 24 },
+    { "match": { "block": "minecraft:chain" },          "weight": 1.2, "role": "grille",    "cap": 16 },
+    { "match": { "block": ["minecraft:obsidian", "minecraft:crying_obsidian"] },
+                                                         "weight": 3.0, "role": "hardened", "cap": 12 },
+    { "match": { "tag": "soulhome:structural" },        "weight": 0.6, "role": "masonry",   "cap": 48 },
+    { "match": { "tag": "minecraft:walls" },            "weight": 1.0, "role": "rampart",   "cap": 24 },
+    { "match": { "block": "minecraft:target" },         "weight": 3.0, "role": "drill",     "cap": 4 },
+    { "match": { "tag": "minecraft:banners" },          "weight": 1.0, "role": "colours",   "cap": 8 },
+    { "match": { "tag": "soulhome:lighting" },          "weight": 0.5, "role": "light",     "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "soulhome:smithing" },    "weight": -2.0 },
+    { "match": { "tag": "soulhome:bookshelves" }, "weight": -1.5 },
+    { "match": { "tag": "minecraft:crops" },      "weight": -1.5 }
+  ],
+
+  "tiers": [
+    { "min_score": 4, "tier": 1 },
+    { "min_score": 32, "tier": 2 },
+    { "min_score": 56, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:aegis", "per_tier": 4.0, "max": 12.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "held_line",
+      "weight": 7.0,
+      "role": "arrangement",
+      "elements": {
+        "grille":  { "block": ["minecraft:iron_bars", "minecraft:chain"] },
+        "masonry": { "tag": "soulhome:structural" },
+        "colours": { "tag": "minecraft:banners" }
+      },
+      "all": [
+        { "shape": "soulhome:enclosure", "of": "masonry", "weight": 2.0 },
+        { "relation": "within", "of": "grille", "to": "masonry", "max_distance": 2, "weight": 1.5 },
+        { "relation": "beside", "of": "colours", "to": "masonry", "max_drop": 1, "weight": 1.0 }
+      ]
+    }
+  ]
+}

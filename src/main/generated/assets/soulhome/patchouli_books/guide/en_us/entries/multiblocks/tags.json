@@ -40,6 +40,17 @@
     },
     {
       "type": "text",
+      "anchor": "conductive",
+      "text": "$(item)soulhome:conductive$(0)$(p)$(li)Copper Block$(li)Exposed Copper$(li)Weathered Copper$(li)Oxidized Copper$(li)Waxed Copper Block$(li)Waxed Exposed Copper$(li)Waxed Weathered Copper$(li)Waxed Oxidized Copper",
+      "title": "Conductive"
+    },
+    {
+      "type": "text",
+      "text": "$(li)Cut Copper$(li)Exposed Cut Copper$(li)Weathered Cut Copper$(li)Oxidized Cut Copper$(li)Waxed Cut Copper$(li)Waxed Exposed Cut Copper$(li)Waxed Weathered Cut Copper$(li)Waxed Oxidized Cut Copper$(li)Raw Copper Block$(li)Lightning Rod$(p)Data packs and other mods can add to this list - nothing here replaces it.",
+      "title": "Conductive"
+    },
+    {
+      "type": "text",
       "anchor": "furnishing",
       "text": "$(item)soulhome:furnishing$(0)$(p)$(li)any wool$(li)any wool carpets$(li)any flower pots$(li)Bell$(p)Data packs and other mods can add to this list - nothing here replaces it.",
       "title": "Furnishing"

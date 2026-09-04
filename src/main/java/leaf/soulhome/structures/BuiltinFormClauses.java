@@ -7,6 +7,7 @@ package leaf.soulhome.structures;
 import leaf.soulhome.structures.core.AboveClauseType;
 import leaf.soulhome.structures.core.AcrossClauseType;
 import leaf.soulhome.structures.core.AlongClauseType;
+import leaf.soulhome.structures.core.ApexClauseType;
 import leaf.soulhome.structures.core.AtRangeClauseType;
 import leaf.soulhome.structures.core.BeneathClauseType;
 import leaf.soulhome.structures.core.BesideClauseType;
@@ -15,6 +16,7 @@ import leaf.soulhome.structures.core.EnclosureClauseType;
 import leaf.soulhome.structures.core.FormClauseRegistry;
 import leaf.soulhome.structures.core.FormClauseType;
 import leaf.soulhome.structures.core.InsideClauseType;
+import leaf.soulhome.structures.core.IrregularityClauseType;
 import leaf.soulhome.structures.core.LaneClauseType;
 import leaf.soulhome.structures.core.LineClauseType;
 import leaf.soulhome.structures.core.LoopClauseType;
@@ -83,6 +85,13 @@ public final class BuiltinFormClauses
 
         // #73 - two groups of the same element with a gap between them, e.g. a fenced running lane
         register(registry, new LaneClauseType());
+
+        // #94 - "highest in the room", which no relation could express: above is local and
+        // comparative, this is against the region's own extent
+        register(registry, new ApexClauseType());
+
+        // #96/#37 - the first form in the mod that rewards disorder rather than order
+        register(registry, new IrregularityClauseType());
     }
 
     private static void register(FormClauseRegistry registry, FormClauseType type)

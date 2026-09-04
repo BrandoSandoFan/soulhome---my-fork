@@ -1,0 +1,58 @@
+{
+  "display_name": "archetype.soulhome.stable",
+  "region_types": ["enclosed", "open"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:hay_block" }, "min_count": 4 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:hay_block" },      "weight": 2.0, "role": "feed",    "cap": 16 },
+    { "match": { "tag": "minecraft:fences" },           "weight": 1.0, "role": "stall",   "cap": 32 },
+    { "match": { "tag": "minecraft:fence_gates" },      "weight": 2.5, "role": "stall",   "cap": 8  },
+    { "match": { "block": "minecraft:cauldron" },       "weight": 2.0, "role": "trough",  "cap": 6  },
+    { "match": { "block": "minecraft:water_cauldron" }, "weight": 3.0, "role": "trough",  "cap": 6  },
+    { "match": { "tag": "minecraft:wool_carpets" },     "weight": 0.6, "role": "bedding", "cap": 24 },
+    { "match": { "tag": "soulhome:storage" },           "weight": 0.8, "role": "tack",    "cap": 8  },
+    { "match": { "tag": "soulhome:lighting" },          "weight": 0.5, "role": "light",   "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:crops" },      "weight": -1.5 },
+    { "match": { "tag": "soulhome:bookshelves" }, "weight": -1.5 },
+    { "match": { "tag": "soulhome:smithing" },    "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 4, "tier": 1 },
+    { "min_score": 34, "tier": 2 },
+    { "min_score": 60, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:call_of_the_herd", "per_tier": 1.0, "max": 3.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "the_stalls",
+      "weight": 7.0,
+      "role": "arrangement",
+      "elements": {
+        "stall":  { "tag": "minecraft:fences" },
+        "gate":   { "tag": "minecraft:fence_gates" },
+        "feed":   { "block": "minecraft:hay_block" },
+        "trough": { "block": ["minecraft:cauldron", "minecraft:water_cauldron"] }
+      },
+      "all": [
+        { "shape": "soulhome:enclosure", "of": "stall", "weight": 2.0 },
+        { "relation": "along", "of": "gate", "to": "stall", "weight": 1.5 },
+        { "any": [
+          { "relation": "inside", "of": "feed",   "to": "stall", "max_gap": 1, "weight": 1.5 },
+          { "relation": "inside", "of": "trough", "to": "stall", "max_gap": 1, "weight": 1.5 }
+        ]}
+      ]
+    }
+  ]
+}

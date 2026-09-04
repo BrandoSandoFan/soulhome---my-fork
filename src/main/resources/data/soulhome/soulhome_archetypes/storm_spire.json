@@ -1,0 +1,48 @@
+{
+  "display_name": "archetype.soulhome.storm_spire",
+  "region_types": ["open"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:lightning_rod" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:lightning_rod" }, "weight": 6.0, "role": "conductor", "cap": 3  },
+    { "match": { "tag": "soulhome:conductive" },       "weight": 1.0, "role": "copper",    "cap": 32 },
+    { "match": { "block": "minecraft:chain" },         "weight": 0.8, "role": "rigging",   "cap": 12 },
+    { "match": { "tag": "soulhome:structural" },       "weight": 0.5, "role": "masonry",   "cap": 48 },
+    { "match": { "tag": "soulhome:lighting" },         "weight": 0.5, "role": "light",     "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:crops" },      "weight": -1.5 },
+    { "match": { "tag": "soulhome:bookshelves" }, "weight": -1.5 }
+  ],
+
+  "tiers": [
+    { "min_score": 8, "tier": 1 },
+    { "min_score": 28, "tier": 2 },
+    { "min_score": 46, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:thunderclap", "per_tier": 1.0, "max": 3.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "reaching_for_the_storm",
+      "weight": 6.0,
+      "role": "arrangement",
+      "elements": {
+        "rod":  { "block": "minecraft:lightning_rod" },
+        "mast": { "tag": ["soulhome:conductive", "soulhome:structural"] }
+      },
+      "all": [
+        { "shape": "soulhome:apex", "of": "rod",  "tolerance": 2, "weight": 2.0 },
+        { "shape": "soulhome:line", "of": "mast", "min_run": 5, "ideal_run": 8, "weight": 1.0 }
+      ]
+    }
+  ]
+}

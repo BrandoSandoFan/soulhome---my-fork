@@ -4,22 +4,41 @@
 
 package leaf.soulhome.buffs;
 
+import leaf.soulhome.structures.core.AbilityCharges;
 import leaf.soulhome.structures.core.SoulBuffSet;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * The buffs one player is currently carrying.
+ * The buffs one player is currently carrying, and the state of the ones they press (#87).
  *
  * <p>Attached to the player rather than to a level, because that is where they have to live:
  * earned inside a soulhome, spent in the overworld, and expected to survive a death, a dimension
  * change and a relog.
+ *
+ * <p>Charges and cooldowns live here for the same reason and one more: they are the player's, not
+ * the soulhome's. A player who logs out halfway through a recharge should come back halfway through
+ * it rather than fully loaded, which is only true if the clock is saved with them.
  */
 public class PlayerSoulBuffs
 {
+    /**
+     * Reserved NBT keys, prefixed so they cannot collide with a buff id. Buff magnitudes are stored
+     * as bare doubles at the root of the tag - a format from before there was anything else to keep
+     * - and a namespaced id can never start with {@code $}, so this stays unambiguous without a
+     * migration.
+     */
+    private static final String ABILITIES_KEY = "$abilities";
+    private static final String SELECTED_KEY = "$selected";
+    private static final String CHARGES_KEY = "charges";
+    private static final String CLOCK_KEY = "clock";
+
     private SoulBuffSet buffs = SoulBuffSet.empty();
+    private final Map<String, AbilityCharges> abilities = new LinkedHashMap<>();
+    private String selectedAbility = "";
 
     public SoulBuffSet get()
     {
@@ -39,7 +58,67 @@ public class PlayerSoulBuffs
         }
 
         this.buffs = replacement;
+
+        // an ability whose room was demolished should not keep a bank of charges waiting for the
+        // day it is rebuilt; a rebuilt room granting it again starts it fresh, from full
+        this.abilities.keySet().removeIf(type -> replacement.magnitude(type) <= 0d);
+
+        if (!this.selectedAbility.isEmpty() && replacement.magnitude(this.selectedAbility) <= 0d)
+        {
+            this.selectedAbility = "";
+        }
+
         return true;
+    }
+
+    /** This ability's charges and clock, or an empty bank if it has never been granted. */
+    public AbilityCharges chargesOf(String abilityType)
+    {
+        return this.abilities.getOrDefault(abilityType, AbilityCharges.EMPTY);
+    }
+
+    public void setCharges(String abilityType, AbilityCharges charges)
+    {
+        if (abilityType == null || abilityType.isEmpty() || charges == null)
+        {
+            return;
+        }
+
+        this.abilities.put(abilityType, charges);
+    }
+
+    public boolean hasChargesFor(String abilityType)
+    {
+        return this.abilities.containsKey(abilityType);
+    }
+
+    public Map<String, AbilityCharges> allCharges()
+    {
+        return Map.copyOf(this.abilities);
+    }
+
+    /** The ability the use key fires. Empty when the player has none, or has not chosen yet. */
+    public String selectedAbility()
+    {
+        return this.selectedAbility;
+    }
+
+    public void selectAbility(String abilityType)
+    {
+        this.selectedAbility = abilityType == null ? "" : abilityType;
+    }
+
+    /**
+     * Empties every bank and restarts every clock - what #87 asks for on death. Applied to whatever
+     * the player currently owns rather than clearing the map, so an ability stays listed in the HUD
+     * while it is recharging rather than vanishing until its first charge lands.
+     */
+    public void resetOnDeath()
+    {
+        for (Map.Entry<String, AbilityCharges> entry : this.abilities.entrySet())
+        {
+            entry.setValue(AbilityCharges.afterDeath(entry.getValue().ticksToNextCharge()));
+        }
     }
 
     public CompoundTag serializeNBT()
@@ -51,11 +130,27 @@ public class PlayerSoulBuffs
             tag.putDouble(entry.getKey(), entry.getValue());
         }
 
+        CompoundTag abilityTag = new CompoundTag();
+
+        for (Map.Entry<String, AbilityCharges> entry : this.abilities.entrySet())
+        {
+            CompoundTag state = new CompoundTag();
+            state.putInt(CHARGES_KEY, entry.getValue().charges());
+            state.putInt(CLOCK_KEY, entry.getValue().ticksToNextCharge());
+            abilityTag.put(entry.getKey(), state);
+        }
+
+        tag.put(ABILITIES_KEY, abilityTag);
+        tag.putString(SELECTED_KEY, this.selectedAbility);
+
         return tag;
     }
 
     public void deserializeNBT(CompoundTag tag)
     {
+        this.abilities.clear();
+        this.selectedAbility = "";
+
         if (tag == null)
         {
             this.buffs = SoulBuffSet.empty();
@@ -66,11 +161,30 @@ public class PlayerSoulBuffs
 
         for (String key : tag.getAllKeys())
         {
-            magnitudes.put(key, tag.getDouble(key));
+            // only the bare doubles at the root are magnitudes; the reserved compounds are read
+            // below. Checking the tag type rather than the key name means a future reserved key
+            // cannot be mistaken for a buff worth zero either.
+            if (tag.getTagType(key) == Tag.TAG_DOUBLE)
+            {
+                magnitudes.put(key, tag.getDouble(key));
+            }
         }
 
         // SoulBuffSet.of drops anything at or below zero, so a save from an older build that
         // stored a since-removed buff at zero does not linger
         this.buffs = SoulBuffSet.of(magnitudes);
+
+        CompoundTag abilityTag = tag.getCompound(ABILITIES_KEY);
+
+        for (String key : abilityTag.getAllKeys())
+        {
+            CompoundTag state = abilityTag.getCompound(key);
+            this.abilities.put(
+                    key,
+                    new AbilityCharges(
+                            Math.max(0, state.getInt(CHARGES_KEY)), Math.max(0, state.getInt(CLOCK_KEY))));
+        }
+
+        this.selectedAbility = tag.getString(SELECTED_KEY);
     }
 }

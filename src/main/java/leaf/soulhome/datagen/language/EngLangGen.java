@@ -257,6 +257,17 @@ public class EngLangGen extends LanguageProvider
         add("buff.soulhome.knockback_resistance", "Knockback resistance");
         add("buff.soulhome.swim_speed", "Swim speed");
 
+        //The actives (#87). Named as what they do rather than as a magnitude, since an active's
+        //number is charges and reach rather than a percentage of anything
+        add("buff.soulhome.surveyors_eye", "Surveyor's Eye");
+        add("buff.soulhome.aegis", "Aegis");
+        add("buff.soulhome.soul_step", "Soul Step");
+        add("buff.soulhome.rally", "Rally");
+        add("buff.soulhome.call_of_the_herd", "Call of the Herd");
+        add("buff.soulhome.thunderclap", "Thunderclap");
+        add("buff.soulhome.barrage", "Barrage");
+        add("buff.soulhome.rupture", "Rupture");
+
         //Archetypes. These are the 'display_name' keys the shipped archetype JSON names
         add("archetype.soulhome.farm", "Farm");
         add("archetype.soulhome.armoury", "Armoury");
@@ -277,6 +288,25 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.treasury", "Treasury");
         add("archetype.soulhome.trophy_room", "Trophy Room");
         add("archetype.soulhome.aquarium", "Aquarium");
+        add("archetype.soulhome.watchtower", "Watchtower");
+        add("archetype.soulhome.bulwark", "Bulwark");
+        add("archetype.soulhome.rift_chamber", "Rift Chamber");
+        add("archetype.soulhome.mead_hall", "Mead Hall");
+        add("archetype.soulhome.stable", "Stable");
+        add("archetype.soulhome.storm_spire", "Storm Spire");
+        add("archetype.soulhome.powder_magazine", "Powder Magazine");
+        add("archetype.soulhome.infected_grotto", "Infected Grotto");
+
+        //The abilities those rooms grant. A room and the thing it grants are not the same noun,
+        //so these are their own keys rather than reusing the archetype names
+        add(Constants.StringKeys.ABILITY_NAME_SURVEYORS_EYE, "Surveyor's Eye");
+        add(Constants.StringKeys.ABILITY_NAME_AEGIS, "Aegis");
+        add(Constants.StringKeys.ABILITY_NAME_SOUL_STEP, "Soul Step");
+        add(Constants.StringKeys.ABILITY_NAME_RALLY, "Rally");
+        add(Constants.StringKeys.ABILITY_NAME_CALL_OF_THE_HERD, "Call of the Herd");
+        add(Constants.StringKeys.ABILITY_NAME_THUNDERCLAP, "Thunderclap");
+        add(Constants.StringKeys.ABILITY_NAME_BARRAGE, "Barrage");
+        add(Constants.StringKeys.ABILITY_NAME_RUPTURE, "Rupture");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -284,6 +314,22 @@ public class EngLangGen extends LanguageProvider
         //KeyBindings
         add(Constants.StringKeys.KEYS_CATEGORY, "SoulHome");
         add(Constants.StringKeys.KEY_SOUL_CHARGE, "Charge Key To Transport");
+        add(Constants.StringKeys.KEY_ABILITY_USE, "Use Soul Ability");
+        add(Constants.StringKeys.KEY_ABILITY_CYCLE, "Next Soul Ability");
+
+        //What an ability says when it fires, and when it refuses. A refusal always names its
+        //reason - "nothing happened" is the single most common shape of an ability bug report
+        add(Constants.StringKeys.ABILITY_SELECTED, "Soul ability: %s");
+        add(Constants.StringKeys.ABILITY_HUD_CHARGES, "%s / %s");
+        add(Constants.StringKeys.ABILITY_SOUL_STEP_NO_ROOM, "Nowhere safe to step to.");
+        add(Constants.StringKeys.ABILITY_SOUL_STEP_DISABLED, "Soul Step is switched off on this server.");
+        add(Constants.StringKeys.ABILITY_HERD_NO_MOUNT, "You have not ridden a mount of your own yet.");
+        add(Constants.StringKeys.ABILITY_HERD_WRONG_DIMENSION, "Your mount is too far away to hear you.");
+        add(Constants.StringKeys.ABILITY_HERD_SUMMONED, "%s answers.");
+        add(Constants.StringKeys.ABILITY_SURVEYORS_EYE_NOTHING, "Nothing worth seeing within reach.");
+        add(Constants.StringKeys.ABILITY_RALLY_ALONE, "You steady yourself.");
+        add(Constants.StringKeys.ABILITY_RALLY_SHARED, "You rally %s others.");
+        add(Constants.StringKeys.ABILITY_THUNDERCLAP_NOTHING, "Nothing hostile within reach.");
 
 
         //Advancements
@@ -357,6 +403,31 @@ public class EngLangGen extends LanguageProvider
 
         add("advancements.soulhome.aquarium.title", "Deep End");
         add("advancements.soulhome.aquarium.description", "Flood a room in your soul until it is an aquarium, and swim like you belong there.");
+
+        //The eight rooms that grant something you press (#88-#92, #94-#96)
+        add("advancements.soulhome.watchtower.title", "Long Sight");
+        add("advancements.soulhome.watchtower.description", "Build high enough, and glassed in enough, to see what the stone is hiding.");
+
+        add("advancements.soulhome.bulwark.title", "Held Line");
+        add("advancements.soulhome.bulwark.description", "Wall a room in your soul to hold rather than to make, and take a hit you should not have survived.");
+
+        add("advancements.soulhome.rift_chamber.title", "Short Step");
+        add("advancements.soulhome.rift_chamber.description", "Set amethyst in a frame of obsidian, and learn to be somewhere else.");
+
+        add("advancements.soulhome.mead_hall.title", "Long Table");
+        add("advancements.soulhome.mead_hall.description", "Lay a hall out for company, and find you are worth more with people around you.");
+
+        add("advancements.soulhome.stable.title", "Answered Call");
+        add("advancements.soulhome.stable.description", "Keep stalls in your soul, and never walk back to where you left your horse again.");
+
+        add("advancements.soulhome.storm_spire.title", "Reaching For It");
+        add("advancements.soulhome.storm_spire.description", "Raise a copper mast under open sky, with the rod at its tip and not at its foot.");
+
+        add("advancements.soulhome.powder_magazine.title", "Racked And Ready");
+        add("advancements.soulhome.powder_magazine.description", "Store your charges together rather than scattered, and have something to throw.");
+
+        add("advancements.soulhome.infected_grotto.title", "Something Living In It");
+        add("advancements.soulhome.infected_grotto.description", "Let sculk take a hollow in your soul, and keep it dark enough to spread.");
 
         //misc
 

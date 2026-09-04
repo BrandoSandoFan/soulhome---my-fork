@@ -159,6 +159,30 @@ public final class GridVolume implements BlockVolume
         palette.put('Z', TestBlocks.WITHER_SKELETON_SKULL);
         palette.put('R', TestBlocks.DRAGON_HEAD);
         palette.put('T', TestBlocks.CORAL_BLOCK);
+
+        // the eight ability rooms (#88-#92, #94-#96). The letters ran out, so these are digits and
+        // punctuation - a layout that reads as a shape is what matters, not which glyph stands for
+        // what, and every fixture that uses these declares them at its own head anyway.
+        palette.put('q', TestBlocks.GLASS_PANE);
+        palette.put('!', TestBlocks.BELL);
+        palette.put('1', TestBlocks.IRON_BARS);
+        palette.put('*', TestBlocks.TARGET);
+        palette.put('2', TestBlocks.AMETHYST_BLOCK);
+        palette.put('%', TestBlocks.BUDDING_AMETHYST);
+        palette.put('3', TestBlocks.END_ROD);
+        palette.put('y', TestBlocks.FENCE_GATE);
+        palette.put('+', TestBlocks.WATER_CAULDRON);
+        palette.put('4', TestBlocks.LIGHTNING_ROD);
+        palette.put('5', TestBlocks.COPPER_BLOCK);
+        palette.put('6', TestBlocks.TNT);
+        palette.put('7', TestBlocks.DISPENSER);
+        palette.put('8', TestBlocks.REDSTONE_BLOCK);
+        palette.put('9', TestBlocks.SCULK_CATALYST);
+        palette.put('0', TestBlocks.SCULK);
+        palette.put('$', TestBlocks.SCULK_SENSOR);
+        palette.put('&', TestBlocks.DEEPSLATE);
+        palette.put('-', TestBlocks.WOODEN_SLAB);
+        palette.put('_', TestBlocks.WOODEN_TRAPDOOR);
         return palette;
     }
 

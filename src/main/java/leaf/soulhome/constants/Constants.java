@@ -136,6 +136,36 @@ public class Constants
         public static final String LENS_SCREEN_BOX_VERGE = "gui.soulhome.lens.box_verge";
         public static final String LENS_SCREEN_BOX_RANK = "gui.soulhome.lens.box_rank";
         public static final String LENS_SCREEN_BOX_LEGACY = "gui.soulhome.lens.box_legacy";
+
+        // Active abilities (#87): the two binds, the HUD, and what an ability says when it
+        // refuses. A refusal has to name its reason - "nothing happened" is the single most
+        // common shape of an ability bug report.
+        public static final String KEY_ABILITY_USE = "key.soulhome.ability.use";
+        public static final String KEY_ABILITY_CYCLE = "key.soulhome.ability.cycle";
+
+        public static final String ABILITY_SELECTED = "message.soulhome.ability.selected";
+        public static final String ABILITY_HUD_CHARGES = "gui.soulhome.ability.charges";
+
+        public static final String ABILITY_SOUL_STEP_NO_ROOM = "message.soulhome.ability.soul_step.no_room";
+        public static final String ABILITY_SOUL_STEP_DISABLED = "message.soulhome.ability.soul_step.disabled";
+        public static final String ABILITY_HERD_NO_MOUNT = "message.soulhome.ability.herd.no_mount";
+        public static final String ABILITY_HERD_WRONG_DIMENSION = "message.soulhome.ability.herd.wrong_dimension";
+        public static final String ABILITY_HERD_SUMMONED = "message.soulhome.ability.herd.summoned";
+        public static final String ABILITY_SURVEYORS_EYE_NOTHING = "message.soulhome.ability.surveyors_eye.nothing";
+        public static final String ABILITY_RALLY_ALONE = "message.soulhome.ability.rally.alone";
+        public static final String ABILITY_RALLY_SHARED = "message.soulhome.ability.rally.shared";
+        public static final String ABILITY_THUNDERCLAP_NOTHING = "message.soulhome.ability.thunderclap.nothing";
+
+        // The ability names themselves, for the HUD and the report. Kept apart from the
+        // archetype display names: a room and the thing it grants are not the same noun.
+        public static final String ABILITY_NAME_SURVEYORS_EYE = "ability.soulhome.surveyors_eye";
+        public static final String ABILITY_NAME_AEGIS = "ability.soulhome.aegis";
+        public static final String ABILITY_NAME_SOUL_STEP = "ability.soulhome.soul_step";
+        public static final String ABILITY_NAME_RALLY = "ability.soulhome.rally";
+        public static final String ABILITY_NAME_CALL_OF_THE_HERD = "ability.soulhome.call_of_the_herd";
+        public static final String ABILITY_NAME_THUNDERCLAP = "ability.soulhome.thunderclap";
+        public static final String ABILITY_NAME_BARRAGE = "ability.soulhome.barrage";
+        public static final String ABILITY_NAME_RUPTURE = "ability.soulhome.rupture";
     }
 
     public static class NBTKeys

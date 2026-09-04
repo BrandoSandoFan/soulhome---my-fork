@@ -29,7 +29,9 @@ public final class TestBlocks
 
     // structure
     public static final TestBlock STONE = block("minecraft:stone", Passability.BLOCKING);
-    public static final TestBlock GLASS = block("minecraft:glass", Passability.BLOCKING);
+    // minecraft:impermeable is the vanilla tag for glass and tinted glass - panes are deliberately
+    // not in it, which is why watchtower.json names the pane separately
+    public static final TestBlock GLASS = block("minecraft:glass", Passability.BLOCKING, "minecraft:impermeable");
 
     // doors count as boundary whether open or shut
     public static final TestBlock DOOR = block("minecraft:oak_door", Passability.PARTIAL, "minecraft:doors");
@@ -148,6 +150,53 @@ public final class TestBlocks
 
     // aquarium
     public static final TestBlock CORAL_BLOCK = block("minecraft:tube_coral_block", Passability.BLOCKING, "minecraft:coral_blocks");
+
+    // watchtower (#88). A pane is PARTIAL and a solid glass block is BLOCKING, which is the
+    // vanilla split and matters here: a tower walled in panes still seals as a room.
+    public static final TestBlock GLASS_PANE = block("minecraft:glass_pane", Passability.PARTIAL);
+    public static final TestBlock BELL = block("minecraft:bell", Passability.PARTIAL);
+
+    // bulwark (#89)
+    public static final TestBlock IRON_BARS = block("minecraft:iron_bars", Passability.PARTIAL);
+    public static final TestBlock TARGET = block("minecraft:target", Passability.BLOCKING);
+
+    // rift chamber (#90)
+    public static final TestBlock AMETHYST_BLOCK =
+            block("minecraft:amethyst_block", Passability.BLOCKING, "minecraft:crystal_sound_blocks");
+    public static final TestBlock BUDDING_AMETHYST =
+            block("minecraft:budding_amethyst", Passability.BLOCKING, "minecraft:crystal_sound_blocks");
+    public static final TestBlock END_ROD = block("minecraft:end_rod", Passability.PASSABLE);
+
+    // mead hall (#91) - the long table is slabs and trapdoors, which is what makes the form's
+    // "line with seating down its flanks" the thing separating a hall from a hearth
+    public static final TestBlock WOODEN_SLAB =
+            block("minecraft:oak_slab", Passability.PARTIAL, "minecraft:wooden_slabs", "minecraft:slabs");
+    public static final TestBlock WOODEN_TRAPDOOR =
+            block("minecraft:oak_trapdoor", Passability.PARTIAL, "minecraft:wooden_trapdoors", "minecraft:trapdoors");
+
+    // stable (#92)
+    public static final TestBlock FENCE_GATE =
+            block("minecraft:oak_fence_gate", Passability.PARTIAL, "minecraft:fence_gates");
+    public static final TestBlock WATER_CAULDRON =
+            block("minecraft:water_cauldron", Passability.PARTIAL, "soulhome:alchemy_vessels");
+
+    // storm spire (#94)
+    public static final TestBlock LIGHTNING_ROD =
+            block("minecraft:lightning_rod", Passability.PARTIAL, "soulhome:conductive");
+    public static final TestBlock COPPER_BLOCK =
+            block("minecraft:copper_block", Passability.BLOCKING, "soulhome:conductive");
+
+    // powder magazine (#95)
+    public static final TestBlock TNT = block("minecraft:tnt", Passability.BLOCKING);
+    public static final TestBlock DISPENSER = block("minecraft:dispenser", Passability.BLOCKING);
+    public static final TestBlock REDSTONE_BLOCK = block("minecraft:redstone_block", Passability.BLOCKING);
+
+    // infected grotto (#96)
+    public static final TestBlock SCULK_CATALYST = block("minecraft:sculk_catalyst", Passability.BLOCKING);
+    public static final TestBlock SCULK = block("minecraft:sculk", Passability.BLOCKING);
+    public static final TestBlock SCULK_SENSOR = block("minecraft:sculk_sensor", Passability.PARTIAL);
+    public static final TestBlock DEEPSLATE =
+            block("minecraft:deepslate", Passability.BLOCKING, "soulhome:structural");
 
     private TestBlocks()
     {

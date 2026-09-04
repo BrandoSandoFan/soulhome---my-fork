@@ -1,0 +1,51 @@
+{
+  "display_name": "archetype.soulhome.infected_grotto",
+  "region_types": ["enclosed"],
+  "min_volume": 64,
+
+  "requirements": [
+    { "match": { "block": "minecraft:sculk_catalyst" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:sculk_catalyst" }, "weight": 6.0, "role": "catalyst", "cap": 3  },
+    { "match": { "block": "minecraft:sculk_shrieker" }, "weight": 4.0, "role": "shrieker", "cap": 4  },
+    { "match": { "block": "minecraft:sculk_sensor" },   "weight": 2.5, "role": "nerve",    "cap": 8  },
+    { "match": { "block": "minecraft:sculk" },          "weight": 0.8, "role": "growth",   "cap": 48 },
+    { "match": { "block": "minecraft:sculk_vein" },     "weight": 0.5, "role": "growth",   "cap": 32 },
+    { "match": { "tag": "soulhome:structural" },        "weight": 0.4, "role": "stone",    "cap": 48 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "soulhome:lighting" },  "weight": -0.4 },
+    { "match": { "tag": "minecraft:crops" },    "weight": -1.5 },
+    { "match": { "tag": "soulhome:smithing" },  "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 4, "tier": 1 },
+    { "min_score": 38, "tier": 2 },
+    { "min_score": 62, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:rupture", "per_tier": 2.0, "max": 6.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "the_wound",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "shell":    { "tag": "soulhome:structural" },
+        "growth":   { "block": ["minecraft:sculk", "minecraft:sculk_vein"] },
+        "catalyst": { "block": "minecraft:sculk_catalyst" }
+      },
+      "all": [
+        { "shape": "soulhome:irregularity", "of": "shell", "weight": 1.5 },
+        { "relation": "within", "of": "growth", "to": "catalyst", "max_distance": 8, "weight": 1.5 }
+      ]
+    }
+  ]
+}
