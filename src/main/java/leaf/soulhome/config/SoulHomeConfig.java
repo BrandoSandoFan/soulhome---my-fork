@@ -428,18 +428,26 @@ public final class SoulHomeConfig
         private static final List<String> NO_MULTIPLIERS = List.of();
 
         /**
-         * Must be kept in sync with {@link BuffSettings#DEFAULT_TYPE_CAPS}: this list, not that
-         * map, is what a fresh server actually reads. {@code Snapshot.read()} builds
-         * {@link BuffSettings} entirely from {@link #buffTypeCaps} below, so a non-fraction type
-         * missing here falls back to {@code global_max_magnitude} the moment a config file is
-         * generated - silently capping, say, six seconds of fire down to one.
+         * The ceilings a fresh config file is written with, kept in step with
+         * {@link BuffSettings#DEFAULT_TYPE_CAPS}. Since a config file is only written once, a type
+         * missing from an existing file is caught by that map at read time rather than falling
+         * through to {@code global_max_magnitude} - see {@code BuffSettings#capFor}. This list is
+         * still worth keeping complete: it is what a server owner opens the file and sees.
          */
         private static final List<String> DEFAULT_TYPE_CAPS = List.of(
                 "soulhome:enchantment_power=6.0",
                 "soulhome:double_jump=1.0",
                 "soulhome:fire_aspect=6.0",
                 "soulhome:max_mana=60.0",
-                "soulhome:reach=2.0");
+                "soulhome:reach=2.0",
+                "soulhome:surveyors_eye=3.0",
+                "soulhome:aegis=12.0",
+                "soulhome:soul_step=6.0",
+                "soulhome:rally=6.0",
+                "soulhome:call_of_the_herd=3.0",
+                "soulhome:thunderclap=3.0",
+                "soulhome:barrage=6.0",
+                "soulhome:rupture=6.0");
 
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue restrictSoulTravel;
@@ -550,7 +558,9 @@ public final class SoulHomeConfig
                             "Per-buff-type ceilings, as 'namespace:buff=magnitude', overriding global_max_magnitude.",
                             "One number cannot cap every buff, because magnitudes mean different things:",
                             "1.0 doubles experience gain, and would be a rounding error at an enchanting table.",
-                            "Anything not listed here uses global_max_magnitude.")
+                            "An active ability's magnitude is a count - bolts, blocks of blink, absorption",
+                            "points - so each of them needs its own ceiling here as much as enchanting power does.",
+                            "Anything listed neither here nor in the mod's own defaults uses global_max_magnitude.")
                     .defineListAllowEmpty(
                             List.of("buff_type_caps"),
                             () -> DEFAULT_TYPE_CAPS,

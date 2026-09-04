@@ -146,7 +146,7 @@ public record LensRegionReport(
         for (ArchetypeScore.SignalContribution contribution : contributions)
         {
             signals.add(new Signal(
-                    contribution.description(),
+                    BlockNames.text(contribution.description()),
                     contribution.count(),
                     contribution.countedCount(),
                     contribution.contribution()));
@@ -161,7 +161,7 @@ public record LensRegionReport(
 
         for (ArchetypeScore.SignalContribution contribution : missing)
         {
-            names.add(contribution.description());
+            names.add(BlockNames.text(contribution.description()));
         }
 
         return names;

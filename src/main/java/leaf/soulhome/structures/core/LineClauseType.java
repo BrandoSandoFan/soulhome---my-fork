@@ -166,7 +166,14 @@ record LineClause(String of, int minRun, int idealRun, int maxDeviation) impleme
     @Override
     public String describe()
     {
-        return "'" + this.of + "' runs in a line";
+        // the numbers belong in the sentence: "runs in a line" leaves a reader with no idea
+        // whether three blocks in a row is the ask or eight, which is the difference between
+        // building it and not
+        final String run = this.idealRun > this.minRun
+                ? " of at least " + this.minRun + ", best at " + this.idealRun
+                : " of at least " + this.minRun;
+
+        return "'" + this.of + "' runs in a line" + run;
     }
 
     @Override

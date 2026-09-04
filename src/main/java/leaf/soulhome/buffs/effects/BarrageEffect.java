@@ -4,6 +4,7 @@
 
 package leaf.soulhome.buffs.effects;
 
+import leaf.soulhome.buffs.AbilityDamage;
 import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.core.particles.ParticleTypes;
@@ -157,7 +158,7 @@ public class BarrageEffect implements SoulActiveEffect
                 continue;
             }
 
-            target.hurt(level.damageSources().explosion(caster, caster), DAMAGE_PER_SHOT);
+            AbilityDamage.hit(target, level.damageSources().explosion(caster, caster), DAMAGE_PER_SHOT);
         }
     }
 }

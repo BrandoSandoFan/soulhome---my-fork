@@ -284,7 +284,7 @@ public final class SoulReport
         {
             lines.add(indent(translated(
                     Constants.StringKeys.REGION_REQUIREMENT_FAILED,
-                    requirement.description(),
+                    BlockNames.of(requirement.description()),
                     requirement.required(),
                     requirement.found()))
                     .withStyle(ChatFormatting.RED));
@@ -329,7 +329,7 @@ public final class SoulReport
         {
             MutableComponent line = translated(
                     Constants.StringKeys.REGION_SIGNAL,
-                    contribution.description(),
+                    BlockNames.of(contribution.description()),
                     contribution.count(),
                     score(contribution.contribution()));
 
@@ -360,21 +360,28 @@ public final class SoulReport
             return lines;
         }
 
-        List<String> names = new ArrayList<>();
+        MutableComponent names = Component.empty();
+        int listed = 0;
 
         for (ArchetypeScore.SignalContribution missing : score.missingSignals())
         {
-            if (names.size() >= MISSING_SIGNALS)
+            if (listed >= MISSING_SIGNALS)
             {
                 break;
             }
 
-            names.add(missing.description());
+            if (listed > 0)
+            {
+                names.append(", ");
+            }
+
+            names.append(BlockNames.of(missing.description()));
+            listed++;
         }
 
         lines.add(indent(translated(
                 Constants.StringKeys.REGION_MISSING,
-                String.join(", ", names)))
+                names))
                 .withStyle(ChatFormatting.BLUE));
 
         return lines;

@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Wants open ground rather than a sealed room. At least 27 blocks of space.$(p)Grants:$(li)thunderclap, growing with the tier, up to +3.$(p)Tiers begin at a score of 8."
+      "text": "Wants open ground rather than a sealed room. At least 27 blocks of space.$(p)Grants:$(li)Thunderclap, growing with the tier, up to +3.$(p)Tiers begin at a score of 8."
     },
     {
       "type": "text",
@@ -15,7 +15,12 @@
     },
     {
       "type": "text",
-      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Rod crowns the structure, and mast runs in a line.",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Rod crowns the structure, within 2 of its highest layer, and mast runs in a line of at least 5, best at 8.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Rod: Lightning Rod$(li)Mast: $(l:soulhome:multiblocks/tags#conductive)any conductive$(/l) or $(l:soulhome:multiblocks/tags#structural)any structural$(/l)",
       "title": "How you arrange it"
     }
   ],

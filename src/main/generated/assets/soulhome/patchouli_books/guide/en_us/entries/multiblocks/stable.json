@@ -6,16 +6,21 @@
   "pages": [
     {
       "type": "text",
-      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)call of the herd, growing with the tier, up to +3.$(p)Tiers begin at a score of 4."
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Call of the Herd, growing with the tier, up to +3.$(p)Tiers begin at a score of 4."
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)4 of Hay Block$(p)Rewards, most first:$(li)Water Cauldron$(li)any fence gates$(li)Hay Block$(li)Cauldron$(li)any fences$(p)Counts against it:$(li)any crops$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
+      "text": "Will not count without:$(li)4 of Hay Bale$(p)Rewards, most first:$(li)Water Cauldron$(li)any fence gates$(li)Hay Bale$(li)Cauldron$(li)any fences$(p)Counts against it:$(li)any crops$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
       "title": "What counts"
     },
     {
       "type": "text",
       "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Stall encloses the room, and gate runs along stall, and feed is inside stall, or trough is inside stall.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Stall: any fences$(li)Gate: any fence gates$(li)Feed: Hay Bale$(li)Trough: Cauldron or Water Cauldron",
       "title": "How you arrange it"
     }
   ],

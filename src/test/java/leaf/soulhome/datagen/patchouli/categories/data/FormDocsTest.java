@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -54,6 +55,37 @@ class FormDocsTest
         assertFalse(description.contains("'"), "the book should not show the raw quoted element names: " + description);
         assertTrue(Character.isUpperCase(description.charAt(0)), "should start with a capital: " + description);
         assertTrue(description.endsWith("."), "should end as a sentence: " + description);
+    }
+
+    @Test
+    @DisplayName("the legend says what each element is, in the order the sentence introduces them")
+    void legendNamesEveryElement()
+    {
+        FormClauseRegistry registry = new FormClauseRegistry();
+        leaf.soulhome.structures.BuiltinFormClauses.registerAll(registry);
+
+        var within = registry.get(leaf.soulhome.structures.core.FormClauseType.Kind.RELATION, "within").orElseThrow();
+
+        Form form = new Form(
+                "reading_spot", 6.0, "arrangement",
+                Map.of(
+                        "lectern", BlockMatcher.ofBlocks("minecraft:lectern"),
+                        "seating", BlockMatcher.ofTags("soulhome:seating")),
+                within.create(paramsOfTo(within, "seating", "lectern")),
+                Set.of("lectern", "seating"));
+
+        List<String> legend = FormDocs.legend(form, description -> description);
+
+        assertEquals(2, legend.size(), legend.toString());
+        assertEquals("Seating: #soulhome:seating", legend.get(0), "the sentence names seating first");
+        assertEquals("Lectern: minecraft:lectern", legend.get(1), legend.toString());
+    }
+
+    @Test
+    @DisplayName("an element key is read as words rather than printed as a key")
+    void elementKeysAreNotPrintedRaw()
+    {
+        assertEquals("Way up", FormDocs.label("way_up"));
     }
 
     @Test

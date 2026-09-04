@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)surveyors eye, growing with the tier, up to +3.$(p)Tiers begin at a score of 4."
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)Surveyor's Eye, growing with the tier, up to +3.$(p)Tiers begin at a score of 4."
     },
     {
       "type": "text",
@@ -15,7 +15,12 @@
     },
     {
       "type": "text",
-      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Windows encloses the room, and way_up runs in a line, and sight is within 6 of windows.",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Windows encloses the room, and way up runs in a line of at least 3, best at 5, and sight is within 6 of windows.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Windows: any impermeable$(li)Way up: any climbable$(li)Sight: Lodestone or Bell",
       "title": "How you arrange it"
     }
   ],

@@ -4,6 +4,7 @@
 
 package leaf.soulhome.buffs.effects;
 
+import leaf.soulhome.buffs.AbilityDamage;
 import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.core.particles.ParticleTypes;
@@ -11,6 +12,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
@@ -85,6 +88,12 @@ public class RuptureEffect implements SoulActiveEffect
         final Vec3 look = player.getLookAngle().normalize();
         final double cosHalfAngle = Math.cos(halfAngle);
 
+        // a sculk shockwave is the warden's own damage, which is both what this looks like and a
+        // type no spell mod has a reason to intercept - see AbilityDamage. It carries the caster,
+        // so what it kills is credited to them and what survives turns on them rather than on
+        // nobody, which plain magic() with no attacker did not
+        final DamageSource shockwave = AbilityDamage.sourceOf(level, DamageTypes.SONIC_BOOM, player);
+
         for (LivingEntity target : level.getEntitiesOfClass(
                 LivingEntity.class, player.getBoundingBox().inflate(range)))
         {
@@ -107,7 +116,7 @@ public class RuptureEffect implements SoulActiveEffect
                 continue;
             }
 
-            target.hurt(level.damageSources().magic(), DAMAGE);
+            AbilityDamage.hit(target, shockwave, DAMAGE);
 
             // knockback is applied along the shockwave's own direction rather than away from the
             // player, so everything in the cone is thrown the same way - a wave, not a shove

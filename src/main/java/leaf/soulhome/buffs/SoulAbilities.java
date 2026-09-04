@@ -5,11 +5,13 @@
 package leaf.soulhome.buffs;
 
 import leaf.soulhome.config.SoulHomeConfig;
+import leaf.soulhome.constants.Constants;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncSoulAbilitiesMessage;
 import leaf.soulhome.structures.core.AbilityCharges;
 import leaf.soulhome.structures.core.ActiveAbilitySettings;
 import leaf.soulhome.utils.LogHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.FakePlayer;
@@ -179,6 +181,14 @@ public final class SoulAbilities
 
             if (!charges.canSpend())
             {
+                // a press that does nothing and says nothing reads as a broken ability, and a
+                // player testing one presses it again immediately - which is exactly the window
+                // this refuses in
+                player.displayClientMessage(
+                        Component.translatable(
+                                Constants.StringKeys.ABILITY_RECHARGING,
+                                Math.max(1, charges.ticksToNextCharge() / 20)),
+                        true);
                 return;
             }
 

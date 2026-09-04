@@ -17,6 +17,8 @@ import net.minecraft.world.item.Item;
 import net.minecraftforge.common.data.LanguageProvider;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.Map;
+
 public class EngLangGen extends LanguageProvider
 {
     private final PackOutput packOutput;
@@ -235,38 +237,13 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_BOX_RANK, "Rank %s");
         add(Constants.StringKeys.LENS_SCREEN_BOX_LEGACY, "Your soul predates this limit and also reaches %s");
 
-        //Buff types. Named rather than shown as ids, since a player reads these and a log does not
-        add("buff.soulhome.saturation", "Saturation from food");
-        add("buff.soulhome.sword_damage", "Sword damage");
-        add("buff.soulhome.xp_gain", "Experience gain");
-        add("buff.soulhome.enchantment_power", "Enchanting levels");
-        add("buff.soulhome.potion_duration", "Potion duration");
-        add("buff.soulhome.healing", "Healing");
-        add("buff.soulhome.mining_speed", "Mining speed");
-        add("buff.soulhome.speed", "Movement speed");
-        add("buff.soulhome.double_jump", "Extra jumps");
-        add("buff.soulhome.fall_protection", "Fall damage reduction");
-        add("buff.soulhome.fire_aspect", "Fire on hit");
-        add("buff.soulhome.max_mana", "Maximum mana");
-        add("buff.soulhome.spell_power", "Spell power");
-        add("buff.soulhome.reach", "Reach");
-        add("buff.soulhome.fire_resistance", "Fire damage reduction");
-        add("buff.soulhome.soul_ember", "Experience kept on death");
-        add("buff.soulhome.nourished", "Slower hunger");
-        add("buff.soulhome.fortune", "Bonus drops");
-        add("buff.soulhome.knockback_resistance", "Knockback resistance");
-        add("buff.soulhome.swim_speed", "Swim speed");
-
-        //The actives (#87). Named as what they do rather than as a magnitude, since an active's
-        //number is charges and reach rather than a percentage of anything
-        add("buff.soulhome.surveyors_eye", "Surveyor's Eye");
-        add("buff.soulhome.aegis", "Aegis");
-        add("buff.soulhome.soul_step", "Soul Step");
-        add("buff.soulhome.rally", "Rally");
-        add("buff.soulhome.call_of_the_herd", "Call of the Herd");
-        add("buff.soulhome.thunderclap", "Thunderclap");
-        add("buff.soulhome.barrage", "Barrage");
-        add("buff.soulhome.rupture", "Rupture");
+        //Buff types. Named rather than shown as ids, since a player reads these and a log does not.
+        //The table is shared with the guide book, so the name a room page promises and the name
+        //the "/soulhome buffs" command prints cannot drift apart
+        for (Map.Entry<String, String> buff : BuffDisplayNames.all().entrySet())
+        {
+            add("buff." + buff.getKey().replace(':', '.'), buff.getValue());
+        }
 
         //Archetypes. These are the 'display_name' keys the shipped archetype JSON names
         add("archetype.soulhome.farm", "Farm");
@@ -330,6 +307,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_RALLY_ALONE, "You steady yourself.");
         add(Constants.StringKeys.ABILITY_RALLY_SHARED, "You rally %s others.");
         add(Constants.StringKeys.ABILITY_THUNDERCLAP_NOTHING, "Nothing hostile within reach.");
+        add(Constants.StringKeys.ABILITY_RECHARGING, "Still recharging - %s seconds to go.");
+        add(Constants.StringKeys.ABILITY_NO_DAMAGE, "It struck, and nothing took damage from it.");
 
 
         //Advancements

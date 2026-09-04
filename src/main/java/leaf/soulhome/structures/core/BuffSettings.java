@@ -57,12 +57,26 @@ public record BuffSettings(
      * wall and not - three would put a player past the range the server rubber-bands them at.
      */
     public static final Map<String, Double> DEFAULT_TYPE_CAPS =
-            Map.of(
-                    SoulBuffTypes.ENCHANTMENT_POWER, 6.0d,
-                    SoulBuffTypes.DOUBLE_JUMP, 1.0d,
-                    SoulBuffTypes.FIRE_ASPECT, 6.0d,
-                    SoulBuffTypes.MAX_MANA, 60.0d,
-                    SoulBuffTypes.REACH, 2.0d);
+            Map.ofEntries(
+                    Map.entry(SoulBuffTypes.ENCHANTMENT_POWER, 6.0d),
+                    Map.entry(SoulBuffTypes.DOUBLE_JUMP, 1.0d),
+                    Map.entry(SoulBuffTypes.FIRE_ASPECT, 6.0d),
+                    Map.entry(SoulBuffTypes.MAX_MANA, 60.0d),
+                    Map.entry(SoulBuffTypes.REACH, 2.0d),
+
+                    // every active's ceiling is the highest 'max' any shipped archetype declares
+                    // for it, so what the book promises is what a player can actually reach. Left
+                    // out, each of these inherited globalMaxMagnitude - a fraction's default of
+                    // 1.0 - and Aegis banked half a heart against a declared twelve while
+                    // Thunderclap could never call a second bolt.
+                    Map.entry(SoulBuffTypes.SURVEYORS_EYE, 3.0d),
+                    Map.entry(SoulBuffTypes.AEGIS, 12.0d),
+                    Map.entry(SoulBuffTypes.SOUL_STEP, 6.0d),
+                    Map.entry(SoulBuffTypes.RALLY, 6.0d),
+                    Map.entry(SoulBuffTypes.CALL_OF_THE_HERD, 3.0d),
+                    Map.entry(SoulBuffTypes.THUNDERCLAP, 3.0d),
+                    Map.entry(SoulBuffTypes.BARRAGE, 6.0d),
+                    Map.entry(SoulBuffTypes.RUPTURE, 6.0d));
 
     /** Suggested starting points - see the class-level ramp knob documentation. */
     public static final double DEFAULT_ENTRY_FRACTION = 0.10d;
@@ -140,6 +154,19 @@ public record BuffSettings(
     public double capFor(String buffType)
     {
         final Double cap = this.buffTypeCaps.get(buffType);
-        return cap == null ? this.globalMaxMagnitude : Math.max(0d, cap);
+
+        if (cap != null)
+        {
+            return Math.max(0d, cap);
+        }
+
+        // a type absent from the config falls back to this table before globalMaxMagnitude, so a
+        // server whose config file was written before a buff type existed still gets that type's
+        // real ceiling. A config list is only ever written once, at first launch; without this,
+        // adding a non-fraction buff silently capped it at the fraction default for every existing
+        // save - which is exactly what happened to all eight active abilities.
+        final Double fallback = DEFAULT_TYPE_CAPS.get(buffType);
+
+        return fallback == null ? this.globalMaxMagnitude : Math.max(0d, fallback);
     }
 }

@@ -6,6 +6,7 @@ package leaf.soulhome.datagen.patchouli.categories;
 
 
 import leaf.soulhome.SoulHome;
+import leaf.soulhome.datagen.language.BuffDisplayNames;
 import leaf.soulhome.datagen.patchouli.categories.data.ArchetypeDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.BookStuff;
 import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
@@ -16,11 +17,16 @@ import leaf.soulhome.structures.core.Form;
 import leaf.soulhome.structures.core.RegionType;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import leaf.soulhome.utils.StringHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The rooms you can build inside your soul.
@@ -58,6 +64,13 @@ public class PatchouliMultiblocks
      * into gets a count of what was left out instead.
      */
     private static final int GLOSSARY_MAX_PAGES = 4;
+
+    /**
+     * Legend entries that fit on one arrangement page. An entry is "Mast: any conductive or any
+     * structural", which wraps to two lines often enough that a page's worth is fewer of them than
+     * a glossary's worth of block names.
+     */
+    private static final int LEGEND_ENTRIES_PER_PAGE = 5;
 
     public static void collect(List<BookStuff.Category> categories, List<BookStuff.Entry> entries)
     {
@@ -125,7 +138,7 @@ public class PatchouliMultiblocks
         List<BookStuff.Page> pages = new ArrayList<>();
         pages.add(new BookStuff.TextPage(whereItGoes(archetype) + rewards(archetype)));
         pages.add(new BookStuff.TextPage(mustHave(archetype) + looksFor(archetype)).setTitle("What counts"));
-        arrangementPage(archetype).ifPresent(pages::add);
+        pages.addAll(arrangementPages(archetype));
 
         entry.sortnum = sortnum;
         //an archetype only another mod can ever satisfy is gated behind classifying one, which an
@@ -274,9 +287,8 @@ public class PatchouliMultiblocks
             }
         }
 
-        //the header costs the first page two of its lines, and a truncation note costs the last
-        //page one more
-        final int capacity = GLOSSARY_ENTRIES_PER_PAGE * GLOSSARY_MAX_PAGES - 2;
+        //a truncation note costs the last page one line
+        final int capacity = GLOSSARY_ENTRIES_PER_PAGE * GLOSSARY_MAX_PAGES;
 
         if (lines.size() > capacity)
         {
@@ -298,13 +310,10 @@ public class PatchouliMultiblocks
         {
             StringBuilder text = new StringBuilder();
 
-            //the id header costs a couple of the page's lines, so the first page holds fewer
-            int room = first ? GLOSSARY_ENTRIES_PER_PAGE - 2 : GLOSSARY_ENTRIES_PER_PAGE;
-
-            if (first)
-            {
-                text.append("$(item)").append(tag.id()).append("$(0)$(p)");
-            }
+            //no id header: the page is titled with the category's name already, and printing
+            //"soulhome:conductive" above the list told a player nothing they could act on. The id
+            //belongs to whoever writes a datapack, and they are reading the tag file, not this
+            int room = GLOSSARY_ENTRIES_PER_PAGE;
 
             for (; index < lines.size() && room > 0; index++, room--)
             {
@@ -330,27 +339,59 @@ public class PatchouliMultiblocks
     }
 
     /**
-     * The "how you arrange it" page, present only for an archetype that ships at least one
+     * The "how you arrange it" pages, present only for an archetype that ships at least one
      * {@link Form} - #35 of the structural considerations epic (#25). Kept separate from
      * {@link #entryFor} so a test can check the presence/absence rule without rendering a whole
      * entry.
+     *
+     * <p>Two parts, because the sentence alone was not documentation. A clause names the form's
+     * elements - "rod crowns the structure, and mast runs in a line" - and those are keys from the
+     * archetype's own JSON, not words a player has ever been shown. The legend that follows says
+     * what each one is made of, with the same glossary links the "what counts" page uses, so a
+     * reader can act on the sentence instead of guessing at it.
      */
-    static Optional<BookStuff.Page> arrangementPage(ArchetypeDefinition archetype)
+    static List<BookStuff.Page> arrangementPages(ArchetypeDefinition archetype)
     {
         if (archetype.structures().isEmpty())
         {
-            return Optional.empty();
+            return List.of();
         }
 
         StringBuilder text = new StringBuilder(
                 "None of this is required, but building it well earns more than the blocks alone:");
 
+        //a set, because an archetype's two forms can name the same element - the track's lane and
+        //its circuit are both about its fences, and saying so twice helps nobody
+        Set<String> legend = new LinkedHashSet<>();
+
         for (Form form : archetype.structures())
         {
             text.append("$(li)").append(FormDocs.describe(form));
+            legend.addAll(FormDocs.legend(form, PatchouliMultiblocks::readable));
         }
 
-        return Optional.of(new BookStuff.TextPage(text.toString()).setTitle("How you arrange it"));
+        List<BookStuff.Page> pages = new ArrayList<>();
+        pages.add(new BookStuff.TextPage(text.toString()).setTitle("How you arrange it"));
+
+        List<String> entries = new ArrayList<>(legend);
+
+        for (int from = 0; from < entries.size(); from += LEGEND_ENTRIES_PER_PAGE)
+        {
+            final List<String> page = entries.subList(
+                    from, Math.min(from + LEGEND_ENTRIES_PER_PAGE, entries.size()));
+
+            StringBuilder legendText = new StringBuilder(
+                    from == 0 ? "What those parts are:" : "And the rest:");
+
+            for (String entry : page)
+            {
+                legendText.append("$(li)").append(entry);
+            }
+
+            pages.add(new BookStuff.TextPage(legendText.toString()).setTitle("How you arrange it"));
+        }
+
+        return pages;
     }
 
     private static String whereItGoes(ArchetypeDefinition archetype)
@@ -501,13 +542,14 @@ public class PatchouliMultiblocks
                 : "";
     }
 
-    /** {@code soulhome:xp_gain} to "experience gain", for prose rather than for a log line. */
+    /**
+     * What a buff is called, from the same table the lang file is written from - so a room page
+     * and {@code /soulhome buffs} name a buff identically. It used to be derived from the id
+     * ({@code soulhome:xp_gain} to "xp gain"), which is the id showing through the prose.
+     */
     private static String describeBuff(String buffType)
     {
-        final int separator = buffType.indexOf(':');
-        final String path = separator < 0 ? buffType : buffType.substring(separator + 1);
-
-        return path.replace('_', ' ').toLowerCase(Locale.ROOT);
+        return BuffDisplayNames.of(buffType);
     }
 
     /**
@@ -536,7 +578,7 @@ public class PatchouliMultiblocks
 
             if (!tag)
             {
-                readable.append(StringHelper.fixCapitalisation(path));
+                readable.append(blockName(trimmed, path));
                 continue;
             }
 
@@ -548,6 +590,52 @@ public class PatchouliMultiblocks
         }
 
         return readable.toString();
+    }
+
+    /**
+     * What a block is called, asked of the block itself rather than guessed from its id. Reading
+     * the path gets most blocks right and a stubborn few wrong - {@code minecraft:tnt} is "TNT",
+     * {@code minecraft:copper_block} is "Block of Copper", {@code minecraft:hay_block} is a "Hay
+     * Bale" - and every one of those is the id showing through prose that claims to be English.
+     *
+     * <p>A block another mod owns is not in the registry at generation time (this mod builds
+     * against neither Create nor Iron's Spells), and must not be: what the book says would then
+     * depend on which mods happened to be installed when it was generated. Those keep the read of
+     * their id, which is what the whole book did until now.
+     */
+    private static String blockName(String id, String path)
+    {
+        try
+        {
+            final ResourceLocation location = ResourceLocation.tryParse(id);
+
+            if (location != null)
+            {
+                final Optional<Block> block = BuiltInRegistries.BLOCK.getOptional(location);
+
+                if (block.isPresent())
+                {
+                    final String name = block.get().getName().getString();
+
+                    //a translation that did not resolve hands back the key itself, and
+                    //"block.minecraft.tnt" in the book would be worse than the approximation it
+                    //replaced
+                    if (!name.equals(block.get().getDescriptionId()))
+                    {
+                        return name;
+                    }
+                }
+            }
+        }
+        catch (Throwable registryUnavailable)
+        {
+            //the unit tests exercise this class in a JVM with no bootstrapped registries, and a
+            //book generator that cannot answer "what is this block called" should fall back to
+            //reading the id rather than take the whole run down. Throwable, not Exception: an
+            //unbootstrapped registry fails in a static initialiser
+        }
+
+        return StringHelper.fixCapitalisation(path);
     }
 
     /**
