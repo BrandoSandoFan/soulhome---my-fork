@@ -53,12 +53,12 @@
     {
       "type": "text",
       "anchor": "lighting",
-      "text": "$(li)any candles$(li)Torch$(li)Wall Torch$(li)Soul Torch$(li)Soul Wall Torch$(li)Lantern$(li)Soul Lantern$(li)Sea Lantern$(li)Glowstone$(li)Shroomlight",
+      "text": "$(li)any candles$(li)Torch$(li)Torch$(li)Soul Torch$(li)Soul Torch$(li)Lantern$(li)Soul Lantern$(li)Sea Lantern$(li)Glowstone$(li)Shroomlight",
       "title": "Lighting"
     },
     {
       "type": "text",
-      "text": "$(li)End Rod$(li)any campfires$(li)Redstone Lamp$(li)Jack o'Lantern$(li)Ochre Froglight$(li)Verdant Froglight$(li)Pearlescent Froglight$(li)Glow Lichen$(li)Redstone Torch$(li)Redstone Wall Torch",
+      "text": "$(li)End Rod$(li)any campfires$(li)Redstone Lamp$(li)Jack o'Lantern$(li)Ochre Froglight$(li)Verdant Froglight$(li)Pearlescent Froglight$(li)Glow Lichen$(li)Redstone Torch$(li)Redstone Torch",
       "title": "Lighting"
     },
     {
