@@ -11,6 +11,7 @@ import leaf.soulhome.datagen.patchouli.categories.data.TagDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.BlockMatcher;
 import leaf.soulhome.structures.core.Form;
+import leaf.soulhome.utils.StringHelper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -165,8 +167,14 @@ class PatchouliMultiblocksTest
                 if (tag.path().equals(glossary.pages[page].anchor))
                 {
                     anchored = page;
-                    assertTrue(glossary.pages[page].text.contains(tag.id()),
-                            tag.id() + "'s page does not show its own id");
+
+                    // the page is titled with the category's name; it used to open with the raw
+                    // tag id as well, which told a player nothing they could act on - #103
+                    assertEquals(
+                            StringHelper.fixCapitalisation(tag.path()), glossary.pages[page].title,
+                            tag.id() + "'s page is not titled with its own name");
+                    assertFalse(glossary.pages[page].text.contains(tag.id()),
+                            tag.id() + "'s page shows a registry id to the player");
                 }
             }
 
