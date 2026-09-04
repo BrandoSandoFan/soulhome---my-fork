@@ -708,7 +708,7 @@ public final class SoulHomeConfig
                             "Per-region cap on how many structurally-interesting block positions are indexed for",
                             "positional scoring. Past this the index is truncated and reported as such, rather",
                             "than silently scoring an arrangement badly for no reason a player can see.")
-                    .defineInRange("max_geometry_cells", 8192, 64, 1_000_000);
+                    .defineInRange("max_geometry_cells", ScanSettings.DEFAULT_MAX_GEOMETRY_CELLS, 64, 1_000_000);
 
             builder.pop();
 

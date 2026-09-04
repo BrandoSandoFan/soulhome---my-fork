@@ -15,7 +15,7 @@ import leaf.soulhome.structures.core.SoulBuffTypes;
  * is a soulhome buff stacking with any tool the player is holding, not a bigger fortune level on
  * it, so it has no enchantment curve of its own to reproduce.
  *
- * <p>Doubles an existing stack's count where that fits under the item's max stack size, and adds a
+ * <p>Grows an existing stack by one where that fits under the item's max stack size, and adds a
  * fresh one-count copy otherwise, so a bonus drop is never silently lost to a stack that was
  * already full.
  *

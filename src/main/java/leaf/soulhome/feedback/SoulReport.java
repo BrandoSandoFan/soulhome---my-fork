@@ -4,8 +4,6 @@
 
 package leaf.soulhome.feedback;
 
-import leaf.soulhome.buffs.SoulBuffEffect;
-import leaf.soulhome.buffs.SoulBuffEffects;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.structures.SoulAnalysis;
 import leaf.soulhome.structures.core.ArchetypeScore;
@@ -159,8 +157,8 @@ public final class SoulReport
 
             MutableComponent line = translated(
                     Constants.StringKeys.BUFFS_ENTRY,
-                    Component.translatable(buffKey(buffType)),
-                    magnitude(buffType, total.getValue()))
+                    BuffNames.name(buffType),
+                    BuffNames.magnitude(buffType, total.getValue()))
                     .withStyle(ChatFormatting.AQUA);
 
             if (breakdown.isCapped(buffType))
@@ -177,7 +175,7 @@ public final class SoulReport
             {
                 lines.add(indent(translated(
                         Constants.StringKeys.BUFFS_RANK_BONUS,
-                        magnitude(buffType, rankBonus)))
+                        BuffNames.magnitude(buffType, rankBonus)))
                         .withStyle(ChatFormatting.DARK_AQUA));
             }
 
@@ -216,8 +214,8 @@ public final class SoulReport
         {
             lines.add(indent(translated(
                     Constants.StringKeys.BUFFS_ENTRY,
-                    Component.translatable(buffKey(total.getKey())),
-                    magnitude(total.getKey(), total.getValue())))
+                    BuffNames.name(total.getKey()),
+                    BuffNames.magnitude(total.getKey(), total.getValue())))
                     .withStyle(ChatFormatting.AQUA));
         }
 
@@ -552,38 +550,9 @@ public final class SoulReport
                 : Component.translatable(score.displayName());
     }
 
-    /** {@code soulhome:xp_gain} to {@code buff.soulhome.xp_gain}, the key the lang file holds. */
-    private static String buffKey(String buffType)
-    {
-        final int separator = buffType.indexOf(':');
-
-        return separator < 0
-                ? "buff." + buffType
-                : "buff." + buffType.substring(0, separator) + "." + buffType.substring(separator + 1);
-    }
-
     private static String score(double value)
     {
         return String.format(Locale.ROOT, "%.1f", value);
-    }
-
-    /**
-     * Magnitudes are unitless in the data, so the effect that acts on one is asked how to read it:
-     * a fraction shows as a percentage, a flat amount as a number. Showing "+0.2 enchanting
-     * levels" as "+20%" would be a small lie that a player would plan around.
-     */
-    private static String magnitude(String buffType, double value)
-    {
-        final SoulBuffEffect effect = SoulBuffEffects.get(buffType);
-
-        // an unknown buff type comes from another mod's effect; a fraction is the safer guess,
-        // and it is what every built-in buff but one is
-        if (effect == null || effect.isFraction())
-        {
-            return String.format(Locale.ROOT, "+%.0f%%", value * 100d);
-        }
-
-        return String.format(Locale.ROOT, "+%.1f", value);
     }
 
     private static MutableComponent translated(String key, Object... args)

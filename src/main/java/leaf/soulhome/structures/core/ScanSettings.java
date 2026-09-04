@@ -5,8 +5,9 @@
 package leaf.soulhome.structures.core;
 
 /**
- * Knobs for {@link RegionScanner}. These become Forge config entries in the balance pass; until
- * then {@link #DEFAULTS} is the single source of truth.
+ * Knobs for {@link RegionScanner}. These are Forge config entries under {@code scanning}, but this
+ * record - not the config spec - is where their defaults live, so a new knob has one number in one
+ * place rather than a default in the spec and a second one here for the tests to read.
  *
  * @param maxRoomVolume    interior cells above which a pocket is treated as outdoors rather than a
  *                         room. A cathedral is not a room.

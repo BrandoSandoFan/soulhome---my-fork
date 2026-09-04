@@ -58,9 +58,12 @@ public class StructureEvents
 
         try
         {
+            // the rank travels with the buffs, not just the magnitudes. Rank raises the ceiling
+            // every magnitude is re-clamped against on read (#85), so a copy that forgot it would
+            // hand a rank V player back their own numbers held to a rank 0 cap.
             event.getOriginal().getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(previous ->
                     event.getEntity().getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(fresh ->
-                            fresh.set(previous.get())));
+                            fresh.set(previous.get(), previous.rank())));
         }
         finally
         {
