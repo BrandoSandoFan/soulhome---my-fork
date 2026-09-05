@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.event.level.PistonEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -47,12 +48,18 @@ import java.util.concurrent.ConcurrentHashMap;
  * through the floor or a wall leaves a hole nothing can undo, since placing a block back at that
  * position is exactly what the box already refuses.
  *
- * <p>What this does <b>not</b> cover: falling blocks, dispensers, TNT-cannon movement, and any
- * explosion that clears blocks outside the box (a creeper or TNT going off against the outer face
- * of a wall). Those paths write to the level directly rather than through an event Forge exposes
- * generically, and closing that gap needs either a mixin into block-placement internals or
- * per-source hooks this pass did not attempt. Worth a follow-up; the common case - a player's own
- * placing, breaking, buckets and pistons - is covered.
+ * <p>Explosions - TNT, a creeper, a bed in the wrong dimension if one ever reaches a soulhome -
+ * are covered too: {@code ExplosionEvent.Detonate} fires with the full list of blocks the
+ * explosion is about to clear, and every position outside the box is dropped from that list
+ * before it reaches the level. Cropping the list rather than cancelling the event whole is what
+ * lets TNT set off against the inner face of a wall still hollow out everything on the soulhome's
+ * own side of it.
+ *
+ * <p>What this does <b>not</b> cover: falling blocks, dispensers, and TNT-cannon movement. Those
+ * paths write to the level directly rather than through an event Forge exposes generically, and
+ * closing that gap needs either a mixin into block-placement internals or per-source hooks this
+ * pass did not attempt. Worth a follow-up; the common case - a player's own placing, breaking,
+ * buckets, pistons and explosions - is covered.
  *
  * <p>Entities are untouched on purpose. A player may walk, fly and fall outside the box; only a
  * block being placed or broken is refused, so creative flight into the empty void around a
@@ -212,6 +219,27 @@ public final class SoulBoundsEnforcement
         {
             event.setCanceled(true);
         }
+    }
+
+    /**
+     * TNT and creepers write their cleared blocks to the level directly rather than through the
+     * placement/break events above, so without this an explosion set off against the inner face
+     * of a wall carries straight through to whatever generated terrain sits outside the box -
+     * exactly the hole placement and breaking are already guarded against (#109). Filtering the
+     * affected-block list, rather than cancelling the event, is deliberate: the same explosion can
+     * legitimately clear blocks on the soulhome's own side of the wall, and cancelling outright
+     * would take that damage away too.
+     */
+    @SubscribeEvent
+    public static void onExplosionDetonate(ExplosionEvent.Detonate event)
+    {
+        if (!(event.getLevel() instanceof ServerLevel level) || !applies(level))
+        {
+            return;
+        }
+
+        final RegionBounds box = SnapshotBlockVolume.declaredBox(level);
+        event.getAffectedBlocks().removeIf(pos -> !box.contains(pos.getX(), pos.getY(), pos.getZ()));
     }
 
     /** Whether this level is a soulhome currently being bounded at all. */
