@@ -617,3 +617,64 @@ that were saying the wrong thing, showing the wrong thing, or quietly not showin
 - **Two messages that did not say anything.** The "Well Read" advancement had a blank description,
   and the Soul Anchor reported your essence with the same sentence whether you had enough of it or
   not, while the willpower line directly above it has always told you which way it went.
+
+Tier ceilings that told the truth
+
+A room's tier 3 threshold is supposed to sit close to the top of what that archetype could ever
+score - close enough that a genuinely good build reaches it, far enough that a middling one cannot.
+`ArchetypeCeilingTest` only ever checked the second half of that promise: nothing caught a tier
+priced so low that its buff already paid out in full for a build nowhere near the room's own
+ceiling. The gap was not random. Every one of the newer, active-ability rooms sat at the cheap end,
+next to a run of older, passive-buff rooms priced the opposite way - demanding a build barely short
+of perfect for the same relative payout.
+
+- Nerf: Bulwark, Watchtower, Rift Chamber, Stable, Mead Hall, Ritual Chamber, Arcane Sanctum and
+  Workshop now need a noticeably better build to pay out their full buff than before - Aegis,
+  Surveyor's Eye, Soul Step, Call of the Herd, Rally, Spell Power, Max Mana and Reach were all
+  cheaper to max out than the rest of the mod intended.
+- Buff: Storm Spire and Infected Grotto's top tiers come down slightly - Thunderclap and Rupture sat
+  at the harsh end, close enough to unreachable that the room's own gate was easier to clear than
+  its buff was to max, and now sit in the same band as the rest of the mod.
+- Every shipped archetype's tier 2 and tier 3 now land inside the intended band - tier 3 between
+  72% and 85% of the room's own ceiling, tier 2 around half of it - and `ArchetypeCeilingTest`
+  fails the build if a future archetype's own thresholds drift outside it in either direction, not
+  only if they become unreachable.
+- `beside` gained an optional `max_gap`, so a form can ask for "alongside, with up to this many
+  empty cells between" rather than only "touching". Mead Hall's long table now credits a bench with
+  the one-block gap that good table aesthetics actually calls for, instead of only one jammed flush
+  against it.
+- Track's fence and rail forms asked for a small, trivial layout to max out arrangement alone; the
+  lane and the loop both now need a meaningfully longer run before they max out, and the room's own
+  fence requirement is a third larger.
+
+The hardest gate, the smallest payout
+
+Trophy Room and Storm Spire each traded difficulty for payout in the wrong direction. Trophy Room
+demanded the single hardest requirement in the mod - a mob head, and the common ones only drop from
+a charged creeper's kill - for the smallest buff shipped, a knockback resistance bonus barely worth
+noticing once armour's own resistance was already in the mix. Storm Spire asked for almost nothing
+up front and then, per the tier-tuning fix above, priced Thunderclap's own top tier out of reach for
+any real build.
+
+- Buff: Trophy Room's requirement and its mounted arrangement now also accept a player head, from a
+  wither's kill, alongside the existing mob heads - a second, still-real way into the room rather
+  than one bottlenecked on a single mob-and-lightning chain.
+- Buff: Trophy Room's knockback resistance rises to up to 15%, from 10% - still the mod's most
+  modest buff, but no longer negligible once earned.
+- Storm Spire's payout problem is the tier-tuning fix above: Thunderclap now pays out at its
+  declared maximum for a build that actually matches the room's own difficulty.
+
+Breaking blocks outside the box could not be undone
+
+The Ascent's box refused anything placed outside it, but nothing it broke. A player could mine
+straight through their own floor into the terrain below, or chew through a wall into whatever
+generated ground sat outside the box, and never put the hole back - placing a block there is
+exactly what the box already refuses. The box is now solid against breaking as well as building:
+breaking a block outside it is refused with the same message, shimmer and cooldown a player already
+gets from bumping into a wall.
+
+- Fix: breaking a block outside the current box is refused, the same way placing one already is. A
+  legacy soul's own grandfathered footprint (see "The Ascent, phase one" above) stays fully
+  editable rather than placeable-only, since breaking is checked against the same combined box
+  placement always has been - so a legacy build can still be rearranged or repaired, not only added
+  to.

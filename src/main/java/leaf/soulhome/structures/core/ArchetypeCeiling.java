@@ -23,8 +23,11 @@ import java.util.Set;
  *
  * <p>The rule this exists to enforce, for whoever adds the next archetype: aim tier 2 at roughly
  * half this number and tier 3 at roughly three-quarters to four-fifths of it, leaving headroom
- * above tier 3 for a build that also nails its forms. {@link ArchetypeCeilingTest} fails the build
- * the moment a shipped archetype's top tier stops being one of them.
+ * above tier 3 for a build that also nails its forms. Both bounds cut in both directions (#107): a
+ * tier that outruns this ceiling can never be reached, and a tier that sits well under its share of
+ * it pays out its full buff for a build far short of what the room could actually score.
+ * {@link ArchetypeCeilingTest} fails the build the moment a shipped archetype's tier 2 or tier 3
+ * falls outside its intended band.
  */
 public final class ArchetypeCeiling
 {

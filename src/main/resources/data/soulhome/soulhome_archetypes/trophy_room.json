@@ -6,7 +6,8 @@
   "requirements": [
     { "match": { "block": [
         "minecraft:zombie_head", "minecraft:skeleton_skull", "minecraft:creeper_head",
-        "minecraft:piglin_head", "minecraft:wither_skeleton_skull", "minecraft:dragon_head"
+        "minecraft:piglin_head", "minecraft:wither_skeleton_skull", "minecraft:dragon_head",
+        "minecraft:player_head"
       ] }, "min_count": 1 }
   ],
 
@@ -15,6 +16,7 @@
     { "match": { "block": "minecraft:skeleton_skull" },        "weight": 1.5, "role": "trophy_skeleton",         "cap": 3 },
     { "match": { "block": "minecraft:creeper_head" },          "weight": 2.0, "role": "trophy_creeper",          "cap": 3 },
     { "match": { "block": "minecraft:piglin_head" },           "weight": 2.5, "role": "trophy_piglin",           "cap": 3 },
+    { "match": { "block": "minecraft:player_head" },           "weight": 2.0, "role": "trophy_player",           "cap": 3 },
     { "match": { "block": "minecraft:wither_skeleton_skull" }, "weight": 4.0, "role": "trophy_wither_skeleton",  "cap": 3 },
     { "match": { "block": "minecraft:dragon_head" },           "weight": 8.0, "role": "trophy_dragon",           "cap": 2 },
     { "match": { "tag": "minecraft:fences" },                  "weight": 1.0, "role": "mount",                  "cap": 20 },
@@ -28,12 +30,12 @@
 
   "tiers": [
     { "min_score": 6,   "tier": 1 },
-    { "min_score": 50,  "tier": 2 },
-    { "min_score": 78,  "tier": 3 }
+    { "min_score": 55,  "tier": 2 },
+    { "min_score": 86,  "tier": 3 }
   ],
 
   "buffs": [
-    { "type": "soulhome:knockback_resistance", "per_tier": 0.03, "max": 0.10 }
+    { "type": "soulhome:knockback_resistance", "per_tier": 0.05, "max": 0.15 }
   ],
 
   "structures": [
@@ -44,7 +46,8 @@
       "elements": {
         "heads": { "block": [
           "minecraft:zombie_head", "minecraft:skeleton_skull", "minecraft:creeper_head",
-          "minecraft:piglin_head", "minecraft:wither_skeleton_skull", "minecraft:dragon_head"
+          "minecraft:piglin_head", "minecraft:wither_skeleton_skull", "minecraft:dragon_head",
+          "minecraft:player_head"
         ] },
         "posts": { "tag": "minecraft:fences" }
       },

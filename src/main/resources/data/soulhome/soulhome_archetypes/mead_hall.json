@@ -26,8 +26,8 @@
 
   "tiers": [
     { "min_score": 4, "tier": 1 },
-    { "min_score": 34, "tier": 2 },
-    { "min_score": 56, "tier": 3 }
+    { "min_score": 43, "tier": 2 },
+    { "min_score": 67, "tier": 3 }
   ],
 
   "buffs": [
@@ -46,7 +46,7 @@
       },
       "all": [
         { "shape": "soulhome:line", "of": "table", "min_run": 5, "ideal_run": 9, "weight": 2.5 },
-        { "relation": "beside", "of": "benches", "to": "table", "max_drop": 1, "weight": 2.0 },
+        { "relation": "beside", "of": "benches", "to": "table", "max_drop": 1, "max_gap": 1, "weight": 2.0 },
         { "relation": "within", "of": "cellar", "to": "table", "max_distance": 8, "weight": 1.0 }
       ]
     }
