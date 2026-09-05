@@ -58,6 +58,26 @@ public final class BuffNames
     }
 
     /**
+     * How much of this magnitude sits past the buff's soft ceiling (#86) - zero for the fifteen
+     * buffs with no ceiling at all, and for any buff type this mod does not register an effect for.
+     */
+    public static double overflow(String buffType, double magnitude)
+    {
+        final SoulBuffEffect effect = SoulBuffEffects.get(buffType);
+        return effect == null ? 0d : Math.max(0d, magnitude - effect.softCeiling());
+    }
+
+    /**
+     * What the overflow becomes, or {@code null} if there is nothing to convert it into - see
+     * {@link SoulBuffEffect#describeOverflow}. Only meaningful when {@link #overflow} is positive.
+     */
+    public static String describeOverflow(String buffType, double overflow)
+    {
+        final SoulBuffEffect effect = SoulBuffEffects.get(buffType);
+        return effect == null ? null : effect.describeOverflow(overflow);
+    }
+
+    /**
      * The registered effect has the last word, since a buff another mod added may read its own
      * magnitude differently from anything this mod ships. Falling back to the id list rather than
      * to a fixed answer keeps the client honest on a screen the effect registry has not been

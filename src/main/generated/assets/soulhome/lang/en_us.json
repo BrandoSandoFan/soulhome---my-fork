@@ -222,6 +222,8 @@
   "message.soulhome.buffs.header": "What your soul is giving you:",
   "message.soulhome.buffs.none": "Your soul is giving you nothing yet. Build a room in it.",
   "message.soulhome.buffs.rank_bonus": "of which %s is from your soul's rank",
+  "message.soulhome.buffs.soft_ceiling_converted": "%s past its useful ceiling became %s",
+  "message.soulhome.buffs.soft_ceiling_dropped": "%s past its useful ceiling, dropped",
   "message.soulhome.buffs.source": "from your %s (%s room(s), best tier %s)",
   "message.soulhome.lens.highlighted": "Use inside your soul to outline what was found",
   "message.soulhome.lens.nothing_to_show": "Nothing here to outline yet.",

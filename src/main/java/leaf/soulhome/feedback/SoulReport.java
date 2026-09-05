@@ -154,11 +154,12 @@ public final class SoulReport
         for (Map.Entry<String, Double> total : breakdown.totals().asMap().entrySet())
         {
             final String buffType = total.getKey();
+            final double magnitude = total.getValue();
 
             MutableComponent line = translated(
                     Constants.StringKeys.BUFFS_ENTRY,
                     BuffNames.name(buffType),
-                    BuffNames.magnitude(buffType, total.getValue()))
+                    BuffNames.magnitude(buffType, magnitude))
                     .withStyle(ChatFormatting.AQUA);
 
             if (breakdown.isCapped(buffType))
@@ -178,6 +179,8 @@ public final class SoulReport
                         BuffNames.magnitude(buffType, rankBonus)))
                         .withStyle(ChatFormatting.DARK_AQUA));
             }
+
+            lines.addAll(overflowLine(buffType, magnitude));
 
             for (BuffBreakdown.Source source : breakdown.sourcesOf(buffType))
             {
@@ -217,8 +220,39 @@ public final class SoulReport
                     BuffNames.name(total.getKey()),
                     BuffNames.magnitude(total.getKey(), total.getValue())))
                     .withStyle(ChatFormatting.AQUA));
+
+            lines.addAll(overflowLine(total.getKey(), total.getValue()));
         }
 
+        return lines;
+    }
+
+    /**
+     * The soft ceiling (#86): one line, only when this buff type has one and this magnitude sits
+     * past it - "+15% at its useful ceiling became extra sprint-jump distance..." for the two that
+     * convert the overflow into something else, "dropped" for the two that do not.
+     */
+    private static List<Component> overflowLine(String buffType, double magnitude)
+    {
+        List<Component> lines = new ArrayList<>();
+
+        final double overflow = BuffNames.overflow(buffType, magnitude);
+
+        if (overflow <= 0d)
+        {
+            return lines;
+        }
+
+        final String conversion = BuffNames.describeOverflow(buffType, overflow);
+
+        final MutableComponent line = conversion == null
+                ? translated(Constants.StringKeys.BUFFS_SOFT_CEILING_DROPPED, BuffNames.magnitude(buffType, overflow))
+                : translated(
+                        Constants.StringKeys.BUFFS_SOFT_CEILING_CONVERTED,
+                        BuffNames.magnitude(buffType, overflow),
+                        conversion);
+
+        lines.add(indent(line).withStyle(ChatFormatting.GOLD));
         return lines;
     }
 
