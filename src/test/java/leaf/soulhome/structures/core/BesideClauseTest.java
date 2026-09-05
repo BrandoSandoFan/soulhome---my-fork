@@ -22,7 +22,15 @@ class BesideClauseTest
 
     private static FormClause beside(int maxDrop)
     {
-        return TYPE.create(ClauseParams.builder().put("of", "a").put("to", "b").put("max_drop", maxDrop).put("coverage", 1.0).build());
+        return beside(maxDrop, 0);
+    }
+
+    private static FormClause beside(int maxDrop, int maxGap)
+    {
+        return TYPE.create(ClauseParams.builder()
+                .put("of", "a").put("to", "b")
+                .put("max_drop", maxDrop).put("max_gap", maxGap)
+                .put("coverage", 1.0).build());
     }
 
     private static BlockSignature block(String id)
@@ -65,5 +73,18 @@ class BesideClauseTest
 
         assertEquals(0.0, beside(0).evaluate(geometry, ELEMENTS).confidence(), 1e-9);
         assertEquals(1.0, beside(1).evaluate(geometry, ELEMENTS).confidence(), 1e-9);
+    }
+
+    @Test
+    @DisplayName("#107: a one-block horizontal gap is tolerated up to max_gap, not by default")
+    void gapIsToleratedUnderMaxGap()
+    {
+        RegionGeometry geometry = RegionGeometry.builder(100)
+                .add(0, 0, 0, block("test:a"))
+                .add(2, 0, 0, block("test:b"))
+                .build();
+
+        assertEquals(0.0, beside(0, 0).evaluate(geometry, ELEMENTS).confidence(), 1e-9);
+        assertEquals(1.0, beside(0, 1).evaluate(geometry, ELEMENTS).confidence(), 1e-9);
     }
 }

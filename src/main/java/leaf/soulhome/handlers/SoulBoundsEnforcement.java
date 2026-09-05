@@ -34,20 +34,29 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A soulhome is a box (#78/#79): floor, ceiling and four walls, and nothing may be placed outside
- * them. Every event here is a different way a block can end up somewhere a player never directly
- * clicked, and each is refused at the destination rather than by trying to reason about the source
- * - the cheapest check that is still correct, per #79.
+ * A soulhome is a box (#78/#79): floor, ceiling and four walls, and nothing may be placed or broken
+ * outside them (breaking: #109). Every placement event here is a different way a block can end up
+ * somewhere a player never directly clicked, and each is refused at the destination rather than by
+ * trying to reason about the source - the cheapest check that is still correct, per #79.
  *
- * <p>What this does <b>not</b> cover: falling blocks, dispensers, and TNT-cannon movement. Those
- * paths write to the level directly rather than through an event Forge exposes generically, and
- * closing that gap needs either a mixin into block-placement internals or per-source hooks this
- * pass did not attempt. Worth a follow-up; the common case - a player's own placements, buckets and
- * pistons - is covered.
+ * <p>Breaking is refused against the same {@link SnapshotBlockVolume#declaredBox} placement
+ * already checks - the current rank's box, widened to whatever a legacy soul's own pre-existing
+ * footprint already reached (#80). Anything else would be worse for exactly the players the legacy
+ * grant exists to protect: a legacy soul could build in its own grandfathered space but never
+ * fix a mistake or rearrange it. Symmetric with placement on purpose (#109) - without this, mining
+ * through the floor or a wall leaves a hole nothing can undo, since placing a block back at that
+ * position is exactly what the box already refuses.
+ *
+ * <p>What this does <b>not</b> cover: falling blocks, dispensers, TNT-cannon movement, and any
+ * explosion that clears blocks outside the box (a creeper or TNT going off against the outer face
+ * of a wall). Those paths write to the level directly rather than through an event Forge exposes
+ * generically, and closing that gap needs either a mixin into block-placement internals or
+ * per-source hooks this pass did not attempt. Worth a follow-up; the common case - a player's own
+ * placing, breaking, buckets and pistons - is covered.
  *
  * <p>Entities are untouched on purpose. A player may walk, fly and fall outside the box; only a
- * block being placed is refused, so creative flight into the empty void around a soulhome is
- * harmless rather than something to police.
+ * block being placed or broken is refused, so creative flight into the empty void around a
+ * soulhome is harmless rather than something to police.
  */
 @Mod.EventBusSubscriber(modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class SoulBoundsEnforcement
@@ -148,6 +157,31 @@ public final class SoulBoundsEnforcement
         if (!box.contains(destination.getX(), destination.getY(), destination.getZ()))
         {
             deny(event, event.getEntity());
+        }
+    }
+
+    /**
+     * Breaking, the other half of the box (#109): refused outside it exactly like placing already
+     * is, and against the same {@link SnapshotBlockVolume#declaredBox}, so a legacy soul's own
+     * grandfathered footprint stays fully editable rather than placeable-only. Without this, a
+     * player could mine through their own floor or wall into whatever generated terrain sits
+     * outside the box, and never be able to put it back - placing a block there is exactly what
+     * the box already refuses.
+     */
+    @SubscribeEvent
+    public static void onBreak(BlockEvent.BreakEvent event)
+    {
+        if (!(event.getLevel() instanceof ServerLevel level) || !applies(level))
+        {
+            return;
+        }
+
+        final BlockPos pos = event.getPos();
+        final RegionBounds box = SnapshotBlockVolume.declaredBox(level);
+
+        if (!box.contains(pos.getX(), pos.getY(), pos.getZ()))
+        {
+            deny(event, event.getPlayer());
         }
     }
 

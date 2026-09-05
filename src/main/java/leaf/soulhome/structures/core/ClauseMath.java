@@ -213,10 +213,17 @@ final class ClauseMath
         return drop > 0 && drop <= maxDrop;
     }
 
-    /** Horizontally adjacent (including diagonally) at nearly the same height - what {@code beside} means. */
-    static boolean isBeside(RegionGeometry.Cell of, RegionGeometry.Cell to, int maxDrop)
+    /**
+     * Horizontally adjacent (including diagonally) at nearly the same height - what {@code beside}
+     * means. {@code maxGap} widens "adjacent" to "adjacent, or up to this many empty cells away" -
+     * a stool pulled up to a table still reads as beside it with a one-block gap between them,
+     * which is often the aesthetically correct way to build the pair. 0 keeps the original
+     * strictly-touching behaviour, so every archetype that does not ask for a gap is unaffected.
+     */
+    static boolean isBeside(RegionGeometry.Cell of, RegionGeometry.Cell to, int maxDrop, int maxGap)
     {
-        return horizontalChebyshev(of, to) == 1 && Math.abs(of.y() - to.y()) <= maxDrop;
+        final int distance = horizontalChebyshev(of, to);
+        return distance >= 1 && distance <= 1 + maxGap && Math.abs(of.y() - to.y()) <= maxDrop;
     }
 
     /** Bounding box of a set of cells, expanded by {@code margin} on every side - a fallback when a geometry carries no {@link RegionGeometry#bounds()} of its own. */
