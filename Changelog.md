@@ -723,3 +723,19 @@ which meant a rank V soul's track or mine was worth exactly as much as a rank 0 
 A new look for the Soul Lens
 
 - Cosmetic: the Soul Lens item icon has been redrawn.
+
+The ascension ritual now looks like something is happening
+
+Standing on your pillar's cap for the ritual's full duration used to look identical at the first
+tick and the five hundredth: a debuff, a blank thirty seconds, then the burst of particles at the
+end. Nothing about the hold itself told you it was working.
+
+- A thin column of light now climbs the pillar as the hold progresses, rising from the base you
+  built to the cap you're standing on, alongside a second effect thickening at your feet - both
+  scale up with the rank you're ascending to, so a climb to rank V reads as a bigger event than one
+  to rank I.
+- A low hum steps up a note at the quarter, half and three-quarter mark of the hold, so you can
+  tell roughly how much longer you have left without needing to watch the timer.
+- Cosmetic only: none of this changes how long the ritual takes, what it costs, or what fails it -
+  stepping off the cap or losing the pillar under you still aborts it and hands every scrap of
+  essence back exactly as before.
