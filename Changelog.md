@@ -719,3 +719,7 @@ which meant a rank V soul's track or mine was worth exactly as much as a rank 0 
   trade for something else, with rank amplifying them again up to that point. `/soulhome buffs`
   says so when a buff is sitting at its useful ceiling, and what the rest became or that it was
   simply dropped.
+
+A new look for the Soul Lens
+
+- Cosmetic: the Soul Lens item icon has been redrawn.
