@@ -678,3 +678,27 @@ gets from bumping into a wall.
   editable rather than placeable-only, since breaking is checked against the same combined box
   placement always has been - so a legacy build can still be rearranged or repaired, not only added
   to.
+
+Soul Step landed where you had aimed, not where you were looking
+
+The blink was cast from the player's feet along their eye's own look angle - the two agree only
+when you are staring dead level, which is not most of the time. Aim up or down even slightly and
+the blink walked off your own crosshair, so the landing spot felt picked at random rather than
+"wherever I was looking".
+
+- Fix: Soul Step now casts its ray from the eye, along the same line the crosshair already shows,
+  and only converts back to a foot position once a landing spot is chosen. Aiming through a
+  doorway or over a ledge now blinks to it, rather than to wherever the old feet-anchored ray
+  happened to end up.
+
+TNT could finish what mining could not
+
+The box refused a block broken directly, but an explosion set off against a wall wrote its cleared
+blocks straight to the level, skipping the event breaking itself is checked against. A creeper or a stick of
+TNT touched off against the inner face of a wall carried on through it, so the box that "Breaking
+blocks outside the box could not be undone" (above) closed for a pickaxe stayed wide open for TNT.
+
+- Fix: an explosion's own list of blocks it is about to clear is filtered against the current box
+  before the blocks are destroyed, the same box placing and breaking already enforce. Everything on
+  the soulhome's own side of the explosion still goes - only what would have landed outside the box
+  is spared.

@@ -27,6 +27,11 @@ import net.minecraft.world.phys.Vec3;
  * that can break a server, so the constraints matter more than the effect:
  *
  * <ul>
+ *   <li><b>Follows the crosshair, not the feet.</b> The ray is cast from the player's eye along
+ *       their exact look vector, then walked back down to a foot position - anything cast from
+ *       {@code player.position()} instead drifts off the sightline the moment pitch is not
+ *       exactly zero, which is most of the time, and the landing spot stops matching where the
+ *       player was actually looking.</li>
  *   <li><b>Never across dimensions.</b> This is a within-level move and stays one. Everything that
  *       crosses a soulhome boundary goes through {@code TeleportHelper} so the exit position and
  *       the rescan happen; a blink deliberately cannot become a second way out that skips both.
@@ -87,7 +92,13 @@ public class SoulStepEffect implements SoulActiveEffect
         final ServerLevel level = player.serverLevel();
         final double distance = BASE_DISTANCE + magnitude * DISTANCE_PER_MAGNITUDE;
 
-        final Vec3 origin = player.position();
+        // the ray has to start at the eye, not the feet (#90 follow-up) - a player aiming
+        // anywhere but dead level otherwise blinks along a line several degrees off their own
+        // crosshair, which is what made the landing spot feel arbitrary rather than "where I
+        // looked". The eye-height offset is carried through the walk and removed again below so
+        // the player's own eye, not their feet, ends up on the sightline they aimed along.
+        final double eyeHeight = player.getEyeHeight();
+        final Vec3 origin = player.getEyePosition();
         final Vec3 look = player.getLookAngle().normalize();
 
         final RegionBounds box = boxFor(level);
@@ -98,7 +109,7 @@ public class SoulStepEffect implements SoulActiveEffect
         // is what lets it pass through a wall and still refuse to end inside one.
         for (double travelled = STEP; travelled <= distance; travelled += STEP)
         {
-            final Vec3 candidate = origin.add(look.scale(travelled));
+            final Vec3 candidate = origin.add(look.scale(travelled)).subtract(0, eyeHeight, 0);
 
             if (box != null && !box.contains(
                     (int) Math.floor(candidate.x), (int) Math.floor(candidate.y), (int) Math.floor(candidate.z)))
