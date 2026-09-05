@@ -152,14 +152,15 @@ public final class SoulBuffTypes
     }
 
     /**
-     * The four buffs that stop being worth having long before they stop growing (#86, unshipped):
-     * speed, mining speed, reach and swim speed. Rank amplification (#85) skips these rather than
-     * multiplying a value that has nowhere good to put the extra - a rank V player would otherwise
-     * get sprint they cannot steer, or a mining speed the game itself cannot render usefully faster.
-     * Held apart until #86 gives them a real conversion to grow into instead.
+     * Buffs rank (#85) should not amplify because the magnitude would have nowhere good to go -
+     * empty today. Speed, mining speed, reach and swim speed used to sit here, exempted until #86
+     * gave each of them a soft ceiling: speed and swim speed convert what rank adds past it into
+     * sprint-jump distance, a shorter run-up, extra breath and clearer underwater sight; reach and
+     * mining speed simply stop and say so in {@code /soulhome buffs}, per the room's own designer.
+     * Either way, rank now has somewhere to put what it adds, so nothing needs holding apart - but
+     * the next buff written with no such ceiling has somewhere ready to declare it.
      */
-    public static final Set<String> RANK_AMPLIFICATION_EXEMPT =
-            Set.of(SPEED, MINING_SPEED, REACH, SWIM_SPEED);
+    public static final Set<String> RANK_AMPLIFICATION_EXEMPT = Set.of();
 
     /** Whether rank (#85) amplifies this buff type's magnitude at all - see {@link #RANK_AMPLIFICATION_EXEMPT}. */
     public static boolean amplifiesWithRank(String buffType)

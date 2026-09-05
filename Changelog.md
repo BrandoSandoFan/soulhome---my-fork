@@ -702,3 +702,20 @@ blocks outside the box could not be undone" (above) closed for a pickaxe stayed 
   before the blocks are destroyed, the same box placing and breaking already enforce. Everything on
   the soulhome's own side of the explosion still goes - only what would have landed outside the box
   is spared.
+
+Four buffs that stopped being worth more
+
+Track, mine, workshop and aquarium all paid out in something that gets worse as it gets bigger:
+past a point, more movement speed just meant overshooting doorways and falling in your own holes,
+more mining speed did nothing once a block already broke instantly, more reach made placement
+harder instead of easier, and more swim speed was the same overshoot problem underwater. Rank
+(#85) made this worse rather than better, so it was held back from amplifying these four at all -
+which meant a rank V soul's track or mine was worth exactly as much as a rank 0 one's.
+
+- Buff: Speed and Swim Speed now stop growing past +40% raw, and rank amplifies them again -
+  what rank used to add with nowhere to go now becomes extra sprint-jump distance and a shorter
+  run-up to full sprint on land, and extra breath and clearer underwater sight in the water.
+- Reach stops growing past +2 blocks and Mining Speed past +75%, both hard limits rather than a
+  trade for something else, with rank amplifying them again up to that point. `/soulhome buffs`
+  says so when a buff is sitting at its useful ceiling, and what the rest became or that it was
+  simply dropped.

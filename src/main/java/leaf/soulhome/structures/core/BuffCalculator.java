@@ -203,8 +203,10 @@ public final class BuffCalculator
             final double beforeRank = Math.min(subtotal.getValue(), ceiling) * multiplier;
 
             // rank amplification (#85): applied after the archetype's own max and the multiplier,
-            // before the global type cap - and skipped for the handful of buffs #86 has to fix
-            // before more of them is a benefit rather than a liability. See SoulBuffTypes.
+            // before the global type cap - and skipped for any buff type SoulBuffTypes says has
+            // nowhere good to put the extra. Nothing is exempt today (#86 gave the last four
+            // holdouts a soft ceiling to grow into instead), but a future buff with no such ceiling
+            // has somewhere ready to declare it.
             final double granted = SoulBuffTypes.amplifiesWithRank(buffType)
                     ? beforeRank * settings.rankFactor(rank)
                     : beforeRank;

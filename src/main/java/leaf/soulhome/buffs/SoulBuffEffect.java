@@ -48,10 +48,52 @@ public interface SoulBuffEffect
         MinecraftForge.EVENT_BUS.register(this);
     }
 
+    /** No soft ceiling - the default for every buff that only ever gets better as it grows. */
+    double NO_SOFT_CEILING = Double.MAX_VALUE;
+
+    /**
+     * The magnitude past which more of this buff stops being a reward (#86) - speed, mining speed,
+     * reach and swim speed are the four that override this; every other buff keeps {@link
+     * #NO_SOFT_CEILING}, growing without limit exactly as it does today. What sits above the
+     * ceiling is {@link #overflowFor}, not lost - an effect that has somewhere to put it converts
+     * it (see {@link #describeOverflow}); one that does not simply drops it, reported as such
+     * rather than silently.
+     */
+    default double softCeiling()
+    {
+        return NO_SOFT_CEILING;
+    }
+
+    /**
+     * This player's magnitude before {@link #softCeiling()} - what the room actually earned, and
+     * what {@link #overflowFor} measures against. Effects should act on {@link #magnitudeFor}
+     * instead; this exists for the handful that also read their own overflow.
+     */
+    default double rawMagnitudeFor(Player player)
+    {
+        return SoulBuffs.magnitude(player, type());
+    }
+
     /** Convenience for implementations: this player's clamped magnitude for this effect. */
     default double magnitudeFor(Player player)
     {
-        return SoulBuffs.magnitude(player, type());
+        return Math.min(rawMagnitudeFor(player), softCeiling());
+    }
+
+    /** How much of this player's magnitude sits past the soft ceiling (#86) - zero when there is none. */
+    default double overflowFor(Player player)
+    {
+        return Math.max(0d, rawMagnitudeFor(player) - softCeiling());
+    }
+
+    /**
+     * What an amount past the soft ceiling becomes, in a player's own words - or {@code null} if
+     * there is nothing good to convert it into, in which case {@code /soulhome buffs} reports it as
+     * dropped rather than converted. Never called with zero or less.
+     */
+    default String describeOverflow(double overflow)
+    {
+        return null;
     }
 
     /**

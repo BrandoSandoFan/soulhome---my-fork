@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Workshop: everything is within arm's reach.
+ * Workshop: everything is within arm's reach - up to a point (#86).
  *
  * <p>Blocks and entities both, in blocks of distance. Forge splits reach in two - 4.5 for placing
  * and breaking, 3 for hitting - and a workshop buff that extended only one of them would be a
@@ -24,6 +24,12 @@ import java.util.List;
  * works with or without Create installed - it is only the room that grants it that needs Create's
  * blocks to exist. Looked up by name all the same, so there is one way of reaching an attribute
  * in this package rather than two.
+ *
+ * <p>Past two extra blocks, more reach makes precise placement harder rather than easier (#86), so
+ * {@link #softCeiling} stops it there - a hard stop with the rest simply dropped, not a trade for
+ * something else. An earlier draft converted the overflow into interaction reliability; asked
+ * about it directly, the room's own designer called that "weird" and asked for the plain stop
+ * instead, so that is what this ships with.
  */
 public class ReachEffect extends AttributeBuffEffect
 {
@@ -35,6 +41,9 @@ public class ReachEffect extends AttributeBuffEffect
     /** Forge's hitting reach, base 3.0. */
     public static final String ENTITY_REACH = "forge:entity_reach";
 
+    /** Past this, reach makes placement harder rather than easier - a hard stop, not a trade (#86). */
+    private static final double SOFT_CEILING = 2.0d;
+
     @Override
     public String type()
     {
@@ -45,6 +54,12 @@ public class ReachEffect extends AttributeBuffEffect
     public String describeMagnitude()
     {
         return "extra reach in blocks, for placing and for hitting alike";
+    }
+
+    @Override
+    public double softCeiling()
+    {
+        return SOFT_CEILING;
     }
 
     @Override

@@ -334,8 +334,8 @@ class BuffCalculatorTest
     }
 
     @Test
-    @DisplayName("rank does not amplify the four buffs #86 has not yet given anywhere to grow")
-    void rankSkipsAmplificationExemptBuffs()
+    @DisplayName("rank amplifies speed too, now that #86 gave it a soft ceiling to grow into")
+    void rankAmplifiesTheFormerlyExemptBuffs()
     {
         List<ArchetypeDefinition> archetypes = List.of(archetype("soulhome:track", SoulBuffTypes.SPEED, 0.30d));
         List<AwardedRoom> rooms = List.of(new AwardedRoom("soulhome:track", 2, 60d));
@@ -344,7 +344,7 @@ class BuffCalculatorTest
         double rank5 = BuffCalculator.computeFromAwarded(rooms, archetypes, LINEAR, 5).magnitude(SoulBuffTypes.SPEED);
 
         assertTrue(rank0 > 0d, "sanity: the room actually grants something to compare");
-        assertEquals(rank0, rank5, 1e-9, "speed must not be amplified until #86 gives it somewhere to go");
+        assertEquals(rank0 * 1.75d, rank5, 1e-9, "speed amplifies exactly like any other buff since #86");
     }
 
     @Test

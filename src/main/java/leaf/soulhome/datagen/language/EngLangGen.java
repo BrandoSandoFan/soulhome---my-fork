@@ -170,6 +170,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.BUFFS_SOURCE, "from your %s (%s room(s), best tier %s)");
         add(Constants.StringKeys.BUFFS_CAPPED, "(held at the cap)");
         add(Constants.StringKeys.BUFFS_RANK_BONUS, "of which %s is from your soul's rank");
+        add(Constants.StringKeys.BUFFS_SOFT_CEILING_CONVERTED, "%s past its useful ceiling became %s");
+        add(Constants.StringKeys.BUFFS_SOFT_CEILING_DROPPED, "%s past its useful ceiling, dropped");
 
         add(Constants.StringKeys.TRAVEL_BLOCKED, "Only a soul key crosses into a soul, and only a soul key leads back out.");
 

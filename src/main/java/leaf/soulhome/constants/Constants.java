@@ -62,6 +62,11 @@ public class Constants
         public static final String BUFFS_CAPPED = "message.soulhome.buffs.capped";
         public static final String BUFFS_RANK_BONUS = "message.soulhome.buffs.rank_bonus";
 
+        // The four buffs a soft ceiling stops before they overshoot themselves (#86): what a
+        // player is told once the ceiling holds part of what they built back.
+        public static final String BUFFS_SOFT_CEILING_CONVERTED = "message.soulhome.buffs.soft_ceiling_converted";
+        public static final String BUFFS_SOFT_CEILING_DROPPED = "message.soulhome.buffs.soft_ceiling_dropped";
+
         // Refused travel across a soul dimension's boundary (see SoulTravel). A player who has
         // just watched a warp scroll do nothing needs to be told why, or it reads as a broken mod.
         public static final String TRAVEL_BLOCKED = "message.soulhome.travel.blocked";
