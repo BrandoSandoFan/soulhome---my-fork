@@ -55,6 +55,9 @@ public final class AscensionRitualService
     /** How often, in ticks, a running ritual re-validates the whole pillar rather than just the cap. */
     private static final int FULL_REVALIDATION_INTERVAL = 10;
 
+    /** Fractions of the hold, in order, at which the ambient hum steps up a note. */
+    private static final double[] MILESTONE_FRACTIONS = {0.25, 0.5, 0.75};
+
     private AscensionRitualService()
     {
     }
@@ -90,11 +93,13 @@ public final class AscensionRitualService
     }
 
     private record RitualState(
-            UUID playerId, int targetRank, BlockPos capPos, Item essenceItem, int essenceCount, int ticksRemaining)
+            UUID playerId, int targetRank, BlockPos capPos, int baseY, int totalTicks, Item essenceItem,
+            int essenceCount, int ticksRemaining)
     {
         private RitualState withTicksRemaining(int remaining)
         {
-            return new RitualState(this.playerId, this.targetRank, this.capPos, this.essenceItem, this.essenceCount, remaining);
+            return new RitualState(this.playerId, this.targetRank, this.capPos, this.baseY, this.totalTicks,
+                    this.essenceItem, this.essenceCount, remaining);
         }
     }
 
@@ -177,7 +182,7 @@ public final class AscensionRitualService
             return;
         }
 
-        startRitual(level, player, key, readiness, capPos);
+        startRitual(level, player, key, readiness, capPos, bounds.floorY());
     }
 
     /** The player just left the ritual belongs to them (logout, death, changed dimension). */
@@ -280,14 +285,17 @@ public final class AscensionRitualService
     }
 
     private static void startRitual(
-            ServerLevel level, ServerPlayer player, ResourceKey<Level> key, Readiness readiness, BlockPos capPos)
+            ServerLevel level, ServerPlayer player, ResourceKey<Level> key, Readiness readiness, BlockPos capPos,
+            int floorY)
     {
         final Item essenceItem = essenceItem(readiness.targetRank());
         removeEssence(player, essenceItem, readiness.essenceRequired());
 
+        final int totalTicks = SoulHomeConfig.ascensionSettings().ritualDurationTicks();
+
         ACTIVE.put(key, new RitualState(
-                player.getUUID(), readiness.targetRank(), capPos.immutable(), essenceItem, readiness.essenceRequired(),
-                SoulHomeConfig.ascensionSettings().ritualDurationTicks()));
+                player.getUUID(), readiness.targetRank(), capPos.immutable(), columnBaseY(level, capPos, floorY),
+                totalTicks, essenceItem, readiness.essenceRequired(), totalTicks));
 
         player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RITUAL_STARTED).withStyle(ChatFormatting.LIGHT_PURPLE));
     }
@@ -314,6 +322,8 @@ public final class AscensionRitualService
 
         player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, EFFECT_REFRESH_TICKS, 1, false, false, false));
         player.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, EFFECT_REFRESH_TICKS, 1, false, false, false));
+
+        emitProgressEffects(level, state);
 
         final int remaining = state.ticksRemaining() - 1;
 
@@ -358,6 +368,64 @@ public final class AscensionRitualService
     {
         final BlockPos below = capPos.below();
         return SnapshotBlockVolume.passabilityOf(level, below, level.getBlockState(below)).isFullBlock();
+    }
+
+    /**
+     * A thickening column at the cap, energy climbing the pillar from its base as the hold
+     * progresses, and a hum that steps up a note at each quarter - so the ritual reads as something
+     * building rather than a debuff and a wait. Scaled by {@code targetRank} the same way the
+     * ritual's own costs already are, so ascending to V looks and sounds like the bigger event it is.
+     */
+    private static void emitProgressEffects(ServerLevel level, RitualState state)
+    {
+        final double progress = 1.0 - (double) state.ticksRemaining() / state.totalTicks();
+        final double rankScale = 1.0 + (state.targetRank() - 1) * 0.2;
+
+        final int capParticles = 1 + (int) Math.round(progress * 5 * rankScale);
+        level.sendParticles(ParticleTypes.END_ROD, state.capPos().getX() + 0.5, state.capPos().getY() + 0.3,
+                state.capPos().getZ() + 0.5, capParticles, 0.15, 0.1, 0.15, 0.01);
+
+        final double climbY = state.baseY() + progress * (state.capPos().getY() - state.baseY());
+        final int climbParticles = Math.max(1, (int) Math.round(2 * rankScale));
+        level.sendParticles(ParticleTypes.PORTAL, state.capPos().getX() + 0.5, climbY + 0.5,
+                state.capPos().getZ() + 0.5, climbParticles, 0.3, 0.4, 0.3, 0.02);
+
+        final int elapsed = state.totalTicks() - state.ticksRemaining();
+
+        for (int i = 0; i < MILESTONE_FRACTIONS.length; i++)
+        {
+            if (elapsed == (int) (state.totalTicks() * MILESTONE_FRACTIONS[i]))
+            {
+                final float pitch = 0.8f + i * 0.2f;
+                final float volume = (float) (0.6 + (state.targetRank() - 1) * 0.1);
+                level.playSound(null, state.capPos(), SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, volume, pitch);
+                break;
+            }
+        }
+    }
+
+    /**
+     * How far down from the cap the player's own pillar actually runs, found by walking down
+     * through full blocks rather than trusting {@link PillarInspector}'s own base search - a
+     * tapered or buttressed pillar's cap is not necessarily directly above its base, but the column
+     * under a player's own feet always is, and that is the column the climbing effect follows.
+     * Computed once, at the start of the ritual, rather than every tick.
+     */
+    private static int columnBaseY(ServerLevel level, BlockPos capPos, int floorY)
+    {
+        final BlockPos.MutableBlockPos cursor = capPos.mutable();
+
+        while (cursor.getY() > floorY)
+        {
+            cursor.move(0, -1, 0);
+
+            if (!SnapshotBlockVolume.passabilityOf(level, cursor, level.getBlockState(cursor)).isFullBlock())
+            {
+                return cursor.getY() + 1;
+            }
+        }
+
+        return floorY;
     }
 
     private static BlockPos findPlayerCap(ServerPlayer player, PillarInspector.Result pillar, int ceilingY)
