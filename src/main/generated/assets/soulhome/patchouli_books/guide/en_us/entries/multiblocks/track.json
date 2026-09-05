@@ -10,7 +10,7 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)16 of any fences or any fence gates$(p)Rewards, most first:$(li)any fences or any fence gates$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Ice or Packed Ice or Blue Ice or Hay Bale$(li)any rails$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
+      "text": "Will not count without:$(li)24 of any fences or any fence gates$(p)Rewards, most first:$(li)any fences or any fence gates$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Ice or Packed Ice or Blue Ice or Hay Bale$(li)any rails$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)any crops",
       "title": "What counts"
     },
     {
