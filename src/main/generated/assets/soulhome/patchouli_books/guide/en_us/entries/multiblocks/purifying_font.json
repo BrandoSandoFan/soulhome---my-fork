@@ -1,0 +1,31 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:water_cauldron",
+  "name": "Purifying Font",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)Cleansing Font, growing with the tier, up to +6.$(p)Tiers begin at a score of 5."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)1 of Water Cauldron$(p)Rewards, most first:$(li)Water Cauldron$(li)Pointed Dripstone$(li)Azalea or Flowering Azalea$(li)Dripstone Block$(li)Moss Block or Moss Carpet$(p)Counts against it:$(li)Lava$(li)Magma Block$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Dripstone sits over basin, and greenery surrounds basin.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Dripstone: Pointed Dripstone$(li)Basin: Water Cauldron$(li)Greenery: Azalea or Flowering Azalea or Moss Block or Moss Carpet",
+      "title": "How you arrange it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 17
+}
