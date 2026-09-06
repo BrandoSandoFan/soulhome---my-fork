@@ -751,3 +751,19 @@ Two new rooms: a font and a shaft
 - A new way a room can be judged on its shape: its own height against its own footprint, rather
   than any one element's position against the room. Gale Roost is the first archetype to ask for
   it - a shaft only reads as one if it is actually taller than it is wide.
+
+Gale Roost actually feels like a gale
+
+A single block of soul sand on the floor of any big enough room was already a Gale Roost - the
+same "requirement" every other room asks a real pile of, here satisfied by one stray block - and
+what it granted at that size was too small to notice over a normal jump. Worse, the room was built
+entirely out of soul sand and water: what it actually rewarded was a bubble elevator, which reads
+as plumbing, not wind.
+
+- Fix: soul sand and water are gone from Gale Roost entirely. It now wants a bamboo mast (4 blocks
+  of it, not 1, to stop a stray shoot from counting) with banners - the one thing in vanilla that
+  actually reads as wind - worth more planted beside the crowning lantern than scattered loose.
+  Glass is gone too: it was there to let you watch the water go up, and a sealed glass tube around
+  an open-air mast never made sense once the water did not exist to watch.
+- Buff: Updraft's launch is stronger across every tier, tier 1 included, so a roost that has only
+  just started catching wind still throws you clear of a doorway.

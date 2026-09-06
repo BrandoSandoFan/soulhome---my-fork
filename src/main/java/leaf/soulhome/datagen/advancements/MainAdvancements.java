@@ -164,7 +164,7 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
         archetypeAdvancement(advancementConsumer, roomAdvancement, "powder_magazine", Items.TNT);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "infected_grotto", Items.SCULK_CATALYST);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "purifying_font", Items.CAULDRON);
-        archetypeAdvancement(advancementConsumer, roomAdvancement, "gale_roost", Items.SOUL_SAND);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "gale_roost", Items.BAMBOO);
     }
 
     /**

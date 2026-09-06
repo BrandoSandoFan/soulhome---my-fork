@@ -490,7 +490,7 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:powder_magazine", TestBlocks.TNT),
                 Map.entry("soulhome:infected_grotto", TestBlocks.SCULK_CATALYST),
                 Map.entry("soulhome:purifying_font", TestBlocks.WATER_CAULDRON),
-                Map.entry("soulhome:gale_roost", TestBlocks.SOUL_SAND));
+                Map.entry("soulhome:gale_roost", TestBlocks.BAMBOO));
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -1528,43 +1528,43 @@ class ArchetypeClassifierTest
                 SLAB);
     }
 
-    /** A glass-walled shaft over a soul sand bubble column, a lantern marking its top. */
+    /** A mast of bamboo rising through the room, a lantern and a banner marking its top. */
     private static GridVolume galeRoost()
     {
         return GridVolume.of(
                 SLAB,
                 new String[]{
-                        "qqqqqqq",
-                        "q.....q",
-                        "q.....q",
-                        "q..s..q",
-                        "q.....q",
-                        "q.....q",
-                        "qqqqqqq"},
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#..(..#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
                 new String[]{
-                        "qqqqqqq",
-                        "q.....q",
-                        "q.....q",
-                        "q..~..q",
-                        "q.....q",
-                        "q.....q",
-                        "qqqqqqq"},
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#..(..#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
                 new String[]{
-                        "qqqqqqq",
-                        "q.....q",
-                        "q.....q",
-                        "q..~..q",
-                        "q.....q",
-                        "q.....q",
-                        "qqqqqqq"},
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#..(..#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
                 new String[]{
-                        "qqqqqqq",
-                        "q.....q",
-                        "q.....q",
-                        "q..t..q",
-                        "q.....q",
-                        "q.....q",
-                        "qqqqqqq"},
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.(tn.#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
                 SLAB);
     }
 

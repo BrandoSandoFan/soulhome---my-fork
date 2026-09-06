@@ -188,6 +188,7 @@ public final class GridVolume implements BlockVolume
         palette.put('^', TestBlocks.POINTED_DRIPSTONE);
         palette.put('@', TestBlocks.DRIPSTONE_BLOCK);
         palette.put(':', TestBlocks.MOSS_BLOCK);
+        palette.put('(', TestBlocks.BAMBOO);
         return palette;
     }
 

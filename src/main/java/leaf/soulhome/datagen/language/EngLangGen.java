@@ -422,7 +422,7 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.purifying_font.description", "Hang a dripstone spike over a basin in your soul, and let it feed something worth drinking from.");
 
         add("advancements.soulhome.gale_roost.title", "Rising On It");
-        add("advancements.soulhome.gale_roost.description", "Raise a glass shaft in your soul taller than it is wide, over a column that pushes up rather than down.");
+        add("advancements.soulhome.gale_roost.description", "Raise a bamboo mast in your soul taller than it is wide, with banners flying from the top.");
 
         //misc
 

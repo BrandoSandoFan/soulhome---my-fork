@@ -89,6 +89,9 @@ public final class TestBlocks
     public static final TestBlock SLIME_BLOCK = block("minecraft:slime_block", Passability.BLOCKING);
     public static final TestBlock SCAFFOLDING = block("minecraft:scaffolding", Passability.PASSABLE);
 
+    // gale roost - a bamboo mast, thin and swaying rather than a bubble column
+    public static final TestBlock BAMBOO = block("minecraft:bamboo", Passability.PASSABLE);
+
     // hearth
     public static final TestBlock FURNACE = block("minecraft:furnace", Passability.BLOCKING);
     public static final TestBlock LAVA = block("minecraft:lava", Passability.PASSABLE);
