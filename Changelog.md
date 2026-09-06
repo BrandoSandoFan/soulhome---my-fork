@@ -751,3 +751,17 @@ Two new rooms: a font and a shaft
 - A new way a room can be judged on its shape: its own height against its own footprint, rather
   than any one element's position against the room. Gale Roost is the first archetype to ask for
   it - a shaft only reads as one if it is actually taller than it is wide.
+
+Gale Roost actually feels like a gale
+
+A single block of soul sand on the floor of any big enough room was already a Gale Roost - the
+same "requirement" every other room asks a real pile of, here satisfied by one stray block - and
+what it granted at that size was too small to notice over a normal jump. The room read as "build
+a bubble elevator", not "build a wind tower", because a bubble elevator is the only thing its
+block list actually described.
+
+- Fix: Gale Roost now needs an actual soul sand column (4, not 1) before it counts for anything,
+  and banners - the one thing in vanilla that reads as wind rather than plumbing - are a real
+  reward, both on their own and planted beside the lantern at the shaft's crown.
+- Buff: Updraft's launch is stronger across every tier, tier 1 included, so a roost that has only
+  just started catching wind still throws you clear of a doorway.

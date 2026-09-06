@@ -35,9 +35,17 @@ public class UpdraftEffect implements SoulActiveEffect
 {
     public static final String TYPE = SoulBuffTypes.UPDRAFT;
 
-    /** A bit stronger than vanilla's own bubble column push, so the room feels worth building. */
-    private static final double BASE_VELOCITY = 1.2d;
-    private static final double VELOCITY_PER_MAGNITUDE = 0.2d;
+    /**
+     * A tier 1 room used to launch barely higher than a stock jump, because the ramp that lets
+     * every archetype grow smoothly from its own entry score (see {@code BuffSpec#magnitudeAt})
+     * hands a room that has only just qualified a small fraction of its ceiling - by design, and
+     * true of every room in the mod, not just this one. Gale Roost felt it worse than most because
+     * the whole burst rode on that fraction: raising the base here, rather than leaning harder on
+     * magnitude, means a roost that has only just started catching wind still throws you clear of
+     * a doorway on the first try.
+     */
+    private static final double BASE_VELOCITY = 1.8d;
+    private static final double VELOCITY_PER_MAGNITUDE = 0.3d;
 
     /** 5 seconds of slow falling at tier 1. */
     private static final int BASE_SLOW_FALL_TICKS = 100;

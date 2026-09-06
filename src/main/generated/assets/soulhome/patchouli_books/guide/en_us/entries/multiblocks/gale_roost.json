@@ -6,21 +6,21 @@
   "pages": [
     {
       "type": "text",
-      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Updraft, growing with the tier, up to +6.$(p)Tiers begin at a score of 4."
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Updraft, growing with the tier, up to +6.$(p)Tiers begin at a score of 8."
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)1 of Soul Sand$(p)Rewards, most first:$(li)Soul Sand$(li)Water$(li)Glass or Glass Pane$(li)Scaffolding$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)Magma Block$(li)any crops",
+      "text": "Will not count without:$(li)4 of Soul Sand$(p)Rewards, most first:$(li)Soul Sand$(li)any banners$(li)Water$(li)Glass or Glass Pane$(li)Scaffolding$(p)Counts against it:$(li)Magma Block$(li)any crops",
       "title": "What counts"
     },
     {
       "type": "text",
-      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)The room stands taller than it is wide, at least 1.50x, best at 3x, and perch crowns the structure, within 1 of its highest layer, and tube encloses the room.",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)The room stands taller than it is wide, at least 1.50x, best at 3x, and perch crowns the structure, within 1 of its highest layer, and tube encloses the room, and banner is beside perch.",
       "title": "How you arrange it"
     },
     {
       "type": "text",
-      "text": "What those parts are:$(li)Perch: $(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Tube: Glass or Glass Pane",
+      "text": "What those parts are:$(li)Perch: $(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Tube: Glass or Glass Pane$(li)Banner: any banners",
       "title": "How you arrange it"
     }
   ],

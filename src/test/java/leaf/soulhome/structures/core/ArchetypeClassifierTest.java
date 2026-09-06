@@ -1528,7 +1528,7 @@ class ArchetypeClassifierTest
                 SLAB);
     }
 
-    /** A glass-walled shaft over a soul sand bubble column, a lantern marking its top. */
+    /** A glass-walled shaft over a soul sand bubble column, a lantern and a banner marking its top. */
     private static GridVolume galeRoost()
     {
         return GridVolume.of(
@@ -1536,10 +1536,10 @@ class ArchetypeClassifierTest
                 new String[]{
                         "qqqqqqq",
                         "q.....q",
-                        "q.....q",
+                        "q..s..q",
+                        "q.sss.q",
                         "q..s..q",
                         "q.....q",
-                        "q.....q",
                         "qqqqqqq"},
                 new String[]{
                         "qqqqqqq",
@@ -1561,7 +1561,7 @@ class ArchetypeClassifierTest
                         "qqqqqqq",
                         "q.....q",
                         "q.....q",
-                        "q..t..q",
+                        "q..tn.q",
                         "q.....q",
                         "q.....q",
                         "qqqqqqq"},
