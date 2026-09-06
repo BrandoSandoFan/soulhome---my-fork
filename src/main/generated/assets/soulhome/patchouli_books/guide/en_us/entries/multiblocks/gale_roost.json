@@ -10,17 +10,17 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)4 of Bamboo$(p)Rewards, most first:$(li)Bamboo$(li)any banners$(li)Glass or Glass Pane$(li)Scaffolding$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)any crops",
+      "text": "Will not count without:$(li)4 of Bamboo$(p)Rewards, most first:$(li)Bamboo$(li)any banners$(li)Scaffolding$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)any crops",
       "title": "What counts"
     },
     {
       "type": "text",
-      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)The room stands taller than it is wide, at least 1.50x, best at 3x, and perch crowns the structure, within 1 of its highest layer, and tube encloses the room, and banner is beside perch, and mast runs in a line of at least 4, best at 8.",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)The room stands taller than it is wide, at least 1.50x, best at 3x, and perch crowns the structure, within 1 of its highest layer, and banner is beside perch, and mast runs in a line of at least 4, best at 8.",
       "title": "How you arrange it"
     },
     {
       "type": "text",
-      "text": "What those parts are:$(li)Perch: $(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Tube: Glass or Glass Pane$(li)Banner: any banners$(li)Mast: Bamboo",
+      "text": "What those parts are:$(li)Perch: $(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Banner: any banners$(li)Mast: Bamboo",
       "title": "How you arrange it"
     }
   ],

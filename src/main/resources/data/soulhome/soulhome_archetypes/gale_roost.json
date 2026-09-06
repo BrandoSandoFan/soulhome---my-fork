@@ -8,11 +8,10 @@
   ],
 
   "signals": [
-    { "match": { "block": "minecraft:bamboo" },                          "weight": 4.0, "role": "mast",    "cap": 12 },
-    { "match": { "tag": "minecraft:banners" },                          "weight": 1.5, "role": "banner",  "cap": 8  },
-    { "match": { "block": ["minecraft:glass", "minecraft:glass_pane"] }, "weight": 1.0, "role": "viewing", "cap": 24 },
-    { "match": { "block": "minecraft:scaffolding" },                    "weight": 0.6, "role": "access",  "cap": 16 },
-    { "match": { "tag": "soulhome:lighting" },                          "weight": 0.5, "role": "light",   "cap": 12 }
+    { "match": { "block": "minecraft:bamboo" },     "weight": 4.0, "role": "mast",   "cap": 12 },
+    { "match": { "tag": "minecraft:banners" },      "weight": 1.5, "role": "banner", "cap": 8  },
+    { "match": { "block": "minecraft:scaffolding" }, "weight": 0.6, "role": "access", "cap": 16 },
+    { "match": { "tag": "soulhome:lighting" },      "weight": 0.5, "role": "light",  "cap": 12 }
   ],
 
   "detractors": [
@@ -21,8 +20,8 @@
 
   "tiers": [
     { "min_score": 8,   "tier": 1 },
-    { "min_score": 30,  "tier": 2 },
-    { "min_score": 48,  "tier": 3 }
+    { "min_score": 24,  "tier": 2 },
+    { "min_score": 36,  "tier": 3 }
   ],
 
   "buffs": [
@@ -31,11 +30,10 @@
 
   "structures": [
     {
-      "name": "the_shaft",
+      "name": "the_mast",
       "weight": 7.0,
       "role": "arrangement",
       "elements": {
-        "tube":   { "block": ["minecraft:glass", "minecraft:glass_pane"] },
         "perch":  { "tag": "soulhome:lighting" },
         "banner": { "tag": "minecraft:banners" },
         "mast":   { "block": "minecraft:bamboo" }
@@ -43,7 +41,6 @@
       "all": [
         { "shape": "soulhome:verticality", "min_ratio": 1.5, "ideal_ratio": 3.0, "weight": 2.5 },
         { "shape": "soulhome:apex", "of": "perch", "tolerance": 1, "weight": 1.5 },
-        { "shape": "soulhome:enclosure", "of": "tube", "min_coverage": 0.4, "weight": 1.5 },
         { "relation": "beside", "of": "banner", "to": "perch", "max_gap": 1, "weight": 1.0 },
         { "shape": "soulhome:line", "of": "mast", "min_run": 4, "ideal_run": 8, "weight": 1.0 }
       ]

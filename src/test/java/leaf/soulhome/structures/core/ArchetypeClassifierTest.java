@@ -1528,43 +1528,43 @@ class ArchetypeClassifierTest
                 SLAB);
     }
 
-    /** A glass-walled shaft over a bamboo mast, a lantern and a banner marking its top. */
+    /** A mast of bamboo rising through the room, a lantern and a banner marking its top. */
     private static GridVolume galeRoost()
     {
         return GridVolume.of(
                 SLAB,
                 new String[]{
-                        "qqqqqqq",
-                        "q.....q",
-                        "q.....q",
-                        "q..(..q",
-                        "q.....q",
-                        "q.....q",
-                        "qqqqqqq"},
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#..(..#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
                 new String[]{
-                        "qqqqqqq",
-                        "q.....q",
-                        "q.....q",
-                        "q..(..q",
-                        "q.....q",
-                        "q.....q",
-                        "qqqqqqq"},
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#..(..#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
                 new String[]{
-                        "qqqqqqq",
-                        "q.....q",
-                        "q.....q",
-                        "q..(..q",
-                        "q.....q",
-                        "q.....q",
-                        "qqqqqqq"},
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#..(..#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
                 new String[]{
-                        "qqqqqqq",
-                        "q.....q",
-                        "q.....q",
-                        "q.(tn.q",
-                        "q.....q",
-                        "q.....q",
-                        "qqqqqqq"},
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.(tn.#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
                 SLAB);
     }
 

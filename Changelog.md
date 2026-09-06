@@ -761,8 +761,9 @@ entirely out of soul sand and water: what it actually rewarded was a bubble elev
 as plumbing, not wind.
 
 - Fix: soul sand and water are gone from Gale Roost entirely. It now wants a bamboo mast (4 blocks
-  of it, not 1, to stop a stray shoot from counting) rising through a glass shaft, with banners -
-  the one thing in vanilla that actually reads as wind - worth more planted beside the lantern
-  at the crown than scattered loose.
+  of it, not 1, to stop a stray shoot from counting) with banners - the one thing in vanilla that
+  actually reads as wind - worth more planted beside the crowning lantern than scattered loose.
+  Glass is gone too: it was there to let you watch the water go up, and a sealed glass tube around
+  an open-air mast never made sense once the water did not exist to watch.
 - Buff: Updraft's launch is stronger across every tier, tier 1 included, so a roost that has only
   just started catching wind still throws you clear of a doorway.
