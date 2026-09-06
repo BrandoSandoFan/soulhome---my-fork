@@ -490,7 +490,7 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:powder_magazine", TestBlocks.TNT),
                 Map.entry("soulhome:infected_grotto", TestBlocks.SCULK_CATALYST),
                 Map.entry("soulhome:purifying_font", TestBlocks.WATER_CAULDRON),
-                Map.entry("soulhome:gale_roost", TestBlocks.SOUL_SAND));
+                Map.entry("soulhome:gale_roost", TestBlocks.BAMBOO));
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -1528,7 +1528,7 @@ class ArchetypeClassifierTest
                 SLAB);
     }
 
-    /** A glass-walled shaft over a soul sand bubble column, a lantern and a banner marking its top. */
+    /** A glass-walled shaft over a bamboo mast, a lantern and a banner marking its top. */
     private static GridVolume galeRoost()
     {
         return GridVolume.of(
@@ -1536,16 +1536,8 @@ class ArchetypeClassifierTest
                 new String[]{
                         "qqqqqqq",
                         "q.....q",
-                        "q..s..q",
-                        "q.sss.q",
-                        "q..s..q",
                         "q.....q",
-                        "qqqqqqq"},
-                new String[]{
-                        "qqqqqqq",
-                        "q.....q",
-                        "q.....q",
-                        "q..~..q",
+                        "q..(..q",
                         "q.....q",
                         "q.....q",
                         "qqqqqqq"},
@@ -1553,7 +1545,7 @@ class ArchetypeClassifierTest
                         "qqqqqqq",
                         "q.....q",
                         "q.....q",
-                        "q..~..q",
+                        "q..(..q",
                         "q.....q",
                         "q.....q",
                         "qqqqqqq"},
@@ -1561,7 +1553,15 @@ class ArchetypeClassifierTest
                         "qqqqqqq",
                         "q.....q",
                         "q.....q",
-                        "q..tn.q",
+                        "q..(..q",
+                        "q.....q",
+                        "q.....q",
+                        "qqqqqqq"},
+                new String[]{
+                        "qqqqqqq",
+                        "q.....q",
+                        "q.....q",
+                        "q.(tn.q",
                         "q.....q",
                         "q.....q",
                         "qqqqqqq"},
