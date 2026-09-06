@@ -115,6 +115,12 @@ public final class SoulBuffTypes
     /** Infected grotto: an expanding shockwave in a cone. Active (#96). */
     public static final String RUPTURE = "soulhome:rupture";
 
+    /** Purifying Font: strips harmful potion effects from you and from those standing nearby. Active. */
+    public static final String CLEANSING_FONT = "soulhome:cleansing_font";
+
+    /** Gale Roost: a burst of updraft and a stretch of slow falling. Active. */
+    public static final String UPDRAFT = "soulhome:updraft";
+
     /**
      * The buffs that are pressed rather than carried (#87). Held apart from {@link #BUILT_IN}
      * because two things need to ask "is this an active" without knowing every id: the config's
@@ -122,7 +128,8 @@ public final class SoulBuffTypes
      * radius rather than as a percentage.
      */
     public static final Set<String> ACTIVE =
-            Set.of(SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE);
+            Set.of(SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
+                    CLEANSING_FONT, UPDRAFT);
 
     public static final Set<String> BUILT_IN =
             Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
@@ -130,7 +137,8 @@ public final class SoulBuffTypes
                     SPEED, DOUBLE_JUMP, FALL_PROTECTION, FIRE_ASPECT,
                     MAX_MANA, SPELL_POWER, REACH,
                     FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, SWIM_SPEED,
-                    SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE);
+                    SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
+                    CLEANSING_FONT, UPDRAFT);
 
     /**
      * Types measured as a flat amount rather than a proportion: a count of jumps, a number of
@@ -143,7 +151,8 @@ public final class SoulBuffTypes
      */
     private static final Set<String> NON_FRACTION =
             Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT, MAX_MANA, REACH,
-                    SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE);
+                    SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
+                    CLEANSING_FONT, UPDRAFT);
 
     /** Whether this buff is pressed rather than carried - see {@link #ACTIVE}. */
     public static boolean isActive(String buffType)

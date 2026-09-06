@@ -89,6 +89,8 @@ public final class BuffDisplayNames
         names.put(SoulBuffTypes.THUNDERCLAP, "Thunderclap");
         names.put(SoulBuffTypes.BARRAGE, "Barrage");
         names.put(SoulBuffTypes.RUPTURE, "Rupture");
+        names.put(SoulBuffTypes.CLEANSING_FONT, "Cleansing Font");
+        names.put(SoulBuffTypes.UPDRAFT, "Updraft");
 
         //unmodifiableMap rather than Map.copyOf: the copy would be free to reorder itself, and the
         //order here is the order the lang file is written in

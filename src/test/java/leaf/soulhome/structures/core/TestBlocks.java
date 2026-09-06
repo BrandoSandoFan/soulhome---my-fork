@@ -191,6 +191,11 @@ public final class TestBlocks
     public static final TestBlock DISPENSER = block("minecraft:dispenser", Passability.BLOCKING);
     public static final TestBlock REDSTONE_BLOCK = block("minecraft:redstone_block", Passability.BLOCKING);
 
+    // purifying font
+    public static final TestBlock POINTED_DRIPSTONE = block("minecraft:pointed_dripstone", Passability.PARTIAL);
+    public static final TestBlock DRIPSTONE_BLOCK = block("minecraft:dripstone_block", Passability.BLOCKING);
+    public static final TestBlock MOSS_BLOCK = block("minecraft:moss_block", Passability.BLOCKING);
+
     // infected grotto (#96)
     public static final TestBlock SCULK_CATALYST = block("minecraft:sculk_catalyst", Passability.BLOCKING);
     public static final TestBlock SCULK = block("minecraft:sculk", Passability.BLOCKING);

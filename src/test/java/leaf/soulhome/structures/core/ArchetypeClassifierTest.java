@@ -52,11 +52,12 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(27, shipped.size(),
+        assertEquals(29, shipped.size(),
                 "alchemy lab, arcane sanctum, armoury, aquarium, bedchamber, bulwark, cold storage, "
-                        + "enchanting room, farm, greenhouse, hearth, infected grotto, library, mead hall, mine, "
-                        + "powder magazine, rift chamber, ritual chamber, shrine, stable, storm spire, track, "
-                        + "training yard, treasury, trophy room, watchtower, workshop");
+                        + "enchanting room, farm, gale roost, greenhouse, hearth, infected grotto, library, "
+                        + "mead hall, mine, powder magazine, purifying font, rift chamber, ritual chamber, "
+                        + "shrine, stable, storm spire, track, training yard, treasury, trophy room, "
+                        + "watchtower, workshop");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -487,7 +488,9 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:stable", TestBlocks.HAY),
                 Map.entry("soulhome:storm_spire", TestBlocks.LIGHTNING_ROD),
                 Map.entry("soulhome:powder_magazine", TestBlocks.TNT),
-                Map.entry("soulhome:infected_grotto", TestBlocks.SCULK_CATALYST));
+                Map.entry("soulhome:infected_grotto", TestBlocks.SCULK_CATALYST),
+                Map.entry("soulhome:purifying_font", TestBlocks.WATER_CAULDRON),
+                Map.entry("soulhome:gale_roost", TestBlocks.SOUL_SAND));
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -679,7 +682,9 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:stable", stable()),
                 Map.entry("soulhome:storm_spire", stormSpire()),
                 Map.entry("soulhome:powder_magazine", powderMagazine()),
-                Map.entry("soulhome:infected_grotto", infectedGrotto()));
+                Map.entry("soulhome:infected_grotto", infectedGrotto()),
+                Map.entry("soulhome:purifying_font", purifyingFont()),
+                Map.entry("soulhome:gale_roost", galeRoost()));
 
         assertEquals(shipped.size(), canonicalBuild.size(),
                 "every shipped archetype needs a canonical-build fixture here, or a newly added one goes untested");
@@ -1489,6 +1494,78 @@ class ArchetypeClassifierTest
                         "&.....&",
                         "&&&&&&&"},
                 DEEP_SLAB);
+    }
+
+    /** A water cauldron fed by a dripstone spike directly overhead, mossed in around the basin. */
+    private static GridVolume purifyingFont()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#..:..#",
+                        "#.:+:.#",
+                        "#..:..#",
+                        "#.....#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#..^..#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** A glass-walled shaft over a soul sand bubble column, a lantern marking its top. */
+    private static GridVolume galeRoost()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "qqqqqqq",
+                        "q.....q",
+                        "q.....q",
+                        "q..s..q",
+                        "q.....q",
+                        "q.....q",
+                        "qqqqqqq"},
+                new String[]{
+                        "qqqqqqq",
+                        "q.....q",
+                        "q.....q",
+                        "q..~..q",
+                        "q.....q",
+                        "q.....q",
+                        "qqqqqqq"},
+                new String[]{
+                        "qqqqqqq",
+                        "q.....q",
+                        "q.....q",
+                        "q..~..q",
+                        "q.....q",
+                        "q.....q",
+                        "qqqqqqq"},
+                new String[]{
+                        "qqqqqqq",
+                        "q.....q",
+                        "q.....q",
+                        "q..t..q",
+                        "q.....q",
+                        "q.....q",
+                        "qqqqqqq"},
+                SLAB);
     }
 
     // endregion

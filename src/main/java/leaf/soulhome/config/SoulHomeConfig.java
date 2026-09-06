@@ -449,7 +449,9 @@ public final class SoulHomeConfig
                 "soulhome:call_of_the_herd=3.0",
                 "soulhome:thunderclap=3.0",
                 "soulhome:barrage=6.0",
-                "soulhome:rupture=6.0");
+                "soulhome:rupture=6.0",
+                "soulhome:cleansing_font=6.0",
+                "soulhome:updraft=6.0");
 
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue restrictSoulTravel;
@@ -893,7 +895,7 @@ public final class SoulHomeConfig
                             "grants nothing usable. Ids a datapack added work here too.",
                             "The shipped ids are: soulhome:surveyors_eye, soulhome:aegis, soulhome:soul_step,",
                             "soulhome:rally, soulhome:call_of_the_herd, soulhome:thunderclap, soulhome:barrage,",
-                            "soulhome:rupture")
+                            "soulhome:rupture, soulhome:cleansing_font, soulhome:updraft")
                     .defineList("disabled", List.of(), entry -> entry instanceof String);
 
             builder.pop();

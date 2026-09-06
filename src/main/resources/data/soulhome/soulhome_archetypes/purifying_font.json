@@ -1,0 +1,53 @@
+{
+  "display_name": "archetype.soulhome.purifying_font",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:water_cauldron" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:water_cauldron" },  "weight": 5.0, "role": "basin",     "cap": 4  },
+    { "match": { "block": "minecraft:pointed_dripstone" }, "weight": 2.5, "role": "drip",      "cap": 8  },
+    { "match": { "block": "minecraft:dripstone_block" },  "weight": 1.0, "role": "formation", "cap": 16 },
+    { "match": { "block": ["minecraft:azalea", "minecraft:flowering_azalea"] },
+                                                          "weight": 1.2, "role": "greenery",  "cap": 8  },
+    { "match": { "block": ["minecraft:moss_block", "minecraft:moss_carpet"] },
+                                                          "weight": 0.8, "role": "greenery",  "cap": 16 },
+    { "match": { "tag": "soulhome:lighting" },            "weight": 0.5, "role": "light",     "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "block": "minecraft:lava" },        "weight": -2.0 },
+    { "match": { "block": "minecraft:magma_block" }, "weight": -1.5 },
+    { "match": { "tag": "soulhome:smithing" },        "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 5,   "tier": 1 },
+    { "min_score": 34,  "tier": 2 },
+    { "min_score": 50,  "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:cleansing_font", "per_tier": 2.0, "max": 6.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "the_drip",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "basin":     { "block": "minecraft:water_cauldron" },
+        "dripstone": { "block": "minecraft:pointed_dripstone" },
+        "greenery":  { "block": ["minecraft:azalea", "minecraft:flowering_azalea", "minecraft:moss_block", "minecraft:moss_carpet"] }
+      },
+      "all": [
+        { "relation": "above", "of": "dripstone", "to": "basin", "max_drop": 5, "weight": 2.0 },
+        { "relation": "surrounds", "of": "greenery", "to": "basin", "max_radius": 3, "weight": 1.5 }
+      ]
+    }
+  ]
+}

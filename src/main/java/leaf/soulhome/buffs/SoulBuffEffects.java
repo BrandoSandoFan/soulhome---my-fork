@@ -8,6 +8,7 @@ import leaf.soulhome.buffs.effects.AegisEffect;
 import leaf.soulhome.buffs.effects.AttributeBuffEffect;
 import leaf.soulhome.buffs.effects.BarrageEffect;
 import leaf.soulhome.buffs.effects.CallOfTheHerdEffect;
+import leaf.soulhome.buffs.effects.CleansingFontEffect;
 import leaf.soulhome.buffs.effects.DoubleJumpEffect;
 import leaf.soulhome.buffs.effects.EnchantmentPowerEffect;
 import leaf.soulhome.buffs.effects.FallProtectionEffect;
@@ -30,6 +31,7 @@ import leaf.soulhome.buffs.effects.SwimSpeedEffect;
 import leaf.soulhome.buffs.effects.SurveyorsEyeEffect;
 import leaf.soulhome.buffs.effects.SwordDamageEffect;
 import leaf.soulhome.buffs.effects.ThunderclapEffect;
+import leaf.soulhome.buffs.effects.UpdraftEffect;
 import leaf.soulhome.buffs.effects.HealingEffect;
 import leaf.soulhome.buffs.effects.SpeedEffect;
 import leaf.soulhome.buffs.effects.XpGainEffect;
@@ -101,6 +103,8 @@ public final class SoulBuffEffects
         register(new ThunderclapEffect());
         register(new BarrageEffect());
         register(new RuptureEffect());
+        register(new CleansingFontEffect());
+        register(new UpdraftEffect());
 
         LogHelper.info("Registered " + BY_TYPE.size() + " soul buff effect(s): " + BY_TYPE.keySet());
 
