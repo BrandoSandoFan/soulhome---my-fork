@@ -88,7 +88,9 @@ public record BuffSettings(
                     Map.entry(SoulBuffTypes.CALL_OF_THE_HERD, 3.0d),
                     Map.entry(SoulBuffTypes.THUNDERCLAP, 3.0d),
                     Map.entry(SoulBuffTypes.BARRAGE, 6.0d),
-                    Map.entry(SoulBuffTypes.RUPTURE, 6.0d));
+                    Map.entry(SoulBuffTypes.RUPTURE, 6.0d),
+                    Map.entry(SoulBuffTypes.CLEANSING_FONT, 6.0d),
+                    Map.entry(SoulBuffTypes.UPDRAFT, 6.0d));
 
     /** Suggested starting points - see the class-level ramp knob documentation. */
     public static final double DEFAULT_ENTRY_FRACTION = 0.10d;

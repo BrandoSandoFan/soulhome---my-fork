@@ -22,6 +22,7 @@ import leaf.soulhome.structures.core.LineClauseType;
 import leaf.soulhome.structures.core.LoopClauseType;
 import leaf.soulhome.structures.core.PlatformClauseType;
 import leaf.soulhome.structures.core.SurroundsClauseType;
+import leaf.soulhome.structures.core.VerticalityClauseType;
 import leaf.soulhome.structures.core.WithinClauseType;
 
 /**
@@ -92,6 +93,9 @@ public final class BuiltinFormClauses
 
         // #96/#37 - the first form in the mod that rewards disorder rather than order
         register(registry, new IrregularityClauseType());
+
+        // Gale Roost - a room's own footprint against its own height, not one element's position
+        register(registry, new VerticalityClauseType());
     }
 
     private static void register(FormClauseRegistry registry, FormClauseType type)

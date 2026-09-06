@@ -277,6 +277,8 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.storm_spire", "Storm Spire");
         add("archetype.soulhome.powder_magazine", "Powder Magazine");
         add("archetype.soulhome.infected_grotto", "Infected Grotto");
+        add("archetype.soulhome.purifying_font", "Purifying Font");
+        add("archetype.soulhome.gale_roost", "Gale Roost");
 
         //The abilities those rooms grant. A room and the thing it grants are not the same noun,
         //so these are their own keys rather than reusing the archetype names
@@ -288,6 +290,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_NAME_THUNDERCLAP, "Thunderclap");
         add(Constants.StringKeys.ABILITY_NAME_BARRAGE, "Barrage");
         add(Constants.StringKeys.ABILITY_NAME_RUPTURE, "Rupture");
+        add(Constants.StringKeys.ABILITY_NAME_CLEANSING_FONT, "Cleansing Font");
+        add(Constants.StringKeys.ABILITY_NAME_UPDRAFT, "Updraft");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -311,6 +315,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_RALLY_ALONE, "You steady yourself.");
         add(Constants.StringKeys.ABILITY_RALLY_SHARED, "You rally %s others.");
         add(Constants.StringKeys.ABILITY_THUNDERCLAP_NOTHING, "Nothing hostile within reach.");
+        add(Constants.StringKeys.ABILITY_CLEANSING_FONT_NOTHING, "There was nothing to cleanse.");
+        add(Constants.StringKeys.ABILITY_CLEANSING_FONT_CLEANSED, "Cleansed %s harmful effect(s).");
         add(Constants.StringKeys.ABILITY_RECHARGING, "Still recharging - %s seconds to go.");
         add(Constants.StringKeys.ABILITY_NO_DAMAGE, "It struck, and nothing took damage from it.");
 
@@ -411,6 +417,12 @@ public class EngLangGen extends LanguageProvider
 
         add("advancements.soulhome.infected_grotto.title", "Something Living In It");
         add("advancements.soulhome.infected_grotto.description", "Let sculk take a hollow in your soul, and keep it dark enough to spread.");
+
+        add("advancements.soulhome.purifying_font.title", "Washed Clean");
+        add("advancements.soulhome.purifying_font.description", "Hang a dripstone spike over a basin in your soul, and let it feed something worth drinking from.");
+
+        add("advancements.soulhome.gale_roost.title", "Rising On It");
+        add("advancements.soulhome.gale_roost.description", "Raise a glass shaft in your soul taller than it is wide, over a column that pushes up rather than down.");
 
         //misc
 

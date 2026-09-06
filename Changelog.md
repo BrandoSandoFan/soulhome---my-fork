@@ -739,3 +739,15 @@ end. Nothing about the hold itself told you it was working.
 - Cosmetic only: none of this changes how long the ritual takes, what it costs, or what fails it -
   stepping off the cap or losing the pillar under you still aborts it and hands every scrap of
   essence back exactly as before.
+
+Two new rooms: a font and a shaft
+
+- A **Purifying Font** - a water cauldron fed from a dripstone spike hung overhead, mossed in
+  around the basin - grants Cleansing Font: strips every harmful effect from you, and from anyone
+  standing at the basin with you, on demand.
+- A **Gale Roost** - a glass shaft built over a soul sand bubble column, a lantern marking its top
+  - grants Updraft: a burst of lift plus a stretch of slow falling after it, so a launch does not
+  end in fall damage.
+- A new way a room can be judged on its shape: its own height against its own footprint, rather
+  than any one element's position against the room. Gale Roost is the first archetype to ask for
+  it - a shaft only reads as one if it is actually taller than it is wide.
