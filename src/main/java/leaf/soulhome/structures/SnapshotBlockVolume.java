@@ -66,29 +66,87 @@ public final class SnapshotBlockVolume implements BlockVolume
 
     /**
      * Copy the given box out of the level. <b>Server thread only.</b>
+     *
+     * <p>Walked chunk by chunk, not position by position: a box declared rather than inferred (#79)
+     * covers the whole verge whether or not the player has built out to it, and {@code getBlockState}
+     * resolves its chunk through the loading form of {@code getChunk} - the same one
+     * {@link #populatedBounds} deliberately avoids, for the same reason ("generating the whole
+     * search square every scan would be a fine way to melt a server"). {@code hasChunk} is checked
+     * once per chunk rather than once per block position, and an unloaded chunk is simply left as it
+     * is: the arrays are already correct for "nothing here" - {@link Passability#EMPTY} and a null
+     * signature are what {@code byte[]} and {@code BlockSignature[]} are initialised to. Within a
+     * loaded chunk, {@link LevelChunkSection#hasOnlyAir()} skips a whole empty section at once, the
+     * way {@link #populatedBounds} already does.
      */
     public static SnapshotBlockVolume capture(ServerLevel level, RegionBounds bounds)
     {
         SnapshotBlockVolume snapshot = new SnapshotBlockVolume(bounds);
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
 
-        for (int x = bounds.minX(); x <= bounds.maxX(); x++)
+        final int minChunkX = bounds.minX() >> 4;
+        final int maxChunkX = bounds.maxX() >> 4;
+        final int minChunkZ = bounds.minZ() >> 4;
+        final int maxChunkZ = bounds.maxZ() >> 4;
+        final int minSection = level.getMinSection();
+
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++)
         {
-            for (int y = bounds.minY(); y <= bounds.maxY(); y++)
+            final int columnMinX = Math.max(bounds.minX(), chunkX << 4);
+            final int columnMaxX = Math.min(bounds.maxX(), (chunkX << 4) + 15);
+
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++)
             {
-                for (int z = bounds.minZ(); z <= bounds.maxZ(); z++)
+                // hasChunk first: getChunk would generate anything missing, and generating the
+                // whole declared box every scan would be a fine way to melt a server
+                if (!level.hasChunk(chunkX, chunkZ))
                 {
-                    cursor.set(x, y, z);
+                    continue;
+                }
 
-                    final BlockState state = level.getBlockState(cursor);
-                    final int index = snapshot.index(x, y, z);
-                    final Passability passability = passabilityOf(level, cursor, state);
+                final int columnMinZ = Math.max(bounds.minZ(), chunkZ << 4);
+                final int columnMaxZ = Math.min(bounds.maxZ(), (chunkZ << 4) + 15);
 
-                    snapshot.passability[index] = (byte) passability.ordinal();
+                final LevelChunk chunk = level.getChunk(chunkX, chunkZ);
+                final LevelChunkSection[] sections = chunk.getSections();
 
-                    if (passability != Passability.EMPTY)
+                for (int sectionIndex = 0; sectionIndex < sections.length; sectionIndex++)
+                {
+                    final int sectionMinY = (minSection + sectionIndex) << 4;
+                    final int sectionMaxY = sectionMinY + 15;
+
+                    if (sectionMaxY < bounds.minY() || sectionMinY > bounds.maxY())
                     {
-                        snapshot.signatures[index] = StateSignature.of(state);
+                        continue;
+                    }
+
+                    if (sections[sectionIndex].hasOnlyAir())
+                    {
+                        continue;
+                    }
+
+                    final int rowMinY = Math.max(bounds.minY(), sectionMinY);
+                    final int rowMaxY = Math.min(bounds.maxY(), sectionMaxY);
+
+                    for (int x = columnMinX; x <= columnMaxX; x++)
+                    {
+                        for (int y = rowMinY; y <= rowMaxY; y++)
+                        {
+                            for (int z = columnMinZ; z <= columnMaxZ; z++)
+                            {
+                                cursor.set(x, y, z);
+
+                                final BlockState state = chunk.getBlockState(cursor);
+                                final int index = snapshot.index(x, y, z);
+                                final Passability passability = passabilityOf(level, cursor, state);
+
+                                snapshot.passability[index] = (byte) passability.ordinal();
+
+                                if (passability != Passability.EMPTY)
+                                {
+                                    snapshot.signatures[index] = StateSignature.of(state);
+                                }
+                            }
+                        }
                     }
                 }
             }

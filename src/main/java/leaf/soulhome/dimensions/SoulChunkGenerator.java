@@ -10,10 +10,7 @@ import leaf.soulhome.registry.BiomeRegistry;
 import leaf.soulhome.utils.DimensionHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.biome.Biome;
@@ -26,11 +23,8 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.blending.Blender;
-import net.minecraft.world.level.levelgen.structure.StructureSet;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 

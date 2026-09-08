@@ -147,11 +147,16 @@ public final class ScanDebouncer<K>
         this.inFlight.remove(key);
     }
 
-    /** Drop a key entirely, for a soulhome whose level has unloaded. */
+    /**
+     * Stop scheduling a key, for a soulhome whose level has unloaded. Deliberately leaves
+     * {@link #inFlight} alone: a scan already running on this key is out on a worker thread and has
+     * to be allowed to finish and call {@link #release} itself, or the marker {@link #claim} relies
+     * on to stop two scans running at once means nothing. Forgetting a key that is not in flight
+     * clears it completely, same as before.
+     */
     public void forget(K key)
     {
         this.pending.remove(key);
-        this.inFlight.remove(key);
     }
 
     public boolean isPending(K key)

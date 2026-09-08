@@ -5,7 +5,6 @@
 package leaf.soulhome.items;
 
 
-import leaf.soulhome.properties.PropTypes;
 import net.minecraft.world.item.Item;
 
 import net.minecraft.world.item.Item.Properties;

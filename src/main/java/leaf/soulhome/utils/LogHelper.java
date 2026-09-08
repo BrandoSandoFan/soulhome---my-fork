@@ -4,7 +4,6 @@
 
 package leaf.soulhome.utils;
 
-import leaf.soulhome.SoulHome;
 
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
