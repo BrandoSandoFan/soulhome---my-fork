@@ -15,9 +15,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
 
-import java.util.List;
 
 /**
  * Mead hall: a shout that steadies everyone within earshot, and you either way (#91).

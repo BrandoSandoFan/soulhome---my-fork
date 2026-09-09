@@ -4,20 +4,16 @@
 
 package leaf.soulhome.compat.jei;
 
-import leaf.soulhome.SoulHome;
-import leaf.soulhome.constants.Constants;
 import leaf.soulhome.registry.ItemsRegistry;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
-import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 
 @JeiPlugin
 public class JEICompat implements IModPlugin

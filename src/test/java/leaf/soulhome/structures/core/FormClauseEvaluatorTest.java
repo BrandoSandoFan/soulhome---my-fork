@@ -104,12 +104,53 @@ class FormClauseEvaluatorTest
         CountingClause first = new CountingClause("shared", 0.7d);
         CountingClause second = new CountingClause("shared", 0.7d);
 
-        Map<FormClause, FormResult> memo = new HashMap<>();
+        Map<FormClauseEvaluator.MemoKey, FormResult> memo = new HashMap<>();
         FormClauseEvaluator.evaluate(first, RegionGeometry.EMPTY, Map.of(), memo);
         FormClauseEvaluator.evaluate(second, RegionGeometry.EMPTY, Map.of(), memo);
 
         assertEquals(1, first.callCount() + second.callCount(),
                 "the second, value-equal clause should reuse the memo rather than being evaluated again");
+    }
+
+    @Test
+    @DisplayName("the same clause bound to different elements is evaluated separately, not shared")
+    void sameClauseDifferentBindingsAreNotConflated()
+    {
+        // "arcane_sanctum" and "enchanting_room" both write this clause verbatim, but bind "table"
+        // to a different block each - see issue #119
+        CountingClause clause = new CountingClause("at_range(candles, table)", 0.7d);
+
+        Map<String, BlockMatcher> arcaneBindings = Map.of(
+                "table", BlockMatcher.ofBlocks("irons_spellbooks:inscription_table"));
+        Map<String, BlockMatcher> enchantingBindings = Map.of(
+                "table", BlockMatcher.ofBlocks("minecraft:enchanting_table"));
+
+        Map<FormClauseEvaluator.MemoKey, FormResult> memo = new HashMap<>();
+        FormClauseEvaluator.evaluate(clause, RegionGeometry.EMPTY, arcaneBindings, memo);
+        FormClauseEvaluator.evaluate(clause, RegionGeometry.EMPTY, enchantingBindings, memo);
+
+        assertEquals(2, clause.callCount(),
+                "the same clause record bound to different blocks is a different computation and "
+                        + "must not read the other binding's cached answer");
+    }
+
+    @Test
+    @DisplayName("the same clause bound to equal elements is still shared, memoizing on the pair")
+    void sameClauseSameBindingsAreStillShared()
+    {
+        CountingClause clause = new CountingClause("at_range(candles, table)", 0.7d);
+
+        // two distinct maps, equal by value - Map has value equality, so this must still hit the memo
+        Map<String, BlockMatcher> first = Map.of(
+                "table", BlockMatcher.ofBlocks("minecraft:enchanting_table"));
+        Map<String, BlockMatcher> second = Map.of(
+                "table", BlockMatcher.ofBlocks("minecraft:enchanting_table"));
+
+        Map<FormClauseEvaluator.MemoKey, FormResult> memo = new HashMap<>();
+        FormClauseEvaluator.evaluate(clause, RegionGeometry.EMPTY, first, memo);
+        FormClauseEvaluator.evaluate(clause, RegionGeometry.EMPTY, second, memo);
+
+        assertEquals(1, clause.callCount(), "equal bindings are the same computation and should share one entry");
     }
 
     @Test
@@ -119,7 +160,7 @@ class FormClauseEvaluatorTest
         CountingClause first = new CountingClause("a", 0.7d);
         CountingClause second = new CountingClause("b", 0.7d);
 
-        Map<FormClause, FormResult> memo = new HashMap<>();
+        Map<FormClauseEvaluator.MemoKey, FormResult> memo = new HashMap<>();
         FormClauseEvaluator.evaluate(first, RegionGeometry.EMPTY, Map.of(), memo);
         FormClauseEvaluator.evaluate(second, RegionGeometry.EMPTY, Map.of(), memo);
 

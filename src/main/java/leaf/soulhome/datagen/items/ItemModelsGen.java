@@ -7,7 +7,6 @@ package leaf.soulhome.datagen.items;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.registry.ItemsRegistry;
 import leaf.soulhome.utils.ResourceLocationHelper;
-import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;

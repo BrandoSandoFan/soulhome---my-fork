@@ -15,6 +15,7 @@ import leaf.soulhome.structures.core.BuffCalculator;
 import leaf.soulhome.structures.core.ClassificationResult;
 import leaf.soulhome.structures.core.RegionScanner;
 import leaf.soulhome.structures.core.ScanDebouncer;
+import leaf.soulhome.structures.core.ScanSettings;
 import leaf.soulhome.structures.core.SoulBounds;
 import leaf.soulhome.structures.core.SoulBuffSet;
 import leaf.soulhome.structures.core.SoulRegion;
@@ -141,6 +142,16 @@ public final class StructureScanService
             final ResourceKey<Level> key = serverLevel.dimension();
 
             debouncer.forget(key);
+
+            if (debouncer.isInFlight(key))
+            {
+                // a scan claimed this key before the level unloaded - most soulhomes leave this
+                // way, since scanNow runs on the player's way out. Let it finish and deliver the
+                // real answer through finishScan rather than resolving every waiting /soulhome
+                // analyse callback with a blank one now and dropping the true one on the floor.
+                return;
+            }
+
             ANALYSES.remove(key);
 
             // anything still waiting would wait forever otherwise
@@ -236,11 +247,12 @@ public final class StructureScanService
             return;
         }
 
+        final ScanSettings scanSettings = SoulHomeConfig.scanSettings();
         final SnapshotBlockVolume.Capture capture;
 
         try
         {
-            capture = SnapshotBlockVolume.capture(level, SoulHomeConfig.scanSettings());
+            capture = SnapshotBlockVolume.capture(level, scanSettings);
         }
         catch (RuntimeException e)
         {
@@ -272,6 +284,10 @@ public final class StructureScanService
 
         final SnapshotBlockVolume volume = capture.volume();
 
+        // taken on the server thread, alongside the snapshot, so a reload landing mid-scan cannot
+        // pair one archetype set's filters with another set's classifier - see ArchetypeManager.Loaded
+        final ArchetypeManager.Loaded archetypes = ArchetypeManager.loaded();
+
         Util.backgroundExecutor().execute(() ->
         {
             List<ClassificationResult> results;
@@ -280,14 +296,14 @@ public final class StructureScanService
             try
             {
                 List<SoulRegion> regions = RegionScanner.scan(
-                        volume, ArchetypeManager.signalFilter(), ArchetypeManager.geometryFilter(),
-                        ArchetypeManager.needsClearance(), SoulHomeConfig.scanSettings());
+                        volume, archetypes.signalFilter(), archetypes.geometryFilter(),
+                        archetypes.needsClearance(), scanSettings);
 
                 contentHash = SoulHomeBuffData.hashOf(regions);
 
                 // classification is cheap next to the sweep that just happened, but it is still
                 // pure computation over an immutable snapshot, so it belongs off the server thread
-                results = ArchetypeManager.classifier().classify(regions);
+                results = archetypes.classifier().classify(regions);
             }
             catch (RuntimeException e)
             {
@@ -322,18 +338,22 @@ public final class StructureScanService
     {
         final SoulAnalysis analysis = new SoulAnalysis(key, results, now());
 
-        ANALYSES.put(key, analysis);
-
         try
         {
             if (server.getLevel(key) != null)
             {
+                // guarded the same as applyResults below: a level that unloaded mid-scan is gone
+                // for good, and caching its analysis here is exactly what forget() was supposed to
+                // have cleared - an entry that lives for the rest of the server's uptime otherwise
+                ANALYSES.put(key, analysis);
                 applyResults(server, key, AwardedRoom.from(results), contentHash);
             }
         }
         finally
         {
-            // whoever asked gets their answer even if applying the results went wrong
+            // whoever asked gets their answer even if applying the results went wrong - and, if
+            // the level unloaded mid-scan, this is the real answer forget() held back rather than
+            // resolving early with an empty one
             deliver(key, analysis);
         }
     }

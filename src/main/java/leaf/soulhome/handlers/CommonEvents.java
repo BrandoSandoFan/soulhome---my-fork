@@ -15,10 +15,9 @@ import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.SoulTravel;
 import leaf.soulhome.utils.TextHelper;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -113,7 +112,7 @@ public class CommonEvents
         }
 
         //no fall damage in soul homes for any entity
-        if (event.getSource() == entityLiving.damageSources().fall())
+        if (event.getSource().is(DamageTypes.FALL))
         {
             entityLiving.fallDistance = 0;
             event.setCanceled(true);
@@ -126,7 +125,7 @@ public class CommonEvents
             event.setCanceled(true);
             entityLiving.fallDistance = 0;
 
-            if (event.getSource() == entityLiving.damageSources().fellOutOfWorld())
+            if (event.getSource().is(DamageTypes.FELL_OUT_OF_WORLD))
             {
                 DimensionHelper.FlipDimension((Player) entityLiving, entityLiving.getServer(), null, entityLiving.getUUID());
             }

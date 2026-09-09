@@ -123,21 +123,46 @@ class ScanDebouncerTest
     }
 
     @Test
-    @DisplayName("an unloaded soulhome is forgotten entirely")
-    void forgetDropsEverything()
+    @DisplayName("forgetting a soulhome with nothing in flight drops it entirely")
+    void forgetDropsEverythingWhenNothingIsInFlight()
     {
         ScanDebouncer<String> debouncer = debouncer();
 
         debouncer.markDirty("soul", 0L);
-        debouncer.claimDue(10_000L);
-        debouncer.markDirty("soul", 10_000L);
-
         debouncer.forget("soul");
 
         assertFalse(debouncer.isPending("soul"));
         assertFalse(debouncer.isInFlight("soul"));
         assertTrue(debouncer.isIdle());
         assertEquals(List.of(), debouncer.claimDue(100_000L));
+    }
+
+    @Test
+    @DisplayName("forgetting a soulhome mid-scan stops future scheduling but leaves the in-flight one alone")
+    void forgetLeavesAnInFlightScanRunning()
+    {
+        // the ordinary way out of a soulhome: scanNow claims the key on the way out, the level
+        // unloads while the worker is still running, and LevelEvent.Unload calls forget - see #121
+        ScanDebouncer<String> debouncer = debouncer();
+
+        assertTrue(debouncer.claim("soul"));
+        debouncer.markDirty("soul", 100L);
+
+        debouncer.forget("soul");
+
+        assertFalse(debouncer.isPending("soul"), "no future scan should be scheduled for an unloaded key");
+        assertTrue(debouncer.isInFlight("soul"), "the running scan must still be allowed to finish and release itself");
+        assertFalse(debouncer.isIdle());
+
+        // the guarantee claim() exists for: nothing may start a second scan while the first is
+        // still out - a second claim, or the level reloading and being claimed via claimDue, must
+        // both still see this key as taken
+        assertFalse(debouncer.claim("soul"), "a scan is still in flight, forget() must not have hidden that");
+        assertEquals(List.of(), debouncer.claimDue(1_000_000L), "claimDue must not reclaim an in-flight key either");
+
+        debouncer.release("soul");
+
+        assertTrue(debouncer.claim("soul"), "and only now, after release, may it be claimed again");
     }
 
     @Test

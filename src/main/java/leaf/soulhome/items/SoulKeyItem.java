@@ -7,9 +7,7 @@ package leaf.soulhome.items;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.properties.PropTypes;
 import leaf.soulhome.utils.*;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -27,7 +25,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.UUID;
 
 public class SoulKeyItem extends BaseItem
 {

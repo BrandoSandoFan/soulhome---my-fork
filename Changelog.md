@@ -767,3 +767,57 @@ as plumbing, not wind.
   an open-air mast never made sense once the water did not exist to watch.
 - Buff: Updraft's launch is stronger across every tier, tier 1 included, so a roost that has only
   just started catching wind still throws you clear of a doorway.
+
+Enchanting rooms and arcane sanctums could grade each other's tables
+
+Two rooms that ask the same question about candles near a table - an enchanting room's enchanting
+table, an arcane sanctum's inscription table - could end up sharing one answer if a soulhome held
+both. Whichever archetype was scored first left its answer behind for the other to read, so
+`/soulhome analyse` could tell you your candles were nowhere near your enchanting table when they
+were sitting right next to it, and moving them would not have helped.
+
+- Fix: two archetypes that name the same clause with different element bindings no longer share a
+  cached answer. Any datapack that reuses an element name across archetypes is covered, not just
+  the shipped rooms this happened to be caught on.
+
+A datapack reload during a scan could show stale or missing rooms
+
+Reloading a datapack is exactly the moment someone is most likely to also trigger a rescan to see
+the effect - and a scan that started just before the reload landed could end up scoring the new
+archetypes against blocks the old ones had gathered, or the other way around. A newly-added room
+could fail to appear until a second scan, minutes later, which read as flakiness rather than a bug.
+
+- Fix: a scan now reads the whole archetype set once, at the start, and uses that same set the
+  whole way through - a reload landing mid-scan can no longer mix and match.
+
+Leaving your soulhome right after asking to be told about it could report it as empty
+
+Walking out through your own front door is the moment a scan is most reliable to run at, so that
+is the moment `/soulhome analyse` waits on when it has to. But the level unloading while that scan
+was still finishing could throw the real answer away and hand back a blank one instead - and, on a
+fast return trip, let two scans of the same soulhome run at once, with whichever finished last
+deciding what was left.
+
+- Fix: a scan already running is now let to finish and deliver its real answer even after the
+  soulhome unloads underneath it, and nothing can start a second scan on the same soulhome while
+  the first is still out.
+
+A large soulhome's scan could stutter the server generating terrain nobody needed generated
+
+Once a soulhome's scan box became the size of its verge rather than however far a player had
+actually built (#79), scanning it could touch chunks nobody had loaded - and reading a block state
+from an unloaded chunk generates it, synchronously, on the very thread the rest of the scan
+pipeline was moved off of to avoid exactly this. A rank V soulhome's box can span close to two
+hundred chunks; only however many happened to be in a player's view had to be loaded.
+
+- Fix: the scan now skips whatever is not loaded instead of generating it, and reads a whole empty
+  chunk section in one step rather than one block at a time.
+
+Modded fall damage worked in a soulhome, where none is meant to
+
+No fall damage in soul homes for any entity is the stated rule, and it held for anything using
+vanilla's own fall damage - but a mod that builds its own fall-damage source, or a mob dropped by
+one, took the hit anyway, inside a dimension a player has been told is safe.
+
+- Fix: fall damage is now matched by its damage type rather than by which specific object created
+  it, so it can no longer be missed depending on how something else happens to build the damage.

@@ -7,6 +7,13 @@ recognised as rooms, and turned into buffs they carry in the overworld.
 This file is for agents working on the repo. It exists so you do not have to rediscover the build
 workaround, the architecture, or the invariants that are easy to break silently.
 
+An agent working here is usually running in an environment with free permissions - broad tool
+access with little or no per-action approval - rather than a tightly sandboxed one. That changes
+nothing about the engineering judgment this file asks for: verify the offline build and tests the
+way this file describes, do not claim something works without having run it, and still treat
+destructive or hard-to-reverse actions (force-pushing, discarding uncommitted work, and the like)
+with the same caution as ever.
+
 ---
 
 ## Building and testing
@@ -173,9 +180,10 @@ touching it - it explains each decision and why the obvious alternative is worse
 ## Archetypes are data, not code
 
 `data/<namespace>/soulhome_archetypes/<name>.json`, loaded by `ArchetypeManager`, parsed by
-`ArchetypeCodecs`/`FormCodecs`. Twenty-seven ship with the mod under
-`src/main/resources/data/soulhome/soulhome_archetypes/`. A malformed archetype is logged and
-skipped; it never fails the reload.
+`ArchetypeCodecs`/`FormCodecs`. The shipped archetypes live under
+`src/main/resources/data/soulhome/soulhome_archetypes/` - a count in prose here would only go stale
+again, and has three times already. A malformed archetype is logged and skipped; it never fails the
+reload.
 
 Shape of one:
 
@@ -196,18 +204,24 @@ change. Tags live in `data/soulhome/tags/blocks/`.
 
 ### Rooms written for mods this one does not depend on
 
-Three of the shipped twenty-seven - `arcane_sanctum`, `ritual_chamber` (Iron's Spells 'n Spellbooks)
-and `workshop` (Create) - name blocks that most installs do not have. Nothing about that is a
-special case in Java, and it must not become one:
+Two archetypes, `arcane_sanctum` and `ritual_chamber` (Iron's Spells 'n Spellbooks), name another
+mod's blocks directly - and one more, `mine`, leans on Forge's own `forge:ores` and
+`forge:storage_blocks` tags, which is safe (Forge is guaranteed) but is still the only
+third-namespace dependency in the set. Nothing about any of that is a special case in Java, and it
+must not become one:
 
 - **An archetype naming a missing block is fine.** `BlockMatcher` never touches a registry, so an
-  id from an absent mod simply never matches and the room can never be awarded.
+  id from an absent mod simply never matches and the room can never be awarded. `arcane_sanctum` and
+  `ritual_chamber` do exactly this.
 - **A tag entry naming a missing block is not.** A vanilla block tag with an unknown id fails to
   load *and takes the whole tag with it*, so every cross-mod entry is written
   `{"id": ..., "required": false}`. `TagDocs` and the tag tests read both forms; the glossary lists
   the optional ones apart, since "you may not have this" is a different promise from "this counts".
-- **`soulhome:machinery` is the seam for tech mods.** Create fills it today; another mod is a
-  datapack away from the workshop, with no Java change.
+- **`soulhome:machinery` is the seam for tech mods**, and the worked example of the tag pattern
+  above: `workshop` names no Create block directly at all, only `soulhome:machinery` and a handful
+  of other `soulhome:` tags, with Create appearing solely inside `machinery.json`'s optional
+  entries. Create fills the seam today; another mod is a datapack away from the workshop, with no
+  Java change.
 - **A buff written against another mod's attribute goes through `compat/ModAttributes`**, which
   resolves by `ResourceLocation` and returns an empty `Optional` when the mod is absent. Never
   import the other mod's classes: a class reference in the constant pool is a `NoClassDefFoundError`

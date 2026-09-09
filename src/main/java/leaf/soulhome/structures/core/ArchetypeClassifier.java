@@ -82,8 +82,10 @@ public final class ArchetypeClassifier
 
         // shared across every archetype scored for this region: clauses are value records, and the
         // same clause - "seating surrounds the fire" - is commonly named by more than one
-        // archetype's forms. See FormClauseEvaluator.
-        Map<FormClause, FormResult> clauseMemo = new HashMap<>();
+        // archetype's forms. Keyed on clause + element bindings, not the clause alone, since two
+        // archetypes can name the same clause while binding its element names to different blocks.
+        // See FormClauseEvaluator.
+        Map<FormClauseEvaluator.MemoKey, FormResult> clauseMemo = new HashMap<>();
 
         for (ArchetypeDefinition archetype : this.archetypes)
         {
@@ -138,12 +140,12 @@ public final class ArchetypeClassifier
 
     /**
      * @param clauseMemo shared across every archetype {@link #classify(SoulRegion)} scores for one
-     *                   region, so a leaf clause named by more than one archetype's forms is only
-     *                   ever evaluated once. A caller going through {@link #score(SoulRegion,
-     *                   ArchetypeDefinition)} directly gets a throwaway memo instead - correct
-     *                   either way, just without the cross-archetype saving.
+     *                   region, so a leaf clause named by more than one archetype's forms - with the
+     *                   same element bindings - is only ever evaluated once. A caller going through
+     *                   {@link #score(SoulRegion, ArchetypeDefinition)} directly gets a throwaway
+     *                   memo instead - correct either way, just without the cross-archetype saving.
      */
-    private ArchetypeScore score(SoulRegion region, ArchetypeDefinition archetype, Map<FormClause, FormResult> clauseMemo)
+    private ArchetypeScore score(SoulRegion region, ArchetypeDefinition archetype, Map<FormClauseEvaluator.MemoKey, FormResult> clauseMemo)
     {
         final BlockCounts blocks = region.allBlocks();
 

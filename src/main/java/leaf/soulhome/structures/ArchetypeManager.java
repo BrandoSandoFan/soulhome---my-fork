@@ -83,6 +83,19 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
     }
 
     /**
+     * The whole bundle in one read. A caller that needs more than one of {@link #classifier()},
+     * {@link #signalFilter()}, {@link #geometryFilter()} or {@link #needsClearance()} for the same
+     * pass - a scan worker, most of all - must take this once and read every value off it, rather
+     * than calling the accessors above separately: each of those re-reads the volatile field, and a
+     * reload landing between two such reads would pair one archetype set's filters with another
+     * set's classifier.
+     */
+    public static Loaded loaded()
+    {
+        return loaded;
+    }
+
+    /**
      * Replace the loaded set. Used by the reload listener on the server, and by the sync packet on
      * the client.
      */
@@ -194,7 +207,7 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
      * One immutable bundle, so readers never observe a torn update: the classifier and the signal
      * filter are always the ones derived from exactly these archetypes.
      */
-    private record Loaded(
+    public record Loaded(
             List<ArchetypeDefinition> archetypes,
             ArchetypeClassifier classifier,
             Predicate<BlockSignature> signalFilter,

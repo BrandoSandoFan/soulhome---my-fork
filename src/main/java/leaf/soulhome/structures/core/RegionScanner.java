@@ -650,8 +650,12 @@ public final class RegionScanner
             return;
         }
 
-        List<Integer> seeds = new ArrayList<>();
-        Set<Integer> signalCells = new HashSet<>();
+        IntStack seeds = new IntStack();
+        // one bit of membership per scan cell rather than boxing every signal index into a
+        // HashSet<Integer> - signalCells is read inside growCluster's 26-neighbour inner loop, and
+        // Integer.valueOf caches only -128..127, so on a real box every lookup there would box a
+        // fresh Integer purely to hash it and discard it. See #125.
+        boolean[] signalCells = new boolean[this.flags.length];
 
         for (int x = this.bounds.minX(); x <= this.bounds.maxX(); x++)
         {
@@ -675,8 +679,8 @@ public final class RegionScanner
 
                     if (signature != null && this.signalFilter.test(signature))
                     {
-                        seeds.add(index);
-                        signalCells.add(index);
+                        seeds.push(index);
+                        signalCells[index] = true;
                     }
                 }
             }
@@ -694,8 +698,10 @@ public final class RegionScanner
 
         List<IntStack> clusters = new ArrayList<>();
 
-        for (int seed : seeds)
+        for (int i = 0; i < seeds.size(); i++)
         {
+            final int seed = seeds.get(i);
+
             if ((this.flags[seed] & FLAG_CLAIMED) != 0)
             {
                 continue;
@@ -743,7 +749,7 @@ public final class RegionScanner
      * @param reach scratch space, left as it was found
      * @return the signal cells of the cluster, or {@code null} if it is too sparse to be a build
      */
-    private IntStack growCluster(int seed, Set<Integer> signalCells, byte[] reach)
+    private IntStack growCluster(int seed, boolean[] signalCells, byte[] reach)
     {
         final int radius = this.settings.clusterRadius();
 
@@ -791,7 +797,7 @@ public final class RegionScanner
                     continue;
                 }
 
-                if (signalCells.contains(neighbour))
+                if (signalCells[neighbour])
                 {
                     // joined however solid it is. Hay bales, ice and farmland are all full blocks,
                     // and a cluster that could not step into one could not cross its own surface -

@@ -8,7 +8,6 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.datagen.patchouli.categories.PatchouliBasics;
 import leaf.soulhome.datagen.patchouli.categories.PatchouliMultiblocks;
 import leaf.soulhome.datagen.patchouli.categories.data.PatchouliProvider;
-import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 
 //
