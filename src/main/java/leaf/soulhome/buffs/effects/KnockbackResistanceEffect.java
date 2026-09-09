@@ -8,6 +8,7 @@ import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.core.Holder;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class KnockbackResistanceEffect extends AttributeBuffEffect
     }
 
     @Override
-    public List<Attribute> attributes()
+    public List<Holder<Attribute>> attributes()
     {
         return List.of(Attributes.KNOCKBACK_RESISTANCE);
     }
@@ -44,6 +45,6 @@ public class KnockbackResistanceEffect extends AttributeBuffEffect
     @Override
     protected AttributeModifier.Operation operation()
     {
-        return AttributeModifier.Operation.ADDITION;
+        return AttributeModifier.Operation.ADD_VALUE;
     }
 }

@@ -11,11 +11,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
  * The selected ability, its charges, and how far along its recharge is (#87).
@@ -29,7 +29,7 @@ import net.minecraftforge.fml.common.Mod;
  * rows. Charges are pips rather than a number because a glance has to answer "can I press it" -
  * counting to three is slower than seeing three.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public final class AbilityHudRenderer
 {
     private static final int PIP_SIZE = 5;
@@ -52,9 +52,9 @@ public final class AbilityHudRenderer
     }
 
     @SubscribeEvent
-    public static void onRenderOverlay(RenderGuiOverlayEvent.Post event)
+    public static void onRenderOverlay(RenderGuiLayerEvent.Post event)
     {
-        if (event.getOverlay() != VanillaGuiOverlay.HOTBAR.type())
+        if (!event.getName().equals(VanillaGuiLayers.HOTBAR))
         {
             return;
         }

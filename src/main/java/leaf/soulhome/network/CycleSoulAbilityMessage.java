@@ -8,9 +8,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.buffs.SoulAbilities;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Consumer;
 
 /**
  * "Move my selection along one" (#87). A player with five ability rooms needs to choose between
@@ -20,8 +21,11 @@ import java.util.function.Consumer;
  * which ability to select would be a client that could select one it does not own, and the whole
  * arrangement here is that it cannot.
  */
-public class CycleSoulAbilityMessage implements Consumer<NetworkEvent.Context>
+public class CycleSoulAbilityMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<CycleSoulAbilityMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("cycle_soul_ability"));
+
     public static final CycleSoulAbilityMessage INVALID = new CycleSoulAbilityMessage(true);
 
     public static final Codec<CycleSoulAbilityMessage> CODEC =
@@ -43,16 +47,22 @@ public class CycleSoulAbilityMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() ->
         {
-            final ServerPlayer sender = context.getSender();
+            final ServerPlayer sender = context.player() instanceof ServerPlayer server ? server : null;
 
             if (sender != null)
             {
                 SoulAbilities.cycle(sender, this.forward);
             }
         });
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

@@ -5,7 +5,6 @@
 package leaf.soulhome.handlers;
 
 import leaf.soulhome.SoulHome;
-import leaf.soulhome.buffs.SoulBuffsProvider;
 import leaf.soulhome.structures.StructureScanService;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.server.MinecraftServer;
@@ -14,14 +13,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
  * Everything that keeps a player's structure buffs current: attaching them, carrying them across
@@ -30,46 +28,18 @@ import net.minecraftforge.server.ServerLifecycleHooks;
  * <p>Separate from {@code CommonEvents} because this is a self-contained subsystem, and because
  * the alternative is one class that grows a handler every time the feature does.
  */
-@Mod.EventBusSubscriber(modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public class StructureEvents
 {
     // region carrying buffs with the player
 
-    @SubscribeEvent
-    public static void attachCapabilities(AttachCapabilitiesEvent<Entity> event)
-    {
-        if (!(event.getObject() instanceof Player))
-        {
-            return;
-        }
-
-        SoulBuffsProvider provider = new SoulBuffsProvider();
-        event.addCapability(ResourceLocationHelper.prefix("buffs"), provider);
-        event.addListener(provider::invalidate);
-    }
-
-    @SubscribeEvent
-    public static void onPlayerClone(PlayerEvent.Clone event)
-    {
-        // Deliberately outside any wasDeath check. Forge fires Clone both for a respawn after
-        // death and for a return from the End, and copying only in the second case is the classic
-        // way capabilities quietly vanish the first time a player dies.
-        event.getOriginal().reviveCaps();
-
-        try
-        {
-            // the rank travels with the buffs, not just the magnitudes. Rank raises the ceiling
-            // every magnitude is re-clamped against on read (#85), so a copy that forgot it would
-            // hand a rank V player back their own numbers held to a rank 0 cap.
-            event.getOriginal().getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(previous ->
-                    event.getEntity().getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(fresh ->
-                            fresh.set(previous.get(), previous.rank())));
-        }
-        finally
-        {
-            event.getOriginal().invalidateCaps();
-        }
-    }
+    // Nothing attaches or copies the buffs by hand any more. SoulBuffsAttachment declares them
+    // copyOnDeath, and NeoForge already copies serializable entity attachments on a return from
+    // the End, so the respawn and End-return cases that used to need a PlayerEvent.Clone handler -
+    // one that had to revive the old player's capabilities just to read them - are both covered by
+    // the attachment type itself. The rank travels with the magnitudes because it is serialized
+    // alongside them (#85): a copy that forgot it would hand a rank V player their own numbers
+    // held to a rank 0 cap.
 
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event)
@@ -175,13 +145,8 @@ public class StructureEvents
     }
 
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event)
+    public static void onServerTick(ServerTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END)
-        {
-            return;
-        }
-
         final MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 
         if (server != null)

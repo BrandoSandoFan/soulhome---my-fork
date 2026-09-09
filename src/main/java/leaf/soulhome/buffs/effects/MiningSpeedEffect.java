@@ -7,8 +7,8 @@ package leaf.soulhome.buffs.effects;
 import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * Mine: blocks come apart faster - up to a point (#86).

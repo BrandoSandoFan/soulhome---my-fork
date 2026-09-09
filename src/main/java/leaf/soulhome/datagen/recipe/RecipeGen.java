@@ -10,20 +10,22 @@ import net.minecraft.data.*;
 import net.minecraft.data.recipes.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
+import net.neoforged.neoforge.common.conditions.IConditionBuilder;
+import net.minecraft.core.HolderLookup;
 
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
 public class RecipeGen extends RecipeProvider implements IConditionBuilder
 {
-
-    public RecipeGen(PackOutput output)
+    public RecipeGen(PackOutput output, CompletableFuture<HolderLookup.Provider> registries)
     {
-        super(output);
+        super(output, registries);
     }
 
+    // Consumer<FinishedRecipe> became RecipeOutput in 1.20.2: the same "here is a finished recipe"
+    // callback, plus the advancement and the datapack conditions that used to be bolted on beside it.
     @Override
-    protected void buildRecipes(Consumer<FinishedRecipe> consumer)
+    protected void buildRecipes(RecipeOutput consumer)
     {
         ShapedRecipeBuilder
                 .shaped(RecipeCategory.TRANSPORTATION,ItemsRegistry.SOUL_KEY.get()) //output
@@ -88,7 +90,7 @@ public class RecipeGen extends RecipeProvider implements IConditionBuilder
      * player who cannot reach one tap - no ancient city on their seed, a skyblock pack with no ocean
      * monument - is never hard-blocked, not so anyone would prefer it.
      */
-    private void buildEssenceRecipes(Consumer<FinishedRecipe> consumer)
+    private void buildEssenceRecipes(RecipeOutput consumer)
     {
         final Item[] keyedMaterials = {
                 Items.AMETHYST_SHARD, Items.ECHO_SHARD, Items.HEART_OF_THE_SEA, Items.NETHERITE_SCRAP, Items.NETHER_STAR

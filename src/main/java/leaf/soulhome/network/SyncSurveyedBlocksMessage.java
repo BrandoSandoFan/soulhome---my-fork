@@ -7,10 +7,11 @@ package leaf.soulhome.network;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.client.SurveyedBlocks;
-import net.minecraftforge.network.NetworkEvent;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * The ore positions Surveyor's Eye (#88) found, and how long they should stay drawn.
@@ -24,8 +25,11 @@ import java.util.function.Consumer;
  * entity through walls, is applied server-side, and expires on its own, so a second mechanism for
  * the half of the ability that vanilla already does would be code with nothing to say for itself.
  */
-public class SyncSurveyedBlocksMessage implements Consumer<NetworkEvent.Context>
+public class SyncSurveyedBlocksMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<SyncSurveyedBlocksMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("sync_surveyed_blocks"));
+
     public static final SyncSurveyedBlocksMessage INVALID = new SyncSurveyedBlocksMessage(List.of(), 0);
 
     public static final Codec<SyncSurveyedBlocksMessage> CODEC =
@@ -57,8 +61,14 @@ public class SyncSurveyedBlocksMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() -> SurveyedBlocks.accept(this.positions, this.durationTicks));
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

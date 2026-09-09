@@ -47,7 +47,7 @@ public final class TestBlocks
     public static final TestBlock ANVIL = block("minecraft:anvil", Passability.PARTIAL, "minecraft:anvil", "soulhome:smithing");
     public static final TestBlock GRINDSTONE = block("minecraft:grindstone", Passability.PARTIAL, "soulhome:smithing");
     public static final TestBlock BANNER = block("minecraft:white_banner", Passability.PASSABLE, "minecraft:banners", "soulhome:armament");
-    public static final TestBlock IRON_BLOCK = block("minecraft:iron_block", Passability.BLOCKING, "soulhome:armament", "forge:storage_blocks");
+    public static final TestBlock IRON_BLOCK = block("minecraft:iron_block", Passability.BLOCKING, "soulhome:armament", "c:storage_blocks");
 
     // enchanting
     public static final TestBlock ENCHANTING_TABLE = block("minecraft:enchanting_table", Passability.PARTIAL);
@@ -74,10 +74,10 @@ public final class TestBlocks
     public static final TestBlock WOOL = block("minecraft:white_wool", Passability.BLOCKING, "minecraft:wool", "soulhome:furnishing");
 
     // mine
-    public static final TestBlock ORE = block("minecraft:iron_ore", Passability.BLOCKING, "forge:ores");
+    public static final TestBlock ORE = block("minecraft:iron_ore", Passability.BLOCKING, "c:ores");
     public static final TestBlock RAIL = block("minecraft:rail", Passability.PASSABLE, "minecraft:rails");
     public static final TestBlock LADDER = block("minecraft:ladder", Passability.PASSABLE);
-    public static final TestBlock GOLD_BLOCK = block("minecraft:gold_block", Passability.BLOCKING, "forge:storage_blocks");
+    public static final TestBlock GOLD_BLOCK = block("minecraft:gold_block", Passability.BLOCKING, "c:storage_blocks");
     public static final TestBlock TORCH = block("minecraft:torch", Passability.PASSABLE, "soulhome:lighting");
 
     // track

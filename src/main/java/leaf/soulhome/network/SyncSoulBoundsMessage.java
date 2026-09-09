@@ -6,10 +6,11 @@ package leaf.soulhome.network;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraftforge.network.NetworkEvent;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Sends a player the box their soulhome is currently bounded by (#78/#79), so the client can draw
@@ -27,8 +28,11 @@ import java.util.function.Consumer;
  * <p>{@code rank} rides along too (#84): the client needs it to label the firmament with the same
  * rank the server actually used to compute this box, rather than guessing from the box's size.
  */
-public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
+public class SyncSoulBoundsMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<SyncSoulBoundsMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("sync_soul_bounds"));
+
     public static final SyncSoulBoundsMessage INVALID = new SyncSoulBoundsMessage("", 0, 0, 1, 1, List.of());
 
     public static final Codec<SyncSoulBoundsMessage> CODEC =
@@ -91,7 +95,7 @@ public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() -> ClientSoulBounds.accept(this));
     }
@@ -119,5 +123,11 @@ public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
         {
             return current.dimension.equals(currentDimension) ? current : INVALID;
         }
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

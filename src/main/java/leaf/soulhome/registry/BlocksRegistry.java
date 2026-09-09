@@ -10,16 +10,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 /** The mod's first block: the Soul Anchor (#83). Everything else this mod grants is a dimension, an item, or a buff. */
 public class BlocksRegistry
 {
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, SoulHome.MODID);
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK, SoulHome.MODID);
 
-    public static final RegistryObject<Block> SOUL_ANCHOR = BLOCKS.register("soul_anchor", () -> new SoulAnchorBlock(
+    public static final DeferredHolder<Block, Block> SOUL_ANCHOR = BLOCKS.register("soul_anchor", () -> new SoulAnchorBlock(
             BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_PURPLE)
                     .strength(5.0f, 6.0f)

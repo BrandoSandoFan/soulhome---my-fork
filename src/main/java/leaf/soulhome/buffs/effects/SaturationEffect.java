@@ -10,8 +10,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * Farm: more saturation out of everything you eat.
@@ -58,9 +58,10 @@ public class SaturationEffect implements SoulBuffEffect
 
         final FoodData data = player.getFoodData();
 
-        // vanilla adds nutrition * saturationModifier * 2; this adds a fraction of that again
-        final float vanillaGain = food.getNutrition() * food.getSaturationModifier() * 2f;
-        final float bonus = (float) (vanillaGain * magnitudeFor(player));
+        // 1.20.5 turned the old nutrition * saturationModifier * 2 into one absolute number on
+        // FoodProperties, so the amount vanilla is about to add is now simply saturation(); this
+        // adds a fraction of that again
+        final float bonus = (float) (food.saturation() * magnitudeFor(player));
 
         if (bonus <= 0f)
         {

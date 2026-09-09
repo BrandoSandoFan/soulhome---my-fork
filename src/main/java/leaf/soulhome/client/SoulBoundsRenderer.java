@@ -14,10 +14,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
  * The firmament and the verge (#78/#81): the ceiling and four walls of a soulhome's box, drawn as
@@ -33,7 +33,7 @@ import net.minecraftforge.fml.common.Mod;
  * region outlines with, rather than a dedicated shader - one drawing primitive for every box this
  * mod outlines in the world.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public final class SoulBoundsRenderer
 {
     /** Alpha at zero distance from a face - deliberately short of solid, so it always reads as a shimmer. */

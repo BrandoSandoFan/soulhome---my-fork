@@ -12,10 +12,10 @@ import leaf.soulhome.feedback.LensRegionReport;
 import leaf.soulhome.network.SyncSoulLensBuffsMessage;
 import leaf.soulhome.network.SyncSoulLensReportMessage;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ import java.util.List;
  * <p>Only opens over an empty screen, so a report that lands while a player has something else
  * open - the game menu, another mod's GUI - does not steal focus from it.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public final class SoulLensScreenOpener
 {
     private SoulLensScreenOpener()
@@ -38,13 +38,8 @@ public final class SoulLensScreenOpener
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event)
+    public static void onClientTick(ClientTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END)
-        {
-            return;
-        }
-
         final Minecraft minecraft = Minecraft.getInstance();
 
         final List<LensRegionReport> regions = SyncSoulLensReportMessage.ClientLensReport.consumeIfNew();

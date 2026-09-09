@@ -1,0 +1,42 @@
+{
+  "parent": "soulhome:main/obtained_soul_key",
+  "criteria": {
+    "entered_soul": {
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "location": {
+                "biomes": "#soulhome:is_soulhome"
+              }
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:location"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.soulhome.entered_soul_dimension.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "soulhome:guide"
+    },
+    "title": {
+      "translate": "advancements.soulhome.entered_soul_dimension.title"
+    }
+  },
+  "requirements": [
+    [
+      "entered_soul"
+    ]
+  ],
+  "rewards": {
+    "experience": 5
+  },
+  "sends_telemetry_event": true
+}

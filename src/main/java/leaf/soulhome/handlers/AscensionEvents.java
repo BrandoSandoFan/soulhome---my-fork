@@ -7,10 +7,10 @@ package leaf.soulhome.handlers;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.structures.AscensionRitualService;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
  * Drives the ascension ritual (#83): a per-player tick, and every way a player can leave one
@@ -19,18 +19,13 @@ import net.minecraftforge.fml.common.Mod;
  * <p>Separate from {@code StructureEvents} for the same reason that class is separate from
  * {@code CommonEvents} - a self-contained subsystem, with its own single reason to change.
  */
-@Mod.EventBusSubscriber(modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public class AscensionEvents
 {
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event)
+    public static void onPlayerTick(PlayerTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END)
-        {
-            return;
-        }
-
-        if (event.player instanceof ServerPlayer player)
+        if (event.getEntity() instanceof ServerPlayer player)
         {
             AscensionRitualService.tick(player);
         }

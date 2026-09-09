@@ -101,6 +101,13 @@ public final class ArchetypeCodecs
      */
     public static final Codec<Form> FORM = FormCodecs.forRegistry(FormClauseRegistry.BUILTIN);
 
+    /**
+     * Why this is not {@code FORM.listOf()}: see {@link FormCodecs#listOfForms}. A form this install
+     * cannot evaluate has to drop out of the list without taking the archetype with it, and since
+     * 1.20.5 DataFixerUpper's own list codec no longer does that for us.
+     */
+    public static final Codec<List<Form>> FORM_LIST = FormCodecs.listOfForms(FORM);
+
     public static final Codec<ArchetypeDefinition.BuffSpec> BUFF_SPEC =
             RecordCodecBuilder.create(instance -> instance
                     .group(
@@ -136,7 +143,7 @@ public final class ArchetypeCodecs
                                     .forGetter(ArchetypeDefinition::tiers),
                             BUFF_SPEC.listOf().optionalFieldOf("buffs", List.of())
                                     .forGetter(ArchetypeDefinition::buffs),
-                            FORM.listOf().optionalFieldOf("structures", List.of())
+                            FORM_LIST.optionalFieldOf("structures", List.of())
                                     .forGetter(ArchetypeDefinition::structures))
                     .apply(instance, (displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures) ->
                             new ArchetypeDefinition(
@@ -168,7 +175,7 @@ public final class ArchetypeCodecs
                                     .forGetter(ArchetypeDefinition::tiers),
                             BUFF_SPEC.listOf().optionalFieldOf("buffs", List.of())
                                     .forGetter(ArchetypeDefinition::buffs),
-                            FORM.listOf().optionalFieldOf("structures", List.of())
+                            FORM_LIST.optionalFieldOf("structures", List.of())
                                     .forGetter(ArchetypeDefinition::structures))
                     .apply(instance, ArchetypeDefinition::new));
 

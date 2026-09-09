@@ -21,14 +21,15 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.event.level.ExplosionEvent;
-import net.minecraftforge.event.level.PistonEvent;
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.neoforge.event.level.PistonEvent;
+import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.bus.api.ICancellableEvent;
 
 import java.util.Map;
 import java.util.UUID;
@@ -65,7 +66,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * block being placed or broken is refused, so creative flight into the empty void around a
  * soulhome is harmless rather than something to police.
  */
-@Mod.EventBusSubscriber(modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public final class SoulBoundsEnforcement
 {
     /** How rarely a denied player is told, so holding right-click into a wall is not sixty messages a second. */
@@ -256,7 +257,7 @@ public final class SoulBoundsEnforcement
         return !SoulHomeBuffData.get(level).needsLegacyMigration();
     }
 
-    private static void deny(Event event, Entity entity)
+    private static void deny(ICancellableEvent event, Entity entity)
     {
         event.setCanceled(true);
 

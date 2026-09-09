@@ -16,12 +16,12 @@ import leaf.soulhome.structures.core.ScoringSettings;
 import leaf.soulhome.structures.core.SoulBounds;
 import leaf.soulhome.utils.LogHelper;
 import org.apache.commons.lang3.tuple.Pair;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -44,12 +44,12 @@ import java.util.Set;
  *
  * <p>Values are read into an immutable snapshot rather than being queried per block: a scan asks
  * for its settings once and then walks a few hundred thousand positions, and
- * {@code ForgeConfigSpec} lookups are map reads, not field reads.
+ * {@code ModConfigSpec} lookups are map reads, not field reads.
  */
-@Mod.EventBusSubscriber(modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.MOD)
 public final class SoulHomeConfig
 {
-    public static final ForgeConfigSpec SPEC;
+    public static final ModConfigSpec SPEC;
     public static final Server SERVER;
 
     /**
@@ -61,7 +61,7 @@ public final class SoulHomeConfig
 
     static
     {
-        final Pair<Server, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(Server::new);
+        final Pair<Server, ModConfigSpec> pair = new ModConfigSpec.Builder().configure(Server::new);
 
         SERVER = pair.getLeft();
         SPEC = pair.getRight();
@@ -72,9 +72,9 @@ public final class SoulHomeConfig
     }
 
     /** Called from the mod constructor, before anything can ask for a value. */
-    public static void register()
+    public static void register(ModContainer container)
     {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, SPEC);
+        container.registerConfig(ModConfig.Type.SERVER, SPEC);
     }
 
     /**
@@ -453,65 +453,65 @@ public final class SoulHomeConfig
                 "soulhome:cleansing_font=6.0",
                 "soulhome:updraft=6.0");
 
-        public final ForgeConfigSpec.BooleanValue enabled;
-        public final ForgeConfigSpec.BooleanValue restrictSoulTravel;
+        public final ModConfigSpec.BooleanValue enabled;
+        public final ModConfigSpec.BooleanValue restrictSoulTravel;
 
-        public final ForgeConfigSpec.DoubleValue repeatedRoomFalloff;
-        public final ForgeConfigSpec.IntValue maxRoomsPerArchetype;
-        public final ForgeConfigSpec.DoubleValue globalMaxMagnitude;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> archetypeMultipliers;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> buffTypeCaps;
-        public final ForgeConfigSpec.DoubleValue entryFraction;
-        public final ForgeConfigSpec.DoubleValue rampExponent;
-        public final ForgeConfigSpec.DoubleValue ascensionPerRank;
-        public final ForgeConfigSpec.DoubleValue ascensionCapPerRank;
+        public final ModConfigSpec.DoubleValue repeatedRoomFalloff;
+        public final ModConfigSpec.IntValue maxRoomsPerArchetype;
+        public final ModConfigSpec.DoubleValue globalMaxMagnitude;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> archetypeMultipliers;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> buffTypeCaps;
+        public final ModConfigSpec.DoubleValue entryFraction;
+        public final ModConfigSpec.DoubleValue rampExponent;
+        public final ModConfigSpec.DoubleValue ascensionPerRank;
+        public final ModConfigSpec.DoubleValue ascensionCapPerRank;
 
-        public final ForgeConfigSpec.DoubleValue diversityBonusPerRole;
-        public final ForgeConfigSpec.DoubleValue densityFloor;
-        public final ForgeConfigSpec.DoubleValue minDensityFactor;
-        public final ForgeConfigSpec.DoubleValue ambiguityMargin;
-        public final ForgeConfigSpec.DoubleValue structuralShareCap;
-        public final ForgeConfigSpec.DoubleValue structuralRoleThreshold;
+        public final ModConfigSpec.DoubleValue diversityBonusPerRole;
+        public final ModConfigSpec.DoubleValue densityFloor;
+        public final ModConfigSpec.DoubleValue minDensityFactor;
+        public final ModConfigSpec.DoubleValue ambiguityMargin;
+        public final ModConfigSpec.DoubleValue structuralShareCap;
+        public final ModConfigSpec.DoubleValue structuralRoleThreshold;
 
-        public final ForgeConfigSpec.IntValue minRoomVolume;
-        public final ForgeConfigSpec.IntValue maxRoomVolume;
-        public final ForgeConfigSpec.IntValue shellDepth;
-        public final ForgeConfigSpec.IntValue clusterRadius;
-        public final ForgeConfigSpec.IntValue minClusterSize;
-        public final ForgeConfigSpec.IntValue maxRegions;
-        public final ForgeConfigSpec.LongValue maxScannedCells;
-        public final ForgeConfigSpec.IntValue maxGeometryCells;
+        public final ModConfigSpec.IntValue minRoomVolume;
+        public final ModConfigSpec.IntValue maxRoomVolume;
+        public final ModConfigSpec.IntValue shellDepth;
+        public final ModConfigSpec.IntValue clusterRadius;
+        public final ModConfigSpec.IntValue minClusterSize;
+        public final ModConfigSpec.IntValue maxRegions;
+        public final ModConfigSpec.LongValue maxScannedCells;
+        public final ModConfigSpec.IntValue maxGeometryCells;
 
-        public final ForgeConfigSpec.LongValue quietPeriodMillis;
-        public final ForgeConfigSpec.LongValue maxScanDelayMillis;
-        public final ForgeConfigSpec.IntValue checkIntervalTicks;
+        public final ModConfigSpec.LongValue quietPeriodMillis;
+        public final ModConfigSpec.LongValue maxScanDelayMillis;
+        public final ModConfigSpec.IntValue checkIntervalTicks;
 
-        public final ForgeConfigSpec.BooleanValue enforceBounds;
-        public final ForgeConfigSpec.IntValue floorY;
-        public final ForgeConfigSpec.IntValue baseCeilingHeight;
-        public final ForgeConfigSpec.IntValue ceilingHeightPerRank;
-        public final ForgeConfigSpec.IntValue baseVerge;
-        public final ForgeConfigSpec.IntValue vergePerRank;
-        public final ForgeConfigSpec.IntValue maxRank;
-        public final ForgeConfigSpec.IntValue startingRank;
+        public final ModConfigSpec.BooleanValue enforceBounds;
+        public final ModConfigSpec.IntValue floorY;
+        public final ModConfigSpec.IntValue baseCeilingHeight;
+        public final ModConfigSpec.IntValue ceilingHeightPerRank;
+        public final ModConfigSpec.IntValue baseVerge;
+        public final ModConfigSpec.IntValue vergePerRank;
+        public final ModConfigSpec.IntValue maxRank;
+        public final ModConfigSpec.IntValue startingRank;
 
-        public final ForgeConfigSpec.BooleanValue residueTapEnabled;
-        public final ForgeConfigSpec.DoubleValue residueRateMultiplier;
-        public final ForgeConfigSpec.DoubleValue residueToEssenceRate;
+        public final ModConfigSpec.BooleanValue residueTapEnabled;
+        public final ModConfigSpec.DoubleValue residueRateMultiplier;
+        public final ModConfigSpec.DoubleValue residueToEssenceRate;
 
-        public final ForgeConfigSpec.IntValue essenceCountPerRank;
-        public final ForgeConfigSpec.IntValue ritualDurationTicks;
-        public final ForgeConfigSpec.DoubleValue baseWillpowerThreshold;
-        public final ForgeConfigSpec.DoubleValue willpowerPerRank;
-        public final ForgeConfigSpec.IntValue pillarSearchRadius;
+        public final ModConfigSpec.IntValue essenceCountPerRank;
+        public final ModConfigSpec.IntValue ritualDurationTicks;
+        public final ModConfigSpec.DoubleValue baseWillpowerThreshold;
+        public final ModConfigSpec.DoubleValue willpowerPerRank;
+        public final ModConfigSpec.IntValue pillarSearchRadius;
 
-        public final ForgeConfigSpec.BooleanValue abilitiesEnabled;
-        public final ForgeConfigSpec.DoubleValue abilityCooldownMultiplier;
-        public final ForgeConfigSpec.IntValue abilityMinCooldownTicks;
-        public final ForgeConfigSpec.IntValue abilityMaxCharges;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> disabledAbilities;
+        public final ModConfigSpec.BooleanValue abilitiesEnabled;
+        public final ModConfigSpec.DoubleValue abilityCooldownMultiplier;
+        public final ModConfigSpec.IntValue abilityMinCooldownTicks;
+        public final ModConfigSpec.IntValue abilityMaxCharges;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> disabledAbilities;
 
-        private Server(ForgeConfigSpec.Builder builder)
+        private Server(ModConfigSpec.Builder builder)
         {
             builder.comment("Getting into and out of a soul dimension.").push("dimension");
 

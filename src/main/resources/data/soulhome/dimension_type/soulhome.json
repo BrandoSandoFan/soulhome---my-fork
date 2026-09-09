@@ -16,12 +16,11 @@
   "infiniburn": "#minecraft:infiniburn_overworld",
   "min_y": 0,
   "height": 256,
+  "_comment": "monster_spawn_light_level lost its 'value' wrapper in 1.20.2, when dispatched codecs started flattening the dispatched type's own fields in beside the 'type' key rather than nesting them.",
   "monster_spawn_light_level": {
     "type": "minecraft:uniform",
-    "value": {
-      "min_inclusive": 0,
-      "max_inclusive": 7
-    }
+    "min_inclusive": 0,
+    "max_inclusive": 7
   },
   "monster_spawn_block_light_limit": 0
 }

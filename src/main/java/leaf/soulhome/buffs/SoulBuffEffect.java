@@ -6,7 +6,10 @@ package leaf.soulhome.buffs;
 
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.bus.api.SubscribeEvent;
+
+import java.lang.reflect.Method;
 
 /**
  * One buff type, and the hook it acts through.
@@ -42,10 +45,31 @@ public interface SoulBuffEffect
         return SoulBuffTypes.isFraction(type());
     }
 
-    /** Subscribe this effect's hooks. Called once, during common setup. */
+    /**
+     * Subscribe this effect's hooks. Called once, during common setup.
+     *
+     * <p>The declared-methods check is not defensiveness, it is NeoForge's rule. Its bus refuses an
+     * object with no {@code @SubscribeEvent} methods of its own rather than quietly registering
+     * nothing, and plenty of effects here genuinely have none - every active runs when a player
+     * asks rather than off an event, and {@code FortuneEffect}'s hook is a loot modifier. Under
+     * Forge those all registered harmlessly and did nothing; here each one would throw during
+     * common setup and take the whole mod down with it.
+     *
+     * <p>It is {@code getDeclaredMethods} rather than {@code getMethods} because the bus also
+     * refuses an object that <i>inherits</i> a {@code @SubscribeEvent} method from a supertype -
+     * see {@code AttributeBuffEffect#register}, which is why the one abstract base that has a hook
+     * adds it by hand.
+     */
     default void register()
     {
-        MinecraftForge.EVENT_BUS.register(this);
+        for (Method method : getClass().getDeclaredMethods())
+        {
+            if (method.isAnnotationPresent(SubscribeEvent.class))
+            {
+                NeoForge.EVENT_BUS.register(this);
+                return;
+            }
+        }
     }
 
     /** No soft ceiling - the default for every buff that only ever gets better as it grows. */

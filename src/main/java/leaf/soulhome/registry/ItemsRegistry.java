@@ -16,31 +16,31 @@ import leaf.soulhome.items.SoulLensItem;
 import leaf.soulhome.items.SublimeEssenceItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.List;
 
 
 public class ItemsRegistry
 {
-    public static final DeferredRegister<net.minecraft.world.item.Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, SoulHome.MODID);
+    public static final DeferredRegister<net.minecraft.world.item.Item> ITEMS = DeferredRegister.create(Registries.ITEM, SoulHome.MODID);
 
 
-    public static final RegistryObject<Item> SOUL_KEY = ITEMS.register("soulkey", () -> createItem(new SoulKeyItem()));
-    public static final RegistryObject<Item> PERSONAL_SOUL_KEY = ITEMS.register("personal_soulkey", () -> createItem(new BoundSoulkey()));
-    public static final RegistryObject<net.minecraft.world.item.Item> GUIDE = ITEMS.register("guide", () -> createItem(new GuideItem()));
+    public static final DeferredHolder<Item, Item> SOUL_KEY = ITEMS.register("soulkey", () -> createItem(new SoulKeyItem()));
+    public static final DeferredHolder<Item, Item> PERSONAL_SOUL_KEY = ITEMS.register("personal_soulkey", () -> createItem(new BoundSoulkey()));
+    public static final DeferredHolder<Item, net.minecraft.world.item.Item> GUIDE = ITEMS.register("guide", () -> createItem(new GuideItem()));
 
     /** Shows what the structure classifier can see. See {@link SoulLensItem}. */
-    public static final RegistryObject<Item> SOUL_LENS = ITEMS.register("soul_lens", () -> createItem(new SoulLensItem()));
+    public static final DeferredHolder<Item, Item> SOUL_LENS = ITEMS.register("soul_lens", () -> createItem(new SoulLensItem()));
 
     /**
      * Sublime Essence I through V (#82), indexed by rank - {@code SUBLIME_ESSENCE.get(0)} is
      * Essence I. Registered as a list rather than five named fields so the recipes for the
      * crafting ladder and the nine-into-one consolidation can both be written as a loop.
      */
-    public static final List<RegistryObject<Item>> SUBLIME_ESSENCE = List.of(
+    public static final List<DeferredHolder<Item, Item>> SUBLIME_ESSENCE = List.of(
             ITEMS.register("sublime_essence_1", () -> createItem(new SublimeEssenceItem(1))),
             ITEMS.register("sublime_essence_2", () -> createItem(new SublimeEssenceItem(2))),
             ITEMS.register("sublime_essence_3", () -> createItem(new SublimeEssenceItem(3))),
@@ -48,7 +48,7 @@ public class ItemsRegistry
             ITEMS.register("sublime_essence_5", () -> createItem(new SublimeEssenceItem(5))));
 
     /** The Soul Anchor's own {@link BlockItem} (#83) - registered here so it shares the creative tab every other item does. */
-    public static final RegistryObject<Item> SOUL_ANCHOR =
+    public static final DeferredHolder<Item, Item> SOUL_ANCHOR =
             ITEMS.register("soul_anchor", () -> new BlockItem(BlocksRegistry.SOUL_ANCHOR.get(), new Item.Properties()));
 
 

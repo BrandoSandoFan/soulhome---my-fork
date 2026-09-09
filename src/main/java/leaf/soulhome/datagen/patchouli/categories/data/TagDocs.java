@@ -36,7 +36,7 @@ public final class TagDocs
 {
     /** Where the tag files live, relative to the project root. */
     private static final Path RELATIVE_DIRECTORY =
-            Path.of("src", "main", "resources", "data", SoulHome.MODID, "tags", "blocks");
+            Path.of("src", "main", "resources", "data", SoulHome.MODID, "tags", "block");
 
     private TagDocs()
     {

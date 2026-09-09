@@ -119,7 +119,7 @@ public class BarrageEffect implements SoulActiveEffect
         }
 
         level.playSound(
-                null, player.blockPosition(), SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 0.6f, 1.5f);
+                null, player.blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 0.6f, 1.5f);
 
         return true;
     }

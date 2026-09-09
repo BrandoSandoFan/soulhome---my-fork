@@ -37,23 +37,23 @@ public class TeleportHelper
 
     private static void teleport(Entity entity, ServerLevel destinationDimension, double x, double y, double z, float yRot, float xRot)
     {
-        if (entity == null || entity.level().isClientSide || !entity.canChangeDimensions())
+        if (entity == null || entity.level().isClientSide)
         {
             return;
         }
 
         ServerLevel currentDimension = entity.getServer().getLevel(entity.getCommandSenderWorld().dimension());
 
+        // canChangeDimensions takes both levels now - the answer can depend on where the entity is
+        // going, not only on what it is - so the test has to wait until the destination is known.
+        if (!entity.canChangeDimensions(currentDimension, destinationDimension))
+        {
+            return;
+        }
 
         boolean isChangingDimension = !currentDimension.dimension().location().equals(destinationDimension.dimension().location());
         final boolean entityIsPlayer = entity instanceof ServerPlayer;
         final ServerPlayer serverPlayerEntity = entityIsPlayer ? (ServerPlayer) entity : null;
-
-        if (isChangingDimension && !entity.canChangeDimensions())
-        {
-            //early exit
-            return;
-        }
 
         //no passengers allowed.
         if (entity.isPassenger())
@@ -87,7 +87,10 @@ public class TeleportHelper
             //restore stuff. Annoyingly it doesn't happen automatically
             for (MobEffectInstance effectinstance : serverPlayerEntity.getActiveEffects())
             {
-                serverPlayerEntity.connection.send(new ClientboundUpdateMobEffectPacket(serverPlayerEntity.getId(), effectinstance));
+                // blend=false: this is a resend of an effect the player already has, not a fresh
+                // application, so the client should not fade it in again
+                serverPlayerEntity.connection.send(
+                        new ClientboundUpdateMobEffectPacket(serverPlayerEntity.getId(), effectinstance, false));
             }
 
             LevelData worldInfo = serverPlayerEntity.level().getLevelData();

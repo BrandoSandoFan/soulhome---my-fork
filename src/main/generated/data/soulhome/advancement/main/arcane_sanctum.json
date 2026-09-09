@@ -1,0 +1,32 @@
+{
+  "parent": "soulhome:main/first_room",
+  "criteria": {
+    "classified_room": {
+      "conditions": {
+        "archetype": "soulhome:arcane_sanctum"
+      },
+      "trigger": "soulhome:classified_room"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.soulhome.arcane_sanctum.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:lapis_lazuli"
+    },
+    "title": {
+      "translate": "advancements.soulhome.arcane_sanctum.title"
+    }
+  },
+  "requirements": [
+    [
+      "classified_room"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

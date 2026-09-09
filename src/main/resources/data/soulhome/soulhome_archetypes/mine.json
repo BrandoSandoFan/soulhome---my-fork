@@ -5,14 +5,14 @@
   "min_volume": 27,
 
   "requirements": [
-    { "match": { "tag": "forge:ores" }, "min_count": 4 }
+    { "match": { "tag": "c:ores" }, "min_count": 4 }
   ],
 
   "signals": [
-    { "match": { "tag": "forge:ores" },            "weight": 3.0, "role": "core",    "cap": 24 },
+    { "match": { "tag": "c:ores" },            "weight": 3.0, "role": "core",    "cap": 24 },
     { "match": { "tag": "minecraft:rails" },       "weight": 2.5, "role": "haulage", "cap": 16 },
     { "match": { "block": "minecraft:ladder" },    "weight": 2.0, "role": "access",  "cap": 12 },
-    { "match": { "tag": "forge:storage_blocks" },  "weight": 1.5, "role": "trove",   "cap": 8  },
+    { "match": { "tag": "c:storage_blocks" },  "weight": 1.5, "role": "trove",   "cap": 8  },
     { "match": { "tag": "soulhome:lighting" },     "weight": 1.0, "role": "light",   "cap": 16 },
     { "match": { "tag": "soulhome:storage" },      "weight": 1.0, "role": "storage", "cap": 8  }
   ],
@@ -39,7 +39,7 @@
       "role": "arrangement",
       "elements": {
         "rails":    { "tag": "minecraft:rails" },
-        "ores":     { "tag": "forge:ores" },
+        "ores":     { "tag": "c:ores" },
         "supports": { "block": "minecraft:ladder" }
       },
       "all": [

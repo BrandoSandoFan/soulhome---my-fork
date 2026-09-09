@@ -7,10 +7,10 @@ package leaf.soulhome.client;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.ClientSoulAbilities;
 import leaf.soulhome.buffs.ClientSoulBuffs;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
  * Drops the client's copy of its buffs when it leaves a world.
@@ -23,7 +23,7 @@ import net.minecraftforge.fml.common.Mod;
  * <p>Client-only, and kept out of the buffs package for that reason - {@code ClientSoulBuffs}
  * itself is loaded on dedicated servers, and must not name a class that is not there.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public final class ClientBuffEvents
 {
     private ClientBuffEvents()

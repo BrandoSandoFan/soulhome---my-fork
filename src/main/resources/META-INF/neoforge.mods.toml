@@ -1,0 +1,34 @@
+modLoader="javafml" #mandatory
+loaderVersion="[4,)" #mandatory
+license="SoulHome License"
+
+[[mods]] #mandatory
+modId="soulhome" #mandatory
+version="${file.jarVersion}"
+displayName="SoulHome" #mandatory
+logoFile="soulhome.png" #optional
+credits="Thanks for this example mod goes to Java" #optional
+authors="Leaf Reynolds" #optional
+description='''
+This is a long form description of the mod. You can write whatever you want here
+'''
+# A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
+[[dependencies.soulhome]] #optional
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.soulhome]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21.1,1.22)"
+    ordering="NONE"
+    side="BOTH"
+
+[[mixins]]
+    config="soulhome.mixins.json"
+
+[[accessTransformers]]
+    file="META-INF/accesstransformer.cfg"

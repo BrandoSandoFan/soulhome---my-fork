@@ -821,3 +821,50 @@ one, took the hit anyway, inside a dimension a player has been told is safe.
 
 - Fix: fall damage is now matched by its damage type rather than by which specific object created
   it, so it can no longer be missed depending on how something else happens to build the damage.
+
+---
+
+SoulHome - For 1.21.1 Minecraft
+
+Ported to 1.21.1 on NeoForge
+
+The mod now runs on Minecraft 1.21.1 and NeoForge 21.1.250, on Java 21. Nothing about what a room
+is, what it scores or what it pays out has changed: every archetype, every clause, every buff and
+every config knob carries over as-is, and the whole detection and scoring suite still passes
+unchanged.
+
+**NeoForge, not Forge.** Forge's own 1.21.1 builds exist, but Patchouli - which the guide book is
+written against - Jade and Curios all stopped at 1.20.1 on that side, and so did Create and Iron's
+Spells, which three of the shipped rooms are written for. Staying on Forge would have shipped a mod
+whose book could not be opened and whose cross-mod rooms could never be awarded. So the loader
+moved, and the guide book, JEI integration and all three cross-mod archetypes still work.
+
+**Your soulhome, your rooms and your buffs survive the update**, and so do your keys. One thing
+does not: an existing world's soulhome dimension will not load until the save has been opened in
+1.21.1 once, because the dimension's own definition changed shape along with the game's. Back up
+before updating, as with any version jump.
+
+- **Bound soul keys store who they belong to differently.** A key's owner used to be two loose NBT
+  tags on the item; 1.20.5 removed item NBT outright, so it is a typed component now. A key bound in
+  1.20.1 reads as unbound in 1.21.1 and rebinds itself to whoever next drinks from it - which is
+  the same thing a creative-mode key has always done, so nothing is lost but the name on the
+  tooltip.
+- **Two reach buffs and the swim speed buff point at different attributes**, because the game moved
+  them: `forge:block_reach` and `forge:entity_reach` became vanilla's own interaction ranges in
+  1.20.5, and swim speed is NeoForge's. Reach now works on a plain install rather than needing a
+  loader extension, which it always did under Forge too - the ids just changed underneath.
+- **The mine room reads `c:ores` and `c:storage_blocks`** instead of the old `forge:` names. Same
+  blocks, the convention tag every loader now agrees on.
+- **The "you entered your soul" advancement is gated on a biome tag** (`soulhome:is_soulhome`)
+  rather than naming the biome directly. A pack adding its own soul-like biome can join that tag.
+- **The first advancement in the tree unlocks on a tick rather than on an inventory change.** It was
+  always meant to be "unlocked immediately"; the match-anything item predicate that said so was
+  removed from the game, and saying it outright is clearer anyway.
+- **A datapack archetype with one unreadable structural form loses that form, not the archetype.**
+  That was always the promise, but it had been resting on a leniency the game's own codec library
+  dropped in 1.20.5 - one unknown clause id would have quietly taken a whole room with it. It is
+  written out explicitly now, so it cannot drift again.
+- **Charges, cooldowns and your ascension rank are carried through death by the game** rather than
+  by hand-written code that had to revive a removed player to read them. A whole class of "my buffs
+  vanished after I died" bug is structurally gone.
+- Typing into the dedicated server console works again under the new build plugin.

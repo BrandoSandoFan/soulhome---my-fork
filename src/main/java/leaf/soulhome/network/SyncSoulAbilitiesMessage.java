@@ -7,10 +7,11 @@ package leaf.soulhome.network;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.buffs.ClientSoulAbilities;
-import net.minecraftforge.network.NetworkEvent;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * Tells a client what its player's active abilities (#87) look like right now: which one is
@@ -25,8 +26,11 @@ import java.util.function.Consumer;
  * <p>Never authoritative, exactly like {@link SyncSoulBuffsMessage}. The server has already decided
  * whether a press was allowed by the time this arrives.
  */
-public class SyncSoulAbilitiesMessage implements Consumer<NetworkEvent.Context>
+public class SyncSoulAbilitiesMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<SyncSoulAbilitiesMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("sync_soul_abilities"));
+
     public static final SyncSoulAbilitiesMessage INVALID = new SyncSoulAbilitiesMessage("", Map.of());
 
     public static final Codec<SyncSoulAbilitiesMessage> CODEC =
@@ -58,7 +62,7 @@ public class SyncSoulAbilitiesMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() -> ClientSoulAbilities.accept(this.selected, this.states));
     }
@@ -81,5 +85,11 @@ public class SyncSoulAbilitiesMessage implements Consumer<NetworkEvent.Context>
                                 Codec.INT.fieldOf("max_charges").forGetter(State::maxCharges),
                                 Codec.INT.fieldOf("cooldown_ticks").forGetter(State::cooldownTicks))
                         .apply(instance, State::new));
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

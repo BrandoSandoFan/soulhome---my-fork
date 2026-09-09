@@ -5,16 +5,16 @@
 package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulBuffEffect;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.common.NeoForge;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * A buff that is nothing more than a number on an attribute.
@@ -45,26 +45,30 @@ public abstract class AttributeBuffEffect implements SoulBuffEffect
     private static final int CHECK_INTERVAL_TICKS = 10;
 
     /**
-     * Derived from the buff id, so it needs no separate bookkeeping to stay stable across
-     * restarts. Shared across this effect's attributes, which is safe: a modifier is identified by
-     * uuid within one attribute, not globally.
+     * The buff id itself, so it needs no separate bookkeeping to stay stable across restarts.
+     * Shared across this effect's attributes, which is safe: a modifier is identified by id within
+     * one attribute, not globally.
+     *
+     * <p>1.21 keys modifiers by {@link ResourceLocation} rather than by uuid, which is why this is
+     * no longer a uuid derived from the buff id - the id <i>is</i> the key, and a buff type is
+     * already a namespaced id.
      *
      * <p>Worked out on first use rather than in the constructor, because deriving it there would
      * mean calling {@link #type()} on a half-built subclass.
      */
-    private UUID modifierId;
+    private ResourceLocation modifierId;
 
     /**
      * The attributes this buff writes to, resolved however the implementation likes - empty if
      * none of them exist in this install, which is how a buff aimed at a mod nobody has installed
      * reports itself as inert rather than pretending to work.
      */
-    public abstract List<Attribute> attributes();
+    public abstract List<Holder<Attribute>> attributes();
 
     /**
-     * How the magnitude is applied. {@code ADDITION} for a flat amount in the attribute's own
-     * units (mana, blocks of reach); {@code MULTIPLY_BASE} or {@code MULTIPLY_TOTAL} for a
-     * magnitude that reads as a fraction.
+     * How the magnitude is applied. {@code ADD_VALUE} for a flat amount in the attribute's own
+     * units (mana, blocks of reach); {@code ADD_MULTIPLIED_BASE} or {@code ADD_MULTIPLIED_TOTAL}
+     * for a magnitude that reads as a fraction.
      */
     protected abstract AttributeModifier.Operation operation();
 
@@ -80,22 +84,27 @@ public abstract class AttributeBuffEffect implements SoulBuffEffect
         return player != null && !player.level().isClientSide;
     }
 
-    @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event)
+    /**
+     * Added by {@link #register()} rather than carrying {@code @SubscribeEvent}, because NeoForge's
+     * bus refuses to register any object whose supertype declares one - and every subclass of this
+     * one is such an object. Adding the listener explicitly keeps the shared reconciliation here
+     * instead of duplicating it into four subclasses, which is the whole point of this class.
+     */
+    public void onPlayerTick(PlayerTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END || event.side.isClient())
+        if (event.getEntity().level().isClientSide)
         {
             return;
         }
 
-        final Player player = event.player;
+        final Player player = event.getEntity();
 
         if (!appliesTo(player) || player.tickCount % CHECK_INTERVAL_TICKS != 0)
         {
             return;
         }
 
-        final List<Attribute> attributes = attributes();
+        final List<Holder<Attribute>> attributes = attributes();
 
         if (attributes.isEmpty())
         {
@@ -104,24 +113,36 @@ public abstract class AttributeBuffEffect implements SoulBuffEffect
 
         final double magnitude = magnitudeFor(player);
 
-        for (Attribute attribute : attributes)
+        for (Holder<Attribute> attribute : attributes)
         {
             reconcile(player, attribute, magnitude);
         }
     }
 
     /** Only ever called from the server tick, so a plain lazy field needs no synchronisation. */
-    private UUID modifierId()
+    private ResourceLocation modifierId()
     {
         if (this.modifierId == null)
         {
-            this.modifierId = UUID.nameUUIDFromBytes(type().getBytes(StandardCharsets.UTF_8));
+            this.modifierId = ResourceLocation.parse(type());
         }
 
         return this.modifierId;
     }
 
-    private void reconcile(Player player, Attribute attribute, double magnitude)
+    @Override
+    public void register()
+    {
+        NeoForge.EVENT_BUS.addListener(PlayerTickEvent.Post.class, this::onPlayerTick);
+
+        // and then whatever hooks the subclass declares for itself - the overflow handlers on
+        // SpeedEffect and SwimSpeedEffect. SoulBuffEffect#register only registers the object when
+        // the concrete class has its own @SubscribeEvent methods, so an attribute-only effect like
+        // ReachEffect is not handed to the bus at all.
+        SoulBuffEffect.super.register();
+    }
+
+    private void reconcile(Player player, Holder<Attribute> attribute, double magnitude)
     {
         final AttributeInstance instance = player.getAttribute(attribute);
 
@@ -143,7 +164,7 @@ public abstract class AttributeBuffEffect implements SoulBuffEffect
             return;
         }
 
-        if (existing != null && existing.getAmount() == magnitude)
+        if (existing != null && existing.amount() == magnitude)
         {
             // already correct - nothing to reapply
             return;
@@ -155,8 +176,8 @@ public abstract class AttributeBuffEffect implements SoulBuffEffect
         }
 
         //transient rather than permanent, so it is never written to the player's save file: this
-        //is recomputed from the capability, not persisted state
+        //is recomputed from the buffs attachment, not persisted state
         instance.addTransientModifier(
-                new AttributeModifier(modifierId(), type(), magnitude, operation()));
+                new AttributeModifier(modifierId(), magnitude, operation()));
     }
 }

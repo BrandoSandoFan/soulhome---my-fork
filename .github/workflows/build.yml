@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - '1.20.1'
+      - '1.21.1'
   pull_request:
   workflow_dispatch:
 
@@ -20,7 +21,7 @@ jobs:
     name: Compile and test
     runs-on: ubuntu-latest
 
-    # ForgeGradle downloads and decompiles Minecraft on a cold cache, which is slow the first
+    # ModDevGradle downloads and decompiles Minecraft on a cold cache, which is slow the first
     # time and much faster afterwards. The default 6h timeout is no use as a signal.
     timeout-minutes: 60
 
@@ -28,11 +29,11 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -51,9 +52,9 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
         run: ./gradlew build --no-daemon --stacktrace
 
-      # 'jar' is finalised by 'reobfJar', so what lands in build/libs is the reobfuscated jar that
-      # can be dropped straight into a mods folder - which makes every run of this workflow a
-      # build someone can actually go and play.
+      # 1.21 ships Mojang's own names at runtime, so there is no reobfuscation step any more: what
+      # lands in build/libs is already the jar that can be dropped straight into a mods folder -
+      # which makes every run of this workflow a build someone can actually go and play.
       - name: Upload the mod jar
         uses: actions/upload-artifact@v4
         with:

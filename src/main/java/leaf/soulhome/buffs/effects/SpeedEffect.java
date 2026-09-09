@@ -11,13 +11,13 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Track: you move faster, everywhere, all the time - up to a point (#86).
@@ -60,7 +60,7 @@ public class SpeedEffect extends AttributeBuffEffect
     private static final double STARTUP_SPEED_THRESHOLD = 0.9d;
 
     /** A second modifier id, so the run-up boost never collides with the steady one above. */
-    private UUID startupModifierId;
+    private ResourceLocation startupModifierId;
 
     @Override
     public String type()
@@ -87,7 +87,7 @@ public class SpeedEffect extends AttributeBuffEffect
     }
 
     @Override
-    public List<Attribute> attributes()
+    public List<Holder<Attribute>> attributes()
     {
         return List.of(Attributes.MOVEMENT_SPEED);
     }
@@ -95,7 +95,7 @@ public class SpeedEffect extends AttributeBuffEffect
     @Override
     protected AttributeModifier.Operation operation()
     {
-        return AttributeModifier.Operation.MULTIPLY_TOTAL;
+        return AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
     }
 
     /**
@@ -137,14 +137,14 @@ public class SpeedEffect extends AttributeBuffEffect
      * so nothing about top speed changes - only how quickly a standing start gets there.
      */
     @SubscribeEvent
-    public void onSprintStartupTick(TickEvent.PlayerTickEvent event)
+    public void onSprintStartupTick(PlayerTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END || event.side.isClient())
+        if (event.getEntity().level().isClientSide)
         {
             return;
         }
 
-        final Player player = event.player;
+        final Player player = event.getEntity();
         final AttributeInstance attribute = player.getAttribute(Attributes.MOVEMENT_SPEED);
 
         if (attribute == null)
@@ -180,12 +180,16 @@ public class SpeedEffect extends AttributeBuffEffect
         applyStartupBoost(attribute, overflow);
     }
 
-    private UUID startupModifierId()
+    private ResourceLocation startupModifierId()
     {
         if (this.startupModifierId == null)
         {
+            // a suffixed path rather than a suffixed name: 1.21 keys modifiers by ResourceLocation,
+            // and ':' is not legal in one twice over
+            final ResourceLocation type = ResourceLocation.parse(type());
+
             this.startupModifierId =
-                    UUID.nameUUIDFromBytes((type() + ":startup").getBytes(StandardCharsets.UTF_8));
+                    ResourceLocation.fromNamespaceAndPath(type.getNamespace(), type.getPath() + "_startup");
         }
 
         return this.startupModifierId;
@@ -196,7 +200,7 @@ public class SpeedEffect extends AttributeBuffEffect
         final double amount = overflow * STARTUP_BOOST_SCALE;
         final AttributeModifier existing = attribute.getModifier(startupModifierId());
 
-        if (existing != null && existing.getAmount() == amount)
+        if (existing != null && existing.amount() == amount)
         {
             return;
         }
@@ -207,7 +211,7 @@ public class SpeedEffect extends AttributeBuffEffect
         }
 
         attribute.addTransientModifier(new AttributeModifier(
-                startupModifierId(), type() + ":startup", amount, AttributeModifier.Operation.MULTIPLY_TOTAL));
+                startupModifierId(), amount, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
     }
 
     private void removeStartupBoost(AttributeInstance attribute)

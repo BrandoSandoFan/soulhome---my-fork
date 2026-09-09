@@ -1,6 +1,6 @@
 # SoulHome
 
-A Minecraft **1.20.1 / Forge 47.3.0** mod (Java 17). A player gets a private skyblock-esque
+A Minecraft **1.21.1 / NeoForge 21.1.250** mod (Java 21). A player gets a private skyblock-esque
 dimension - their "soulhome" - reached with a SoulKey. What they build in there is scanned,
 recognised as rooms, and turned into buffs they carry in the overworld.
 
@@ -24,7 +24,7 @@ CI does `chmod +x ./gradlew` first; locally use `sh gradlew ...` if you hit "Per
 
 ### Gradle needs network access, and often does not have it
 
-ForgeGradle resolves from `maven.minecraftforge.net` and decompiles Minecraft on a cold cache. In a
+ModDevGradle resolves from `maven.neoforged.net` and decompiles Minecraft on a cold cache. In a
 sandbox with no route to that host, **`./gradlew` cannot run at all** - it fails at plugin
 resolution before compiling a single file.
 
@@ -50,15 +50,40 @@ maths). What it does **not** cover, and what CI is therefore the first real comp
 
 | Not covered offline | Why |
 | --- | --- |
-| `config/SoulHomeConfig` | ForgeConfigSpec |
+| `config/SoulHomeConfig` | `ModConfigSpec` |
 | `structures/SnapshotBlockVolume`, `ArchetypeManager`, `StructureScanService` | `ServerLevel`, datapack reload |
 | `feedback/RegionHighlight`, all `network/*` | Mojang `Codec` (DataFixerUpper) |
 | `datagen/**` and its tests | `DataGenerator`, `Codec` |
 | everything under `buffs`, `items`, `client`, `mixin` | Minecraft |
 
 For a file you cannot compile, `javac` it anyway against the offline classpath and check that
-**every** error is a missing Forge/Minecraft symbol rather than a syntax error. That catches most
+**every** error is a missing NeoForge/Minecraft symbol rather than a syntax error. That catches most
 mistakes.
+
+### When you do have network access, run the game
+
+`./gradlew runData` regenerates `src/main/generated` and is the only check that the datapack the mod
+ships still parses; `./gradlew runServer` boots a dedicated server, which is where NeoForge's
+registration rules bite (see the next section). The run tasks are wired to the real stdin, so
+`printf 'soulhome analyse\nstop\n' | ./gradlew runServer --console=plain` drives the console. The
+client boots headless under `xvfb-run -a sh gradlew runClient` with `LIBGL_ALWAYS_SOFTWARE=1`; the
+narrator and OpenAL failures in that log are the container having no speech library and no sound
+card, not the mod.
+
+### NeoForge rejects three things Forge quietly tolerated
+
+All three compile cleanly and fail at runtime, so the server boot above is what catches them:
+
+- **`EVENT_BUS.register(obj)` on an object with no `@SubscribeEvent` methods of its own throws.**
+  Most `SoulBuffEffect`s have none - every active runs when a player presses a key, and
+  `FortuneEffect`'s hook is a loot modifier - so `SoulBuffEffect#register` checks
+  `getDeclaredMethods` before handing anything to the bus.
+- **It also throws if a *supertype* declares one.** `AttributeBuffEffect` is the one base class with
+  a shared hook, so it adds its tick listener with `addListener` instead of annotating it. Do not
+  put `@SubscribeEvent` on a method of a class that is extended.
+- **`EntityDataSerializers.registerSerializer` throws for a mod.** A raw registration hands out ids
+  by call order, which desyncs a client and server that loaded mods in different orders;
+  `DataSerializersRegistry` uses `NeoForgeRegistries.ENTITY_DATA_SERIALIZERS` instead.
 
 There is no formatter or linter in the build.
 
@@ -85,7 +110,7 @@ Soul Lens overlay.
 ### `structures/core` is Minecraft-free, on purpose
 
 Every class under `leaf.soulhome.structures.core` is pure Java. No `BlockState`, no `Level`, no
-Forge. That is what makes region detection and scoring testable without booting the game, and it is
+NeoForge. That is what makes region detection and scoring testable without booting the game, and it is
 worth protecting - **do not import Minecraft into that package.**
 
 The bridge is three small interfaces/records:
@@ -102,7 +127,7 @@ The bridge is three small interfaces/records:
 | --- | --- |
 | `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. |
 | `structures` | the game-facing half: snapshot, datapack loading, scan scheduling, saved data, codecs |
-| `config` | one `ForgeConfigSpec`; every knob is server-side and read through an immutable `Snapshot` |
+| `config` | one `ModConfigSpec`; every knob is server-side and read through an immutable `Snapshot` |
 | `buffs`, `buffs/effects` | the capability holding a player's magnitudes, and one class per buff type |
 | `feedback` | `SoulReport` (chat text for `/soulhome analyse`) and `RegionHighlight` (lens boxes) |
 | `network` | sync messages: buffs, regions, archetypes, dimension list |
@@ -119,7 +144,7 @@ The bridge is three small interfaces/records:
 `CommonEvents#onTravelToDimension` cancels any travel into or out of a soul dimension that this mod
 did not start. Waystones is what prompted it - a warp plate inside someone's soul is a public door
 into a private dimension, and a scroll out of one skips both the exit position saved on the way in
-and the rescan on the way out - but it is written against Forge's `EntityTravelToDimensionEvent`, so
+and the rescan on the way out - but it is written against NeoForge's `EntityTravelToDimensionEvent`, so
 one rule covers every teleport in the game.
 
 Our own moves are exempt because `TeleportHelper#teleportEntity` wraps them in
@@ -205,9 +230,9 @@ change. Tags live in `data/soulhome/tags/blocks/`.
 ### Rooms written for mods this one does not depend on
 
 Two archetypes, `arcane_sanctum` and `ritual_chamber` (Iron's Spells 'n Spellbooks), name another
-mod's blocks directly - and one more, `mine`, leans on Forge's own `forge:ores` and
-`forge:storage_blocks` tags, which is safe (Forge is guaranteed) but is still the only
-third-namespace dependency in the set. Nothing about any of that is a special case in Java, and it
+mod's blocks directly - and one more, `mine`, leans on the cross-loader convention tags `c:ores` and
+`c:storage_blocks`, which is safe (NeoForge defines them) but is still the only third-namespace
+dependency in the set. Nothing about any of that is a special case in Java, and it
 must not become one:
 
 - **An archetype naming a missing block is fine.** `BlockMatcher` never touches a registry, so an
@@ -275,9 +300,12 @@ Its layouts are the clearest documentation of what the scanner is supposed to do
   resource path. If you change a datagen source (e.g. `PatchouliMultiblocks` or `EngLangGen`),
   update the corresponding JSON under `src/main/generated` to match. CI runs `./gradlew runData`
   and fails on any diff outside `src/main/generated/.cache`, so a drift is caught rather than
-  shipped - but it is caught late, after a full ForgeGradle setup, so it is worth getting right
+  shipped - but it is caught late, after a full ModDevGradle setup, so it is worth getting right
   the first time.
 - The guide book runs in Patchouli's i18n mode, which pushes every string through `String.format`.
   A lone `%` renders the page as "Format error:". `PatchouliFormatSafetyTest` guards this.
 - Git: develop on the branch you were given; do not open a pull request unless asked.
-- The mainline branch is **`1.20.1`**, not `main` or `master`.
+- The mainline branch is **`1.20.1`**, not `main` or `master`. The 1.21.1 port lives on its own
+  branch until it is merged.
+- **Datapack folder names are singular in 1.21**: `advancement`, `loot_table`, `recipe`,
+  `tags/block`, `structure`. A file under the 1.20.1 plural name is silently not loaded.

@@ -7,8 +7,8 @@ package leaf.soulhome.datagen.blocks;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.registry.BlocksRegistry;
 import net.minecraft.data.PackOutput;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /** The mod's first block (#83): a single-texture cube is all the Soul Anchor needs. */
 public class BlockStatesGen extends BlockStateProvider

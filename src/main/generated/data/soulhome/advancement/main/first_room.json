@@ -1,0 +1,29 @@
+{
+  "parent": "soulhome:main/entered_soul_dimension",
+  "criteria": {
+    "classified_room": {
+      "trigger": "soulhome:classified_room"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.soulhome.first_room.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "soulhome:soul_lens"
+    },
+    "title": {
+      "translate": "advancements.soulhome.first_room.title"
+    }
+  },
+  "requirements": [
+    [
+      "classified_room"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

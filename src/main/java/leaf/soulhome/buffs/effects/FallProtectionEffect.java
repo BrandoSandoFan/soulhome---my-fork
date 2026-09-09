@@ -7,8 +7,8 @@ package leaf.soulhome.buffs.effects;
 import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * Training yard: falls hurt less - the other half of learning to jump higher.

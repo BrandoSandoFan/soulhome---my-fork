@@ -8,8 +8,8 @@ import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
  * Greenhouse: hunger builds up slower.
@@ -46,14 +46,14 @@ public class NourishedEffect implements SoulBuffEffect
     }
 
     @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event)
+    public void onPlayerTick(PlayerTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END || event.side.isClient())
+        if (event.getEntity().level().isClientSide)
         {
             return;
         }
 
-        final Player player = event.player;
+        final Player player = event.getEntity();
 
         if (!appliesTo(player) || player.tickCount % CHECK_INTERVAL_TICKS != 0)
         {

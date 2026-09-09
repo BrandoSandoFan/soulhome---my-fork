@@ -9,8 +9,8 @@ import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * Armoury: more damage with swords.
@@ -47,7 +47,7 @@ public class SwordDamageEffect implements SoulBuffEffect
     }
 
     @SubscribeEvent
-    public void onLivingHurt(LivingHurtEvent event)
+    public void onLivingHurt(LivingIncomingDamageEvent event)
     {
         if (!(event.getSource().getDirectEntity() instanceof Player player) || !appliesTo(player))
         {

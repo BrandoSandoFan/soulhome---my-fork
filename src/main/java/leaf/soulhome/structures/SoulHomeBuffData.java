@@ -15,6 +15,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.core.HolderLookup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,9 +102,18 @@ public class SoulHomeBuffData extends SavedData
         this.ascensionRank = SoulHomeConfig.startingRank();
     }
 
+    /**
+     * 1.20.5 folded the constructor and the loader into one {@link SavedData.Factory} and threaded a
+     * {@code HolderLookup.Provider} through both, so that saved data holding registry references can
+     * resolve them. Nothing here holds one - rooms are archetype ids, tiers and scores - so the
+     * provider is accepted and ignored rather than plumbed further.
+     */
+    private static final SavedData.Factory<SoulHomeBuffData> FACTORY =
+            new SavedData.Factory<>(SoulHomeBuffData::new, (tag, registries) -> load(tag));
+
     public static SoulHomeBuffData get(ServerLevel level)
     {
-        return level.getDataStorage().computeIfAbsent(SoulHomeBuffData::load, SoulHomeBuffData::new, NAME);
+        return level.getDataStorage().computeIfAbsent(FACTORY, NAME);
     }
 
     public static SoulHomeBuffData load(CompoundTag tag)
@@ -178,7 +188,7 @@ public class SoulHomeBuffData extends SavedData
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag)
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries)
     {
         ListTag list = new ListTag();
 

@@ -4,18 +4,16 @@
 
 package leaf.soulhome.advancements;
 
-import com.google.gson.JsonObject;
-import leaf.soulhome.utils.ResourceLocationHelper;
-import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.DeserializationContext;
-import net.minecraft.advancements.critereon.SerializationContext;
+import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.GsonHelper;
 
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Fires when a room in a player's soulhome is awarded an archetype.
@@ -27,28 +25,21 @@ import java.util.Locale;
  *
  * <p>{@code archetype} is optional: an instance without one matches any classified room, which is
  * what the "you built your first room" advancement wants.
+ *
+ * <h2>A codec rather than a pair of Gson methods</h2>
+ *
+ * 1.20.2 replaced {@code createInstance}/{@code serializeToJson} with one {@link Codec} and made
+ * the instance a record - the trigger no longer carries its own id either, because it is registered
+ * into {@code Registries.TRIGGER_TYPE} and the registry knows the name. {@code min_tier} defaults
+ * through {@code optionalFieldOf} rather than through a {@code GsonHelper} default, so a pack that
+ * omits it and a pack that writes {@code 1} produce the same instance.
  */
 public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoomTrigger.Instance>
 {
-    public static final ResourceLocation ID = ResourceLocationHelper.prefix("classified_room");
-
-    private static final String KEY_ARCHETYPE = "archetype";
-    private static final String KEY_MIN_TIER = "min_tier";
-
     @Override
-    public ResourceLocation getId()
+    public Codec<Instance> codec()
     {
-        return ID;
-    }
-
-    @Override
-    protected Instance createInstance(JsonObject json, ContextAwarePredicate player, DeserializationContext context)
-    {
-        final String archetype = json.has(KEY_ARCHETYPE)
-                ? GsonHelper.getAsString(json, KEY_ARCHETYPE)
-                : null;
-
-        return new Instance(player, archetype, GsonHelper.getAsInt(json, KEY_MIN_TIER, 1));
+        return Instance.CODEC;
     }
 
     /** Tell the game a room was awarded. Cheap when the player has no advancement waiting on it. */
@@ -57,35 +48,46 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
         trigger(player, instance -> instance.matches(archetypeId, tier));
     }
 
-    public static class Instance extends AbstractCriterionTriggerInstance
+    public record Instance(Optional<ContextAwarePredicate> player, Optional<String> archetype, int minTier)
+            implements SimpleCriterionTrigger.SimpleInstance
     {
-        private final String archetypeId;
-        private final int minTier;
+        public static final Codec<Instance> CODEC = RecordCodecBuilder.create(builder -> builder
+                .group(
+                        EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(Instance::player),
+                        Codec.STRING.optionalFieldOf("archetype").forGetter(Instance::archetype),
+                        Codec.INT.optionalFieldOf("min_tier", 1).forGetter(Instance::minTier))
+                .apply(builder, Instance::new));
 
-        public Instance(ContextAwarePredicate player, String archetypeId, int minTier)
+        public Instance
         {
-            super(ID, player);
-
-            this.archetypeId = archetypeId == null || archetypeId.isBlank()
-                    ? null
-                    : archetypeId.toLowerCase(Locale.ROOT);
-            this.minTier = Math.max(1, minTier);
+            archetype = archetype.filter(id -> !id.isBlank()).map(id -> id.toLowerCase(Locale.ROOT));
+            minTier = Math.max(1, minTier);
         }
 
         /** Any room of any archetype, at any tier. */
-        public static Instance any()
+        public static Criterion<Instance> any()
         {
-            return new Instance(ContextAwarePredicate.ANY, null, 1);
+            return criterion(Optional.empty(), 1);
         }
 
-        public static Instance of(String archetypeId)
+        public static Criterion<Instance> of(String archetypeId)
         {
-            return new Instance(ContextAwarePredicate.ANY, archetypeId, 1);
+            return criterion(Optional.ofNullable(archetypeId), 1);
         }
 
-        public static Instance of(String archetypeId, int minTier)
+        public static Criterion<Instance> of(String archetypeId, int minTier)
         {
-            return new Instance(ContextAwarePredicate.ANY, archetypeId, minTier);
+            return criterion(Optional.ofNullable(archetypeId), minTier);
+        }
+
+        private static Criterion<Instance> criterion(Optional<String> archetype, int minTier)
+        {
+            // A Criterion wraps the instance with the trigger it belongs to, which is what an
+            // advancement builder takes now - the trigger type is no longer named in JSON by the
+            // instance itself.
+            return SoulAdvancements.CLASSIFIED_ROOM
+                    .get()
+                    .createCriterion(new Instance(Optional.empty(), archetype, minTier));
         }
 
         public boolean matches(String awardedArchetype, int awardedTier)
@@ -95,22 +97,7 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
                 return false;
             }
 
-            return this.archetypeId == null || this.archetypeId.equals(awardedArchetype);
-        }
-
-        @Override
-        public JsonObject serializeToJson(SerializationContext context)
-        {
-            JsonObject json = super.serializeToJson(context);
-
-            if (this.archetypeId != null)
-            {
-                json.addProperty(KEY_ARCHETYPE, this.archetypeId);
-            }
-
-            json.addProperty(KEY_MIN_TIER, this.minTier);
-
-            return json;
+            return this.archetype.isEmpty() || this.archetype.get().equals(awardedArchetype);
         }
     }
 }

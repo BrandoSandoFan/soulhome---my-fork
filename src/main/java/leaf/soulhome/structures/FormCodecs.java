@@ -126,6 +126,73 @@ final class FormCodecs
         };
     }
 
+    /**
+     * A list of forms that drops the ones that would not parse, rather than failing with them.
+     *
+     * <p>{@code FORM.listOf()} used to do this by itself. DataFixerUpper's list codec was lenient
+     * up to 1.20.1 - a failing element was left out and the rest came back as a success - and the
+     * leniency this class documents, and {@code ArchetypeManager} relies on, was really that
+     * leniency borrowed. 1.20.5's DFU returns a <i>partial</i> result instead: the good elements are
+     * still in there, but the result is an error, and {@code RecordCodecBuilder} propagates that all
+     * the way out, so one unknown clause id took the whole archetype down with it - the exact
+     * outcome the class javadoc above says must not happen, and the behaviour
+     * {@code FormCodecsTest} pins.
+     *
+     * <p>So the leniency is written here rather than assumed. Each element is decoded on its own and
+     * a failure is logged and skipped; nothing else about the archetype is affected. A
+     * non-list in the {@code structures} field is still a hard error, because that is a malformed
+     * file rather than one form this install cannot evaluate.
+     */
+    static Codec<List<Form>> listOfForms(Codec<Form> formCodec)
+    {
+        return new Codec<>()
+        {
+            @Override
+            public <T> DataResult<Pair<List<Form>, T>> decode(DynamicOps<T> ops, T input)
+            {
+                Optional<Stream<T>> entries = ops.getStream(input).result();
+
+                if (entries.isEmpty())
+                {
+                    return DataResult.error(() -> "'structures' must be a list of structural forms");
+                }
+
+                List<Form> forms = new ArrayList<>();
+
+                entries.get().forEach(entry ->
+                {
+                    DataResult<Pair<Form, T>> decoded = formCodec.decode(ops, entry);
+
+                    // the form codec has already logged why, in the terms a pack author needs -
+                    // which clause, which form - so this only has to not propagate the failure
+                    decoded.result().ifPresent(pair -> forms.add(pair.getFirst()));
+                });
+
+                return DataResult.success(Pair.of(List.copyOf(forms), input));
+            }
+
+            @Override
+            public <T> DataResult<T> encode(List<Form> forms, DynamicOps<T> ops, T prefix)
+            {
+                List<T> encoded = new ArrayList<>(forms.size());
+
+                for (Form form : forms)
+                {
+                    DataResult<T> one = formCodec.encodeStart(ops, form);
+
+                    if (one.result().isEmpty())
+                    {
+                        return DataResult.error(() -> "Could not encode structural form '" + form.name() + "'");
+                    }
+
+                    encoded.add(one.result().get());
+                }
+
+                return DataResult.success(ops.createList(encoded.stream()));
+            }
+        };
+    }
+
     private FormCodecs()
     {
     }

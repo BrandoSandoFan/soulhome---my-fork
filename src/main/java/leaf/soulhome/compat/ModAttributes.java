@@ -5,8 +5,9 @@
 package leaf.soulhome.compat;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Map;
 import java.util.Optional;
@@ -23,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * would throw {@code NoClassDefFoundError}. A registry lookup by {@link ResourceLocation} cannot:
  * the worst case is an empty {@link Optional} and an effect that quietly does nothing.
  *
- * <p>The same route works for attributes that are always present - Forge's own reach attributes
+ * <p>The same route works for attributes that are always present - the vanilla reach attributes
  * go through here too - so there is one way of doing this rather than two.
  *
  * <h2>When to call</h2>
@@ -36,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ModAttributes
 {
-    private static final Map<String, Optional<Attribute>> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Optional<Holder<Attribute>>> CACHE = new ConcurrentHashMap<>();
 
     private ModAttributes()
     {
@@ -46,7 +47,7 @@ public final class ModAttributes
      * @param id a namespaced attribute id, e.g. {@code irons_spellbooks:max_mana}
      * @return empty if the mod that registers it is not installed, or never registered it
      */
-    public static Optional<Attribute> find(String id)
+    public static Optional<Holder<Attribute>> find(String id)
     {
         return CACHE.computeIfAbsent(id, key ->
         {
@@ -54,7 +55,7 @@ public final class ModAttributes
 
             return location == null
                    ? Optional.empty()
-                   : Optional.ofNullable(ForgeRegistries.ATTRIBUTES.getValue(location));
+                   : BuiltInRegistries.ATTRIBUTE.getHolder(location).map(holder -> (Holder<Attribute>) holder);
         });
     }
 }

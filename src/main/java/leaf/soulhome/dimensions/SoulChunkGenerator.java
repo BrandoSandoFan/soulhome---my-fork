@@ -4,7 +4,7 @@
 
 package leaf.soulhome.dimensions;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.registry.BiomeRegistry;
 import leaf.soulhome.utils.DimensionHelper;
@@ -26,12 +26,14 @@ import net.minecraft.world.level.levelgen.blending.Blender;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public class SoulChunkGenerator extends ChunkGenerator
 {
-    public static final Codec<SoulChunkGenerator> providerCodec =
-            RecordCodecBuilder.create(builder ->
+    // A MapCodec rather than a Codec: the chunk generator registry holds map codecs in 1.20.5+,
+    // because a generator's fields are merged into the dimension JSON alongside "type" rather than
+    // nested under it.
+    public static final MapCodec<SoulChunkGenerator> providerCodec =
+            RecordCodecBuilder.mapCodec(builder ->
                     builder.group(RegistryOps.retrieveElement(BiomeRegistry.SOUL_BIOME_KEY))
                             .apply(builder, builder.stable(SoulChunkGenerator::new)));
 
@@ -42,9 +44,8 @@ public class SoulChunkGenerator extends ChunkGenerator
     }
 
 
-
     @Override
-    protected Codec<? extends ChunkGenerator> codec()
+    protected MapCodec<? extends ChunkGenerator> codec()
     {
         return providerCodec;
     }
@@ -52,7 +53,6 @@ public class SoulChunkGenerator extends ChunkGenerator
     @Override
     public void applyCarvers(WorldGenRegion worldGenRegion, long p_223044_, RandomState randomState, BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunkAccess, GenerationStep.Carving carving)
     {
-
     }
 
 
@@ -69,11 +69,10 @@ public class SoulChunkGenerator extends ChunkGenerator
     @Override
     public void buildSurface(WorldGenRegion worldGenRegion, StructureManager structureManager, RandomState randomState, ChunkAccess chunkAccess)
     {
-
     }
 
     @Override
-    public CompletableFuture<ChunkAccess> fillFromNoise(Executor executor, Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunkAccess)
+    public CompletableFuture<ChunkAccess> fillFromNoise(Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunkAccess)
     {
         return CompletableFuture.completedFuture(chunkAccess);
     }

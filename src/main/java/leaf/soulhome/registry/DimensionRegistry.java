@@ -5,7 +5,7 @@
 package leaf.soulhome.registry;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.Lifecycle;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.dimensions.SoulChunkGenerator;
@@ -39,10 +39,11 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import net.minecraft.world.level.storage.DerivedLevelData;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.WorldData;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.minecraft.core.RegistrationInfo;
 
 import java.util.Map;
 import java.util.Optional;
@@ -53,9 +54,9 @@ import java.util.function.BiFunction;
 
 public class DimensionRegistry
 {
-	public static final DeferredRegister<Codec<? extends ChunkGenerator>> CHUNK_GENERATORS = DeferredRegister.create(Registries.CHUNK_GENERATOR, SoulHome.MODID);
-	public static final ResourceKey<Biome> SOULHOME_BIOME = ResourceKey.create(Registries.BIOME, new ResourceLocation(SoulHome.MODID, SoulHome.MODID));
-	public static final RegistryObject<Codec<? extends ChunkGenerator>> CHUNK_GENERATOR = CHUNK_GENERATORS.register(SoulHome.MODID, () -> SoulChunkGenerator.providerCodec);
+	public static final DeferredRegister<MapCodec<? extends ChunkGenerator>> CHUNK_GENERATORS = DeferredRegister.create(Registries.CHUNK_GENERATOR, SoulHome.MODID);
+	public static final ResourceKey<Biome> SOULHOME_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(SoulHome.MODID, SoulHome.MODID));
+	public static final DeferredHolder<MapCodec<? extends ChunkGenerator>, MapCodec<SoulChunkGenerator>> CHUNK_GENERATOR = CHUNK_GENERATORS.register(SoulHome.MODID, () -> SoulChunkGenerator.providerCodec);
 
 	// Number of soul_island<n> structure templates that ship with the mod.
 	// TODO: add more islands, bump this as more are added.
@@ -102,7 +103,9 @@ public class DimensionRegistry
 			final WritableRegistry<LevelStem> writableRegistry = (WritableRegistry<LevelStem>) dimensionRegistry;
 			boolean wasFrozen = ((DefrostedRegistry) writableRegistry).getFrozen();
 			((DefrostedRegistry) writableRegistry).setFrozen(false);
-			writableRegistry.register(dimensionKey, dimension, Lifecycle.stable());
+			// 1.20.2 wrapped the lifecycle in a RegistrationInfo alongside an optional pack id; a
+			// dimension created at runtime comes from no pack, so there is none to name.
+			writableRegistry.register(dimensionKey, dimension, new RegistrationInfo(Optional.empty(), Lifecycle.stable()));
 
 			if (wasFrozen)
 			{
@@ -152,7 +155,7 @@ public class DimensionRegistry
 		server.markWorldsDirty();
 
 		//then post an event for our new world. Welcome :)
-		MinecraftForge.EVENT_BUS.post(new LevelEvent.Load(newSoulWorld));
+		NeoForge.EVENT_BUS.post(new LevelEvent.Load(newSoulWorld));
 		LogHelper.info("New soul dimension has been created: " + dimensionKey.location());
 
 		StructurePlaceSettings settings = (new StructurePlaceSettings()).setIgnoreEntities(true).setMirror(Mirror.NONE).setRotation(Rotation.NONE);
@@ -165,7 +168,7 @@ public class DimensionRegistry
 		// so a third of players got a negative style and a soul_island-1 / soul_island-2 that
 		// does not exist, silently falling through to the legacy platform below.
 		int islandStyle = rand.nextInt(ISLAND_STYLE_COUNT);
-		ResourceLocation soulIslandLocation = new ResourceLocation(SoulHome.MODID, "soul_island" + islandStyle);
+		ResourceLocation soulIslandLocation = ResourceLocation.fromNamespaceAndPath(SoulHome.MODID, "soul_island" + islandStyle);
 
 		Optional<StructureTemplate> templateOptional = manager.get(soulIslandLocation);
 		if (templateOptional.isPresent())

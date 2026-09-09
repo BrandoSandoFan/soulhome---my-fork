@@ -35,7 +35,7 @@ public class EntityHelper
     private static final Predicate<Entity> ALLOWED_TO_TELEPORT =
             EntitySelector.NO_SPECTATORS
                     .and(EntitySelector.LIVING_ENTITY_STILL_ALIVE)
-                    .and(Entity::canChangeDimensions)
+                    .and(entity -> entity.canChangeDimensions(entity.level(), entity.level()))
                     .and((entity)->!(entity instanceof Enemy));
 
     public static List<Entity> getEntitiesInRange(Entity entity, double range, boolean includeSelf)

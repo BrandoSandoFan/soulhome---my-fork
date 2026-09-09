@@ -6,8 +6,10 @@ package leaf.soulhome.buffs;
 
 import leaf.soulhome.structures.core.AbilityCharges;
 import leaf.soulhome.structures.core.SoulBuffSet;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -23,7 +25,7 @@ import java.util.Map;
  * the soulhome's. A player who logs out halfway through a recharge should come back halfway through
  * it rather than fully loaded, which is only true if the clock is saved with them.
  */
-public class PlayerSoulBuffs
+public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
 {
     /**
      * Reserved NBT keys, prefixed so they cannot collide with a buff id. Buff magnitudes are stored
@@ -140,7 +142,8 @@ public class PlayerSoulBuffs
         }
     }
 
-    public CompoundTag serializeNBT()
+    @Override
+    public CompoundTag serializeNBT(HolderLookup.Provider provider)
     {
         CompoundTag tag = new CompoundTag();
 
@@ -166,7 +169,8 @@ public class PlayerSoulBuffs
         return tag;
     }
 
-    public void deserializeNBT(CompoundTag tag)
+    @Override
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag)
     {
         this.abilities.clear();
         this.selectedAbility = "";

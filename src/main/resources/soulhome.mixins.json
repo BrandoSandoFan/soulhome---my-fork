@@ -2,8 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "leaf.soulhome.mixin",
-  "compatibilityLevel": "JAVA_17",
-  "refmap": "soulhome.refmap.json",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "DefrostedRegistry",
     "LivingEntityAccessor",

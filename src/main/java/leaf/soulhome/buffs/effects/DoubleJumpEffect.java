@@ -10,9 +10,9 @@ import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Map;
 import java.util.UUID;
@@ -60,14 +60,14 @@ public class DoubleJumpEffect implements SoulBuffEffect
     }
 
     @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event)
+    public void onPlayerTick(PlayerTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END || event.side.isClient())
+        if (event.getEntity().level().isClientSide)
         {
             return;
         }
 
-        final Player player = event.player;
+        final Player player = event.getEntity();
 
         if (!appliesTo(player))
         {

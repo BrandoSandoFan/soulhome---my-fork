@@ -8,13 +8,12 @@ import leaf.soulhome.SoulHome;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class BiomeRegistry
 {
 	public static ResourceKey<Biome> SOUL_BIOME_KEY = ResourceKey.create(Registries.BIOME, SoulHome.SOULHOME_LOC);
-	public static final DeferredRegister<Biome> BIOMES = DeferredRegister.create(ForgeRegistries.BIOMES, SoulHome.MODID);
+	public static final DeferredRegister<Biome> BIOMES = DeferredRegister.create(Registries.BIOME, SoulHome.MODID);
 
 	//public static final RegistryObject<Biome> SOUL_BIOME = BIOMES.register(SoulHome.MODID, () -> OverworldBiomes.plains(false,false,false));
 }

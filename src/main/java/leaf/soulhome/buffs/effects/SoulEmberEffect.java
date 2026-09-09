@@ -7,8 +7,8 @@ package leaf.soulhome.buffs.effects;
 import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * Shrine: a fraction of what death would take from you stays behind as orbs at the spot you fell,

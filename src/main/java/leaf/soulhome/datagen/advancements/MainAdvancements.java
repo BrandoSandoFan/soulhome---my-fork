@@ -8,26 +8,38 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.advancements.ClassifiedRoomTrigger;
 import leaf.soulhome.registry.ItemsRegistry;
 import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.FrameType;
+import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.critereon.*;
-import net.minecraft.commands.CommandFunction;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.biome.Biome;
+import net.neoforged.neoforge.common.data.AdvancementProvider;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
-public class MainAdvancements implements Consumer<Consumer<Advancement>>
+public class MainAdvancements implements AdvancementProvider.AdvancementGenerator
 {
     public MainAdvancements()
     {
     }
 
-    public void accept(Consumer<Advancement> advancementConsumer)
+    @Override
+    public void generate(
+            HolderLookup.Provider registries,
+            Consumer<AdvancementHolder> advancementConsumer,
+            ExistingFileHelper existingFileHelper)
     {
         final String tabName = "main";
 
@@ -35,91 +47,96 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
         final String descriptionFormat = "advancements.soulhome.%s.description";
         final String achievementPathFormat = "soulhome:%s/%s";
 
-        Advancement root = Advancement.Builder.advancement()
+        AdvancementHolder root = Advancement.Builder.advancement()
                 .display(ItemsRegistry.SOUL_KEY.get(),
                         Component.translatable(String.format(titleFormat, tabName)),
                         Component.translatable(String.format(descriptionFormat, tabName)),
-                        new ResourceLocation("textures/gui/advancements/backgrounds/stone.png"),
-                        FrameType.TASK,
+                        ResourceLocation.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png"),
+                        AdvancementType.TASK,
                         false,//showToast
                         false,//announceChat
                         false)//hidden
-                .addCriterion("tick", InventoryChangeTrigger.TriggerInstance.hasItems(ItemPredicate.ANY))
+                // was hasItems(ItemPredicate.ANY) - a match-anything item predicate, which 1.20.5
+                // removed along with the rest of the ANY constants. The root is meant to unlock the
+                // moment the tab is loaded, and minecraft:tick says that outright.
+                .addCriterion("tick", PlayerTrigger.TriggerInstance.tick())
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, "root"));
 
 
         final String obtainedSoulKey = "obtained_soul_key";
-        Advancement advancement1 = Advancement.Builder.advancement()
+        AdvancementHolder advancement1 = Advancement.Builder.advancement()
                 .parent(root)
                 .display(
                         ItemsRegistry.GUIDE.get(),
                         Component.translatable(String.format(titleFormat, obtainedSoulKey)),
                         Component.translatable(String.format(descriptionFormat, obtainedSoulKey)),
-                        (ResourceLocation)null,
-                        FrameType.TASK,
+                        (ResourceLocation) null,
+                        AdvancementType.TASK,
                         true, //showToast
                         true, //announce
                         false)//hidden
                 .addCriterion(
                         "has_item",
                         InventoryChangeTrigger.TriggerInstance.hasItems(ItemsRegistry.SOUL_KEY.get()))
-                .rewards(new AdvancementRewards(50, new ResourceLocation[]{new ResourceLocation("soulhome:guide")}, new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
+                .rewards(new AdvancementRewards(50, List.of(), List.of(ResourceLocation.parse("soulhome:guide")), Optional.empty()))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, obtainedSoulKey));
 
 
-
         final String obtainedGuide = "obtained_guide";
-        Advancement advancement2 = Advancement.Builder.advancement()
+        AdvancementHolder advancement2 = Advancement.Builder.advancement()
                 .parent(advancement1)
                 .display(
                         ItemsRegistry.GUIDE.get(),
                         Component.translatable(String.format(titleFormat, obtainedGuide)),
                         Component.translatable(String.format(descriptionFormat, obtainedGuide)),
-                        (ResourceLocation)null,
-                        FrameType.TASK,
+                        (ResourceLocation) null,
+                        AdvancementType.TASK,
                         true, //showToast
                         true, //announce
                         false)//hidden
                 .addCriterion(
                         "has_item",
                         InventoryChangeTrigger.TriggerInstance.hasItems(ItemsRegistry.GUIDE.get()))
-                .rewards(new AdvancementRewards(5, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
+                .rewards(new AdvancementRewards(5, List.of(), List.of(), Optional.empty()))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, obtainedGuide));
 
 
         final String enteredSoulDimension = "entered_soul_dimension";
-        Advancement advancement3 = Advancement.Builder.advancement()
+        AdvancementHolder advancement3 = Advancement.Builder.advancement()
                 .parent(advancement1)
                 .display(
                         ItemsRegistry.GUIDE.get(),
                         Component.translatable(String.format(titleFormat, enteredSoulDimension)),
                         Component.translatable(String.format(descriptionFormat, enteredSoulDimension)),
-                        (ResourceLocation)null,
-                        FrameType.TASK,
+                        (ResourceLocation) null,
+                        AdvancementType.TASK,
                         true, //showToast
                         true, //announce
                         false)//hidden
-                .addCriterion("entered_soul", PlayerTrigger.TriggerInstance.located(LocationPredicate.inBiome(ResourceKey.create(Registries.BIOME, SoulHome.SOULHOME_LOC))))
-                .rewards(new AdvancementRewards(5, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
+                .addCriterion(
+                        "entered_soul",
+                        PlayerTrigger.TriggerInstance.located(
+                                LocationPredicate.Builder.location().setBiomes(soulBiomes())))
+                .rewards(new AdvancementRewards(5, List.of(), List.of(), Optional.empty()))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, enteredSoulDimension));
 
         // The soulhome structure buffs. 'blank' used to sit here as a placeholder for exactly this
         // feature, gated behind an impossible trigger so nothing could ever unlock the book entry
         // it guarded. It is now the real thing.
         final String firstRoom = "first_room";
-        Advancement roomAdvancement = Advancement.Builder.advancement()
+        AdvancementHolder roomAdvancement = Advancement.Builder.advancement()
                 .parent(advancement3)
                 .display(
                         ItemsRegistry.SOUL_LENS.get(),
                         Component.translatable(String.format(titleFormat, firstRoom)),
                         Component.translatable(String.format(descriptionFormat, firstRoom)),
-                        (ResourceLocation)null,
-                        FrameType.TASK,
+                        (ResourceLocation) null,
+                        AdvancementType.TASK,
                         true, //showToast
                         true, //announce
                         false)//hidden
                 .addCriterion("classified_room", ClassifiedRoomTrigger.Instance.any())
-                .rewards(new AdvancementRewards(10, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
+                .rewards(new AdvancementRewards(10, List.of(), List.of(), Optional.empty()))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, firstRoom));
 
         // One per shipped archetype. Named after the archetype id so that the advancement, the
@@ -170,9 +187,19 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
      * tier - the first one is the moment worth marking, and asking for tier 3 up front would hide
      * the advancement behind the balance pass.
      */
+    /**
+     * The soulhome biome, named by tag rather than by id - see {@link TagOnlyHolderSet} for why it
+     * has to be a tag, and why the set is one of those rather than a real holder set.
+     */
+    private static HolderSet<Biome> soulBiomes()
+    {
+        return new TagOnlyHolderSet<>(
+                TagKey.create(Registries.BIOME, ResourceLocationHelper.prefix("is_soulhome")));
+    }
+
     private static void archetypeAdvancement(
-            Consumer<Advancement> advancementConsumer,
-            Advancement parent,
+            Consumer<AdvancementHolder> advancementConsumer,
+            AdvancementHolder parent,
             String archetype,
             ItemLike icon)
     {
@@ -182,13 +209,13 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
                         icon,
                         Component.translatable("advancements.soulhome." + archetype + ".title"),
                         Component.translatable("advancements.soulhome." + archetype + ".description"),
-                        (ResourceLocation)null,
-                        FrameType.TASK,
+                        (ResourceLocation) null,
+                        AdvancementType.TASK,
                         true, //showToast
                         true, //announce
                         false)//hidden
                 .addCriterion("classified_room", ClassifiedRoomTrigger.Instance.of(SoulHome.MODID + ":" + archetype))
-                .rewards(new AdvancementRewards(10, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
+                .rewards(new AdvancementRewards(10, List.of(), List.of(), Optional.empty()))
                 .save(advancementConsumer, "soulhome:main/" + archetype);
     }
 }

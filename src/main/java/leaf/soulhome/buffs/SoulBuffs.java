@@ -10,7 +10,7 @@ import leaf.soulhome.network.SyncSoulBuffsMessage;
 import leaf.soulhome.structures.core.SoulBuffSet;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
 /**
  * The one way an effect asks "what is this player's magnitude for buff X".
@@ -28,8 +28,8 @@ import net.minecraftforge.common.util.FakePlayer;
  *   <li>never negative, and never null</li>
  * </ul>
  *
- * <p>Server-side this reads the capability. Client-side it reads {@link ClientSoulBuffs}, the copy
- * the server last sent - the capability exists on both sides but is only ever filled in on one.
+ * <p>Server-side this reads the attachment. Client-side it reads {@link ClientSoulBuffs}, the copy
+ * the server last sent - the attachment exists on both sides but is only ever filled in on one.
  * There is one such copy, for the local player, which is the only player a client ever predicts
  * anything for.
  */
@@ -48,16 +48,14 @@ public final class SoulBuffs
 
         if (player.level().isClientSide)
         {
-            // The capability is attached on both sides but only ever filled in on the server, so a
+            // The attachment exists on both sides but is only ever filled in on the server, so a
             // client-side read of it is always zero - which is not the same as "this player has no
             // buffs", and is the wrong answer for the one effect that has to run on both sides.
             // The synced copy is what the client actually knows.
             return ClientSoulBuffs.get();
         }
 
-        return player.getCapability(SoulBuffsProvider.CAPABILITY)
-                .map(PlayerSoulBuffs::get)
-                .orElse(SoulBuffSet.empty());
+        return player.getData(SoulBuffsAttachment.BUFFS).get();
     }
 
     /**
@@ -88,11 +86,9 @@ public final class SoulBuffs
 
         // rank-aware (#85): reclamping against the plain, un-raised cap here would silently strip
         // back off exactly the amplification a rank raised the ceiling for, on every single read.
-        // The rank is cached on the capability rather than looked up from the soulhome level, since
+        // The rank is cached on the attachment rather than looked up from the soulhome level, since
         // this runs on every hit and every block broken - see PlayerSoulBuffs.rank().
-        final int rank = player.getCapability(SoulBuffsProvider.CAPABILITY)
-                .map(PlayerSoulBuffs::rank)
-                .orElse(0);
+        final int rank = player.getData(SoulBuffsAttachment.BUFFS).rank();
 
         return Math.min(raw, SoulHomeConfig.buffSettings().capFor(buffType, rank));
     }
@@ -119,13 +115,10 @@ public final class SoulBuffs
             return;
         }
 
-        player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held ->
+        if (player.getData(SoulBuffsAttachment.BUFFS).set(buffs, rank))
         {
-            if (held.set(buffs, rank))
-            {
-                sync(player);
-            }
-        });
+            sync(player);
+        }
     }
 
     /** Push the player's current buffs to their client unconditionally. */

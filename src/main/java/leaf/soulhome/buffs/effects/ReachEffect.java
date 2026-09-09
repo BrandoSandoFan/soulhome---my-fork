@@ -8,6 +8,7 @@ import leaf.soulhome.compat.ModAttributes;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.core.Holder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +16,11 @@ import java.util.List;
 /**
  * Workshop: everything is within arm's reach - up to a point (#86).
  *
- * <p>Blocks and entities both, in blocks of distance. Forge splits reach in two - 4.5 for placing
+ * <p>Blocks and entities both, in blocks of distance. The game splits reach in two - 4.5 for placing
  * and breaking, 3 for hitting - and a workshop buff that extended only one of them would be a
  * surprise the first time the player swung at something they could clearly reach.
  *
- * <p>These are Forge's own attributes rather than Create's; Create has none to offer, and the
+ * <p>These are vanilla's own attributes rather than Create's; Create has none to offer, and the
  * point of the room is what a person can do at a workbench, not what a machine can. So this buff
  * works with or without Create installed - it is only the room that grants it that needs Create's
  * blocks to exist. Looked up by name all the same, so there is one way of reaching an attribute
@@ -35,11 +36,11 @@ public class ReachEffect extends AttributeBuffEffect
 {
     public static final String TYPE = SoulBuffTypes.REACH;
 
-    /** Forge's placing-and-breaking reach, base 4.5. */
-    public static final String BLOCK_REACH = "forge:block_reach";
+    /** Vanilla's placing-and-breaking reach, base 4.5 - a Forge extension until 1.20.5 made it vanilla. */
+    public static final String BLOCK_REACH = "minecraft:block_interaction_range";
 
-    /** Forge's hitting reach, base 3.0. */
-    public static final String ENTITY_REACH = "forge:entity_reach";
+    /** Vanilla's hitting reach, base 3.0. */
+    public static final String ENTITY_REACH = "minecraft:entity_interaction_range";
 
     /** Past this, reach makes placement harder rather than easier - a hard stop, not a trade (#86). */
     private static final double SOFT_CEILING = 2.0d;
@@ -63,9 +64,9 @@ public class ReachEffect extends AttributeBuffEffect
     }
 
     @Override
-    public List<Attribute> attributes()
+    public List<Holder<Attribute>> attributes()
     {
-        List<Attribute> attributes = new ArrayList<>(2);
+        List<Holder<Attribute>> attributes = new ArrayList<>(2);
 
         ModAttributes.find(BLOCK_REACH).ifPresent(attributes::add);
         ModAttributes.find(ENTITY_REACH).ifPresent(attributes::add);
@@ -76,6 +77,6 @@ public class ReachEffect extends AttributeBuffEffect
     @Override
     protected AttributeModifier.Operation operation()
     {
-        return AttributeModifier.Operation.ADDITION;
+        return AttributeModifier.Operation.ADD_VALUE;
     }
 }

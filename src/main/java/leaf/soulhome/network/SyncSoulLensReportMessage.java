@@ -7,10 +7,11 @@ package leaf.soulhome.network;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.feedback.LensRegionReport;
-import net.minecraftforge.network.NetworkEvent;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Sends one player the full breakdown behind the regions the Soul Lens found, so their client can
@@ -22,8 +23,11 @@ import java.util.function.Consumer;
  *
  * <p>Display only: nothing a client does with this changes what anyone is awarded.
  */
-public class SyncSoulLensReportMessage implements Consumer<NetworkEvent.Context>
+public class SyncSoulLensReportMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<SyncSoulLensReportMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("sync_soul_lens_report"));
+
     public static final SyncSoulLensReportMessage INVALID = new SyncSoulLensReportMessage("", List.of(), -1);
 
     public static final Codec<SyncSoulLensReportMessage> CODEC =
@@ -65,7 +69,7 @@ public class SyncSoulLensReportMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() -> ClientLensReport.accept(this.regions, this.standingIn));
     }
@@ -117,5 +121,11 @@ public class SyncSoulLensReportMessage implements Consumer<NetworkEvent.Context>
         {
             return standingIn;
         }
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

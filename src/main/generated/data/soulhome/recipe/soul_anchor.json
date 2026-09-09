@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_block"
+    },
+    "E": {
+      "item": "soulhome:sublime_essence_1"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "pattern": [
+    "EOE",
+    "OAO",
+    "EOE"
+  ],
+  "result": {
+    "count": 1,
+    "id": "soulhome:soul_anchor"
+  }
+}

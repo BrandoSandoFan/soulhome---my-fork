@@ -14,7 +14,7 @@ import leaf.soulhome.utils.LogHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -92,53 +92,52 @@ public final class SoulAbilities
             return;
         }
 
-        player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held ->
+        final PlayerSoulBuffs held = player.getData(SoulBuffsAttachment.BUFFS);
+
+        boolean chargesChanged = false;
+
+        for (String type : owned)
         {
-            boolean chargesChanged = false;
-
-            for (String type : owned)
+            if (!(SoulBuffEffects.get(type) instanceof SoulActiveEffect effect))
             {
-                if (!(SoulBuffEffects.get(type) instanceof SoulActiveEffect effect))
-                {
-                    continue;
-                }
-
-                final double magnitude = SoulBuffs.magnitude(player, type);
-                final int maxCharges = maxChargesOf(effect, magnitude);
-                final int cooldown = cooldownOf(effect, magnitude);
-
-                // a newly granted ability arrives full: the player earned it by building the room,
-                // and making them wait out a cooldown for something they have never used reads as
-                // the mod being broken rather than as a cost
-                AbilityCharges before = held.hasChargesFor(type)
-                        ? held.chargesOf(type)
-                        : AbilityCharges.full(maxCharges);
-
-                AbilityCharges after = held.hasChargesFor(type) ? before.tick(maxCharges, cooldown) : before;
-
-                if (!after.equals(before) || !held.hasChargesFor(type))
-                {
-                    held.setCharges(type, after);
-                }
-
-                if (after.charges() != before.charges() || !held.hasChargesFor(type))
-                {
-                    chargesChanged = true;
-                }
+                continue;
             }
 
-            // nothing is selected yet, or what was selected is gone - fall to the first thing owned
-            if (held.selectedAbility().isEmpty() || !owned.contains(held.selectedAbility()))
+            final double magnitude = SoulBuffs.magnitude(player, type);
+            final int maxCharges = maxChargesOf(effect, magnitude);
+            final int cooldown = cooldownOf(effect, magnitude);
+
+            // a newly granted ability arrives full: the player earned it by building the room,
+            // and making them wait out a cooldown for something they have never used reads as
+            // the mod being broken rather than as a cost
+            AbilityCharges before = held.hasChargesFor(type)
+                    ? held.chargesOf(type)
+                    : AbilityCharges.full(maxCharges);
+
+            AbilityCharges after = held.hasChargesFor(type) ? before.tick(maxCharges, cooldown) : before;
+
+            if (!after.equals(before) || !held.hasChargesFor(type))
             {
-                held.selectAbility(owned.get(0));
+                held.setCharges(type, after);
+            }
+
+            if (after.charges() != before.charges() || !held.hasChargesFor(type))
+            {
                 chargesChanged = true;
             }
+        }
 
-            if (chargesChanged)
-            {
-                sync(player);
-            }
-        });
+        // nothing is selected yet, or what was selected is gone - fall to the first thing owned
+        if (held.selectedAbility().isEmpty() || !owned.contains(held.selectedAbility()))
+        {
+            held.selectAbility(owned.get(0));
+            chargesChanged = true;
+        }
+
+        if (chargesChanged)
+        {
+            sync(player);
+        }
     }
 
     /**
@@ -153,68 +152,67 @@ public final class SoulAbilities
             return;
         }
 
-        player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held ->
+        final PlayerSoulBuffs held = player.getData(SoulBuffsAttachment.BUFFS);
+
+        // the client names what it thinks it is firing rather than relying on the server's idea
+        // of the selection, so a press cannot land on a different ability than the one the
+        // player saw in the HUD. It is still only a request: ownership is checked below.
+        final String type = requestedType == null || requestedType.isEmpty()
+                ? held.selectedAbility()
+                : requestedType;
+
+        if (type.isEmpty() || !ownedBy(player).contains(type))
         {
-            // the client names what it thinks it is firing rather than relying on the server's idea
-            // of the selection, so a press cannot land on a different ability than the one the
-            // player saw in the HUD. It is still only a request: ownership is checked below.
-            final String type = requestedType == null || requestedType.isEmpty()
-                    ? held.selectedAbility()
-                    : requestedType;
+            // either a crafted packet, or a room demolished between the press and its arrival.
+            // Both are the same answer, and neither is worth a log line on a busy server.
+            return;
+        }
 
-            if (type.isEmpty() || !ownedBy(player).contains(type))
-            {
-                // either a crafted packet, or a room demolished between the press and its arrival.
-                // Both are the same answer, and neither is worth a log line on a busy server.
-                return;
-            }
+        if (!(SoulBuffEffects.get(type) instanceof SoulActiveEffect effect))
+        {
+            return;
+        }
 
-            if (!(SoulBuffEffects.get(type) instanceof SoulActiveEffect effect))
-            {
-                return;
-            }
+        final double magnitude = SoulBuffs.magnitude(player, type);
+        final int maxCharges = maxChargesOf(effect, magnitude);
+        final int cooldown = cooldownOf(effect, magnitude);
+        final AbilityCharges charges = held.chargesOf(type);
 
-            final double magnitude = SoulBuffs.magnitude(player, type);
-            final int maxCharges = maxChargesOf(effect, magnitude);
-            final int cooldown = cooldownOf(effect, magnitude);
-            final AbilityCharges charges = held.chargesOf(type);
+        if (!charges.canSpend())
+        {
+            // a press that does nothing and says nothing reads as a broken ability, and a
+            // player testing one presses it again immediately - which is exactly the window
+            // this refuses in
+            player.displayClientMessage(
+                    Component.translatable(
+                            Constants.StringKeys.ABILITY_RECHARGING,
+                            Math.max(1, charges.ticksToNextCharge() / 20)),
+                    true);
+            return;
+        }
 
-            if (!charges.canSpend())
-            {
-                // a press that does nothing and says nothing reads as a broken ability, and a
-                // player testing one presses it again immediately - which is exactly the window
-                // this refuses in
-                player.displayClientMessage(
-                        Component.translatable(
-                                Constants.StringKeys.ABILITY_RECHARGING,
-                                Math.max(1, charges.ticksToNextCharge() / 20)),
-                        true);
-                return;
-            }
+        final boolean fired;
 
-            final boolean fired;
+        try
+        {
+            fired = effect.activate(player, magnitude);
+        }
+        catch (RuntimeException e)
+        {
+            // a datapack-registered ability throwing must not take the player's tick with it
+            LogHelper.error("Soul ability " + type + " threw while firing: " + e);
+            return;
+        }
 
-            try
-            {
-                fired = effect.activate(player, magnitude);
-            }
-            catch (RuntimeException e)
-            {
-                // a datapack-registered ability throwing must not take the player's tick with it
-                LogHelper.error("Soul ability " + type + " threw while firing: " + e);
-                return;
-            }
+        if (!fired)
+        {
+            // the ability refused - no mount to call, nowhere safe to land. It has told the
+            // player why; charging them for it would be the mod taking payment for nothing.
+            return;
+        }
 
-            if (!fired)
-            {
-                // the ability refused - no mount to call, nowhere safe to land. It has told the
-                // player why; charging them for it would be the mod taking payment for nothing.
-                return;
-            }
-
-            held.setCharges(type, charges.spend(maxCharges, cooldown));
-            sync(player);
-        });
+        held.setCharges(type, charges.spend(maxCharges, cooldown));
+        sync(player);
     }
 
     /**
@@ -235,19 +233,18 @@ public final class SoulAbilities
             return;
         }
 
-        player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held ->
-        {
-            final int current = owned.indexOf(held.selectedAbility());
-            final int step = forward ? 1 : -1;
+        final PlayerSoulBuffs held = player.getData(SoulBuffsAttachment.BUFFS);
 
-            // indexOf returns -1 when nothing is selected; the +size keeps the modulus positive so
-            // a backward cycle from an unselected state lands on the last ability rather than
-            // throwing
-            final int next = Math.floorMod(current + step, owned.size());
+        final int current = owned.indexOf(held.selectedAbility());
+        final int step = forward ? 1 : -1;
 
-            held.selectAbility(owned.get(next));
-            sync(player);
-        });
+        // indexOf returns -1 when nothing is selected; the +size keeps the modulus positive so
+        // a backward cycle from an unselected state lands on the last ability rather than
+        // throwing
+        final int next = Math.floorMod(current + step, owned.size());
+
+        held.selectAbility(owned.get(next));
+        sync(player);
     }
 
     /** Empties every bank, per #87 - charges do not survive death. */
@@ -258,11 +255,10 @@ public final class SoulAbilities
             return;
         }
 
-        player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held ->
-        {
-            held.resetOnDeath();
-            sync(player);
-        });
+        final PlayerSoulBuffs held = player.getData(SoulBuffsAttachment.BUFFS);
+
+        held.resetOnDeath();
+        sync(player);
     }
 
     /** Push this player's ability state to their client. */
@@ -273,29 +269,28 @@ public final class SoulAbilities
             return;
         }
 
-        player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held ->
+        final PlayerSoulBuffs held = player.getData(SoulBuffsAttachment.BUFFS);
+
+        Map<String, SyncSoulAbilitiesMessage.State> states = new LinkedHashMap<>();
+
+        for (String type : ownedBy(player))
         {
-            Map<String, SyncSoulAbilitiesMessage.State> states = new LinkedHashMap<>();
-
-            for (String type : ownedBy(player))
+            if (!(SoulBuffEffects.get(type) instanceof SoulActiveEffect effect))
             {
-                if (!(SoulBuffEffects.get(type) instanceof SoulActiveEffect effect))
-                {
-                    continue;
-                }
-
-                final double magnitude = SoulBuffs.magnitude(player, type);
-                final AbilityCharges charges = held.chargesOf(type);
-
-                states.put(type, new SyncSoulAbilitiesMessage.State(
-                        charges.charges(),
-                        charges.ticksToNextCharge(),
-                        maxChargesOf(effect, magnitude),
-                        cooldownOf(effect, magnitude)));
+                continue;
             }
 
-            Network.sendTo(new SyncSoulAbilitiesMessage(held.selectedAbility(), states), player);
-        });
+            final double magnitude = SoulBuffs.magnitude(player, type);
+            final AbilityCharges charges = held.chargesOf(type);
+
+            states.put(type, new SyncSoulAbilitiesMessage.State(
+                    charges.charges(),
+                    charges.ticksToNextCharge(),
+                    maxChargesOf(effect, magnitude),
+                    cooldownOf(effect, magnitude)));
+        }
+
+        Network.sendTo(new SyncSoulAbilitiesMessage(held.selectedAbility(), states), player);
     }
 
     /** Forgets a player's rate-limit record. Called on logout so the map does not grow forever. */
@@ -310,7 +305,7 @@ public final class SoulAbilities
     /**
      * The rate limit, and the cheap guards ahead of it. Deliberately the first thing both entry
      * points call: a client sending sixty presses a second should cost this server a map lookup,
-     * not a capability read and a config snapshot.
+     * not an attachment read and a config snapshot.
      */
     private static boolean accept(ServerPlayer player)
     {

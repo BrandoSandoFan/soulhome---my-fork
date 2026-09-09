@@ -7,10 +7,11 @@ package leaf.soulhome.network;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.feedback.LensBuffReport;
-import net.minecraftforge.network.NetworkEvent;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Sends one player their buffs and where each came from, so the Soul Lens can open a screen for
@@ -21,8 +22,11 @@ import java.util.function.Consumer;
  * lens is used - the same relationship {@link SyncSoulLensReportMessage} has to
  * {@link SyncSoulRegionsMessage}.
  */
-public class SyncSoulLensBuffsMessage implements Consumer<NetworkEvent.Context>
+public class SyncSoulLensBuffsMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<SyncSoulLensBuffsMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("sync_soul_lens_buffs"));
+
     public static final SyncSoulLensBuffsMessage INVALID = new SyncSoulLensBuffsMessage(List.of());
 
     public static final Codec<SyncSoulLensBuffsMessage> CODEC =
@@ -44,7 +48,7 @@ public class SyncSoulLensBuffsMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() -> ClientLensBuffs.accept(this.buffs));
     }
@@ -76,5 +80,11 @@ public class SyncSoulLensBuffsMessage implements Consumer<NetworkEvent.Context>
             consumedGeneration = generation;
             return buffs;
         }
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

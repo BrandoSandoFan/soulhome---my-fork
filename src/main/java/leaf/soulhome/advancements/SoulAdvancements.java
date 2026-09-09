@@ -4,40 +4,38 @@
 
 package leaf.soulhome.advancements;
 
+import leaf.soulhome.SoulHome;
 import leaf.soulhome.structures.core.AwardedRoom;
-import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.advancements.CriterionTrigger;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.List;
 
 /**
  * The mod's custom advancement triggers, and the one place that fires them.
  *
- * <p>Registration has to happen during common setup, before any datapack is read: an advancement
- * naming a trigger the game does not know about is dropped with an error, and dropping the
- * archetype advancements would take the book entries gated behind them with it.
+ * <p>Triggers are a registry now, so these go through a {@link DeferredRegister} like every other
+ * registered thing in the mod rather than being pushed into {@code CriteriaTriggers} during common
+ * setup. That also answers the ordering worry the old comment here recorded - an advancement naming
+ * an unknown trigger is still dropped with an error, but registration happens during the
+ * registration phase, which is always before a datapack is read.
  */
 public final class SoulAdvancements
 {
-    public static ClassifiedRoomTrigger CLASSIFIED_ROOM;
-    public static AscensionTrigger ASCENDED;
+    public static final DeferredRegister<CriterionTrigger<?>> TRIGGERS =
+            DeferredRegister.create(Registries.TRIGGER_TYPE, SoulHome.MODID);
+
+    public static final DeferredHolder<CriterionTrigger<?>, ClassifiedRoomTrigger> CLASSIFIED_ROOM =
+            TRIGGERS.register("classified_room", ClassifiedRoomTrigger::new);
+
+    public static final DeferredHolder<CriterionTrigger<?>, AscensionTrigger> ASCENDED =
+            TRIGGERS.register("ascended", AscensionTrigger::new);
 
     private SoulAdvancements()
     {
-    }
-
-    /** Call once, from common setup, on the main thread. */
-    public static void register()
-    {
-        if (CLASSIFIED_ROOM == null)
-        {
-            CLASSIFIED_ROOM = CriteriaTriggers.register(new ClassifiedRoomTrigger());
-        }
-
-        if (ASCENDED == null)
-        {
-            ASCENDED = CriteriaTriggers.register(new AscensionTrigger());
-        }
     }
 
     /**
@@ -47,25 +45,25 @@ public final class SoulAdvancements
      */
     public static void onRoomsAwarded(ServerPlayer player, List<AwardedRoom> awarded)
     {
-        if (CLASSIFIED_ROOM == null || player == null || awarded.isEmpty())
+        if (player == null || awarded.isEmpty())
         {
             return;
         }
 
         for (AwardedRoom room : awarded)
         {
-            CLASSIFIED_ROOM.trigger(player, room.archetypeId(), room.tier());
+            CLASSIFIED_ROOM.get().trigger(player, room.archetypeId(), room.tier());
         }
     }
 
     /** The ascension ritual (#83) just raised a soulhome to {@code newRank}. */
     public static void onAscended(ServerPlayer player, int newRank)
     {
-        if (ASCENDED == null || player == null)
+        if (player == null)
         {
             return;
         }
 
-        ASCENDED.trigger(player, newRank);
+        ASCENDED.get().trigger(player, newRank);
     }
 }

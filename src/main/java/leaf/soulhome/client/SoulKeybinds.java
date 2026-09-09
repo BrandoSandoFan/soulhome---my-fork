@@ -13,13 +13,12 @@ import leaf.soulhome.network.Network;
 import leaf.soulhome.network.UseSoulAbilityMessage;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.settings.KeyConflictContext;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.lwjgl.glfw.GLFW;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /**
  * The two binds active abilities need (#87), and the client tick that drives them.
@@ -37,7 +36,7 @@ import org.lwjgl.glfw.GLFW;
  * <p>The mappings are held here and registered by {@code ClientRegistry}, which is where this mod
  * does its client-side mod-bus registration. This class only owns them and reads them.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public final class SoulKeybinds
 {
     public static final KeyMapping USE_ABILITY = new KeyMapping(
@@ -67,13 +66,8 @@ public final class SoulKeybinds
      * rejected is still a client wasting a server's time.
      */
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event)
+    public static void onClientTick(ClientTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END)
-        {
-            return;
-        }
-
         final Minecraft minecraft = Minecraft.getInstance();
 
         if (minecraft.player == null || minecraft.level == null)

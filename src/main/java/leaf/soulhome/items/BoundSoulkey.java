@@ -4,40 +4,37 @@
 
 package leaf.soulhome.items;
 
-import leaf.soulhome.utils.CompoundNBTHelper;
+import leaf.soulhome.registry.DataComponentsRegistry;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.EntityHelper;
 import leaf.soulhome.utils.TextHelper;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.UUID;
 
 public class BoundSoulkey extends SoulKeyItem
 {
-
 	@Override
-	public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, TooltipFlag flagIn)
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn)
 	{
-		super.appendHoverText(stack, worldIn, tooltip, flagIn);
+		super.appendHoverText(stack, context, tooltip, flagIn);
 
-		final CompoundTag stackOrCreateTag = stack.getOrCreateTag();
-		final String soulUUID = "soul_uuid";
-		if (stackOrCreateTag.hasUUID(soulUUID))
+		final SoulBinding binding = stack.get(DataComponentsRegistry.SOUL_BINDING);
+
+		if (binding != null)
 		{
-			final UUID soul_uuid = stackOrCreateTag.getUUID(soulUUID);
 			tooltip.add(
 					TextHelper.createTextWithTooltip(
-									TextHelper.createText(stackOrCreateTag.getString("soul_name")),
-									TextHelper.createText(soul_uuid))
+									TextHelper.createText(binding.name()),
+									TextHelper.createText(binding.soul()))
 							.withStyle(ChatFormatting.GRAY)
 			);
 		}
@@ -54,9 +51,9 @@ public class BoundSoulkey extends SoulKeyItem
 
 	private static void bindKeyToDimension(ItemStack itemStack, Player player)
 	{
-		final CompoundTag tag = itemStack.getOrCreateTag();
-		tag.putUUID("soul_uuid", player.getUUID());
-		tag.putString("soul_name", player.getGameProfile().getName());
+		itemStack.set(
+				DataComponentsRegistry.SOUL_BINDING,
+				new SoulBinding(player.getUUID(), player.getGameProfile().getName()));
 	}
 
 	@Nonnull
@@ -66,18 +63,19 @@ public class BoundSoulkey extends SoulKeyItem
 		if (!livingEntity.level().isClientSide && livingEntity instanceof Player player)
 		{
 			//fix creative mode keys
-			final CompoundTag tag = stack.getOrCreateTag();
-			if (!tag.hasUUID("soul_uuid"))
+			if (stack.get(DataComponentsRegistry.SOUL_BINDING) == null)
 			{
 				bindKeyToDimension(stack, player);
 			}
+
+			final SoulBinding binding = stack.get(DataComponentsRegistry.SOUL_BINDING);
 
 			//find all creatures in range
 			DimensionHelper.FlipDimension(
 					player,
 					player.getServer(),
 					EntityHelper.getEntitiesInRange(livingEntity,2.5d, true),
-					CompoundNBTHelper.getUuid(tag,"soul_uuid", player.getUUID())
+					binding == null ? player.getUUID() : binding.soul()
 			);
 		}
 

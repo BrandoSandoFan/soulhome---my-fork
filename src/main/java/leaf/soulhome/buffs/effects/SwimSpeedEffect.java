@@ -11,8 +11,9 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraft.core.Holder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +21,10 @@ import java.util.List;
 /**
  * Aquarium: you move through water the way you move through air - up to a point (#86).
  *
- * <p>Forge's own {@code forge:swim_speed} attribute, resolved by name through {@link ModAttributes}
- * the same way {@link ReachEffect} resolves {@code forge:block_reach} - it is a Forge attribute
- * rather than a vanilla one, but every Forge install has it, so this is really no more "inert
- * until a mod is installed" than reach is. {@code MULTIPLY_TOTAL}, the same operation
+ * <p>NeoForge's own {@code neoforge:swim_speed} attribute, resolved by name through {@link ModAttributes}
+ * the same way {@link ReachEffect} resolves {@code minecraft:block_interaction_range} - it is a loader attribute
+ * rather than a vanilla one, but every NeoForge install has it, so this is really no more "inert
+ * until a mod is installed" than reach is. {@code ADD_MULTIPLIED_TOTAL}, the same operation
  * {@link SpeedEffect} uses on land, since the magnitude is a fraction of the player's own speed
  * rather than a flat number.
  *
@@ -39,8 +40,8 @@ public class SwimSpeedEffect extends AttributeBuffEffect
 {
     public static final String TYPE = SoulBuffTypes.SWIM_SPEED;
 
-    /** Forge's own swimming speed multiplier, base 1.0. */
-    public static final String SWIM_SPEED = "forge:swim_speed";
+    /** NeoForge's own swimming speed multiplier, base 1.0. */
+    public static final String SWIM_SPEED = "neoforge:swim_speed";
 
     /** Past this, more raw swim speed is the same overshoot problem as land speed - see #86. */
     private static final double SOFT_CEILING = 0.4d;
@@ -76,9 +77,9 @@ public class SwimSpeedEffect extends AttributeBuffEffect
     }
 
     @Override
-    public List<Attribute> attributes()
+    public List<Holder<Attribute>> attributes()
     {
-        List<Attribute> attributes = new ArrayList<>(1);
+        List<Holder<Attribute>> attributes = new ArrayList<>(1);
         ModAttributes.find(SWIM_SPEED).ifPresent(attributes::add);
         return attributes;
     }
@@ -86,19 +87,19 @@ public class SwimSpeedEffect extends AttributeBuffEffect
     @Override
     protected AttributeModifier.Operation operation()
     {
-        return AttributeModifier.Operation.MULTIPLY_TOTAL;
+        return AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
     }
 
     /** The overflow (#86): the water becomes less of a problem instead of moving through it faster. */
     @SubscribeEvent
-    public void onOverflowTick(TickEvent.PlayerTickEvent event)
+    public void onOverflowTick(PlayerTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END || event.side.isClient())
+        if (event.getEntity().level().isClientSide)
         {
             return;
         }
 
-        final Player player = event.player;
+        final Player player = event.getEntity();
 
         if (!appliesTo(player) || !player.isUnderWater())
         {

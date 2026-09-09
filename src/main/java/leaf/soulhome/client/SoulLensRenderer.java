@@ -21,12 +21,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -43,7 +43,7 @@ import java.util.List;
  * <p>Colour carries the classification: green was awarded, yellow was too close to call between
  * two archetypes, grey was found but is not anything yet.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public final class SoulLensRenderer
 {
     private static final float LINE_ALPHA = 0.85f;
@@ -121,9 +121,9 @@ public final class SoulLensRenderer
      * the corner of the screen goes back to normal as soon as it is put away.
      */
     @SubscribeEvent
-    public static void onRenderOverlay(RenderGuiOverlayEvent.Post event)
+    public static void onRenderOverlay(RenderGuiLayerEvent.Post event)
     {
-        if (event.getOverlay() != VanillaGuiOverlay.HOTBAR.type())
+        if (!event.getName().equals(VanillaGuiLayers.HOTBAR))
         {
             return;
         }

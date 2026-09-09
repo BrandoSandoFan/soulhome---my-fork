@@ -8,12 +8,15 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkEvent;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Consumer;
 
-public class SyncDimensionListMessage implements Consumer<NetworkEvent.Context>
+public class SyncDimensionListMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<SyncDimensionListMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("sync_dimension_list"));
 
     public static final SyncDimensionListMessage INVALID = new SyncDimensionListMessage(null, false);
 
@@ -47,8 +50,14 @@ public class SyncDimensionListMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() -> ClientPacketHandler.syncDimensionList(this));
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

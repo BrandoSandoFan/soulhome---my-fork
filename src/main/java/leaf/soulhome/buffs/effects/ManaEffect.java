@@ -8,6 +8,7 @@ import leaf.soulhome.compat.ModAttributes;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.core.Holder;
 
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class ManaEffect extends AttributeBuffEffect
     }
 
     @Override
-    public List<Attribute> attributes()
+    public List<Holder<Attribute>> attributes()
     {
         return ModAttributes.find(ATTRIBUTE).map(List::of).orElseGet(List::of);
     }
@@ -51,6 +52,6 @@ public class ManaEffect extends AttributeBuffEffect
     @Override
     protected AttributeModifier.Operation operation()
     {
-        return AttributeModifier.Operation.ADDITION;
+        return AttributeModifier.Operation.ADD_VALUE;
     }
 }

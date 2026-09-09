@@ -16,19 +16,19 @@ import leaf.soulhome.datagen.loot.LootTablesGen;
 import leaf.soulhome.datagen.patchouli.PatchouliGen;
 import leaf.soulhome.datagen.recipe.RecipeGen;
 import leaf.soulhome.structures.BuiltinFormClauses;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = SoulHome.MODID, bus = Bus.MOD)
+import java.util.concurrent.CompletableFuture;
+
+@EventBusSubscriber(modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class DataGen
 {
-
-
     @SubscribeEvent
     public static void onDataGen(GatherDataEvent event)
     {
@@ -42,6 +42,11 @@ public class DataGen
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         final PackOutput packOutput = generator.getPackOutput();
 
+        // Every provider that can hold a registry reference takes this rather than resolving
+        // registries itself; 1.20.5 made it a future because the datagen registry set is itself
+        // loaded asynchronously.
+        final CompletableFuture<HolderLookup.Provider> registries = event.getLookupProvider();
+
         generator.addProvider(true, new EngLangGen(packOutput));
 
         if (!event.includeClient())
@@ -49,11 +54,11 @@ public class DataGen
             return;
         }
 
-        generator.addProvider(true, new AdvancementGen(packOutput));
+        generator.addProvider(true, new AdvancementGen(packOutput, registries, existingFileHelper));
         generator.addProvider(true, new ItemModelsGen(packOutput, existingFileHelper));
         generator.addProvider(true, new BlockStatesGen(packOutput, existingFileHelper));
-        generator.addProvider(true, new LootTablesGen(packOutput));
-        generator.addProvider(true, new RecipeGen(packOutput));
+        generator.addProvider(true, new LootTablesGen(packOutput, registries));
+        generator.addProvider(true, new RecipeGen(packOutput, registries));
 
         generator.addProvider(true, new PatchouliGen(packOutput));
 

@@ -12,10 +12,11 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
-import net.minecraftforge.event.entity.living.MobEffectEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.alchemy.PotionContents;
 
 import java.util.List;
 
@@ -105,9 +106,13 @@ public class PotionDurationEffect implements SoulBuffEffect
         }
 
         final ItemStack drunk = event.getItem();
-        final List<MobEffectInstance> brewed = PotionUtils.getMobEffects(drunk);
 
-        if (brewed.isEmpty())
+        // PotionUtils is gone with item NBT: a potion's effects are the potion_contents component
+        // now, absent on anything that is not a potion at all, and getAllEffects() already merges
+        // the base potion's own list with any custom effects on the stack.
+        final PotionContents brewed = drunk.get(DataComponents.POTION_CONTENTS);
+
+        if (brewed == null)
         {
             // eating bread, drawing a bow: not everything finished is a potion
             return;
@@ -115,7 +120,7 @@ public class PotionDurationEffect implements SoulBuffEffect
 
         final double magnitude = magnitudeFor(player);
 
-        for (MobEffectInstance declared : brewed)
+        for (MobEffectInstance declared : brewed.getAllEffects())
         {
             if (player.getEffect(declared.getEffect()) == null)
             {
@@ -229,12 +234,14 @@ public class PotionDurationEffect implements SoulBuffEffect
      */
     static boolean isExtendable(MobEffectInstance applied)
     {
-        return !applied.getEffect().isInstantenous() && applied.getEffect().getCategory() == MobEffectCategory.BENEFICIAL;
+        return !applied.getEffect().value().isInstantenous()
+               && applied.getEffect().value().getCategory() == MobEffectCategory.BENEFICIAL;
     }
 
     /** The harmful-effect mirror of {@link #isExtendable} - see #53 and the class javadoc. */
     static boolean isShortenable(MobEffectInstance applied)
     {
-        return !applied.getEffect().isInstantenous() && applied.getEffect().getCategory() == MobEffectCategory.HARMFUL;
+        return !applied.getEffect().value().isInstantenous()
+               && applied.getEffect().value().getCategory() == MobEffectCategory.HARMFUL;
     }
 }

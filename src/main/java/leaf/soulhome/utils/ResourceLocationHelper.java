@@ -10,7 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Locale;
 
@@ -18,27 +18,27 @@ public class ResourceLocationHelper
 {
 	public static ResourceLocation prefix(String path)
 	{
-		return new ResourceLocation(SoulHome.MODID, path.toLowerCase(Locale.ROOT));
+		return ResourceLocation.fromNamespaceAndPath(SoulHome.MODID, path.toLowerCase(Locale.ROOT));
 	}
 
 	public static ResourceLocation get(Item item)
 	{
-		return ForgeRegistries.ITEMS.getKey(item);
+		return BuiltInRegistries.ITEM.getKey(item);
 	}
 
 	public static ResourceLocation get(Entity entity)
 	{
-		return ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+		return BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
 	}
 
 	public static ResourceLocation get(Block block)
 	{
-		return ForgeRegistries.BLOCKS.getKey(block);
+		return BuiltInRegistries.BLOCK.getKey(block);
 	}
 
 	public static ResourceLocation get(EntityType<?> test)
 	{
-		return ForgeRegistries.ENTITY_TYPES.getKey(test);
+		return BuiltInRegistries.ENTITY_TYPE.getKey(test);
 	}
 
 }

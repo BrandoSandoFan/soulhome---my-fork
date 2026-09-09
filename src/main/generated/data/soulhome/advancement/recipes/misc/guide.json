@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_soul_key": {
+      "conditions": {
+        "items": [
+          {
+            "items": "soulhome:soulkey"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "soulhome:guide"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_soul_key"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "soulhome:guide"
+    ]
+  }
+}

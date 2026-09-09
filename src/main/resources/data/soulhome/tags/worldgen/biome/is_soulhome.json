@@ -1,0 +1,7 @@
+{
+  "_comment": "The soul dimension's own biome, as a tag so a predicate can name it. A predicate that names a biome directly has to resolve it against the registry set it is written in, and the soulhome biome is a datapack JSON rather than a built-in - see MainAdvancements#soulBiome. A pack adding its own soul-like biome can also join it here.",
+  "replace": false,
+  "values": [
+    "soulhome:soulhome"
+  ]
+}

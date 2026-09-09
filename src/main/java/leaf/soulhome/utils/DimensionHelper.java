@@ -19,13 +19,12 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
+import static leaf.soulhome.constants.Constants.NBTKeys.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static leaf.soulhome.constants.Constants.NBTKeys.*;
 
 public class DimensionHelper
 {
@@ -98,7 +97,7 @@ public class DimensionHelper
             ResourceKey<Level> destinationKey =
                     ResourceKey.create(
                             Registries.DIMENSION,
-                            new ResourceLocation(
+                            ResourceLocation.fromNamespaceAndPath(
                                     soulNBT.getString(LAST_DIMENSION_MOD_ID),
                                     soulNBT.getString(LAST_DIMENSION_MOD_DIMENSION))
                     );

@@ -13,8 +13,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.common.data.LanguageProvider;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.data.LanguageProvider;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Map;
 
@@ -32,7 +32,7 @@ public class EngLangGen extends LanguageProvider
     protected void addTranslations()
     {
         //Items and Blocks
-        for (Item item : ForgeRegistries.ITEMS.getValues())
+        for (Item item : BuiltInRegistries.ITEM)
         {
             final ResourceLocation registryName = ResourceLocationHelper.get(item);
             if (registryName.getNamespace().contentEquals(SoulHome.MODID))
@@ -95,7 +95,7 @@ public class EngLangGen extends LanguageProvider
         }
 
         //Entities
-        for (EntityType<?> type : ForgeRegistries.ENTITY_TYPES)
+        for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE)
         {
             final ResourceLocation registryName = ResourceLocationHelper.get(type);
             if (registryName.getNamespace().equals(SoulHome.MODID))

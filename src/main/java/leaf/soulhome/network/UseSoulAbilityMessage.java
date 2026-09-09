@@ -8,9 +8,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.buffs.SoulAbilities;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Consumer;
 
 /**
  * "I pressed use on ability X" (#87). The first client-to-server message in the mod, and written
@@ -22,12 +23,15 @@ import java.util.function.Consumer;
  * thing that makes it safe is that {@link SoulAbilities#use} treats it as a claim to be checked
  * against what the player actually owns rather than as an instruction.
  *
- * <p>{@link NetworkEvent.Context#getSender} is the player, and is never null on the server for a
+ * <p>{@link IPayloadContext#player()} is the player, and is never null on the server for a
  * message that arrived over the wire - but it is null when the logical server handles a packet from
  * a nonexistent connection, so it is checked anyway.
  */
-public class UseSoulAbilityMessage implements Consumer<NetworkEvent.Context>
+public class UseSoulAbilityMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<UseSoulAbilityMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("use_soul_ability"));
+
     public static final UseSoulAbilityMessage INVALID = new UseSoulAbilityMessage("");
 
     public static final Codec<UseSoulAbilityMessage> CODEC =
@@ -49,16 +53,22 @@ public class UseSoulAbilityMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() ->
         {
-            final ServerPlayer sender = context.getSender();
+            final ServerPlayer sender = context.player() instanceof ServerPlayer server ? server : null;
 
             if (sender != null)
             {
                 SoulAbilities.use(sender, this.ability);
             }
         });
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

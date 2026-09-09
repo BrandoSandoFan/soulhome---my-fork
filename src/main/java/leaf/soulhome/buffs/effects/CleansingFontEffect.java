@@ -117,7 +117,7 @@ public class CleansingFontEffect implements SoulActiveEffect
 
         for (MobEffectInstance instance : target.getActiveEffects())
         {
-            if (instance.getEffect().getCategory() == MobEffectCategory.HARMFUL)
+            if (instance.getEffect().value().getCategory() == MobEffectCategory.HARMFUL)
             {
                 harmful.add(instance);
             }

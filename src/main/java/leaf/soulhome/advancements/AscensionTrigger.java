@@ -4,16 +4,15 @@
 
 package leaf.soulhome.advancements;
 
-import com.google.gson.JsonObject;
-import leaf.soulhome.utils.ResourceLocationHelper;
-import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.DeserializationContext;
-import net.minecraft.advancements.critereon.SerializationContext;
+import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.GsonHelper;
+
+import java.util.Optional;
 
 /**
  * Fires when the ascension ritual (#83) raises a soulhome's rank. Carries the new rank so #93's
@@ -23,20 +22,10 @@ import net.minecraft.util.GsonHelper;
  */
 public class AscensionTrigger extends SimpleCriterionTrigger<AscensionTrigger.Instance>
 {
-    public static final ResourceLocation ID = ResourceLocationHelper.prefix("ascended");
-
-    private static final String KEY_MIN_RANK = "min_rank";
-
     @Override
-    public ResourceLocation getId()
+    public Codec<Instance> codec()
     {
-        return ID;
-    }
-
-    @Override
-    protected Instance createInstance(JsonObject json, ContextAwarePredicate player, DeserializationContext context)
-    {
-        return new Instance(player, GsonHelper.getAsInt(json, KEY_MIN_RANK, 1));
+        return Instance.CODEC;
     }
 
     /** Tell the game a soulhome was just raised to {@code newRank}. */
@@ -45,27 +34,28 @@ public class AscensionTrigger extends SimpleCriterionTrigger<AscensionTrigger.In
         trigger(player, instance -> instance.matches(newRank));
     }
 
-    public static class Instance extends AbstractCriterionTriggerInstance
+    public record Instance(Optional<ContextAwarePredicate> player, int minRank)
+            implements SimpleCriterionTrigger.SimpleInstance
     {
-        private final int minRank;
+        public static final Codec<Instance> CODEC = RecordCodecBuilder.create(builder -> builder
+                .group(
+                        EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(Instance::player),
+                        Codec.INT.optionalFieldOf("min_rank", 1).forGetter(Instance::minRank))
+                .apply(builder, Instance::new));
 
-        public Instance(ContextAwarePredicate player, int minRank)
+        public Instance
         {
-            super(ID, player);
-            this.minRank = Math.max(1, minRank);
+            minRank = Math.max(1, minRank);
+        }
+
+        public static Criterion<Instance> atLeast(int minRank)
+        {
+            return SoulAdvancements.ASCENDED.get().createCriterion(new Instance(Optional.empty(), minRank));
         }
 
         public boolean matches(int newRank)
         {
             return newRank >= this.minRank;
-        }
-
-        @Override
-        public JsonObject serializeToJson(SerializationContext context)
-        {
-            JsonObject json = super.serializeToJson(context);
-            json.addProperty(KEY_MIN_RANK, this.minRank);
-            return json;
         }
     }
 }

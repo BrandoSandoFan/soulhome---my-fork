@@ -1,0 +1,32 @@
+{
+  "parent": "soulhome:main/first_room",
+  "criteria": {
+    "classified_room": {
+      "conditions": {
+        "archetype": "soulhome:powder_magazine"
+      },
+      "trigger": "soulhome:classified_room"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.soulhome.powder_magazine.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:tnt"
+    },
+    "title": {
+      "translate": "advancements.soulhome.powder_magazine.title"
+    }
+  },
+  "requirements": [
+    [
+      "classified_room"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

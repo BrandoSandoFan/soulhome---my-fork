@@ -1,0 +1,32 @@
+{
+  "parent": "soulhome:main/first_room",
+  "criteria": {
+    "classified_room": {
+      "conditions": {
+        "archetype": "soulhome:alchemy_lab"
+      },
+      "trigger": "soulhome:classified_room"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.soulhome.alchemy_lab.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:brewing_stand"
+    },
+    "title": {
+      "translate": "advancements.soulhome.alchemy_lab.title"
+    }
+  },
+  "requirements": [
+    [
+      "classified_room"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

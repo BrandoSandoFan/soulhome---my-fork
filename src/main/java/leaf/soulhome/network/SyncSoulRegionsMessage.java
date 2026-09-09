@@ -7,10 +7,11 @@ package leaf.soulhome.network;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.feedback.RegionHighlight;
-import net.minecraftforge.network.NetworkEvent;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Sends one player the regions their soulhome scan found, so their client can outline them.
@@ -21,8 +22,11 @@ import java.util.function.Consumer;
  * <p>Display only, like {@link SyncSoulBuffsMessage}: nothing a client does with these changes what
  * anyone is awarded.
  */
-public class SyncSoulRegionsMessage implements Consumer<NetworkEvent.Context>
+public class SyncSoulRegionsMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<SyncSoulRegionsMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("sync_soul_regions"));
+
     public static final SyncSoulRegionsMessage INVALID = new SyncSoulRegionsMessage("", List.of());
 
     public static final Codec<SyncSoulRegionsMessage> CODEC =
@@ -54,7 +58,7 @@ public class SyncSoulRegionsMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() -> ClientSoulRegions.accept(this.dimension, this.regions));
     }
@@ -98,5 +102,11 @@ public class SyncSoulRegionsMessage implements Consumer<NetworkEvent.Context>
 
             return System.currentTimeMillis() - shownAtMillis > LIFETIME_MILLIS ? List.of() : regions;
         }
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

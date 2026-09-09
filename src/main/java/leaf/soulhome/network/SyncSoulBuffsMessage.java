@@ -8,10 +8,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.buffs.ClientSoulBuffs;
 import leaf.soulhome.structures.core.SoulBuffSet;
+import leaf.soulhome.utils.ResourceLocationHelper;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Consumer;
 
 /**
  * Tells a client what buffs its player currently has.
@@ -21,8 +21,11 @@ import java.util.function.Consumer;
  * frame, and so that an effect the client has to predict - block breaking - has a magnitude to
  * predict with. See {@link ClientSoulBuffs}.
  */
-public class SyncSoulBuffsMessage implements Consumer<NetworkEvent.Context>
+public class SyncSoulBuffsMessage implements SoulPayload
 {
+    public static final CustomPacketPayload.Type<SyncSoulBuffsMessage> TYPE =
+            new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("sync_soul_buffs"));
+
     public static final SyncSoulBuffsMessage INVALID = new SyncSoulBuffsMessage(SoulBuffSet.empty());
 
     public static final Codec<SyncSoulBuffsMessage> CODEC =
@@ -45,8 +48,14 @@ public class SyncSoulBuffsMessage implements Consumer<NetworkEvent.Context>
     }
 
     @Override
-    public void accept(NetworkEvent.Context context)
+    public void accept(IPayloadContext context)
     {
         context.enqueueWork(() -> ClientSoulBuffs.accept(this.buffs));
+    }
+
+    @Override
+    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    {
+        return TYPE;
     }
 }

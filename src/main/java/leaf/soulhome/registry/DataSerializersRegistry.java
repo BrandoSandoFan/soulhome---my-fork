@@ -4,37 +4,32 @@
 
 package leaf.soulhome.registry;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.syncher.EntityDataSerializers;
+import leaf.soulhome.SoulHome;
 import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
+/**
+ * A {@link ResourceLocation} an entity can carry in its synced data.
+ *
+ * <p>Two things about this changed under the port and both are enforced rather than advisory.
+ * 1.20.5 replaced the hand-written write/read/copy triple with one {@code StreamCodec} - and
+ * {@link ResourceLocation} already ships its own, so the serializer is that codec plus a wrapper;
+ * {@code copy()} went with it, since a {@code ResourceLocation} is immutable, which was the only
+ * reason the old one could return its argument unchanged. Separately, NeoForge refuses a call to
+ * {@code EntityDataSerializers.registerSerializer} from a mod outright - a raw registration hands
+ * out a numeric id by call order, so a client and a server that loaded their mods in different
+ * orders would disagree about what each id means. A registry entry is keyed by name instead.
+ */
 public class DataSerializersRegistry
 {
-    public static final EntityDataSerializer<ResourceLocation> RESOURCE_LOCATION = new EntityDataSerializer<ResourceLocation>()
-    {
+    public static final DeferredRegister<EntityDataSerializer<?>> DATA_SERIALIZERS =
+            DeferredRegister.create(NeoForgeRegistries.ENTITY_DATA_SERIALIZERS, SoulHome.MODID);
 
-        @Override
-        public void write(FriendlyByteBuf buf, ResourceLocation value)
-        {
-            buf.writeResourceLocation(value);
-        }
-
-        public ResourceLocation read(FriendlyByteBuf buf)
-        {
-            return buf.readResourceLocation();
-        }
-
-        @Override
-        public ResourceLocation copy(ResourceLocation value)
-        {
-            return value;
-        }
-    };
-
-    public static void register()
-    {
-        EntityDataSerializers.registerSerializer(RESOURCE_LOCATION);
-    }
+    public static final DeferredHolder<EntityDataSerializer<?>, EntityDataSerializer<ResourceLocation>> RESOURCE_LOCATION =
+            DATA_SERIALIZERS.register(
+                    "resource_location", () -> EntityDataSerializer.forValueType(ResourceLocation.STREAM_CODEC));
 
 }

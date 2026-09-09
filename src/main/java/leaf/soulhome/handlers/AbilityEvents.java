@@ -7,10 +7,10 @@ package leaf.soulhome.handlers;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.SoulAbilities;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
  * Drives the active abilities (#87): the recharge tick, and the three moments a player's banked
@@ -19,18 +19,13 @@ import net.minecraftforge.fml.common.Mod;
  * <p>Separate from {@code AscensionEvents} and {@code StructureEvents} for the reason those two are
  * separate from each other - a self-contained subsystem with its own single reason to change.
  */
-@Mod.EventBusSubscriber(modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public class AbilityEvents
 {
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event)
+    public static void onPlayerTick(PlayerTickEvent.Post event)
     {
-        if (event.phase != TickEvent.Phase.END)
-        {
-            return;
-        }
-
-        if (event.player instanceof ServerPlayer player)
+        if (event.getEntity() instanceof ServerPlayer player)
         {
             SoulAbilities.tick(player);
         }

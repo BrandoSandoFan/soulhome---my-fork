@@ -8,8 +8,8 @@ import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * Cold storage: fire and lava hurt less.
@@ -40,7 +40,7 @@ public class FireResistanceEffect implements SoulBuffEffect
     }
 
     @SubscribeEvent
-    public void onLivingHurt(LivingHurtEvent event)
+    public void onLivingHurt(LivingIncomingDamageEvent event)
     {
         if (!(event.getEntity() instanceof Player player) || !appliesTo(player))
         {

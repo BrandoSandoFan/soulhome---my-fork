@@ -73,7 +73,7 @@ public class SurveyorsEyeEffect implements SoulActiveEffect
      * modded ores land in it too, which is the same reason the archetypes prefer tags to block ids.
      */
     private static final TagKey<net.minecraft.world.level.block.Block> ORES =
-            TagKey.create(Registries.BLOCK, new ResourceLocation("forge", "ores"));
+            TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("forge", "ores"));
 
     @Override
     public String type()

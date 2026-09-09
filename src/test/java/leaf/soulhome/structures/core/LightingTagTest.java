@@ -10,6 +10,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -19,9 +21,6 @@ import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * #45: {@code soulhome:lighting} was a twelve-entry hand-written list missing most of what a
@@ -33,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class LightingTagTest
 {
     private static final Path TAGS_DIRECTORY =
-            Path.of("src", "main", "resources", "data", "soulhome", "tags", "blocks");
+            Path.of("src", "main", "resources", "data", "soulhome", "tags", "block");
 
     @Test
     @DisplayName("soulhome:lighting includes the vanilla light sources #45 reported as missing")
