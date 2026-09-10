@@ -821,3 +821,15 @@ one, took the hit anyway, inside a dimension a player has been told is safe.
 
 - Fix: fall damage is now matched by its damage type rather than by which specific object created
   it, so it can no longer be missed depending on how something else happens to build the damage.
+
+Create's copycat blocks did not score as the material they were wearing
+
+A copycat panel dressed up as bookshelves looks like bookshelves to the player who built a library
+out of them - but the scanner saw only `create:copycat_panel`, a block no archetype names, so the
+room scored nothing for it. `/soulhome analyse` would list the room as missing blocks the player
+could see right there on the wall.
+
+- Buff: a copycat now scores as whatever material it is dressed as - a copycat wearing bookshelves
+  counts toward `minecraft:bookshelves`, one wearing obsidian toward `soulhome:arcane`, and one
+  wearing nothing still counts as nothing. Its own shape still decides whether it seals a room, so
+  a panel-thin copycat wearing a full block does not read as a wall the way the real thing would.
