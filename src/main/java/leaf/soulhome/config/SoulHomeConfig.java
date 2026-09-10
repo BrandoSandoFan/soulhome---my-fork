@@ -453,8 +453,8 @@ public final class SoulHomeConfig
                 "soulhome:cleansing_font=6.0",
                 "soulhome:updraft=6.0",
                 "soulhome:encore=4.5",
-                "soulhome:requiem=9.0",
-                "soulhome:foragers_luck=1.5",
+                "soulhome:last_stand=9.0",
+                "soulhome:calming_smoke=3.0",
                 "soulhome:clear_sight=3.0");
 
         public final ForgeConfigSpec.BooleanValue enabled;
@@ -900,7 +900,7 @@ public final class SoulHomeConfig
                             "The shipped ids are: soulhome:surveyors_eye, soulhome:aegis, soulhome:soul_step,",
                             "soulhome:rally, soulhome:call_of_the_herd, soulhome:thunderclap, soulhome:barrage,",
                             "soulhome:rupture, soulhome:cleansing_font, soulhome:updraft, soulhome:encore,",
-                            "soulhome:requiem")
+                            "soulhome:last_stand, soulhome:calming_smoke")
                     .defineList("disabled", List.of(), entry -> entry instanceof String);
 
             builder.pop();

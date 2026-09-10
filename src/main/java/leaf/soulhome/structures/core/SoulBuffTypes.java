@@ -121,10 +121,10 @@ public final class SoulBuffTypes
     /** Gale Roost: a burst of updraft and a stretch of slow falling. Active. */
     public static final String UPDRAFT = "soulhome:updraft";
 
-    /** Apiary: extra luck, as flat points on the player's own luck attribute. */
-    public static final String FORAGERS_LUCK = "soulhome:foragers_luck";
+    /** Apiary: calms neutral mobs nearby for a span, or until they are provoked again. Active. */
+    public static final String CALMING_SMOKE = "soulhome:calming_smoke";
 
-    /** Observatory: steady enough to see in the dark - present or not, not a matter of degree. */
+    /** Observatory: a brightening shader whose strength ramps smoothly with the room's own score. */
     public static final String CLEAR_SIGHT = "soulhome:clear_sight";
 
     /** Beacon Hall: less damage taken from anything, as a fraction of the hit. */
@@ -133,8 +133,8 @@ public final class SoulBuffTypes
     /** Conservatory: a share of Speed and Haste to everyone nearby, and both either way. Active. */
     public static final String ENCORE = "soulhome:encore";
 
-    /** Ossuary: an on-the-spot heal and a steadying Resistance. Active. */
-    public static final String REQUIEM = "soulhome:requiem";
+    /** Ossuary: temporary armour, scaled by how much health is already gone. Active. */
+    public static final String LAST_STAND = "soulhome:last_stand";
 
     /**
      * The buffs that are pressed rather than carried (#87). Held apart from {@link #BUILT_IN}
@@ -144,7 +144,7 @@ public final class SoulBuffTypes
      */
     public static final Set<String> ACTIVE =
             Set.of(SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
-                    CLEANSING_FONT, UPDRAFT, ENCORE, REQUIEM);
+                    CLEANSING_FONT, UPDRAFT, ENCORE, LAST_STAND, CALMING_SMOKE);
 
     public static final Set<String> BUILT_IN =
             Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
@@ -154,7 +154,7 @@ public final class SoulBuffTypes
                     FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, SWIM_SPEED,
                     SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
                     CLEANSING_FONT, UPDRAFT,
-                    FORAGERS_LUCK, CLEAR_SIGHT, RADIANT_WARD, ENCORE, REQUIEM);
+                    CALMING_SMOKE, CLEAR_SIGHT, RADIANT_WARD, ENCORE, LAST_STAND);
 
     /**
      * Types measured as a flat amount rather than a proportion: a count of jumps, a number of
@@ -169,7 +169,7 @@ public final class SoulBuffTypes
             Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT, MAX_MANA, REACH,
                     SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
                     CLEANSING_FONT, UPDRAFT,
-                    FORAGERS_LUCK, CLEAR_SIGHT, ENCORE, REQUIEM);
+                    CLEAR_SIGHT, ENCORE, LAST_STAND, CALMING_SMOKE);
 
     /** Whether this buff is pressed rather than carried - see {@link #ACTIVE}. */
     public static boolean isActive(String buffType)

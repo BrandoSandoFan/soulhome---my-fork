@@ -27,7 +27,7 @@
   ],
 
   "buffs": [
-    { "type": "soulhome:requiem", "per_tier": 3.0, "max": 9.0 }
+    { "type": "soulhome:last_stand", "per_tier": 3.0, "max": 9.0 }
   ],
 
   "structures": [

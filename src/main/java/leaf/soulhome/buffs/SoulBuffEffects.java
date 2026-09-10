@@ -8,17 +8,18 @@ import leaf.soulhome.buffs.effects.AegisEffect;
 import leaf.soulhome.buffs.effects.AttributeBuffEffect;
 import leaf.soulhome.buffs.effects.BarrageEffect;
 import leaf.soulhome.buffs.effects.CallOfTheHerdEffect;
+import leaf.soulhome.buffs.effects.CalmingSmokeEffect;
 import leaf.soulhome.buffs.effects.CleansingFontEffect;
 import leaf.soulhome.buffs.effects.ClearSightEffect;
 import leaf.soulhome.buffs.effects.DoubleJumpEffect;
 import leaf.soulhome.buffs.effects.EnchantmentPowerEffect;
 import leaf.soulhome.buffs.effects.EncoreEffect;
-import leaf.soulhome.buffs.effects.ForagersLuckEffect;
 import leaf.soulhome.buffs.effects.FallProtectionEffect;
 import leaf.soulhome.buffs.effects.FireAspectEffect;
 import leaf.soulhome.buffs.effects.FireResistanceEffect;
 import leaf.soulhome.buffs.effects.FortuneEffect;
 import leaf.soulhome.buffs.effects.KnockbackResistanceEffect;
+import leaf.soulhome.buffs.effects.LastStandEffect;
 import leaf.soulhome.buffs.effects.ManaEffect;
 import leaf.soulhome.buffs.effects.MiningSpeedEffect;
 import leaf.soulhome.buffs.effects.NourishedEffect;
@@ -26,7 +27,6 @@ import leaf.soulhome.buffs.effects.PotionDurationEffect;
 import leaf.soulhome.buffs.effects.RadiantWardEffect;
 import leaf.soulhome.buffs.effects.RallyEffect;
 import leaf.soulhome.buffs.effects.ReachEffect;
-import leaf.soulhome.buffs.effects.RequiemEffect;
 import leaf.soulhome.buffs.effects.RuptureEffect;
 import leaf.soulhome.buffs.effects.SaturationEffect;
 import leaf.soulhome.buffs.effects.SoulEmberEffect;
@@ -111,13 +111,13 @@ public final class SoulBuffEffects
         register(new CleansingFontEffect());
         register(new UpdraftEffect());
 
-        // apiary, observatory, beacon hall, conservatory, ossuary - three passives and two more
-        // actives, each written for its own room rather than reusing what the mod already grants
-        register(new ForagersLuckEffect());
+        // apiary, observatory, beacon hall, conservatory, ossuary - each written for its own
+        // room rather than reusing what the mod already grants
+        register(new CalmingSmokeEffect());
         register(new ClearSightEffect());
         register(new RadiantWardEffect());
         register(new EncoreEffect());
-        register(new RequiemEffect());
+        register(new LastStandEffect());
 
         LogHelper.info("Registered " + BY_TYPE.size() + " soul buff effect(s): " + BY_TYPE.keySet());
 

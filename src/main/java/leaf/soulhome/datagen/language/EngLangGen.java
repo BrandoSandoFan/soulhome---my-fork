@@ -300,7 +300,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_NAME_CLEANSING_FONT, "Cleansing Font");
         add(Constants.StringKeys.ABILITY_NAME_UPDRAFT, "Updraft");
         add(Constants.StringKeys.ABILITY_NAME_ENCORE, "Encore");
-        add(Constants.StringKeys.ABILITY_NAME_REQUIEM, "Requiem");
+        add(Constants.StringKeys.ABILITY_NAME_LAST_STAND, "Last Stand");
+        add(Constants.StringKeys.ABILITY_NAME_CALMING_SMOKE, "Calming Smoke");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -328,6 +329,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_CLEANSING_FONT_CLEANSED, "Cleansed %s harmful effect(s).");
         add(Constants.StringKeys.ABILITY_ENCORE_ALONE, "You keep the beat for yourself.");
         add(Constants.StringKeys.ABILITY_ENCORE_SHARED, "You carry %s others with you.");
+        add(Constants.StringKeys.ABILITY_LAST_STAND_UNHURT, "You are not hurt enough for this to do anything yet.");
+        add(Constants.StringKeys.ABILITY_CALMING_SMOKE_NOTHING, "Nothing nearby needed calming.");
         add(Constants.StringKeys.ABILITY_RECHARGING, "Still recharging - %s seconds to go.");
         add(Constants.StringKeys.ABILITY_NO_DAMAGE, "It struck, and nothing took damage from it.");
 

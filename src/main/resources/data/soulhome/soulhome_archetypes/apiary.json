@@ -29,7 +29,7 @@
   ],
 
   "buffs": [
-    { "type": "soulhome:foragers_luck", "per_tier": 0.5, "max": 1.5 }
+    { "type": "soulhome:calming_smoke", "per_tier": 1.0, "max": 3.0 }
   ],
 
   "structures": [

@@ -92,10 +92,11 @@ public final class BuffDisplayNames
         names.put(SoulBuffTypes.CLEANSING_FONT, "Cleansing Font");
         names.put(SoulBuffTypes.UPDRAFT, "Updraft");
         names.put(SoulBuffTypes.ENCORE, "Encore");
-        names.put(SoulBuffTypes.REQUIEM, "Requiem");
+        names.put(SoulBuffTypes.LAST_STAND, "Last Stand");
+        names.put(SoulBuffTypes.CALMING_SMOKE, "Calming Smoke");
 
-        //the three passives that came with the same five rooms
-        names.put(SoulBuffTypes.FORAGERS_LUCK, "Forager's Luck");
+        //the one passive that came with the same five rooms - Conservatory and Beacon Hall keep
+        //Encore and Radiant Ward above and below respectively
         names.put(SoulBuffTypes.CLEAR_SIGHT, "Clear Sight");
         names.put(SoulBuffTypes.RADIANT_WARD, "Radiant Ward");
 

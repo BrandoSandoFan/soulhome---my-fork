@@ -840,13 +840,18 @@ Three more passive rooms and two more that grant something you press, each writt
 block palette none of the existing thirty rooms already leans on, and each paying out a buff of
 its own rather than a re-skin of one the mod already grants.
 
-- An **Apiary** - three or more beehives set in a row, near flowers and a smoker - grants
-  Forager's Luck: flat points on the vanilla luck attribute, the same one a potion of luck already
-  writes to, so it stacks with one exactly the way a player would expect rather than adding a
-  second, unrelated kind of luck.
+- An **Apiary** - three or more beehives set in a row, near flowers and a smoker - grants Calming
+  Smoke: every neutral mob nearby - a zombified piglin, an enderman, a bee, a wolf, anything that
+  is only hostile once provoked - is warded from anger for a span, reapplied tick by tick rather
+  than granted once, so nothing the player's own presence or another mob's alert would otherwise
+  trigger gets even a moment to land. A warded mob that is actually struck, by anyone, is provoked
+  on the spot regardless of how much of the span was left - the smoke calms, it does not armour.
 - An **Observatory** - a daylight detector at the top of a glazed dome, end rods marking the sky
-  above it - grants Clear Sight: ambient Night Vision, reapplied every tick rather than granted
-  once, so it never outlives the room that earned it and never shows on the effects HUD.
+  above it - grants Clear Sight: a dedicated brightening shader whose strength ramps smoothly with
+  the room's own score, rather than a potion effect that is either fully on or not there at all.
+  Nothing server-side acts on the magnitude at all now - it is display-only, read straight off the
+  same number `/soulhome buffs` already shows, the same way every other client-only number in this
+  mod works.
 - A **Beacon Hall** - a lit beacon crowning a plinth of precious blocks - grants Radiant Ward: a
   fraction shaved off any incoming hit, not only fire the way Cold Storage's own buff is scoped -
   a beacon's light does not pick and choose what it wards against.
@@ -855,9 +860,28 @@ its own rather than a re-skin of one the mod already grants.
   performer and to everyone nearby, the same solo-or-shared shape as Mead Hall's Rally, for a
   different reason to have built the room.
 - An **Ossuary** - bone blocks gathered in one mass, ringed by candles, walled in stone - grants
-  Requiem: an on-the-spot heal and a few seconds of Resistance, spent rather than banked, for the
-  fight that has already gone wrong rather than the one still being anticipated.
+  Last Stand: temporary armour scaled by how much of the player's own health is already gone,
+  pressed at full health and it does next to nothing - a crypt does not steady someone who was
+  never at risk. Spent rather than banked, and it ends on its own clock rather than fading.
 - None of the five reuses a signal another archetype already scores as its own core - Apiary's
   beehives are Farm's smallest bonus and nothing more there; Conservatory's note blocks are new to
   the mod entirely, and its jukebox is Bedchamber's incidental one made the point of an entire room
   instead.
+
+Apiary, Observatory and Ossuary rebalanced before their first release
+
+Three of the five landed with the wrong shape for what the room was actually meant to do, caught
+before any of it shipped rather than after.
+
+- Apiary granted Forager's Luck, a flat luck-attribute bonus with nothing to do with keeping bees.
+  It now grants Calming Smoke instead: every neutral mob nearby stops being angry, and stays that
+  way for a span rather than for one instant, until either the span runs out or something actually
+  hits it.
+- Observatory's Clear Sight was ambient Night Vision reapplied every tick - present or not, with
+  no way to grow stronger as the room improved. It is now a dedicated post-processing shader,
+  driven every frame by the room's own magnitude, so a middling Observatory reads as dimmer than a
+  maxed one instead of the two looking identical.
+- Ossuary's Requiem healed the player and steadied them with Resistance, banked the same way every
+  other active in the mod is. Renamed to Last Stand and reworked entirely: temporary armour scaled
+  by how much health the player has already lost, so the room rewards facing death rather than
+  merely surviving a hit.

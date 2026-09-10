@@ -6,28 +6,23 @@ package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulBuffEffect;
 import leaf.soulhome.structures.core.SoulBuffTypes;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 /**
- * Observatory: eyes trained on the sky see just as well without it.
+ * Observatory: eyes trained on the sky see further into the dark, in proportion to how well
+ * trained they are.
  *
- * <p>Reapplied every tick rather than granted once, the same as the ambient Night Vision
- * {@link SwimSpeedEffect} hands out past its own soft ceiling - it never outlives the room that
- * earned it, never shows on the HUD, and is immune to anything that clears potion effects. Unlike
- * that one, this is the room's own buff rather than an overflow of a different one, so it does not
- * wait for a ceiling to be crossed - any magnitude at all is a steady enough hand to read the sky
- * by.
+ * <p>Nothing server-side acts on this one. A discrete potion effect is either on or off, which is
+ * the wrong shape for a buff whose whole point is that it should brighten smoothly as the room
+ * improves rather than snap from nothing to full strength at some threshold - so this is applied
+ * as a genuine post-processing shader instead, driven every frame by {@code ClearSightRenderer}
+ * off the magnitude the server already syncs to the client for display. This class exists to
+ * register the type, describe it and be found by {@code SoulBuffEffects.get} - the same shape
+ * {@code FortuneEffect} takes for the same reason: the actual work happens somewhere a
+ * {@code @SubscribeEvent} on this class could not reach.
  */
 public class ClearSightEffect implements SoulBuffEffect
 {
     public static final String TYPE = SoulBuffTypes.CLEAR_SIGHT;
-
-    /** Reapplied every tick, so a lapsed room's Night Vision fades within a second rather than lingering. */
-    private static final int DURATION_TICKS = 20;
 
     @Override
     public String type()
@@ -38,25 +33,12 @@ public class ClearSightEffect implements SoulBuffEffect
     @Override
     public String describeMagnitude()
     {
-        return "steady enough to see in the dark - present or not, not a matter of degree";
+        return "how strong the shader's brightening runs, as a fraction of its own ceiling";
     }
 
-    @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event)
+    @Override
+    public void register()
     {
-        if (event.phase != TickEvent.Phase.END || event.side.isClient())
-        {
-            return;
-        }
-
-        final Player player = event.player;
-
-        if (!appliesTo(player))
-        {
-            return;
-        }
-
-        // ambient, no particles, no icon - the same "off the HUD" promise every soulhome buff makes
-        player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, DURATION_TICKS, 0, true, false, false));
+        // no bus event to subscribe to - see ClearSightRenderer, client-side
     }
 }
