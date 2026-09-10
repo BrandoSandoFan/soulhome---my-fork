@@ -4,6 +4,7 @@
 
 package leaf.soulhome.structures;
 
+import leaf.soulhome.compat.BlockDisguises;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.structures.core.BlockSignature;
 import leaf.soulhome.structures.core.BlockVolume;
@@ -16,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -143,7 +145,7 @@ public final class SnapshotBlockVolume implements BlockVolume
 
                                 if (passability != Passability.EMPTY)
                                 {
-                                    snapshot.signatures[index] = StateSignature.of(state);
+                                    snapshot.signatures[index] = signatureOf(chunk, cursor, state);
                                 }
                             }
                         }
@@ -153,6 +155,36 @@ public final class SnapshotBlockVolume implements BlockVolume
         }
 
         return snapshot;
+    }
+
+    /**
+     * A copycat wearing bookshelves is bookshelves to the player who built with it, so its
+     * signature comes from the material in its block entity rather than from its own
+     * {@code BlockState} - see {@link BlockDisguises}. Its passability, computed above from its
+     * own collision shape, is deliberately untouched: a panel-thin copycat wearing a full block
+     * must not read as a wall the way the real full block would (#65).
+     *
+     * <p>{@code hasBlockEntity()} is checked first so the common case - the overwhelming majority
+     * of blocks in any build - never pays for a block entity lookup at all.
+     */
+    private static BlockSignature signatureOf(LevelChunk chunk, BlockPos pos, BlockState state)
+    {
+        if (state.hasBlockEntity())
+        {
+            final BlockEntity blockEntity = chunk.getBlockEntity(pos);
+
+            if (blockEntity != null)
+            {
+                final Optional<BlockState> material = BlockDisguises.materialOf(blockEntity);
+
+                if (material.isPresent())
+                {
+                    return StateSignature.of(material.get());
+                }
+            }
+        }
+
+        return StateSignature.of(state);
     }
 
     /**
