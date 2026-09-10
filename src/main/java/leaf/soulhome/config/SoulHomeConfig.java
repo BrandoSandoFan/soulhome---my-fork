@@ -451,7 +451,11 @@ public final class SoulHomeConfig
                 "soulhome:barrage=6.0",
                 "soulhome:rupture=6.0",
                 "soulhome:cleansing_font=6.0",
-                "soulhome:updraft=6.0");
+                "soulhome:updraft=6.0",
+                "soulhome:encore=4.5",
+                "soulhome:requiem=9.0",
+                "soulhome:foragers_luck=1.5",
+                "soulhome:clear_sight=3.0");
 
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue restrictSoulTravel;
@@ -895,7 +899,8 @@ public final class SoulHomeConfig
                             "grants nothing usable. Ids a datapack added work here too.",
                             "The shipped ids are: soulhome:surveyors_eye, soulhome:aegis, soulhome:soul_step,",
                             "soulhome:rally, soulhome:call_of_the_herd, soulhome:thunderclap, soulhome:barrage,",
-                            "soulhome:rupture, soulhome:cleansing_font, soulhome:updraft")
+                            "soulhome:rupture, soulhome:cleansing_font, soulhome:updraft, soulhome:encore,",
+                            "soulhome:requiem")
                     .defineList("disabled", List.of(), entry -> entry instanceof String);
 
             builder.pop();

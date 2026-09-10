@@ -67,6 +67,10 @@ public record BuffSettings(
      * Mana is points of Iron's Spells' own resource, and sixty is somewhere between a robe and a
      * full set of it. Reach is blocks, and two is the difference between reaching the top of a
      * wall and not - three would put a player past the range the server rubber-bands them at.
+     * Forager's Luck is flat points on the vanilla luck attribute, and one and a half is half a
+     * potion of luck past what the potion alone gives. Clear Sight has no real unit at all - the
+     * effect is present or it is not - so its cap simply matches the room's own declared maximum
+     * rather than constraining anything.
      */
     public static final Map<String, Double> DEFAULT_TYPE_CAPS =
             Map.ofEntries(
@@ -90,7 +94,14 @@ public record BuffSettings(
                     Map.entry(SoulBuffTypes.BARRAGE, 6.0d),
                     Map.entry(SoulBuffTypes.RUPTURE, 6.0d),
                     Map.entry(SoulBuffTypes.CLEANSING_FONT, 6.0d),
-                    Map.entry(SoulBuffTypes.UPDRAFT, 6.0d));
+                    Map.entry(SoulBuffTypes.UPDRAFT, 6.0d),
+                    Map.entry(SoulBuffTypes.ENCORE, 4.5d),
+                    Map.entry(SoulBuffTypes.REQUIEM, 9.0d),
+
+                    // apiary and observatory's own passives - flat units, not fractions, for the
+                    // same reason as the block above
+                    Map.entry(SoulBuffTypes.FORAGERS_LUCK, 1.5d),
+                    Map.entry(SoulBuffTypes.CLEAR_SIGHT, 3.0d));
 
     /** Suggested starting points - see the class-level ramp knob documentation. */
     public static final double DEFAULT_ENTRY_FRACTION = 0.10d;

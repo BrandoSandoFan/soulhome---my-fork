@@ -29,7 +29,7 @@
   ],
 
   "buffs": [
-    { "type": "soulhome:fortune", "per_tier": 0.04, "max": 0.12 }
+    { "type": "soulhome:foragers_luck", "per_tier": 0.5, "max": 1.5 }
   ],
 
   "structures": [

@@ -299,6 +299,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_NAME_RUPTURE, "Rupture");
         add(Constants.StringKeys.ABILITY_NAME_CLEANSING_FONT, "Cleansing Font");
         add(Constants.StringKeys.ABILITY_NAME_UPDRAFT, "Updraft");
+        add(Constants.StringKeys.ABILITY_NAME_ENCORE, "Encore");
+        add(Constants.StringKeys.ABILITY_NAME_REQUIEM, "Requiem");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -324,6 +326,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_THUNDERCLAP_NOTHING, "Nothing hostile within reach.");
         add(Constants.StringKeys.ABILITY_CLEANSING_FONT_NOTHING, "There was nothing to cleanse.");
         add(Constants.StringKeys.ABILITY_CLEANSING_FONT_CLEANSED, "Cleansed %s harmful effect(s).");
+        add(Constants.StringKeys.ABILITY_ENCORE_ALONE, "You keep the beat for yourself.");
+        add(Constants.StringKeys.ABILITY_ENCORE_SHARED, "You carry %s others with you.");
         add(Constants.StringKeys.ABILITY_RECHARGING, "Still recharging - %s seconds to go.");
         add(Constants.StringKeys.ABILITY_NO_DAMAGE, "It struck, and nothing took damage from it.");
 

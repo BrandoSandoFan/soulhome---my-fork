@@ -28,7 +28,7 @@
   ],
 
   "buffs": [
-    { "type": "soulhome:xp_gain", "per_tier": 0.08, "max": 0.24 }
+    { "type": "soulhome:clear_sight", "per_tier": 1.0, "max": 3.0 }
   ],
 
   "structures": [

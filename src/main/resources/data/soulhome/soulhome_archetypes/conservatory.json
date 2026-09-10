@@ -27,7 +27,7 @@
   ],
 
   "buffs": [
-    { "type": "soulhome:rally", "per_tier": 1.5, "max": 4.5 }
+    { "type": "soulhome:encore", "per_tier": 1.5, "max": 4.5 }
   ],
 
   "structures": [
