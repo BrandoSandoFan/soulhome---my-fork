@@ -280,4 +280,9 @@ Its layouts are the clearest documentation of what the scanner is supposed to do
 - The guide book runs in Patchouli's i18n mode, which pushes every string through `String.format`.
   A lone `%` renders the page as "Format error:". `PatchouliFormatSafetyTest` guards this.
 - Git: develop on the branch you were given; do not open a pull request unless asked.
-- The mainline branch is **`1.20.1`**, not `main` or `master`.
+- **Branch from `1.20.1`.** That is the mainline to work off of, not `main` or `master`. A second
+  mainline, `1.21.1`, carries the Forge 1.21.1 port. Any feature you implement has to reach both -
+  land it on your `1.20.1` branch as usual, then port the same change to `1.21.1`. The two are not
+  interchangeable: the loader differs, so a port is a second pass against `1.21.1`'s own code, not a
+  cherry-pick of the `1.20.1` commit. A fix that only makes sense on one line (a bug that does not
+  exist on the other) is the one exception - say so in the commit rather than porting it anyway.
