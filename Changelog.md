@@ -833,3 +833,30 @@ could see right there on the wall.
   counts toward `minecraft:bookshelves`, one wearing obsidian toward `soulhome:arcane`, and one
   wearing nothing still counts as nothing. Its own shape still decides whether it seals a room, so
   a panel-thin copycat wearing a full block does not read as a wall the way the real thing would.
+
+Five new rooms
+
+Three more passive rooms and two more that grant something you press - each written to stand on a
+block palette none of the existing thirty rooms already leans on, rather than a re-skin of one
+that does.
+
+- An **Apiary** - three or more beehives set in a row, near flowers and a smoker - grants Fortune:
+  a well-kept hive draws a little extra out of whatever you gather, the same roll Treasury already
+  makes off a hoard, here earned by tending something living instead of stacking something dead.
+- An **Observatory** - a daylight detector at the top of a glazed dome, end rods marking the sky
+  above it - grants Experience gain, the same way a Library's shelves do, for study of a different
+  kind.
+- A **Beacon Hall** - a lit beacon crowning a plinth of precious blocks - grants Enchanting levels,
+  the light itself standing in for the bookshelves an Enchanting Room would use instead.
+- A **Conservatory** grants Rally: a run of note blocks laid out as a stage, seating facing it
+  across the room, a jukebox somewhere within reach of the performance. The same call to arms a
+  Mead Hall's table earns through company, here earned through a room built to be played in.
+- An **Ossuary** - bone blocks gathered in one mass, ringed by candles, walled in stone - grants
+  Aegis: the same bank of absorption a Bulwark's bars earn through readiness for a fight, here
+  earned by facing what a fight actually risks.
+- None of the five reuses a signal another archetype already scores as its own core - Apiary's
+  beehives are Farm's smallest bonus and nothing more there; Conservatory's note blocks are new to
+  the mod entirely, and its jukebox is Bedchamber's incidental one made the point of an entire room
+  instead. All five reuse an existing buff type rather than adding a new one - every buff effect
+  the mod ships was already claimed by exactly one archetype, and two rooms drawing on the same
+  buff stack the way the mod's own falloff maths already expects them to, rather than fighting it.

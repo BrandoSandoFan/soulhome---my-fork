@@ -1,0 +1,49 @@
+{
+  "display_name": "archetype.soulhome.beacon_hall",
+  "region_types": ["open", "enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:beacon" }, "min_count": 1 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:beacon" },        "weight": 10.0, "role": "core",   "cap": 1  },
+    { "match": { "tag": "soulhome:precious_blocks" },  "weight": 2.5,  "role": "plinth", "cap": 16 },
+    { "match": { "tag": "soulhome:structural" },       "weight": 0.6,  "role": "frame",  "cap": 32 },
+    { "match": { "tag": "soulhome:lighting" },         "weight": 0.5,  "role": "light",  "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:crops" },      "weight": -1.0 },
+    { "match": { "tag": "soulhome:bookshelves" }, "weight": -1.5 }
+  ],
+
+  "tiers": [
+    { "min_score": 6,  "tier": 1 },
+    { "min_score": 26, "tier": 2 },
+    { "min_score": 40, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:enchantment_power", "per_tier": 1.5, "max": 4.5 }
+  ],
+
+  "structures": [
+    {
+      "name": "the_pyre_of_light",
+      "weight": 6.0,
+      "role": "arrangement",
+      "elements": {
+        "beacon": { "block": "minecraft:beacon" },
+        "plinth": { "tag": "soulhome:precious_blocks" },
+        "frame":  { "tag": "soulhome:structural" }
+      },
+      "all": [
+        { "shape": "soulhome:apex", "of": "beacon", "tolerance": 2, "weight": 2.5 },
+        { "relation": "beneath", "of": "plinth", "to": "beacon", "max_drop": 4, "weight": 2.0 },
+        { "shape": "soulhome:enclosure", "of": "frame", "weight": 1.0 }
+      ]
+    }
+  ]
+}

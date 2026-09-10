@@ -206,6 +206,24 @@ public final class TestBlocks
     public static final TestBlock DEEPSLATE =
             block("minecraft:deepslate", Passability.BLOCKING, "soulhome:structural");
 
+    // apiary
+    public static final TestBlock BEEHIVE = block("minecraft:beehive", Passability.BLOCKING);
+    public static final TestBlock HONEY_BLOCK = block("minecraft:honey_block", Passability.BLOCKING);
+    public static final TestBlock HONEYCOMB_BLOCK = block("minecraft:honeycomb_block", Passability.BLOCKING);
+    public static final TestBlock CAMPFIRE = block("minecraft:campfire", Passability.PARTIAL);
+
+    // observatory
+    public static final TestBlock DAYLIGHT_DETECTOR = block("minecraft:daylight_detector", Passability.PARTIAL);
+
+    // beacon hall - a beacon is soulhome:lighting too, mirroring the real tag file
+    public static final TestBlock BEACON = block("minecraft:beacon", Passability.BLOCKING, "soulhome:lighting");
+
+    // conservatory
+    public static final TestBlock NOTE_BLOCK = block("minecraft:note_block", Passability.BLOCKING);
+
+    // ossuary
+    public static final TestBlock BONE_BLOCK = block("minecraft:bone_block", Passability.BLOCKING);
+
     private TestBlocks()
     {
     }

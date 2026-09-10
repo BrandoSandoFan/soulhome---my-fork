@@ -279,6 +279,14 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.purifying_font", "Purifying Font");
         add("archetype.soulhome.gale_roost", "Gale Roost");
 
+        // Five more: three passive, two active, chosen to reuse spare corners of the buff table
+        // rather than sit on top of what already exists - see Changelog.md for the reasoning
+        add("archetype.soulhome.apiary", "Apiary");
+        add("archetype.soulhome.observatory", "Observatory");
+        add("archetype.soulhome.beacon_hall", "Beacon Hall");
+        add("archetype.soulhome.conservatory", "Conservatory");
+        add("archetype.soulhome.ossuary", "Ossuary");
+
         //The abilities those rooms grant. A room and the thing it grants are not the same noun,
         //so these are their own keys rather than reusing the archetype names
         add(Constants.StringKeys.ABILITY_NAME_SURVEYORS_EYE, "Surveyor's Eye");
@@ -422,6 +430,21 @@ public class EngLangGen extends LanguageProvider
 
         add("advancements.soulhome.gale_roost.title", "Rising On It");
         add("advancements.soulhome.gale_roost.description", "Raise a bamboo mast in your soul taller than it is wide, with banners flying from the top.");
+
+        add("advancements.soulhome.apiary.title", "Kept Hives");
+        add("advancements.soulhome.apiary.description", "Keep bees in your soul in enough of a row that it reads as an apiary.");
+
+        add("advancements.soulhome.observatory.title", "Reading The Sky");
+        add("advancements.soulhome.observatory.description", "Set a daylight sensor at the top of a room in your soul, and study what it sees.");
+
+        add("advancements.soulhome.beacon_hall.title", "Raised Beam");
+        add("advancements.soulhome.beacon_hall.description", "Set a beacon in your soul on a plinth worth crowning.");
+
+        add("advancements.soulhome.conservatory.title", "Encore");
+        add("advancements.soulhome.conservatory.description", "Lay out a stage in your soul, and give it something worth clapping for.");
+
+        add("advancements.soulhome.ossuary.title", "Kept Vigil");
+        add("advancements.soulhome.ossuary.description", "Set candles around the bones in your soul, and learn what standing vigil is worth.");
 
         //misc
 
