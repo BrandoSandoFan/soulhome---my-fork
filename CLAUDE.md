@@ -305,7 +305,9 @@ Its layouts are the clearest documentation of what the scanner is supposed to do
 - The guide book runs in Patchouli's i18n mode, which pushes every string through `String.format`.
   A lone `%` renders the page as "Format error:". `PatchouliFormatSafetyTest` guards this.
 - Git: develop on the branch you were given; do not open a pull request unless asked.
-- The mainline branch is **`1.20.1`**, not `main` or `master`. The 1.21.1 port lives on its own
-  branch until it is merged.
+- **Mainlines are named after the game version**, not `main` or `master`. **`1.21.1`** is the one
+  this file describes and the one to branch from; **`1.20.1`** is the previous line, still there for
+  backports, and a change made there does not automatically belong here - the loader is different.
+  Check which one you are on before assuming a symbol exists.
 - **Datapack folder names are singular in 1.21**: `advancement`, `loot_table`, `recipe`,
   `tags/block`, `structure`. A file under the 1.20.1 plural name is silently not loaded.
