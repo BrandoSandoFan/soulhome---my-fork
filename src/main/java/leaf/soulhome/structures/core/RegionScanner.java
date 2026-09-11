@@ -554,7 +554,7 @@ public final class RegionScanner
     {
         if (signature != null && this.geometryFilter.test(signature))
         {
-            geometry.add(x, y, z, signature);
+            geometry.add(x, y, z, signature, this.volume.facingAt(x, y, z));
         }
     }
 
