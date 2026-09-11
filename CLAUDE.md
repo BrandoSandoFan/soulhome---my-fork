@@ -194,8 +194,9 @@ Shape of one:
 - `detractors` - negative evidence (an anvil argues a room is not a library)
 - `structures` - *forms*: how blocks are arranged, not just what they are. Clause vocabulary is
   registered in `BuiltinFormClauses` (`loop`, `platform`, `enclosure`, `line`, `cluster`, `within`,
-  `at_range`, `above`, `beneath`, `beside`, `across`, `along`, `surrounds`, `inside`). A datapack
-  can register its own onto its own `FormClauseRegistry`.
+  `at_range`, `above`, `beneath`, `beside`, `across`, `along`, `surrounds`, `inside`, `lane`,
+  `apex`, `soulhome:irregularity`, `verticality`, `facing`). A datapack can register its own onto
+  its own `FormClauseRegistry`.
 - `tiers` and `buffs` - score thresholds and what they pay out
 
 Which blocks the scanner even bothers clustering around is derived from the loaded archetypes by

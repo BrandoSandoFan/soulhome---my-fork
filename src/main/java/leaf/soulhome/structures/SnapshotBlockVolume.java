@@ -8,17 +8,21 @@ import leaf.soulhome.compat.BlockDisguises;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.structures.core.BlockSignature;
 import leaf.soulhome.structures.core.BlockVolume;
+import leaf.soulhome.structures.core.Facing;
 import leaf.soulhome.structures.core.Passability;
 import leaf.soulhome.structures.core.RegionBounds;
 import leaf.soulhome.structures.core.RegionScanner;
 import leaf.soulhome.structures.core.ScanSettings;
 import leaf.soulhome.utils.LogHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -54,6 +58,7 @@ public final class SnapshotBlockVolume implements BlockVolume
     private final int sizeZ;
     private final byte[] passability;
     private final BlockSignature[] signatures;
+    private final Facing[] facings;
 
     private SnapshotBlockVolume(RegionBounds bounds)
     {
@@ -64,6 +69,7 @@ public final class SnapshotBlockVolume implements BlockVolume
         final int cells = (int) bounds.volume();
         this.passability = new byte[cells];
         this.signatures = new BlockSignature[cells];
+        this.facings = new Facing[cells];
     }
 
     /**
@@ -146,6 +152,7 @@ public final class SnapshotBlockVolume implements BlockVolume
                                 if (passability != Passability.EMPTY)
                                 {
                                     snapshot.signatures[index] = signatureOf(chunk, cursor, state);
+                                    snapshot.facings[index] = facingOf(state);
                                 }
                             }
                         }
@@ -185,6 +192,53 @@ public final class SnapshotBlockVolume implements BlockVolume
         }
 
         return StateSignature.of(state);
+    }
+
+    /**
+     * Which way this block faces, for the {@code facing} relation (#36) - {@code null} for the
+     * overwhelming majority of blocks, which have no orientation at all.
+     *
+     * <p>Read off the actual placed {@code state}, never the disguise material {@link #signatureOf}
+     * may have substituted: orientation is a fact about what was placed, not about what it looks
+     * like it is made of, and a disguise's own material rarely carries a facing property anyway.
+     *
+     * <p><b>Stairs are the one block family this inverts.</b> A stair's own {@code FACING} is the
+     * direction a player was looking when they placed it - vanilla's ascending side, confirmed
+     * against {@code StairBlock#getStateForPlacement} - but a stair used as a chair seats a player
+     * with their back to the riser, looking the opposite way. Read {@code FACING} raw here and
+     * every hearth ring in the game would score as though its seating faced the wall.
+     */
+    private static Facing facingOf(BlockState state)
+    {
+        if (state.getBlock() instanceof StairBlock && state.hasProperty(StairBlock.FACING))
+        {
+            return toFacing(state.getValue(StairBlock.FACING).getOpposite());
+        }
+
+        if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING))
+        {
+            return toFacing(state.getValue(BlockStateProperties.HORIZONTAL_FACING));
+        }
+
+        if (state.hasProperty(BlockStateProperties.FACING))
+        {
+            return toFacing(state.getValue(BlockStateProperties.FACING));
+        }
+
+        return null;
+    }
+
+    private static Facing toFacing(Direction direction)
+    {
+        return switch (direction)
+        {
+            case NORTH -> Facing.NORTH;
+            case SOUTH -> Facing.SOUTH;
+            case EAST -> Facing.EAST;
+            case WEST -> Facing.WEST;
+            case UP -> Facing.UP;
+            case DOWN -> Facing.DOWN;
+        };
     }
 
     /**
@@ -494,6 +548,12 @@ public final class SnapshotBlockVolume implements BlockVolume
     public BlockSignature signatureAt(int x, int y, int z)
     {
         return this.signatures[index(x, y, z)];
+    }
+
+    @Override
+    public Facing facingAt(int x, int y, int z)
+    {
+        return this.facings[index(x, y, z)];
     }
 
     private int index(int x, int y, int z)
