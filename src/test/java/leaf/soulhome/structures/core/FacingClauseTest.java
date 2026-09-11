@@ -142,6 +142,19 @@ class FacingClauseTest
     }
 
     @Test
+    @DisplayName("max_distance uses true distance, not cube radius")
+    void maxDistanceUsesEuclideanRange()
+    {
+        RegionGeometry geometry = RegionGeometry.builder(100)
+                .add(0, 0, 0, chair(), Facing.NORTH)
+                .add(4, 0, -4, block("test:fire"))
+                .build();
+
+        assertEquals(0.0, facing(4, "adjacent_sector").evaluate(geometry, ELEMENTS).confidence(), 1e-9);
+        assertTrue(facing(6, "adjacent_sector").evaluate(geometry, ELEMENTS).confidence() > 0.65d);
+    }
+
+    @Test
     @DisplayName("exact tolerance only credits a target dead ahead")
     void exactToleranceRequiresDeadAheadAlignment()
     {

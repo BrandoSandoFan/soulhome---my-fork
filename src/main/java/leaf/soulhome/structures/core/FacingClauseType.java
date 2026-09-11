@@ -149,7 +149,7 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
                     continue;
                 }
 
-                if (ClauseMath.distance(of, to, "chebyshev") > this.maxDistance)
+                if (ClauseMath.distance(of, to, "euclidean") > this.maxDistance)
                 {
                     continue;
                 }
