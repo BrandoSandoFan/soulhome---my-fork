@@ -12,7 +12,8 @@
   ],
   "client": [
     "EffectInstanceMixin",
-    "EntityMixin"
+    "EntityMixin",
+    "PostChainAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

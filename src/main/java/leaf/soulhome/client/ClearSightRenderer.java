@@ -4,15 +4,16 @@
 
 package leaf.soulhome.client;
 
-import com.mojang.blaze3d.shaders.Uniform;
+import com.mojang.blaze3d.shaders.AbstractUniform;
+import com.mojang.blaze3d.shaders.EffectInstance;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.ClientSoulBuffs;
+import leaf.soulhome.mixin.PostChainAccessor;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import leaf.soulhome.utils.LogHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.PostPass;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -23,8 +24,8 @@ import java.io.IOException;
 
 /**
  * Observatory: brightens the screen in proportion to Clear Sight's own magnitude, rather than
- * switching a fixed-strength potion effect on and off (#see the room's own request that its
- * strength be able to grow smoothly rather than snap in at a threshold).
+ * switching a fixed-strength potion effect on and off - the room's own point is that its strength
+ * should grow smoothly rather than snap in at a threshold.
  *
  * <p>A dedicated {@link PostChain} the mod owns and drives itself, not vanilla's own night vision
  * shader - vanilla's is a binary on/off with a fixed intensity, exactly the shape this room is not
@@ -93,10 +94,10 @@ public final class ClearSightRenderer
 
             chain.resize(minecraft.getWindow().getWidth(), minecraft.getWindow().getHeight());
 
-            for (PostPass pass : chain.passes)
+            for (PostPass pass : ((PostChainAccessor) chain).getPasses())
             {
-                final ShaderInstance effect = pass.getEffect();
-                final Uniform strengthUniform = effect.safeGetUniform("Strength");
+                final EffectInstance effect = pass.getEffect();
+                final AbstractUniform strengthUniform = effect.safeGetUniform("Strength");
 
                 if (strengthUniform != null)
                 {
