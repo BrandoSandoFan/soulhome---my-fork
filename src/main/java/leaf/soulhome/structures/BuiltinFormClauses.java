@@ -13,6 +13,7 @@ import leaf.soulhome.structures.core.BeneathClauseType;
 import leaf.soulhome.structures.core.BesideClauseType;
 import leaf.soulhome.structures.core.ClusterClauseType;
 import leaf.soulhome.structures.core.EnclosureClauseType;
+import leaf.soulhome.structures.core.FacingClauseType;
 import leaf.soulhome.structures.core.FormClauseRegistry;
 import leaf.soulhome.structures.core.FormClauseType;
 import leaf.soulhome.structures.core.InsideClauseType;
@@ -96,6 +97,9 @@ public final class BuiltinFormClauses
 
         // Gale Roost - a room's own footprint against its own height, not one element's position
         register(registry, new VerticalityClauseType());
+
+        // #36 - which way a block points, without widening BlockSignature to carry state
+        register(registry, new FacingClauseType());
     }
 
     private static void register(FormClauseRegistry registry, FormClauseType type)
