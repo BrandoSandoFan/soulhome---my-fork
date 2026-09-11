@@ -136,7 +136,42 @@ class FacingClauseTest
                 .add(0, 0, -20, block("test:fire"))
                 .build();
 
-        assertEquals(0.0, facing(4, "adjacent_sector").evaluate(geometry, ELEMENTS).confidence(), 1e-9);
+        FormResult result = facing(4, "adjacent_sector").evaluate(geometry, ELEMENTS);
+        assertEquals(0.0, result.confidence(), 1e-9);
+        assertTrue(result.diagnostic().contains("within 4 blocks"), result.diagnostic());
+    }
+
+    @Test
+    @DisplayName("exact tolerance only credits a target dead ahead")
+    void exactToleranceRequiresDeadAheadAlignment()
+    {
+        RegionGeometry deadAhead = RegionGeometry.builder(100)
+                .add(0, 0, 0, chair(), Facing.NORTH)
+                .add(0, 0, -4, block("test:fire"))
+                .build();
+
+        RegionGeometry slightlyOffAxis = RegionGeometry.builder(100)
+                .add(0, 0, 0, chair(), Facing.NORTH)
+                .add(1, 0, -4, block("test:fire"))
+                .build();
+
+        assertEquals(1.0, facing(6, "exact").evaluate(deadAhead, ELEMENTS).confidence(), 1e-9);
+        assertEquals(0.0, facing(6, "exact").evaluate(slightlyOffAxis, ELEMENTS).confidence(), 1e-9);
+    }
+
+    @Test
+    @DisplayName("an unknown tolerance falls back to adjacent_sector")
+    void unknownToleranceFallsBackToAdjacentSector()
+    {
+        RegionGeometry geometry = RegionGeometry.builder(100)
+                .add(0, 0, 0, chair(), Facing.NORTH)
+                .add(4, 0, -4, block("test:fire"))
+                .build();
+
+        double defaultScore = facing(6, "adjacent_sector").evaluate(geometry, ELEMENTS).confidence();
+        double unknownScore = facing(6, "not_a_real_tolerance").evaluate(geometry, ELEMENTS).confidence();
+
+        assertEquals(defaultScore, unknownScore, 1e-9);
     }
 
     @Test
