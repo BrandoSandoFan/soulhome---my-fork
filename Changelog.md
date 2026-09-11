@@ -857,3 +857,16 @@ each paying out a buff of its own rather than a re-skin of one the mod already g
   never at risk. Spent rather than banked, and it ends on its own clock rather than fading.
 - None of the three reuses a signal another archetype already scores as its own core - Apiary's
   beehives are Farm's smallest bonus and nothing more there.
+
+A ring of chairs facing the wall scored the same as one facing the fire
+
+Every structural check up to now could tell you *where* seating was, never which way it was
+turned - a hearth's ring of stairs scored identically whether every chair faced the flames or
+faced the walls behind them, because nothing in the mod asked. `/soulhome analyse` had nothing to
+say about it either way.
+
+- Buff: a new `facing` relation lets an archetype ask whether one element points at another - a
+  chair at the fire, a lectern at the reader. Graded per chair rather than pass/fail: dead-on
+  scores full, a stair placed one compass notch off still scores nearly as well, and turning away
+  scores nothing. A block with no facing of its own (most of a room) is simply left out of the
+  average rather than counted against it.

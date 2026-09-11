@@ -25,4 +25,16 @@ public interface BlockVolume
      * {@link Passability#EMPTY}.
      */
     BlockSignature signatureAt(int x, int y, int z);
+
+    /**
+     * Which way the block at this position faces, or {@code null} when it has no orientation
+     * property at all - not to be confused with "not facing anything", which is a question for a
+     * {@code facing} relation to answer, not this method. Defaulted to {@code null} everywhere so
+     * a {@link BlockVolume} that has no notion of orientation - {@code GridVolume}, in the test
+     * suite - never has to implement it.
+     */
+    default Facing facingAt(int x, int y, int z)
+    {
+        return null;
+    }
 }
