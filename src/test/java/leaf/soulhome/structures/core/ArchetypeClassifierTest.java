@@ -52,12 +52,12 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(34, shipped.size(),
+        assertEquals(32, shipped.size(),
                 "alchemy lab, arcane sanctum, armoury, aquarium, bedchamber, bulwark, cold storage, "
                         + "enchanting room, farm, gale roost, greenhouse, hearth, infected grotto, library, "
                         + "mead hall, mine, powder magazine, purifying font, rift chamber, ritual chamber, "
                         + "shrine, stable, storm spire, track, training yard, treasury, trophy room, "
-                        + "watchtower, workshop, apiary, observatory, beacon hall, conservatory, ossuary");
+                        + "watchtower, workshop, apiary, observatory, ossuary");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -493,8 +493,6 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:gale_roost", TestBlocks.BAMBOO),
                 Map.entry("soulhome:apiary", TestBlocks.BEEHIVE),
                 Map.entry("soulhome:observatory", TestBlocks.DAYLIGHT_DETECTOR),
-                Map.entry("soulhome:beacon_hall", TestBlocks.BEACON),
-                Map.entry("soulhome:conservatory", TestBlocks.NOTE_BLOCK),
                 Map.entry("soulhome:ossuary", TestBlocks.BONE_BLOCK));
 
         for (ArchetypeDefinition archetype : shipped)
@@ -692,8 +690,6 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:gale_roost", galeRoost()),
                 Map.entry("soulhome:apiary", apiary()),
                 Map.entry("soulhome:observatory", observatory()),
-                Map.entry("soulhome:beacon_hall", beaconHall()),
-                Map.entry("soulhome:conservatory", conservatory()),
                 Map.entry("soulhome:ossuary", ossuary()));
 
         assertEquals(shipped.size(), canonicalBuild.size(),
@@ -1615,46 +1611,6 @@ class ArchetypeClassifierTest
                         "g.....g",
                         "g.....g",
                         "ggggggg"},
-                SLAB);
-    }
-
-    /** A beacon crowning a plinth of diamond blocks, deepslate framing the whole hall. */
-    private static GridVolume beaconHall()
-    {
-        return GridVolume.of(
-                DEEP_SLAB,
-                new String[]{
-                        "&&&&&&&",
-                        "&.....&",
-                        "&.JJJ.&",
-                        "&.JJJ.&",
-                        "&.JJJ.&",
-                        "&.....&",
-                        "&&&&&&&"},
-                new String[]{
-                        "&&&&&&&",
-                        "&.....&",
-                        "&.....&",
-                        "&..?..&",
-                        "&.....&",
-                        "&.....&",
-                        "&&&&&&&"},
-                DEEP_SLAB);
-    }
-
-    /** A run of note blocks, seating facing it across the room, a jukebox within earshot. */
-    private static GridVolume conservatory()
-    {
-        return GridVolume.of(
-                SLAB,
-                new String[]{
-                        "#######",
-                        "#[[[[[#",
-                        "#S...S#",
-                        "#[[[[[#",
-                        "#[[j..#",
-                        "#.....#",
-                        "#######"},
                 SLAB);
     }
 

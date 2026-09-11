@@ -94,7 +94,6 @@ public record BuffSettings(
                     Map.entry(SoulBuffTypes.RUPTURE, 6.0d),
                     Map.entry(SoulBuffTypes.CLEANSING_FONT, 6.0d),
                     Map.entry(SoulBuffTypes.UPDRAFT, 6.0d),
-                    Map.entry(SoulBuffTypes.ENCORE, 4.5d),
                     Map.entry(SoulBuffTypes.LAST_STAND, 9.0d),
                     Map.entry(SoulBuffTypes.CALMING_SMOKE, 3.0d),
 

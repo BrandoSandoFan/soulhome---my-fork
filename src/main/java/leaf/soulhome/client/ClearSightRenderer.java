@@ -4,6 +4,7 @@
 
 package leaf.soulhome.client;
 
+import com.mojang.blaze3d.shaders.Uniform;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.ClientSoulBuffs;
 import leaf.soulhome.structures.core.SoulBuffTypes;
@@ -12,7 +13,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.PostPass;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.renderer.Uniform;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;

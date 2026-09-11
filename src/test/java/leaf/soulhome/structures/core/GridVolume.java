@@ -190,14 +190,12 @@ public final class GridVolume implements BlockVolume
         palette.put(':', TestBlocks.MOSS_BLOCK);
         palette.put('(', TestBlocks.BAMBOO);
 
-        // five more rooms - every letter and digit is spoken for, so punctuation again
+        // three more rooms - every letter and digit is spoken for, so punctuation again
         palette.put(')', TestBlocks.BEEHIVE);
         palette.put(',', TestBlocks.HONEY_BLOCK);
         palette.put(';', TestBlocks.HONEYCOMB_BLOCK);
         palette.put('<', TestBlocks.CAMPFIRE);
         palette.put('>', TestBlocks.DAYLIGHT_DETECTOR);
-        palette.put('?', TestBlocks.BEACON);
-        palette.put('[', TestBlocks.NOTE_BLOCK);
         palette.put(']', TestBlocks.BONE_BLOCK);
         return palette;
     }

@@ -13,7 +13,6 @@ import leaf.soulhome.buffs.effects.CleansingFontEffect;
 import leaf.soulhome.buffs.effects.ClearSightEffect;
 import leaf.soulhome.buffs.effects.DoubleJumpEffect;
 import leaf.soulhome.buffs.effects.EnchantmentPowerEffect;
-import leaf.soulhome.buffs.effects.EncoreEffect;
 import leaf.soulhome.buffs.effects.FallProtectionEffect;
 import leaf.soulhome.buffs.effects.FireAspectEffect;
 import leaf.soulhome.buffs.effects.FireResistanceEffect;
@@ -24,7 +23,6 @@ import leaf.soulhome.buffs.effects.ManaEffect;
 import leaf.soulhome.buffs.effects.MiningSpeedEffect;
 import leaf.soulhome.buffs.effects.NourishedEffect;
 import leaf.soulhome.buffs.effects.PotionDurationEffect;
-import leaf.soulhome.buffs.effects.RadiantWardEffect;
 import leaf.soulhome.buffs.effects.RallyEffect;
 import leaf.soulhome.buffs.effects.ReachEffect;
 import leaf.soulhome.buffs.effects.RuptureEffect;
@@ -111,12 +109,10 @@ public final class SoulBuffEffects
         register(new CleansingFontEffect());
         register(new UpdraftEffect());
 
-        // apiary, observatory, beacon hall, conservatory, ossuary - each written for its own
-        // room rather than reusing what the mod already grants
+        // apiary, observatory, ossuary - each written for its own room rather than reusing
+        // what the mod already grants
         register(new CalmingSmokeEffect());
         register(new ClearSightEffect());
-        register(new RadiantWardEffect());
-        register(new EncoreEffect());
         register(new LastStandEffect());
 
         LogHelper.info("Registered " + BY_TYPE.size() + " soul buff effect(s): " + BY_TYPE.keySet());
