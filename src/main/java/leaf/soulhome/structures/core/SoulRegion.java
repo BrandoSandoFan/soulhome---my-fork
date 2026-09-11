@@ -109,6 +109,10 @@ public record SoulRegion(
             hash = hash * 31 + cell.y();
             hash = hash * 31 + cell.z();
             hash = hash * 31 + cell.signature().id().hashCode();
+            // rotating a stair in place changes no count and no position, so the facing relation
+            // (#36) would never see the buffs refresh without this - the same "harmless until the
+            // first clause that reads it ships" trap the position fields above exist to avoid
+            hash = hash * 31 + (cell.facing() == null ? -1 : cell.facing().ordinal());
         }
 
         hash = hash * 31 + (geometry.isTruncated() ? 1 : 0);

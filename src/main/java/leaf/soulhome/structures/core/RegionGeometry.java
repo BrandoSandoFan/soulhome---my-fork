@@ -144,8 +144,14 @@ public final class RegionGeometry
         return Optional.ofNullable(this.bounds);
     }
 
-    /** One indexed block: where it is, and what it is. */
-    public record Cell(int x, int y, int z, BlockSignature signature)
+    /**
+     * One indexed block: where it is, what it is, and - only when the block actually has an
+     * orientation property - which way it {@link #facing() faces}. {@code null} facing means
+     * "this block has no orientation", not "facing away from something" - see the {@code facing}
+     * relation (#36), which has to tell the two apart rather than scoring an unfaceable block as a
+     * failure.
+     */
+    public record Cell(int x, int y, int z, BlockSignature signature, Facing facing)
     {
     }
 
@@ -168,10 +174,21 @@ public final class RegionGeometry
         }
 
         /**
-         * Records one cell. The caller decides what is worth indexing in the first place - this
-         * only enforces the cap once it has been asked to keep a cell.
+         * Records one cell with no orientation data - the common case, and what every caller used
+         * before the {@code facing} relation (#36) existed. Equivalent to {@link #add(int, int, int,
+         * BlockSignature, Facing)} with a {@code null} facing.
          */
         public Builder add(int x, int y, int z, BlockSignature signature)
+        {
+            return add(x, y, z, signature, null);
+        }
+
+        /**
+         * Records one cell, with the direction it faces if the block at this position has one. The
+         * caller decides what is worth indexing in the first place - this only enforces the cap
+         * once it has been asked to keep a cell.
+         */
+        public Builder add(int x, int y, int z, BlockSignature signature, Facing facing)
         {
             if (signature == null)
             {
@@ -184,7 +201,7 @@ public final class RegionGeometry
                 return this;
             }
 
-            this.cells.add(new Cell(x, y, z, signature));
+            this.cells.add(new Cell(x, y, z, signature, facing));
             return this;
         }
 
