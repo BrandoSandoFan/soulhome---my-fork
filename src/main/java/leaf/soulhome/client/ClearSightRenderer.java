@@ -5,13 +5,13 @@
 package leaf.soulhome.client;
 
 import com.mojang.blaze3d.shaders.AbstractUniform;
-import com.mojang.blaze3d.shaders.EffectInstance;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.ClientSoulBuffs;
 import leaf.soulhome.mixin.PostChainAccessor;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import leaf.soulhome.utils.LogHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.EffectInstance;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.PostPass;
 import net.minecraft.resources.ResourceLocation;

@@ -4,7 +4,7 @@
 
 package leaf.soulhome.mixin;
 
-import com.mojang.blaze3d.shaders.EffectInstance;
+import net.minecraft.client.renderer.EffectInstance;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.PostPass;
 import org.spongepowered.asm.mixin.Mixin;
