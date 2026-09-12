@@ -52,7 +52,7 @@ public final class SoulAdvancements
 
         for (AwardedRoom room : awarded)
         {
-            CLASSIFIED_ROOM.get().trigger(player, room.archetypeId(), room.tier());
+            CLASSIFIED_ROOM.get().trigger(player, room.archetypeId(), room.tier(), awarded.size());
         }
     }
 

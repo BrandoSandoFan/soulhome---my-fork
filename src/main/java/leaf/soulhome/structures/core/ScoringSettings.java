@@ -26,6 +26,15 @@ package leaf.soulhome.structures.core;
  * @param structuralRoleThreshold confidence a structural form must clear before its role counts
  *                               toward the diversity multiplier - otherwise an accidental
  *                               0.02-confidence clause would buy a full diversity bonus for free.
+ *                               A bond's role clears the same bar, for the same reason.
+ * @param bondShareCap           bond credit is capped at this fraction of what the room earned on
+ *                               its own - its signal total plus its credited arrangement - so a
+ *                               perfect floor plan of empty boxes is worth nothing (rule 5 of the
+ *                               Soul Architecture epic, #140). Set conservatively: #54 had to soften
+ *                               the structural cap after shipping it too tight, and the opposite
+ *                               mistake here is harder to undo because it inflates every score at
+ *                               once. Discords are not capped by this - evidence against a room
+ *                               should not shrink as the room gets bigger.
  */
 public record ScoringSettings(
         double diversityBonusPerRole,
@@ -33,9 +42,32 @@ public record ScoringSettings(
         double minDensityFactor,
         double ambiguityMargin,
         double structuralShareCap,
-        double structuralRoleThreshold)
+        double structuralRoleThreshold,
+        double bondShareCap)
 {
-    public static final ScoringSettings DEFAULTS = new ScoringSettings(0.15d, 0.02d, 0.25d, 1.15d, 1.0d, 0.25d);
+    /**
+     * Suggested default - see the field javadoc above. A quarter: with the shipped bonds a room
+     * in a well-laid-out house earns around a tenth to a fifth more than the same room alone,
+     * which lifts a strong tier 2 to tier 3 and does nothing for an empty box. See the balance
+     * pass in #149, and {@code ArchetypeCeilingTest}'s bound on how much headroom bonds may add.
+     */
+    public static final double DEFAULT_BOND_SHARE_CAP = 0.25d;
+
+    public static final ScoringSettings DEFAULTS =
+            new ScoringSettings(0.15d, 0.02d, 0.25d, 1.15d, 1.0d, 0.25d, DEFAULT_BOND_SHARE_CAP);
+
+    /** Every setting from before bonds existed, with the bond cap at its default. */
+    public ScoringSettings(
+            double diversityBonusPerRole,
+            double densityFloor,
+            double minDensityFactor,
+            double ambiguityMargin,
+            double structuralShareCap,
+            double structuralRoleThreshold)
+    {
+        this(diversityBonusPerRole, densityFloor, minDensityFactor, ambiguityMargin, structuralShareCap,
+                structuralRoleThreshold, DEFAULT_BOND_SHARE_CAP);
+    }
 
     public ScoringSettings
     {
@@ -68,6 +100,11 @@ public record ScoringSettings(
         {
             throw new IllegalArgumentException(
                     "structuralRoleThreshold must be between 0 and 1, got " + structuralRoleThreshold);
+        }
+
+        if (bondShareCap < 0)
+        {
+            throw new IllegalArgumentException("bondShareCap must not be negative, got " + bondShareCap);
         }
     }
 }

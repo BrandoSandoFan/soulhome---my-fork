@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Ordnance: TNT$(li)Battery: Dispenser$(li)Charge: Block of Redstone",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "And rooms that do not go with it - each one costs this room while it stands there:$(li)$(l:soulhome:multiblocks/hearth)Hearth$(/l), within 8 blocks$(li)$(l:soulhome:multiblocks/storm_spire)Storm Spire$(/l), within 10 blocks$(li)$(l:soulhome:multiblocks/workshop)Workshop$(/l), within 8 blocks",
+      "title": "Rooms that do not"
     }
   ],
   "priority": false,

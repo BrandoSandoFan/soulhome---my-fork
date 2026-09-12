@@ -46,5 +46,10 @@
         { "relation": "within",  "of": "seating", "to": "shelves", "max_distance": 6, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:enchanting_room", "relation": "connects", "weight": 4.0, "role": "layout", "max_distance": 12 },
+    { "with": "soulhome:arcane_sanctum", "relation": "connects", "weight": 4.0, "role": "layout", "max_distance": 12 }
   ]
 }

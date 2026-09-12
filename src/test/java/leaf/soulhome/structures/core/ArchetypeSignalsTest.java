@@ -69,6 +69,89 @@ class ArchetypeSignalsTest
         assertTrue(filter.test(TestBlocks.CHAIR));
     }
 
+    // region open-cluster filter (#134)
+
+    @Test
+    @DisplayName("an enclosed-only archetype's palette is counted but does not seed open-air clusters")
+    void enclosedOnlyPaletteDoesNotSeedClusters()
+    {
+        ArchetypeDefinition coldStorage = archetypeNaming(
+                List.of(RegionType.ENCLOSED), BlockMatcher.ofBlocks("minecraft:snow_block"));
+
+        assertTrue(ArchetypeSignals.filterFor(List.of(coldStorage)).test(TestBlocks.SNOW_BLOCK),
+                "the counting filter is unchanged: snow is still a block some archetype names");
+        assertFalse(ArchetypeSignals.openClusterFilterFor(List.of(coldStorage)).test(TestBlocks.SNOW_BLOCK),
+                "nothing open can score snow, so snow should not seed an open-air cluster");
+    }
+
+    @Test
+    @DisplayName("a datapack adding an open archetype that names snow gets snow back as a cluster seed")
+    void anOpenArchetypeNamingSnowSeedsClusters()
+    {
+        ArchetypeDefinition coldStorage = archetypeNaming(
+                List.of(RegionType.ENCLOSED), BlockMatcher.ofBlocks("minecraft:snow_block"));
+        ArchetypeDefinition snowField = archetypeNaming(
+                List.of(RegionType.OPEN, RegionType.ENCLOSED), BlockMatcher.ofBlocks("minecraft:snow_block"));
+
+        assertTrue(ArchetypeSignals.openClusterFilterFor(List.of(coldStorage, snowField)).test(TestBlocks.SNOW_BLOCK),
+                "no Java change: the filter is derived from whatever is loaded");
+    }
+
+    @Test
+    @DisplayName("an open archetype's requirements seed clusters too, as they always did")
+    void openRequirementsSeedClusters()
+    {
+        ArchetypeDefinition farm = new ArchetypeDefinition(
+                "soulhome:test_farm", "archetype.soulhome.test", List.of(RegionType.OPEN), 1,
+                List.of(new ArchetypeDefinition.Requirement(BlockMatcher.ofTags("minecraft:crops"), 9)),
+                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofBlocks("minecraft:farmland"), 1d, "core", 8)),
+                List.of(),
+                List.of(new ArchetypeDefinition.Tier(1d, 1)),
+                List.of(),
+                List.of());
+
+        Predicate<BlockSignature> filter = ArchetypeSignals.openClusterFilterFor(List.of(farm));
+
+        assertTrue(filter.test(TestBlocks.WHEAT));
+        assertTrue(filter.test(TestBlocks.FARMLAND));
+    }
+
+    @Test
+    @DisplayName("a signal marked seed: false is counted but never gathered around")
+    void aNonSeedingSignalDoesNotSeedClusters()
+    {
+        ArchetypeDefinition spire = new ArchetypeDefinition(
+                "soulhome:test_spire", "archetype.soulhome.test", List.of(RegionType.OPEN), 1,
+                List.of(),
+                List.of(
+                        new ArchetypeDefinition.Signal(BlockMatcher.ofBlocks("minecraft:lightning_rod"), 6d, "conductor", 3),
+                        new ArchetypeDefinition.Signal(BlockMatcher.ofTags("soulhome:structural"), 0.5d, "masonry", 48, false)),
+                List.of(),
+                List.of(new ArchetypeDefinition.Tier(1d, 1)),
+                List.of(),
+                List.of());
+
+        assertTrue(ArchetypeSignals.openClusterFilterFor(List.of(spire)).test(TestBlocks.LIGHTNING_ROD));
+        assertFalse(ArchetypeSignals.openClusterFilterFor(List.of(spire)).test(TestBlocks.DEEPSLATE),
+                "the ground a spire stands on must not gather the island around it");
+        assertTrue(ArchetypeSignals.filterFor(List.of(spire)).test(TestBlocks.DEEPSLATE),
+                "but masonry the spire's region takes in still counts");
+    }
+
+    private static ArchetypeDefinition archetypeNaming(List<RegionType> regionTypes, BlockMatcher signal)
+    {
+        return new ArchetypeDefinition(
+                "soulhome:test", "archetype.soulhome.test", regionTypes, 1,
+                List.of(),
+                List.of(new ArchetypeDefinition.Signal(signal, 1d, "core", 8)),
+                List.of(),
+                List.of(new ArchetypeDefinition.Tier(1d, 1)),
+                List.of(),
+                List.of());
+    }
+
+    // endregion
+
     private static ArchetypeDefinition archetypeWithForm(Map<String, BlockMatcher> elements)
     {
         FakeClauseForFilterTest root = new FakeClauseForFilterTest(elements.keySet());

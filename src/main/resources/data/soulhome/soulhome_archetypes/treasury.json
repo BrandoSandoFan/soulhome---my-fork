@@ -40,5 +40,9 @@
         { "shape": "soulhome:cluster", "of": "wealth", "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:bulwark", "relation": "adjoins", "weight": 3.0, "role": "layout" }
   ]
 }

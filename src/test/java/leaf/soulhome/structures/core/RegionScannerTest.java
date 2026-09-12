@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -510,10 +511,80 @@ class RegionScannerTest
                 new String[]{"#######", "#######", "#######", "#######", "#######"},
                 new String[]{"hhhhhhh", "hhhhhhh", "hhhhhhh", "hhhhhhh", "hhhhhhh"}));
 
+        // kept beside the roof garden below on purpose: the two are the same shape, and a hay
+        // bale filling its cell where farmland does not is the whole of what tells them apart
         assertEquals(1, regions.size(), "the barn, and nothing else");
         assertEquals(RegionType.ENCLOSED, regions.get(0).type());
         assertEquals(0, regions.get(0).allBlocks().count(BlockMatcher.ofBlocks("minecraft:hay_block")),
                 "the roof is the barn's, but it is not what the barn is scored on");
+    }
+
+    @Test
+    @DisplayName("a garden planted on a flat roof keeps its soil (#138)")
+    void aRoofGardenKeepsItsFarmland()
+    {
+        // the same shape as the barn above with farmland in place of hay and wheat planted in it.
+        // The farmland sat directly against the ceiling's outer face and was claimed as the
+        // building's fabric, so the garden came back as wheat with no ground under it
+        List<SoulRegion> regions = scanForAnySignal(roofGarden());
+
+        assertEquals(2, regions.size(), "the house and the garden on its roof: " + regions);
+
+        SoulRegion house = regions.get(0).type() == RegionType.ENCLOSED ? regions.get(0) : regions.get(1);
+        SoulRegion garden = house == regions.get(0) ? regions.get(1) : regions.get(0);
+
+        assertEquals(RegionType.ENCLOSED, house.type());
+        assertEquals(RegionType.OPEN, garden.type());
+        assertEquals(25, countIn(garden, "minecraft:crops"));
+        assertEquals(25, garden.allBlocks().count(BlockMatcher.ofBlocks("minecraft:farmland")),
+                "every block of soil the wheat is planted in");
+        assertEquals(0, garden.allBlocks().count(BlockMatcher.ofBlocks("minecraft:stone")),
+                "the roof under the soil is the house's, not the garden's");
+    }
+
+    @Test
+    @DisplayName("a two-layer roof is claimed whole and seeds nothing (#138)")
+    void aThickRoofIsClaimedWhole()
+    {
+        // a bookshelf box - every block of it a signal - with a roof two courses thick. The
+        // second course touches no interior air, so it is fabric or it is loose
+        String[] solid = {"BBBBBBB", "BBBBBBB", "BBBBBBB", "BBBBBBB", "BBBBBBB", "BBBBBBB", "BBBBBBB"};
+        GridVolume study = GridVolume.of(
+                solid,
+                new String[]{
+                        "BBBBBBB",
+                        "B.....B",
+                        "B.....B",
+                        "B.....B",
+                        "B.....B",
+                        "B.....B",
+                        "BBBBBBB"},
+                solid,
+                solid);
+
+        Predicate<BlockSignature> anyBookshelf = signature -> signature.hasTag("soulhome:bookshelves");
+        List<SoulRegion> regions = RegionScanner.scan(study, anyBookshelf, ScanSettings.DEFAULTS);
+
+        assertEquals(1, regions.size(), "the study, and nothing else: " + regions);
+        assertEquals(RegionType.ENCLOSED, regions.get(0).type());
+    }
+
+    /** A sealed 5x5 stone room with wheat planted on farmland across its flat roof. */
+    private static GridVolume roofGarden()
+    {
+        return GridVolume.of(
+                new String[]{"#######", "#######", "#######", "#######", "#######", "#######", "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                new String[]{"#######", "#######", "#######", "#######", "#######", "#######", "#######"},
+                new String[]{".......", ".fffff.", ".fffff.", ".fffff.", ".fffff.", ".fffff.", "......."},
+                new String[]{".......", ".wwwww.", ".wwwww.", ".wwwww.", ".wwwww.", ".wwwww.", "......."});
     }
 
     @Test
@@ -713,6 +784,498 @@ class RegionScannerTest
                         "..." + divider + "..",
                         "..." + divider + ".."},
                 new String[]{"......", "......", "......", "......", "......", "......"});
+    }
+
+    // endregion
+
+    // region shared walls and floors (#136, #137)
+
+    private static double creditIn(SoulRegion region, String blockId)
+    {
+        return region.allBlocks().credit(BlockMatcher.ofBlocks(blockId));
+    }
+
+    @Test
+    @DisplayName("a slab between two stacked rooms is the upper room's floor, not the lower room's evidence (#136)")
+    void aSharedSlabBelongsToTheRoomStandingOnIt()
+    {
+        // build a library, then a loft on top of it with a hay floor. The hay used to be six
+        // blocks of the *lower* room's boundary, so the library beneath was a library holding
+        // hay - and floor the loft in bookshelves instead and the cellar gained shelves it did
+        // not contain
+        List<SoulRegion> shared = scanWithoutSignals(stackedRooms(true));
+
+        assertEquals(2, shared.size());
+
+        SoulRegion upper = higherOf(shared.get(0), shared.get(1));
+        SoulRegion lower = upper == shared.get(0) ? shared.get(1) : shared.get(0);
+
+        assertEquals(9, creditIn(upper, "minecraft:hay_block"), 1e-9,
+                "the loft keeps every block of the floor it is built out of");
+        assertEquals(0, creditIn(lower, "minecraft:hay_block"), 1e-9,
+                "the loft's floor says nothing about the library beneath it");
+        assertEquals(6, creditIn(lower, "minecraft:bookshelf"), 1e-9);
+        assertEquals(9 + 18, creditIn(lower, "minecraft:stone"), 1e-9,
+                "its floor and its walls - the ceiling is the loft's, and is hay anyway");
+    }
+
+    @Test
+    @DisplayName("two stacked rooms with their own floors score exactly as they always did (#136)")
+    void stackedRoomsWithTheirOwnFloorsAreUntouched()
+    {
+        // case B from the report, kept beside case A so the rule reads as a comparison: give
+        // the rooms their own slabs and nothing is shared, so nothing is split
+        List<SoulRegion> separate = scanWithoutSignals(stackedRooms(false));
+
+        assertEquals(2, separate.size());
+
+        SoulRegion upper = higherOf(separate.get(0), separate.get(1));
+        SoulRegion lower = upper == separate.get(0) ? separate.get(1) : separate.get(0);
+
+        assertEquals(9, creditIn(upper, "minecraft:hay_block"), 1e-9);
+        assertEquals(0, creditIn(lower, "minecraft:hay_block"), 1e-9);
+        assertEquals(6, creditIn(lower, "minecraft:bookshelf"), 1e-9);
+
+        // and the library's own ceiling, which nothing stands on, is still all its own: a 3x3
+        // floor, a 3x3 ceiling, and 24 wall cells of which 6 are bookshelves
+        assertEquals(9 + 9 + 18, creditIn(lower, "minecraft:stone"), 1e-9);
+    }
+
+    @Test
+    @DisplayName("a wall shared between two rooms is credited half to each, so partitioning is break-even (#137)")
+    void aSharedWallIsOneWall()
+    {
+        // one 15x3x2 space cut into four rooms by three bookshelf walls. 18 bookshelves placed;
+        // every internal wall used to be scored twice, for 36 credits, so a player who partitioned
+        // got four rooms each nearly clearing a gate the whole build could not clear once
+        List<SoulRegion> rooms = scanWithoutSignals(partitionedRooms());
+
+        assertEquals(4, rooms.size());
+
+        double credited = 0d;
+
+        for (SoulRegion room : rooms)
+        {
+            credited += creditIn(room, "minecraft:bookshelf");
+        }
+
+        assertEquals(18, credited, 1e-9, "total credit equals the number of bookshelves actually placed");
+
+        List<SoulRegion> byX = new java.util.ArrayList<>(rooms);
+        byX.sort(java.util.Comparator.comparingInt(room -> room.bounds().minX()));
+
+        assertEquals(3, creditIn(byX.get(0), "minecraft:bookshelf"), 1e-9, "an end room sees one partition");
+        assertEquals(6, creditIn(byX.get(1), "minecraft:bookshelf"), 1e-9, "a middle room sees two");
+        assertEquals(6, creditIn(byX.get(2), "minecraft:bookshelf"), 1e-9);
+        assertEquals(3, creditIn(byX.get(3), "minecraft:bookshelf"), 1e-9);
+
+        // the whole-block view rounds down rather than promising a block that was not credited
+        assertEquals(3, byX.get(0).allBlocks().count(BlockMatcher.ofBlocks("minecraft:bookshelf")));
+    }
+
+    @Test
+    @DisplayName("a room's own outer walls are unaffected by having a neighbour (#137)")
+    void outerWallsAreNotSplit()
+    {
+        List<SoulRegion> rooms = scanWithoutSignals(partitionedRooms());
+        List<SoulRegion> byX = new java.util.ArrayList<>(rooms);
+        byX.sort(java.util.Comparator.comparingInt(room -> room.bounds().minX()));
+
+        // an end room: 3x3 floor and ceiling, a 3x2 end wall, two 3x2 side walls - all stone,
+        // all its own. Its only shared cells are the partition's six bookshelves.
+        assertEquals(9 + 9 + 6 + 6 + 6, creditIn(byX.get(0), "minecraft:stone"), 1e-9);
+    }
+
+    @Test
+    @DisplayName("two standalone identical rooms score identically, and a single room is untouched")
+    void standaloneRoomsAreUnchanged()
+    {
+        List<SoulRegion> two = scanWithoutSignals(GridVolume.of(
+                new String[]{"###########", "###########", "###########", "###########", "###########", "###########"},
+                new String[]{
+                        "#BBB#.#BBB#",
+                        "#...#.#...#",
+                        "#...#.#...#",
+                        "#...#.#...#",
+                        "###########",
+                        "..........."},
+                new String[]{"###########", "###########", "###########", "###########", "###########", "###########"}));
+
+        assertEquals(2, two.size());
+        assertEquals(two.get(0).boundary().asMap(), two.get(1).boundary().asMap());
+        assertEquals(two.get(0).allBlocks().totalCredit(), two.get(1).allBlocks().totalCredit(), 1e-9);
+
+        SoulRegion alone = scan(sealedRoom()).get(0);
+        assertEquals(30, alone.boundary().totalCredit(), 1e-9, "every one of its own blocks, in full");
+        assertEquals(30, alone.boundary().total());
+    }
+
+    @Test
+    @DisplayName("credit does not depend on which room the scanner reached first")
+    void creditIsIndependentOfDiscoveryOrder()
+    {
+        // the same two stacked rooms, built the other way up: the hay-floored room below and the
+        // library above. The scanner sweeps in x, y, z order, so the room it reaches first flips
+        // - and what each room is credited must not
+        List<SoulRegion> loftAbove = scanWithoutSignals(stackedRooms(true));
+        List<SoulRegion> loftBelow = scanWithoutSignals(stackedRoomsFlipped());
+
+        SoulRegion loftA = withHayFloor(loftAbove);
+        SoulRegion loftB = withHayFloor(loftBelow);
+        SoulRegion libraryA = loftA == loftAbove.get(0) ? loftAbove.get(1) : loftAbove.get(0);
+        SoulRegion libraryB = loftB == loftBelow.get(0) ? loftBelow.get(1) : loftBelow.get(0);
+
+        assertEquals(9, creditIn(loftA, "minecraft:hay_block"), 1e-9);
+        assertEquals(9, creditIn(loftB, "minecraft:hay_block"), 1e-9);
+        assertEquals(0, creditIn(libraryA, "minecraft:hay_block"), 1e-9);
+        assertEquals(0, creditIn(libraryB, "minecraft:hay_block"), 1e-9);
+        assertEquals(6, creditIn(libraryA, "minecraft:bookshelf"), 1e-9);
+        assertEquals(6, creditIn(libraryB, "minecraft:bookshelf"), 1e-9);
+    }
+
+    private static SoulRegion higherOf(SoulRegion a, SoulRegion b)
+    {
+        return a.bounds().minY() > b.bounds().minY() ? a : b;
+    }
+
+    private static SoulRegion withHayFloor(List<SoulRegion> regions)
+    {
+        return creditIn(regions.get(0), "minecraft:hay_block") > 0 ? regions.get(0) : regions.get(1);
+    }
+
+    /**
+     * A 3x3 library two blocks high with bookshelves on two walls, and a 3x3 loft floored in hay
+     * above it. With {@code shareSlab} the hay is the library's ceiling; without it the library
+     * has a stone ceiling of its own and the hay floor sits on top of that.
+     */
+    private static GridVolume stackedRooms(boolean shareSlab)
+    {
+        String[] slab = {"#####", "#####", "#####", "#####", "#####"};
+        String[] hayFloor = {"#####", "#hhh#", "#hhh#", "#hhh#", "#####"};
+        String[] library = {
+                "#BBB#",
+                "#...#",
+                "#...#",
+                "#...#",
+                "#####"};
+        String[] loft = {
+                "#####",
+                "#...#",
+                "#...#",
+                "#...#",
+                "#####"};
+
+        return shareSlab
+                ? GridVolume.of(slab, library, library, hayFloor, loft, loft, slab)
+                : GridVolume.of(slab, library, library, slab, hayFloor, loft, loft, slab);
+    }
+
+    /** {@link #stackedRooms(boolean) stackedRooms(true)} the other way up: the hay-floored room below. */
+    private static GridVolume stackedRoomsFlipped()
+    {
+        String[] slab = {"#####", "#####", "#####", "#####", "#####"};
+        String[] hayFloor = {"#####", "#hhh#", "#hhh#", "#hhh#", "#####"};
+        String[] library = {
+                "#BBB#",
+                "#...#",
+                "#...#",
+                "#...#",
+                "#####"};
+        String[] loft = {
+                "#####",
+                "#...#",
+                "#...#",
+                "#...#",
+                "#####"};
+
+        // hay floor at the bottom this time: the loft stands on it, and the library above is
+        // separated from the loft by a stone slab the library stands on
+        return GridVolume.of(hayFloor, loft, loft, slab, library, library, slab);
+    }
+
+    /** One 15x3 space, two blocks high, partitioned into four rooms by three bookshelf walls. */
+    private static GridVolume partitionedRooms()
+    {
+        String[] slab = new String[5];
+        Arrays.fill(slab, "#################");
+        String[] rooms = {
+                "#################",
+                "#...B...B...B...#",
+                "#...B...B...B...#",
+                "#...B...B...B...#",
+                "#################"};
+
+        return GridVolume.of(slab, rooms, rooms, slab);
+    }
+
+    // endregion
+
+    // region what the ground is made of (#134, #135)
+
+    /**
+     * The real shipped archetypes and the real filters the game builds from them - these cases
+     * reproduce reports from players entering a brand-new soul, and a hand-rolled predicate would
+     * only prove the scanner agrees with itself.
+     */
+    private static List<ArchetypeDefinition> shipped()
+    {
+        try
+        {
+            return ArchetypeJsonReader.shipped();
+        }
+        catch (java.io.IOException e)
+        {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
+    /** What {@code ArchetypeManager} hands the scanner since #134. */
+    private static List<SoulRegion> scanAsTheGameDoes(GridVolume volume)
+    {
+        List<ArchetypeDefinition> archetypes = shipped();
+        return RegionScanner.scan(
+                volume,
+                ArchetypeSignals.openClusterFilterFor(archetypes),
+                ArchetypeSignals.geometryFilterFor(archetypes),
+                ArchetypeSignals.needsClearance(archetypes),
+                ScanSettings.DEFAULTS);
+    }
+
+    @Test
+    @DisplayName("two open-air builds on snow are two regions, exactly as they are on dirt (#134)")
+    void twoBuildsOnSnowAreTwoRegions()
+    {
+        // the "snow soul is one giant room" report. Snow is a cold storage signal, cold storage is
+        // enclosed-only, and the old filter seeded open-air clusters from every archetype's
+        // palette regardless - so on a snowy island the ground itself was one island-spanning
+        // cluster, and every build laid on it joined that one region. The builds here are
+        // byte-identical between the two runs; only what they stand on differs.
+        List<SoulRegion> onDirt = scanAsTheGameDoes(twoBuildsOn(TestBlocks.DIRT));
+        List<SoulRegion> onSnow = scanAsTheGameDoes(twoBuildsOn(TestBlocks.SNOW_BLOCK));
+
+        assertEquals(2, onDirt.size(), "the ground nothing names never chained anything");
+        assertEquals(2, onSnow.size(), "and now neither does the ground cold storage names");
+
+        for (SoulRegion region : onSnow)
+        {
+            assertEquals(RegionType.OPEN, region.type());
+        }
+
+        // a farm on snow is still a farm standing on snow: the fix stops snow chaining two builds
+        // together, it does not stop a build from taking in the snow it is built on
+        SoulRegion farm = onSnow.get(0).allBlocks().count(BlockMatcher.ofTags("minecraft:crops")) > 0
+                ? onSnow.get(0) : onSnow.get(1);
+        SoulRegion yard = farm == onSnow.get(0) ? onSnow.get(1) : onSnow.get(0);
+
+        assertEquals(16, countIn(farm, "minecraft:crops"));
+        assertEquals(0, countIn(farm, "minecraft:fences"), "the yard is not part of the farm");
+        assertTrue(farm.allBlocks().count(BlockMatcher.ofBlocks("minecraft:snow_block")) > 0,
+                "the snow under the farm is in the farm's contents");
+        assertEquals(32, countIn(yard, "minecraft:fences"));
+        assertEquals(0, countIn(yard, "minecraft:crops"), "nor the farm part of the yard");
+    }
+
+    @Test
+    @DisplayName("the old all-archetypes filter is what made a snowy island one region")
+    void theCountingFilterSeedsTheWholeIsland()
+    {
+        // kept beside the case above so the next person can see the two filters are not
+        // interchangeable: cluster on everything the classifier can count and the snow chains
+        // both builds into one region that then scores as neither
+        List<SoulRegion> regions = RegionScanner.scan(
+                twoBuildsOn(TestBlocks.SNOW_BLOCK), ArchetypeSignals.filterFor(shipped()), ScanSettings.DEFAULTS);
+
+        assertEquals(1, regions.size(), "seeded on snow, the ground is one cluster");
+        assertEquals(16, countIn(regions.get(0), "minecraft:crops"));
+        assertEquals(32, countIn(regions.get(0), "minecraft:fences"));
+    }
+
+    @Test
+    @DisplayName("a treed starter island with nothing built on it produces no open-air region (#135)")
+    void aTreedIslandIsNotARegion()
+    {
+        // leaves are a greenhouse signal, greenhouse is enclosed-only, and a full-cube leaf block
+        // used to seed a cluster that grew up the trunks, along the canopy, and then took in
+        // everything the canopy closed around: 169 cells of ground became a 1014-cell region
+        // reaching canopy height, and the advice was "cut the trees down before you build"
+        List<SoulRegion> regions = scanAsTheGameDoes(treedIsland(false, false));
+
+        assertTrue(regions.isEmpty(), "nothing on a bare treed island seeds anything: " + regions);
+    }
+
+    @Test
+    @DisplayName("a build on a treed island is its own region, not merged with the trees (#135)")
+    void aBuildOnATreedIslandIsItsOwnRegion()
+    {
+        List<SoulRegion> regions = scanAsTheGameDoes(treedIsland(true, false));
+
+        assertEquals(1, regions.size(), "the farm, and nothing else: " + regions);
+
+        SoulRegion farm = regions.get(0);
+        assertEquals(RegionType.OPEN, farm.type());
+        assertEquals(9, countIn(farm, "minecraft:crops"));
+        assertEquals(0, countIn(farm, "minecraft:leaves"), "the canopy is not part of the farm");
+        assertEquals(0, farm.allBlocks().count(BlockMatcher.ofTags("minecraft:logs")), "nor the trunks");
+        assertTrue(farm.bounds().maxY() <= 2, "the farm's box stays at ground level: " + farm.bounds());
+    }
+
+    @Test
+    @DisplayName("a sealed room on a treed island survives the trees intact (#135)")
+    void aSealedRoomOnATreedIslandIsUnaffected()
+    {
+        // the fault was always confined to the open-air pass: the library came back the same with
+        // and without the trees, and this pins that
+        List<SoulRegion> regions = scanAsTheGameDoes(treedIsland(false, true));
+
+        assertEquals(1, regions.size(), "the library, and nothing else: " + regions);
+        assertEquals(RegionType.ENCLOSED, regions.get(0).type());
+        assertEquals(3, countIn(regions.get(0), "soulhome:bookshelves"));
+    }
+
+    @Test
+    @DisplayName("neither a tree trunk nor the stone under it is a cluster seed")
+    void terrainDoesNotSeedClusters()
+    {
+        // recorded rather than assumed (#135, #139): logs and stone are both soulhome:structural,
+        // which a storm spire and an observatory - both open archetypes - score as masonry. Those
+        // signals are marked seed: false in the data, and a change that let either back into the
+        // open-air pass would put every trunk and every block of ground on a starter island back
+        // into one island-sized region
+        assertFalse(ArchetypeSignals.openClusterFilterFor(shipped()).test(TestBlocks.OAK_LOG));
+        assertFalse(ArchetypeSignals.openClusterFilterFor(shipped()).test(TestBlocks.DEEPSLATE));
+        assertFalse(ArchetypeSignals.openClusterFilterFor(shipped()).test(TestBlocks.WATER),
+                "a pond is terrain; the farm counts water it takes in, it does not gather around it");
+        assertTrue(ArchetypeSignals.filterFor(shipped()).test(TestBlocks.DEEPSLATE),
+                "still counted wherever a region takes it in");
+    }
+
+    /**
+     * A 15x15 island with two builds ten blocks apart: a 4x4 farm in one corner and a fenced yard,
+     * two rails high, in the other. Everything either build is made of is an open archetype's
+     * signal; the ground is whichever block the caller names.
+     */
+    private static GridVolume twoBuildsOn(TestBlocks.TestBlock ground)
+    {
+        String[] groundLayer = new String[15];
+        Arrays.fill(groundLayer, "GGGGGGGGGGGGGGG");
+
+        // the farm's farmland is sunk into the ground layer above, as a player would till it
+        String[] tilled = new String[15];
+        Arrays.fill(tilled, "GGGGGGGGGGGGGGG");
+
+        for (int z = 0; z < 4; z++)
+        {
+            tilled[z] = "ffff" + "G".repeat(11);
+        }
+
+        String[] surface = new String[15];
+        Arrays.fill(surface, "...............");
+
+        for (int z = 0; z < 4; z++)
+        {
+            surface[z] = "wwww" + ".".repeat(11);
+        }
+
+        String[] yard = new String[15];
+        Arrays.fill(yard, "...............");
+
+        yard[9] = ".".repeat(10) + "FFFFF";
+        yard[10] = ".".repeat(10) + "F...F";
+        yard[11] = ".".repeat(10) + "F...F";
+        yard[12] = ".".repeat(10) + "F...F";
+        yard[13] = ".".repeat(10) + "FFFFF";
+
+        // the fences stand on the ground, alongside the wheat; a second course above them
+        String[] surfaceWithYard = surface.clone();
+
+        for (int z = 9; z <= 13; z++)
+        {
+            surfaceWithYard[z] = yard[z];
+        }
+
+        return GridVolume.of(Map.of('G', ground), groundLayer, tilled, surfaceWithYard, yard);
+    }
+
+    /**
+     * A 13x13 snowy island with a tree in each corner - a three-block trunk under a 3x3 canopy,
+     * the shape of a vanilla oak - and optionally a 3x3 farm or a sealed stone library in the
+     * middle.
+     */
+    private static GridVolume treedIsland(boolean withFarm, boolean withLibrary)
+    {
+        final int size = 13;
+        String[] ground = new String[size];
+        Arrays.fill(ground, "S".repeat(size));
+
+        // y=1..3 trunks, y=3..5 canopy
+        String[][] layers = new String[7][size];
+
+        for (int y = 0; y < 7; y++)
+        {
+            Arrays.fill(layers[y], ".".repeat(size));
+        }
+
+        int[][] trunks = {{1, 1}, {1, 11}, {11, 1}, {11, 11}};
+
+        for (int[] trunk : trunks)
+        {
+            for (int y = 1; y <= 3; y++)
+            {
+                layers[y][trunk[1]] = replaceAt(layers[y][trunk[1]], trunk[0], 'T');
+            }
+
+            for (int y = 3; y <= 5; y++)
+            {
+                for (int dz = -1; dz <= 1; dz++)
+                {
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        final boolean centre = dx == 0 && dz == 0;
+
+                        if (centre && y == 3)
+                        {
+                            continue; // the trunk's top
+                        }
+
+                        layers[y][trunk[1] + dz] = replaceAt(layers[y][trunk[1] + dz], trunk[0] + dx, 'z');
+                    }
+                }
+            }
+        }
+
+        if (withFarm)
+        {
+            for (int z = 5; z <= 7; z++)
+            {
+                ground[z] = ground[z].substring(0, 5) + "fff" + ground[z].substring(8);
+                layers[1][z] = layers[1][z].substring(0, 5) + "www" + layers[1][z].substring(8);
+            }
+        }
+
+        if (withLibrary)
+        {
+            // a 5x5 stone box, one block of air high inside, with three bookshelves on one wall
+            for (int z = 4; z <= 8; z++)
+            {
+                layers[1][z] = layers[1][z].substring(0, 4) + (z == 4 ? "#BBB#" : z == 8 ? "#####" : "#...#")
+                        + layers[1][z].substring(9);
+                layers[2][z] = layers[2][z].substring(0, 4) + "#####" + layers[2][z].substring(9);
+            }
+        }
+
+        // layers[0] is the ground's own height and holds nothing, so the ground row takes its place
+        String[][] stacked = new String[7][];
+        stacked[0] = ground;
+        System.arraycopy(layers, 1, stacked, 1, 6);
+
+        return GridVolume.of(
+                Map.of('S', TestBlocks.SNOW_BLOCK, 'T', TestBlocks.OAK_LOG),
+                stacked);
+    }
+
+    private static String replaceAt(String row, int x, char symbol)
+    {
+        return row.substring(0, x) + symbol + row.substring(x + 1);
     }
 
     // endregion

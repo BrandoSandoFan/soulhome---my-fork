@@ -1,0 +1,32 @@
+{
+  "parent": "soulhome:main/first_room",
+  "criteria": {
+    "classified_rooms": {
+      "conditions": {
+        "min_rooms": 2
+      },
+      "trigger": "soulhome:classified_room"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.soulhome.two_rooms.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:oak_door"
+    },
+    "title": {
+      "translate": "advancements.soulhome.two_rooms.title"
+    }
+  },
+  "requirements": [
+    [
+      "classified_rooms"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

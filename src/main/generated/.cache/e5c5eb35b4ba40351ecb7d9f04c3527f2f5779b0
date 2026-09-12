@@ -1,5 +1,6 @@
-// 1.21.1	2026-09-09T21:35:48.945847135	Advancements
+// 1.21.1	2026-09-12T06:52:46.6602455	Advancements
 977a16e801fccfa717848ecb3c6809227ad1e344 data/soulhome/advancement/main/alchemy_lab.json
+b7d6f6f9fdb4bfc606694da9df4301cb91c857db data/soulhome/advancement/main/apiary.json
 d102e63791bd4286704c4b71892871ed4b872010 data/soulhome/advancement/main/aquarium.json
 729133271e1fcaf9c5a90a75018627300db9ec62 data/soulhome/advancement/main/arcane_sanctum.json
 c5daea73e741b1e2e3c4a0e10398fdee70d6ec09 data/soulhome/advancement/main/armoury.json
@@ -17,8 +18,10 @@ d49df340fbb07458897046eec8144a3d77329079 data/soulhome/advancement/main/farm.jso
 21f89cfbb98604e7549d21ad5d3495866042e005 data/soulhome/advancement/main/library.json
 300a76d239f98eaa4f821df20e9a8f1e77dcd1e0 data/soulhome/advancement/main/mead_hall.json
 16229fdfafa4f0dfbdb9bc8814c32f610c05f97e data/soulhome/advancement/main/mine.json
+762862083b0a9c3dd9f1b88d1cbfd3431e7e3f0f data/soulhome/advancement/main/observatory.json
 84db5c65ed2cfea90e144106aa706389205575c0 data/soulhome/advancement/main/obtained_guide.json
 89c7b6c89bbb42f08144007e7b4e78ebb16f5a77 data/soulhome/advancement/main/obtained_soul_key.json
+14ec0c52519b00b3663f2517e2c550477cbaddc2 data/soulhome/advancement/main/ossuary.json
 01a2236651ef51f754f72c5aa329bc2c2c0358b6 data/soulhome/advancement/main/powder_magazine.json
 860a0c75469b22c7ca7d07bb59fadc74c5e3f045 data/soulhome/advancement/main/purifying_font.json
 acbd6b4aa619e0ca63293641fddf5aa7b6ff5188 data/soulhome/advancement/main/rift_chamber.json
@@ -31,5 +34,6 @@ a0868147e68e64b6892a5cc2f50c7e4bd42bc158 data/soulhome/advancement/main/root.jso
 7daf6e9e8974acda3202b8c4cb9b6987c9f5713d data/soulhome/advancement/main/training_yard.json
 7afd211461d7d3f1d9e2ad717f27a37162c5325d data/soulhome/advancement/main/treasury.json
 05781ddc323ca4e8c6ef2ce2d8080c70e2002e12 data/soulhome/advancement/main/trophy_room.json
+ccee863205b4dd5829fbac8a03218a6900211213 data/soulhome/advancement/main/two_rooms.json
 b7f156223843da0caf0c6656e4895f9b88711bbb data/soulhome/advancement/main/watchtower.json
 d1826635e8ab9afcec1ba0bbae23dd2538f053e7 data/soulhome/advancement/main/workshop.json

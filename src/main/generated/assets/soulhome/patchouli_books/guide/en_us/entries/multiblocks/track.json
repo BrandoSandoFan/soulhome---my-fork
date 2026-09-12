@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Fences: any fences or any fence gates",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/training_yard)Training Yard$(/l), within 12 blocks",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

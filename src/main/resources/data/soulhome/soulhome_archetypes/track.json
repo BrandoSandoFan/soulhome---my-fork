@@ -53,5 +53,9 @@
         { "shape": "soulhome:loop", "of": "fences", "min_cells": 24, "ideal_cells": 48, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:training_yard", "relation": "near", "weight": 2.0, "role": "layout", "max_distance": 12 }
   ]
 }

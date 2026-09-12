@@ -46,5 +46,10 @@
         { "relation": "within",    "of": "storage", "to": "bed",     "max_distance": 6 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:stable", "relation": "adjoins", "weight": -3.0, "role": "hazard" },
+    { "with": "soulhome:ossuary", "relation": "adjoins", "weight": -3.0, "role": "hazard" }
   ]
 }

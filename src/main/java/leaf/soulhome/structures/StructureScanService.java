@@ -295,15 +295,20 @@ public final class StructureScanService
 
             try
             {
-                List<SoulRegion> regions = RegionScanner.scan(
+                RegionScanner.ScanResult scan = RegionScanner.scanWithAdjacency(
                         volume, archetypes.signalFilter(), archetypes.geometryFilter(),
-                        archetypes.needsClearance(), scanSettings);
+                        archetypes.needsClearance(), archetypes.adjacencyReach(), scanSettings);
 
+                List<SoulRegion> regions = scan.regions();
+
+                // each region's hash already folds in how it sits relative to the others (#142),
+                // so a room moved away from its neighbour reads as a change even though none of
+                // its own blocks moved
                 contentHash = SoulHomeBuffData.hashOf(regions);
 
                 // classification is cheap next to the sweep that just happened, but it is still
                 // pure computation over an immutable snapshot, so it belongs off the server thread
-                results = archetypes.classifier().classify(regions);
+                results = archetypes.classifier().classify(regions, scan.adjacency());
             }
             catch (RuntimeException e)
             {

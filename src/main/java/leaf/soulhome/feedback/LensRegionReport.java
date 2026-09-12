@@ -43,7 +43,8 @@ public record LensRegionReport(
         List<Signal> matched,
         List<String> missing,
         List<Form> forms,
-        List<BuffEntry> buffs)
+        List<BuffEntry> buffs,
+        List<BondLine> bonds)
 {
     /** Sentinel for {@link #scoreToNextTier}: no next tier to reach, or nothing scored at all. */
     public static final double NO_NEXT_TIER = -1d;
@@ -63,7 +64,8 @@ public record LensRegionReport(
                     Signal.CODEC.listOf().optionalFieldOf("matched", List.of()).forGetter(LensRegionReport::matched),
                     Codec.STRING.listOf().optionalFieldOf("missing", List.of()).forGetter(LensRegionReport::missing),
                     Form.CODEC.listOf().optionalFieldOf("forms", List.of()).forGetter(LensRegionReport::forms),
-                    BuffEntry.CODEC.listOf().optionalFieldOf("buffs", List.of()).forGetter(LensRegionReport::buffs))
+                    BuffEntry.CODEC.listOf().optionalFieldOf("buffs", List.of()).forGetter(LensRegionReport::buffs),
+                    BondLine.CODEC.listOf().optionalFieldOf("bonds", List.of()).forGetter(LensRegionReport::bonds))
             .apply(instance, LensRegionReport::new));
 
     public LensRegionReport
@@ -72,6 +74,44 @@ public record LensRegionReport(
         missing = List.copyOf(missing);
         forms = List.copyOf(forms);
         buffs = List.copyOf(buffs);
+        bonds = bonds == null ? List.of() : List.copyOf(bonds);
+    }
+
+    /** A report from before bonds existed, or of a region with none to speak of. */
+    public LensRegionReport(
+            int index,
+            String status,
+            String archetypeId,
+            String displayName,
+            int tier,
+            double score,
+            double scoreToNextTier,
+            String runnerUpDisplayName,
+            double runnerUpScore,
+            boolean noArchetypes,
+            List<Signal> matched,
+            List<String> missing,
+            List<Form> forms,
+            List<BuffEntry> buffs)
+    {
+        this(index, status, archetypeId, displayName, tier, score, scoreToNextTier, runnerUpDisplayName,
+                runnerUpScore, noArchetypes, matched, missing, forms, buffs, List.of());
+    }
+
+    /** Indices of the regions this one's credited bonds are with, for the lens to highlight. */
+    public List<Integer> bondedRegions()
+    {
+        List<Integer> partners = new ArrayList<>();
+
+        for (BondLine bond : this.bonds)
+        {
+            if (bond.credited() && bond.otherRegion() >= 0 && !partners.contains(bond.otherRegion()))
+            {
+                partners.add(bond.otherRegion());
+            }
+        }
+
+        return partners;
     }
 
     public boolean isClassified()
@@ -114,7 +154,7 @@ public record LensRegionReport(
         {
             return new LensRegionReport(
                     index, result.status().name(), "", "", 0, 0d, NO_NEXT_TIER, "", 0d, true,
-                    List.of(), List.of(), List.of(), List.of());
+                    List.of(), List.of(), List.of(), List.of(), List.of());
         }
 
         final boolean classified = result.status() == ClassificationResult.Status.CLASSIFIED;
@@ -136,7 +176,37 @@ public record LensRegionReport(
                 signals(best.contributions()),
                 missing(best.missingSignals()),
                 forms(best),
-                classified ? buffsOf(best.archetypeId(), breakdown) : List.of());
+                classified ? buffsOf(best.archetypeId(), breakdown) : List.of(),
+                bonds(best));
+    }
+
+    /**
+     * Credited bonds first, then the near misses with their reasons - the same order and the same
+     * omission as {@code SoulReport}: a discord that did not fire is not worth a line, since
+     * "your powder magazine is not near your hearth" reads as a nudge to move it closer.
+     */
+    private static List<BondLine> bonds(ArchetypeScore score)
+    {
+        List<BondLine> bonds = new ArrayList<>();
+
+        for (ArchetypeScore.BondContribution bond : score.bondContributions())
+        {
+            bonds.add(new BondLine(
+                    bond.relationId(), bond.otherDisplayName(), bond.otherArchetypeId(), bond.otherRegion(),
+                    bond.contribution(), true, bond.discord(), bond.diagnostic()));
+        }
+
+        for (ArchetypeScore.BondContribution miss : score.missingBonds())
+        {
+            if (!miss.discord())
+            {
+                bonds.add(new BondLine(
+                        miss.relationId(), miss.otherDisplayName(), miss.otherArchetypeId(), miss.otherRegion(),
+                        0d, false, false, miss.diagnostic()));
+            }
+        }
+
+        return bonds;
     }
 
     private static List<Signal> signals(List<ArchetypeScore.SignalContribution> contributions)
@@ -271,6 +341,35 @@ public record LensRegionReport(
         {
             clauses = List.copyOf(clauses);
         }
+    }
+
+    /**
+     * One bond, credited or not, as the lens shows it.
+     *
+     * @param otherRegion index of the partner region in the same report list, or {@code -1}
+     * @param diagnostic  the relation's own reason - what was credited, or the gap and the threshold
+     */
+    public record BondLine(
+            String relationId,
+            String otherDisplayName,
+            String otherArchetypeId,
+            int otherRegion,
+            double contribution,
+            boolean credited,
+            boolean discord,
+            String diagnostic)
+    {
+        public static final Codec<BondLine> CODEC = RecordCodecBuilder.create(instance -> instance
+                .group(
+                        Codec.STRING.fieldOf("relation").forGetter(BondLine::relationId),
+                        Codec.STRING.optionalFieldOf("other_display_name", "").forGetter(BondLine::otherDisplayName),
+                        Codec.STRING.optionalFieldOf("other_archetype", "").forGetter(BondLine::otherArchetypeId),
+                        Codec.INT.optionalFieldOf("other_region", -1).forGetter(BondLine::otherRegion),
+                        Codec.DOUBLE.optionalFieldOf("contribution", 0d).forGetter(BondLine::contribution),
+                        Codec.BOOL.optionalFieldOf("credited", false).forGetter(BondLine::credited),
+                        Codec.BOOL.optionalFieldOf("discord", false).forGetter(BondLine::discord),
+                        Codec.STRING.optionalFieldOf("diagnostic", "").forGetter(BondLine::diagnostic))
+                .apply(instance, BondLine::new));
     }
 
     public record BuffEntry(String buffType, double magnitude)

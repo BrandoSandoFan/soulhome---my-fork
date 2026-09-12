@@ -42,5 +42,9 @@
         { "shape": "soulhome:enclosure", "of": "glass", "around": "flora", "min_coverage": 0.5, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:cold_storage", "relation": "adjoins", "weight": -3.0, "role": "hazard" }
   ]
 }

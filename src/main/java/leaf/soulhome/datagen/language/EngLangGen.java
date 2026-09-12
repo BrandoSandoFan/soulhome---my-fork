@@ -163,6 +163,23 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.REGION_STRUCTURE_TRUNCATED, "This region is too large to analyse its arrangement.");
         add(Constants.StringKeys.REGION_STRUCTURE_SKIPPED, "%s (needs a mod that is not installed)");
 
+        // Bonds (#140). "%1$s" is the relation phrase below, "%2$s" the other room's name; a hit
+        // ends with what it was worth and a miss with why it was not earned
+        add(Constants.StringKeys.REGION_BOND_HEADER, "Bonds:");
+        add(Constants.StringKeys.REGION_BOND_HIT, "+ %1$s your %2$s (%3$s)");
+        add(Constants.StringKeys.REGION_BOND_MISS, "- %1$s your %2$s: %3$s");
+        add(Constants.StringKeys.REGION_BOND_DISCORD, "- %1$s your %2$s (%3$s) - these do not belong together");
+        add(Constants.StringKeys.REGION_BOND_CAPPED, "(held at the cap)");
+
+        // one phrase per shipped relation, read as "<phrase> your <room>": "opens into your Enchanting Room"
+        add(Constants.StringKeys.BOND_RELATION_PREFIX + "adjoins", "shares a wall with");
+        add(Constants.StringKeys.BOND_RELATION_PREFIX + "near", "is near");
+        add(Constants.StringKeys.BOND_RELATION_PREFIX + "connects", "opens into");
+        add(Constants.StringKeys.BOND_RELATION_PREFIX + "above", "stands above");
+        add(Constants.StringKeys.BOND_RELATION_PREFIX + "beneath", "lies beneath");
+        add(Constants.StringKeys.BOND_RELATION_PREFIX + "encloses", "stands around");
+        add(Constants.StringKeys.BOND_RELATION_PREFIX + "within", "stands within");
+
         add(Constants.StringKeys.BUFFS_HEADER, "What your soul is giving you:");
         add(Constants.StringKeys.BUFFS_NONE, "Your soul is giving you nothing yet. Build a room in it.");
         add(Constants.StringKeys.BUFFS_ENTRY, "%s %s");
@@ -227,6 +244,7 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_MISSING_HEADER, "What to add next");
         add(Constants.StringKeys.LENS_SCREEN_ARRANGEMENT_HEADER, "Arrangement");
         add(Constants.StringKeys.LENS_SCREEN_GRANTS_HEADER, "Grants");
+        add(Constants.StringKeys.LENS_SCREEN_BONDS_HEADER, "Bonds with other rooms");
         add(Constants.StringKeys.LENS_SCREEN_MORE, "...and %s more");
         add(Constants.StringKeys.LENS_SCREEN_EMPTY_DETAIL, "No archetypes are loaded, so nothing here can ever count.");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_TITLE, "Your Soul's Buffs");
@@ -345,6 +363,8 @@ public class EngLangGen extends LanguageProvider
 
         add("advancements.soulhome.first_room.title", "Furnished");
         add("advancements.soulhome.first_room.description", "Build something in your soul that the world recognises.");
+        add("advancements.soulhome.two_rooms.title", "Rooms Off a Hall");
+        add("advancements.soulhome.two_rooms.description", "Have two rooms in your soul at once. Where you put them relative to each other now matters.");
 
         add("advancements.soulhome.farm.title", "Soul Food");
         add("advancements.soulhome.farm.description", "Grow enough in your soul that it counts as a farm.");

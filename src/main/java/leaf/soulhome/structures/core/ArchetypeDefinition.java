@@ -39,6 +39,10 @@ import java.util.Set;
  *                      holds. Never a gate: a {@link Form} cannot appear in {@link #requirements},
  *                      because there is nowhere on {@link Requirement} to put one. See the
  *                      structural considerations epic (#25).
+ * @param bonds        weighted evidence about where this room sits relative to other rooms - a
+ *                      library that connects to the enchanting room, a mine beneath the workshop.
+ *                      Declared once, credited to both rooms, and never a gate either. See the
+ *                      Soul Architecture epic (#140) and {@link Bond}.
  */
 public record ArchetypeDefinition(
         String id,
@@ -50,7 +54,8 @@ public record ArchetypeDefinition(
         List<Signal> detractors,
         List<Tier> tiers,
         List<BuffSpec> buffs,
-        List<Form> structures)
+        List<Form> structures,
+        List<Bond> bonds)
 {
     /**
      * Default per-signal ceiling. Caps are the hard backstop against volume-stuffing; the
@@ -74,11 +79,28 @@ public record ArchetypeDefinition(
         detractors = detractors == null ? List.of() : List.copyOf(detractors);
         buffs = buffs == null ? List.of() : List.copyOf(buffs);
         structures = structures == null ? List.of() : List.copyOf(structures);
+        bonds = bonds == null ? List.of() : List.copyOf(bonds);
 
         // ascending, so tierFor can walk them and take the last one cleared
         List<Tier> sortedTiers = new ArrayList<>(tiers == null ? List.of() : tiers);
         sortedTiers.sort(Comparator.comparingDouble(Tier::minScore));
         tiers = List.copyOf(sortedTiers);
+    }
+
+    /** An archetype declaring no bonds - every archetype before #140, and most fixtures since. */
+    public ArchetypeDefinition(
+            String id,
+            String displayName,
+            List<RegionType> regionTypes,
+            int minVolume,
+            List<Requirement> requirements,
+            List<Signal> signals,
+            List<Signal> detractors,
+            List<Tier> tiers,
+            List<BuffSpec> buffs,
+            List<Form> structures)
+    {
+        this(id, displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures, List.of());
     }
 
     /** The loader supplies the id from the file path; the file body does not get to name itself. */
@@ -87,7 +109,7 @@ public record ArchetypeDefinition(
         return new ArchetypeDefinition(
                 newId, this.displayName, this.regionTypes, this.minVolume,
                 this.requirements, this.signals, this.detractors, this.tiers, this.buffs,
-                this.structures);
+                this.structures, this.bonds);
     }
 
     public boolean accepts(RegionType type)
@@ -216,6 +238,14 @@ public record ArchetypeDefinition(
             }
         }
 
+        for (int i = 0; i < this.bonds.size(); i++)
+        {
+            for (String error : this.bonds.get(i).validationErrors())
+            {
+                errors.add("bonds[" + i + "]: " + error);
+            }
+        }
+
         return errors;
     }
 
@@ -298,14 +328,30 @@ public record ArchetypeDefinition(
      *             harder - this is the main lever that rewards building a room over stacking a
      *             block.
      * @param cap  the count past which more of this block stops helping at all
+     * @param seed whether, for an archetype that accepts open regions, the scanner may gather an
+     *             open-air region around this block - seed a cluster on it, and cross it to
+     *             reach the next. {@code true} unless the datapack says otherwise. Off for
+     *             evidence a room is glad of but which is also simply what the ground is made
+     *             of: the masonry of a storm spire is stone, and stone is what a starter island
+     *             is, so the whole island used to gather into one region around it (#139). A
+     *             non-seeding signal still counts wherever a region takes it in - beside a
+     *             build's own blocks, or closed around by them - it just never starts or
+     *             extends one. Meaningless for a detractor, and for an archetype that only
+     *             accepts enclosed regions.
      */
-    public record Signal(BlockMatcher match, double weight, String role, int cap)
+    public record Signal(BlockMatcher match, double weight, String role, int cap, boolean seed)
     {
         public static final String DEFAULT_ROLE = "general";
 
         public Signal
         {
             role = role == null || role.isBlank() ? DEFAULT_ROLE : role;
+        }
+
+        /** The common case: a signal the scanner may gather an open-air region around. */
+        public Signal(BlockMatcher match, double weight, String role, int cap)
+        {
+            this(match, weight, role, cap, true);
         }
     }
 

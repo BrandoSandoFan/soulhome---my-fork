@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Masonry: $(l:soulhome:multiblocks/tags#structural)any structural$(/l)$(li)Grille: Iron Bars or Chain$(li)Colours: any banners",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/treasury)Treasury$(/l), sharing a wall$(li)$(l:soulhome:multiblocks/watchtower)Watchtower$(/l), sharing a wall",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

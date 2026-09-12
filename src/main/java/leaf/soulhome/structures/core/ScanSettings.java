@@ -29,12 +29,14 @@ package leaf.soulhome.structures.core;
  *                         room. Every complex build ends up with voids inside a thick wall, under a
  *                         stair or up a hollow pillar; offering each of them as a region is noise a
  *                         player then has to look at in the lens.
- * @param shellDepth       how many further layers of solid blocks packed against a room's shell
+ * @param shellDepth       how many further layers of full blocks packed against a room's shell
  *                         still belong to that building. The shell itself is only the layer touching
  *                         the room's air, so without this a barn's roof, the outer half of a
  *                         double-thick wall and even a box's own corners are loose blocks that go on
  *                         to seed a phantom open-air region on top of the building. Claimed, not
- *                         scored: this decides who owns a block, not what a room is worth.
+ *                         scored: this decides who owns a block, not what a room is worth. Full
+ *                         blocks only - a garden's farmland on a flat roof is on the building, not
+ *                         part of it (#138).
  */
 public record ScanSettings(
         int maxRoomVolume,

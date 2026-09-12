@@ -83,6 +83,34 @@ class ArchetypeCeilingTest
         }
     }
 
+    /**
+     * How much a perfect floor plan may add on top of a room's own ceiling. Bonds amplify effort,
+     * they do not replace it (rule 5 of #140): a room bonded so heavily that a floor plan is worth
+     * as much as the room is the same as no bonds at all with more code, and every layout then
+     * scores about the same.
+     */
+    private static final double MAX_BOND_HEADROOM = 1.40d;
+
+    @Test
+    @DisplayName("bond credit is headroom above every shipped archetype's own ceiling, and a modest amount of it")
+    void bondCreditIsModestHeadroom() throws IOException
+    {
+        List<ArchetypeDefinition> shipped = ArchetypeJsonReader.shipped();
+        BondBook bonds = BondBook.of(shipped);
+
+        for (ArchetypeDefinition archetype : shipped)
+        {
+            final double alone = ArchetypeCeiling.of(archetype, ScoringSettings.DEFAULTS);
+            final double bonded = ArchetypeCeiling.withBonds(archetype, bonds, ScoringSettings.DEFAULTS);
+
+            assertTrue(bonded >= alone - 1e-9, archetype.id() + ": bonds can only add");
+            assertTrue(bonded <= alone * MAX_BOND_HEADROOM,
+                    archetype.id() + ": a perfect floor plan is worth " + (bonded / alone)
+                            + " of the room's own ceiling, above " + MAX_BOND_HEADROOM
+                            + " - a bond graph this dense makes every layout score the same");
+        }
+    }
+
     @Test
     @DisplayName("a mistuned threshold above the ceiling fails, rather than shipping")
     void mistunedThresholdIsCaught()

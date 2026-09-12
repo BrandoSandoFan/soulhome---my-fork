@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Reef: any coral blocks$(li)Viewing: Glass or Glass Pane",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/cold_storage)Cold Storage$(/l), within 10 blocks",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,
