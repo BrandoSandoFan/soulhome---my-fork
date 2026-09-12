@@ -28,8 +28,9 @@ import java.util.Map;
  * @param geometry     positions of the structurally-interesting blocks in this region, for forms
  *                     that reason about arrangement rather than just counts. {@link RegionGeometry#EMPTY}
  *                     when nothing asked for one.
- * @param identityHash a stable digest of the region's shape, contents and geometry, so an
- *                     unchanged soulhome can skip rescanning
+ * @param identityHash a stable digest of the region's shape, contents and geometry - and, once
+ *                     {@link #withRelationships} has run, of how it sits relative to every other
+ *                     region - so an unchanged soulhome can skip rescanning
  */
 public record SoulRegion(
         RegionType type,
@@ -121,6 +122,27 @@ public record SoulRegion(
         hash = hash * 31 + (geometry.isTruncated() ? 1 : 0);
 
         return hash;
+    }
+
+    /**
+     * This region with its relationships folded into its identity - #142.
+     *
+     * <p>A region's own hash sees only its shape, contents and geometry. Move a library across the
+     * soulhome so it no longer adjoins the enchanting room and neither room's own blocks change, so
+     * neither hash changes, so {@code SoulHomeBuffData.hashOf} concludes nothing happened and a
+     * bond that no longer exists stays credited. Build a corridor joining two rooms, changing
+     * neither, and the new bond never takes effect until something unrelated dirties the scan.
+     *
+     * <p>{@code relationships} is a commutative digest of this region's relationships to every
+     * other, computed by {@link RegionScanner} from every region's <i>own</i> hash in a second
+     * pass - never from a neighbour's folded hash, which would be circular - so the result does
+     * not depend on the order the neighbours were visited in.
+     */
+    public SoulRegion withRelationships(long relationships)
+    {
+        return new SoulRegion(
+                this.type, this.bounds, this.boundary, this.contents, this.allBlocks, this.volume,
+                this.geometry, this.identityHash * 31 + relationships);
     }
 
     @Override

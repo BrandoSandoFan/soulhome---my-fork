@@ -227,6 +227,28 @@ public final class RegionScanner
             boolean indexClearance,
             ScanSettings settings)
     {
+        return scanWithAdjacency(volume, signalFilter, geometryFilter, indexClearance, 0, settings).regions();
+    }
+
+    /**
+     * The regions, and how they relate to each other - see {@link RegionAdjacency} and the Soul
+     * Architecture epic (#140). What {@code StructureScanService} calls.
+     *
+     * @param adjacencyReach how far, in cells, to look for a path or a route between two regions
+     *                       - in practice the furthest any loaded bond could grade, see
+     *                       {@code ArchetypeSignals#adjacencyReachFor}. {@code 0} skips both
+     *                       traversals, so a pack with no bonds pays nothing for them; shared
+     *                       shells and footprints are always computed, being nearly free.
+     * @throws IllegalArgumentException if the volume fails {@link #isScannable}
+     */
+    public static ScanResult scanWithAdjacency(
+            BlockVolume volume,
+            Predicate<BlockSignature> signalFilter,
+            Predicate<BlockSignature> geometryFilter,
+            boolean indexClearance,
+            int adjacencyReach,
+            ScanSettings settings)
+    {
         if (!isScannable(volume.bounds(), settings))
         {
             throw new IllegalArgumentException(
@@ -234,19 +256,45 @@ public final class RegionScanner
                             + " cells, above the limit of " + settings.maxScannedCells());
         }
 
-        return new RegionScanner(volume, signalFilter, geometryFilter, indexClearance, settings).run();
+        return new RegionScanner(volume, signalFilter, geometryFilter, indexClearance, settings).run(adjacencyReach);
     }
 
-    private List<SoulRegion> run()
+    /** Everything one scan found: the regions, in their final order, and how they relate. */
+    public record ScanResult(List<SoulRegion> regions, RegionAdjacency adjacency)
     {
-        List<SoulRegion> regions = new ArrayList<>();
+        public ScanResult
+        {
+            regions = List.copyOf(regions);
+        }
+    }
+
+    /**
+     * One region together with the cells it was built from, which {@link SoulRegion} deliberately
+     * does not carry and {@link #computeAdjacency} needs.
+     *
+     * @param interior for a room, its air; for an open-air region, every cell it took in. What a
+     *                 walkable path has to arrive at to have reached the region.
+     * @param shell    for a room, the blocks touching its air; empty for an open-air region
+     * @param interiorBounds the box around {@code interior} alone - a room's air, not its walls
+     */
+    private record Built(SoulRegion region, IntStack interior, IntStack shell, RegionBounds interiorBounds)
+    {
+    }
+
+    private ScanResult run(int adjacencyReach)
+    {
+        List<Built> built = new ArrayList<>();
 
         markOutside();
-        findEnclosedRegions(regions);
+        findEnclosedRegions(built);
         claimBuildingFabric();
-        findOpenRegions(regions);
+        findOpenRegions(built);
 
-        return capRegions(regions);
+        built = capRegions(built);
+
+        RegionAdjacency adjacency = computeAdjacency(built, adjacencyReach);
+
+        return new ScanResult(foldRelationships(built, adjacency), adjacency);
     }
 
     // region enclosed volumes
@@ -339,7 +387,7 @@ public final class RegionScanner
      * <p>Every pocket is found before any room is built from one, because what a shell cell is
      * worth to a room depends on which other rooms touch it - see {@link #creditShells}.
      */
-    private void findEnclosedRegions(List<SoulRegion> regions)
+    private void findEnclosedRegions(List<Built> regions)
     {
         List<Pocket> pockets = new ArrayList<>();
 
@@ -629,7 +677,7 @@ public final class RegionScanner
         }
     }
 
-    private SoulRegion buildEnclosedRegion(Pocket pocket)
+    private Built buildEnclosedRegion(Pocket pocket)
     {
         final IntStack interior = pocket.interior();
         RegionBounds interiorBounds = boundsOf(interior);
@@ -694,13 +742,15 @@ public final class RegionScanner
 
         geometry.bounds(regionBounds);
 
-        return SoulRegion.create(
+        SoulRegion region = SoulRegion.create(
                 RegionType.ENCLOSED,
                 regionBounds,
                 boundary.build(),
                 contents.build(),
                 interior.size(),
                 geometry.build());
+
+        return new Built(region, interior, shell, interiorBounds);
     }
 
     private void indexIfInteresting(RegionGeometry.Builder geometry, int x, int y, int z, BlockSignature signature)
@@ -817,7 +867,7 @@ public final class RegionScanner
      * from swallowing the shrine somebody built in its infield: by the time the loop looks at the
      * space it encloses, the shrine is already a structure of its own.
      */
-    private void findOpenRegions(List<SoulRegion> regions)
+    private void findOpenRegions(List<Built> regions)
     {
         if (this.signalFilter == null)
         {
@@ -1199,7 +1249,7 @@ public final class RegionScanner
         }
     }
 
-    private SoulRegion buildOpenRegion(IntStack absorbed, RegionBounds box)
+    private Built buildOpenRegion(IntStack absorbed, RegionBounds box)
     {
         // index order is x, y, z order, so this is the sweep the bounding-box version did - which
         // keeps what lands in a truncated geometry index the same from one scan to the next
@@ -1226,13 +1276,15 @@ public final class RegionScanner
 
         final long boundsVolume = box.volume();
 
-        return SoulRegion.create(
+        SoulRegion region = SoulRegion.create(
                 RegionType.OPEN,
                 box,
                 BlockCounts.empty(),
                 contents.build(),
                 (int) Math.min(boundsVolume, Integer.MAX_VALUE),
                 geometry.build());
+
+        return new Built(region, absorbed, new IntStack(), box);
     }
     // endregion
 
@@ -1240,13 +1292,13 @@ public final class RegionScanner
      * Keep the richest regions when a build produces more than the cap. Sorting by block count
      * rather than discovery order means the cap trims sheds, not the great hall.
      */
-    private List<SoulRegion> capRegions(List<SoulRegion> regions)
+    private List<Built> capRegions(List<Built> regions)
     {
-        Comparator<SoulRegion> byInterest = Comparator
-                .comparingDouble((SoulRegion region) -> region.allBlocks().totalCredit()).reversed()
-                .thenComparingInt(region -> region.bounds().minX())
-                .thenComparingInt(region -> region.bounds().minY())
-                .thenComparingInt(region -> region.bounds().minZ());
+        Comparator<Built> byInterest = Comparator
+                .comparingDouble((Built built) -> built.region().allBlocks().totalCredit()).reversed()
+                .thenComparingInt(built -> built.region().bounds().minX())
+                .thenComparingInt(built -> built.region().bounds().minY())
+                .thenComparingInt(built -> built.region().bounds().minZ());
 
         regions.sort(byInterest);
 
@@ -1254,6 +1306,500 @@ public final class RegionScanner
                 ? regions
                 : new ArrayList<>(regions.subList(0, this.settings.maxRegions()));
     }
+
+    // region adjacency (#141, #142)
+
+    /** Six faces, so at most six rooms can touch one cell; anything with more owners is a bug. */
+    private static final int OWNER_NONE = 0;
+
+    /** Set on an owner entry for a cell a walkable path has to reach to count as arriving. */
+    private static final int OWNER_ARRIVAL = 0x8000;
+
+    /** The distance flood stores one byte per cell, so the reach has to leave room for it. */
+    private static final int MAX_ADJACENCY_REACH = 120;
+
+    /**
+     * How the final regions relate - see {@link RegionAdjacency} for what each answer means and
+     * why doors are crossed here when region detection treats them as walls.
+     *
+     * <p>Ownership is one map over the scan, written once: which region a cell belongs to, and
+     * whether arriving there counts as reaching the region (a room's air, or any cell of an
+     * open-air build) rather than merely touching its wall. Every question after that is either a
+     * lookup or one bounded flood from the region being asked about, never a flood per pair.
+     */
+    private RegionAdjacency computeAdjacency(List<Built> built, int adjacencyReach)
+    {
+        final int count = built.size();
+        final int reach = Math.max(0, Math.min(MAX_ADJACENCY_REACH, adjacencyReach));
+
+        int[] shellCells = new int[count];
+        int[][] shared = new int[count][count];
+        int[][] path = filled(count, RegionAdjacency.UNREACHABLE);
+        int[][] separation = filled(count, RegionAdjacency.UNREACHABLE);
+        int[] footprint = new int[count];
+        int[][] overlap = new int[count][count];
+        int[] interiorMinY = new int[count];
+        int[] interiorMaxY = new int[count];
+
+        if (count == 0)
+        {
+            return new RegionAdjacency(reach, shellCells, shared, path, separation, footprint, overlap, interiorMinY, interiorMaxY);
+        }
+
+        short[] owner = new short[this.flags.length];
+        List<BitSet> footprints = new ArrayList<>(count);
+
+        for (int i = 0; i < count; i++)
+        {
+            Built region = built.get(i);
+            shellCells[i] = region.shell().size();
+            interiorMinY[i] = region.interiorBounds().minY();
+            interiorMaxY[i] = region.interiorBounds().maxY();
+
+            for (int c = 0; c < region.interior().size(); c++)
+            {
+                owner[region.interior().get(c)] = (short) ((i + 1) | OWNER_ARRIVAL);
+            }
+
+            footprints.add(footprintOf(region));
+            footprint[i] = footprints.get(i).cardinality();
+        }
+
+        // shell cells after every interior, so a room's air is never overwritten by a neighbour's
+        // wall; a cell two shells share keeps whichever room came first, which only matters for
+        // the separation flood below - and that one reads shared cells off the counts instead
+        for (int i = 0; i < count; i++)
+        {
+            Built region = built.get(i);
+
+            for (int c = 0; c < region.shell().size(); c++)
+            {
+                final int cell = region.shell().get(c);
+
+                if (owner[cell] == OWNER_NONE)
+                {
+                    owner[cell] = (short) (i + 1);
+                }
+            }
+        }
+
+        countSharedShells(built, shared);
+
+        for (int i = 0; i < count; i++)
+        {
+            for (int j = 0; j < count; j++)
+            {
+                if (i != j)
+                {
+                    overlap[i][j] = overlapOf(footprints.get(i), footprints.get(j));
+
+                    if (shared[i][j] > 0)
+                    {
+                        separation[i][j] = 0;
+                    }
+                }
+            }
+        }
+
+        if (reach > 0)
+        {
+            byte[] distance = new byte[this.flags.length];
+
+            for (int i = 0; i < count; i++)
+            {
+                Built region = built.get(i);
+
+                flood(i, region.interior(), true, owner, reach, distance, path[i]);
+                flood(i, allCellsOf(region), false, owner, reach, distance, separation[i]);
+            }
+
+            // a flood from A to B and one from B to A walk the same cells in opposite directions
+            // and so agree, but the reach cuts each off separately; take the shorter so the
+            // answer is one answer whichever side asks
+            for (int i = 0; i < count; i++)
+            {
+                for (int j = i + 1; j < count; j++)
+                {
+                    path[i][j] = path[j][i] = Math.min(path[i][j], path[j][i]);
+                    separation[i][j] = separation[j][i] = Math.min(separation[i][j], separation[j][i]);
+                }
+            }
+        }
+
+        return new RegionAdjacency(reach, shellCells, shared, path, separation, footprint, overlap, interiorMinY, interiorMaxY);
+    }
+
+    private static int[][] filled(int count, int value)
+    {
+        int[][] matrix = new int[count][count];
+
+        for (int[] row : matrix)
+        {
+            Arrays.fill(row, value);
+        }
+
+        return matrix;
+    }
+
+    private static IntStack allCellsOf(Built region)
+    {
+        if (region.shell().isEmpty())
+        {
+            return region.interior();
+        }
+
+        IntStack all = new IntStack();
+
+        for (int c = 0; c < region.interior().size(); c++)
+        {
+            all.push(region.interior().get(c));
+        }
+
+        for (int c = 0; c < region.shell().size(); c++)
+        {
+            all.push(region.shell().get(c));
+        }
+
+        return all;
+    }
+
+    /**
+     * Pairwise counts of shell cells in common. A cell is in at most six shells, so the lists
+     * here are short and only exist for cells more than one room touches.
+     */
+    private void countSharedShells(List<Built> built, int[][] shared)
+    {
+        Map<Integer, int[]> firstOwner = new HashMap<>();
+        Map<Integer, List<Integer>> multiOwner = new HashMap<>();
+
+        for (int i = 0; i < built.size(); i++)
+        {
+            IntStack shell = built.get(i).shell();
+
+            for (int c = 0; c < shell.size(); c++)
+            {
+                final int cell = shell.get(c);
+                int[] first = firstOwner.get(cell);
+
+                if (first == null)
+                {
+                    firstOwner.put(cell, new int[]{i});
+                    continue;
+                }
+
+                List<Integer> owners = multiOwner.get(cell);
+
+                if (owners == null)
+                {
+                    owners = new ArrayList<>(3);
+                    owners.add(first[0]);
+                    multiOwner.put(cell, owners);
+                }
+
+                for (int other : owners)
+                {
+                    shared[other][i]++;
+                    shared[i][other]++;
+                }
+
+                owners.add(i);
+            }
+        }
+    }
+
+    /**
+     * The columns a region stands in, holes filled: a rail loop's infield is inside the loop
+     * whether or not the loop took it in, and a shrine standing there is within the track.
+     */
+    private BitSet footprintOf(Built region)
+    {
+        BitSet columns = new BitSet(this.sizeX * this.sizeZ);
+        IntStack cells = allCellsOf(region);
+
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minZ = Integer.MAX_VALUE;
+        int maxZ = Integer.MIN_VALUE;
+
+        for (int c = 0; c < cells.size(); c++)
+        {
+            final int cell = cells.get(c);
+            final int x = xOf(cell) - this.bounds.minX();
+            final int z = zOf(cell) - this.bounds.minZ();
+
+            columns.set(x * this.sizeZ + z);
+            minX = Math.min(minX, x);
+            maxX = Math.max(maxX, x);
+            minZ = Math.min(minZ, z);
+            maxZ = Math.max(maxZ, z);
+        }
+
+        // flood the empty columns from the edge of the region's own box; whatever is left is
+        // closed around in plan and belongs to the footprint
+        BitSet outside = new BitSet(this.sizeX * this.sizeZ);
+        IntStack stack = new IntStack();
+
+        for (int x = minX; x <= maxX; x++)
+        {
+            for (int z = minZ; z <= maxZ; z++)
+            {
+                final boolean onEdge = x == minX || x == maxX || z == minZ || z == maxZ;
+                final int column = x * this.sizeZ + z;
+
+                if (onEdge && !columns.get(column) && !outside.get(column))
+                {
+                    outside.set(column);
+                    stack.push(column);
+                }
+            }
+        }
+
+        while (!stack.isEmpty())
+        {
+            final int column = stack.pop();
+            final int x = column / this.sizeZ;
+            final int z = column % this.sizeZ;
+
+            for (int[] offset : NEIGHBOURS_IN_PLANE)
+            {
+                final int nx = x + offset[0];
+                final int nz = z + offset[1];
+
+                if (nx < minX || nx > maxX || nz < minZ || nz > maxZ)
+                {
+                    continue;
+                }
+
+                final int neighbour = nx * this.sizeZ + nz;
+
+                if (columns.get(neighbour) || outside.get(neighbour))
+                {
+                    continue;
+                }
+
+                outside.set(neighbour);
+                stack.push(neighbour);
+            }
+        }
+
+        for (int x = minX; x <= maxX; x++)
+        {
+            for (int z = minZ; z <= maxZ; z++)
+            {
+                final int column = x * this.sizeZ + z;
+
+                if (!outside.get(column))
+                {
+                    columns.set(column);
+                }
+            }
+        }
+
+        return columns;
+    }
+
+    private static int overlapOf(BitSet a, BitSet b)
+    {
+        BitSet both = (BitSet) a.clone();
+        both.and(b);
+        return both.cardinality();
+    }
+
+    /**
+     * One bounded breadth-first flood out from a region, recording the first arrival at every
+     * other region.
+     *
+     * @param walkable {@code true} to cross what a player could walk through - air, anything
+     *                 passable, and a door, trapdoor or fence gate - and to arrive only at another
+     *                 region's air; {@code false} to cross anything that is not a full block (the
+     *                 open-air cluster's own notion of reach) and to arrive at any cell of another
+     *                 region, wall included
+     * @param distance scratch, one byte per cell, zero on entry and left zero
+     * @param out      cells strictly between this region and each other one, written only where
+     *                 an arrival improves on what is there
+     */
+    private void flood(int self, IntStack sources, boolean walkable, short[] owner, int reach, byte[] distance, int[] out)
+    {
+        IntStack touched = new IntStack();
+        IntStack layer = new IntStack();
+
+        for (int c = 0; c < sources.size(); c++)
+        {
+            final int cell = sources.get(c);
+
+            if (distance[cell] != 0)
+            {
+                continue;
+            }
+
+            distance[cell] = 1;
+            touched.push(cell);
+            layer.push(cell);
+
+            // a cell this region shares with another is an arrival at no distance at all
+            final int other = ownerOf(owner[cell]);
+
+            if (other != OWNER_NONE && other - 1 != self && arrives(owner[cell], walkable))
+            {
+                out[other - 1] = 0;
+            }
+        }
+
+        // layer d holds cells d steps out; an arrival there has d - 1 cells between, so the
+        // flood runs until arrivals would have more than reach cells between
+        for (int step = 1; step <= reach + 1 && !layer.isEmpty(); step++)
+        {
+            IntStack next = new IntStack();
+
+            for (int c = 0; c < layer.size(); c++)
+            {
+                final int cell = layer.get(c);
+                final int x = xOf(cell);
+                final int y = yOf(cell);
+                final int z = zOf(cell);
+
+                for (int[] offset : NEIGHBOURS)
+                {
+                    final int nx = x + offset[0];
+                    final int ny = y + offset[1];
+                    final int nz = z + offset[2];
+
+                    if (!this.bounds.contains(nx, ny, nz))
+                    {
+                        continue;
+                    }
+
+                    final int neighbour = index(nx, ny, nz);
+
+                    if (distance[neighbour] != 0)
+                    {
+                        continue;
+                    }
+
+                    final int other = ownerOf(owner[neighbour]);
+                    final boolean foreign = other != OWNER_NONE && other - 1 != self;
+
+                    if (foreign && arrives(owner[neighbour], walkable))
+                    {
+                        final int between = step - 1;
+
+                        if (between < out[other - 1])
+                        {
+                            out[other - 1] = between;
+                        }
+                    }
+
+                    if (!crosses(nx, ny, nz, walkable))
+                    {
+                        continue;
+                    }
+
+                    distance[neighbour] = (byte) Math.min(127, step + 1);
+                    touched.push(neighbour);
+                    next.push(neighbour);
+                }
+            }
+
+            layer = next;
+        }
+
+        for (int c = 0; c < touched.size(); c++)
+        {
+            distance[touched.get(c)] = 0;
+        }
+    }
+
+    private static int ownerOf(short entry)
+    {
+        return entry & ~OWNER_ARRIVAL & 0xFFFF;
+    }
+
+    private static boolean arrives(short entry, boolean walkable)
+    {
+        return !walkable || (entry & OWNER_ARRIVAL) != 0;
+    }
+
+    /**
+     * Whether a flood may step into this cell. Walking crosses air, anything passable, and a
+     * door - see {@link RegionAdjacency} for why doors are crossed here and nowhere else in this
+     * class; crossing (the open-air reach) is stopped only by a full block.
+     */
+    private boolean crosses(int x, int y, int z, boolean walkable)
+    {
+        final Passability passability = this.volume.passabilityAt(x, y, z);
+
+        if (!walkable)
+        {
+            return !passability.isFullBlock();
+        }
+
+        if (!passability.stopsFill())
+        {
+            return true;
+        }
+
+        BlockSignature signature = this.volume.signatureAt(x, y, z);
+
+        return signature != null
+                && (signature.hasTag("minecraft:doors")
+                || signature.hasTag("minecraft:trapdoors")
+                || signature.hasTag("minecraft:fence_gates"));
+    }
+
+    /**
+     * Fold each region's relationships into its identity hash - #142. Every region's own hash is
+     * read first, then each region's digest is built from those, so no hash ever depends on a
+     * neighbour's folded hash and the result cannot depend on the order regions were found in.
+     * The digest is a sum over neighbours, which commutes; the values folded are integers from a
+     * deterministic flood, so an unchanged soulhome folds the same numbers twice without any need
+     * to quantise them.
+     */
+    private static List<SoulRegion> foldRelationships(List<Built> built, RegionAdjacency adjacency)
+    {
+        final int count = built.size();
+        long[] own = new long[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            own[i] = built.get(i).region().identityHash();
+        }
+
+        List<SoulRegion> regions = new ArrayList<>(count);
+
+        for (int i = 0; i < count; i++)
+        {
+            long digest = 0L;
+
+            for (int j = 0; j < count; j++)
+            {
+                if (j == i || !adjacency.related(i, j))
+                {
+                    continue;
+                }
+
+                long term = own[j];
+                term = term * 31 + adjacency.sharedShellCells(i, j);
+                term = term * 31 + adjacency.pathLength(i, j);
+                term = term * 31 + adjacency.separation(i, j);
+                term = term * 31 + adjacency.footprintOverlap(i, j);
+                term = term * 31 + (adjacency.isAbove(i, j) ? 1 : adjacency.isAbove(j, i) ? 2 : 0);
+
+                // stirred so that two different pairs summing to the same total is no more likely
+                // than any other collision
+                term ^= term >>> 29;
+                term *= 0xBF58476D1CE4E5B9L;
+                term ^= term >>> 32;
+
+                digest += term;
+            }
+
+            regions.add(digest == 0L ? built.get(i).region() : built.get(i).region().withRelationships(digest));
+        }
+
+        return regions;
+    }
+
+    // endregion
 
     private RegionBounds boundsOf(IntStack cells)
     {
