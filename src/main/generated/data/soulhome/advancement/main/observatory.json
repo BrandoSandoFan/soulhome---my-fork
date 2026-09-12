@@ -1,0 +1,32 @@
+{
+  "parent": "soulhome:main/first_room",
+  "criteria": {
+    "classified_room": {
+      "conditions": {
+        "archetype": "soulhome:observatory"
+      },
+      "trigger": "soulhome:classified_room"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.soulhome.observatory.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:daylight_detector"
+    },
+    "title": {
+      "translate": "advancements.soulhome.observatory.title"
+    }
+  },
+  "requirements": [
+    [
+      "classified_room"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

@@ -121,6 +121,15 @@ public final class SoulBuffTypes
     /** Gale Roost: a burst of updraft and a stretch of slow falling. Active. */
     public static final String UPDRAFT = "soulhome:updraft";
 
+    /** Apiary: calms neutral mobs nearby for a span, or until they are provoked again. Active. */
+    public static final String CALMING_SMOKE = "soulhome:calming_smoke";
+
+    /** Observatory: a brightening shader whose strength ramps smoothly with the room's own score. */
+    public static final String CLEAR_SIGHT = "soulhome:clear_sight";
+
+    /** Ossuary: temporary armour, scaled by how much health is already gone. Active. */
+    public static final String LAST_STAND = "soulhome:last_stand";
+
     /**
      * The buffs that are pressed rather than carried (#87). Held apart from {@link #BUILT_IN}
      * because two things need to ask "is this an active" without knowing every id: the config's
@@ -129,7 +138,7 @@ public final class SoulBuffTypes
      */
     public static final Set<String> ACTIVE =
             Set.of(SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
-                    CLEANSING_FONT, UPDRAFT);
+                    CLEANSING_FONT, UPDRAFT, LAST_STAND, CALMING_SMOKE);
 
     public static final Set<String> BUILT_IN =
             Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
@@ -138,7 +147,8 @@ public final class SoulBuffTypes
                     MAX_MANA, SPELL_POWER, REACH,
                     FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, SWIM_SPEED,
                     SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
-                    CLEANSING_FONT, UPDRAFT);
+                    CLEANSING_FONT, UPDRAFT,
+                    CALMING_SMOKE, CLEAR_SIGHT, LAST_STAND);
 
     /**
      * Types measured as a flat amount rather than a proportion: a count of jumps, a number of
@@ -152,7 +162,8 @@ public final class SoulBuffTypes
     private static final Set<String> NON_FRACTION =
             Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT, MAX_MANA, REACH,
                     SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
-                    CLEANSING_FONT, UPDRAFT);
+                    CLEANSING_FONT, UPDRAFT,
+                    CLEAR_SIGHT, LAST_STAND, CALMING_SMOKE);
 
     /** Whether this buff is pressed rather than carried - see {@link #ACTIVE}. */
     public static boolean isActive(String buffType)

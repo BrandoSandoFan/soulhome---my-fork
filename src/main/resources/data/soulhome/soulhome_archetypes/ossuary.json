@@ -1,0 +1,50 @@
+{
+  "display_name": "archetype.soulhome.ossuary",
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:bone_block" }, "min_count": 6 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:bone_block" },                       "weight": 3.0, "role": "bones",    "cap": 24 },
+    { "match": { "tag": "minecraft:candles" },                            "weight": 1.5, "role": "vigil",    "cap": 16 },
+    { "match": { "block": ["minecraft:soul_sand", "minecraft:soul_soil"] }, "weight": 1.0, "role": "hallow",  "cap": 16 },
+    { "match": { "tag": "soulhome:structural" },                          "weight": 0.6, "role": "crypt",    "cap": 48 },
+    { "match": { "tag": "soulhome:lighting" },                            "weight": 0.4, "role": "ambience", "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:crops" },   "weight": -1.5 },
+    { "match": { "tag": "soulhome:smithing" }, "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 5,  "tier": 1 },
+    { "min_score": 30, "tier": 2 },
+    { "min_score": 48, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:last_stand", "per_tier": 3.0, "max": 9.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "the_vigil",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "bones":  { "block": "minecraft:bone_block" },
+        "candles": { "tag": "minecraft:candles" },
+        "walls":  { "tag": "soulhome:structural" }
+      },
+      "all": [
+        { "shape": "soulhome:cluster", "of": "bones", "weight": 1.5 },
+        { "relation": "surrounds", "of": "candles", "to": "bones", "min_radius": 1, "max_radius": 4, "weight": 1.5 },
+        { "shape": "soulhome:enclosure", "of": "walls", "weight": 1.0 }
+      ]
+    }
+  ]
+}

@@ -67,6 +67,9 @@ public record BuffSettings(
      * Mana is points of Iron's Spells' own resource, and sixty is somewhere between a robe and a
      * full set of it. Reach is blocks, and two is the difference between reaching the top of a
      * wall and not - three would put a player past the range the server rubber-bands them at.
+     * Clear Sight has no unit of its own beyond what the shader reads it as - its cap simply
+     * matches the room's own declared maximum, the same reference point the shader normalises
+     * against for its own strength.
      */
     public static final Map<String, Double> DEFAULT_TYPE_CAPS =
             Map.ofEntries(
@@ -90,7 +93,13 @@ public record BuffSettings(
                     Map.entry(SoulBuffTypes.BARRAGE, 6.0d),
                     Map.entry(SoulBuffTypes.RUPTURE, 6.0d),
                     Map.entry(SoulBuffTypes.CLEANSING_FONT, 6.0d),
-                    Map.entry(SoulBuffTypes.UPDRAFT, 6.0d));
+                    Map.entry(SoulBuffTypes.UPDRAFT, 6.0d),
+                    Map.entry(SoulBuffTypes.LAST_STAND, 9.0d),
+                    Map.entry(SoulBuffTypes.CALMING_SMOKE, 3.0d),
+
+                    // observatory's own passive - a flat unit, not a fraction, for the same
+                    // reason as the block above
+                    Map.entry(SoulBuffTypes.CLEAR_SIGHT, 3.0d));
 
     /** Suggested starting points - see the class-level ramp knob documentation. */
     public static final double DEFAULT_ENTRY_FRACTION = 0.10d;

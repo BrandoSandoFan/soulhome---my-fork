@@ -1,0 +1,52 @@
+{
+  "display_name": "archetype.soulhome.apiary",
+  "region_types": ["open", "enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": ["minecraft:beehive", "minecraft:bee_nest"] }, "min_count": 3 }
+  ],
+
+  "signals": [
+    { "match": { "block": ["minecraft:beehive", "minecraft:bee_nest"] }, "weight": 5.0, "role": "hive",    "cap": 8  },
+    { "match": { "block": "minecraft:honey_block" },                    "weight": 2.0, "role": "harvest", "cap": 8  },
+    { "match": { "block": "minecraft:honeycomb_block" },                "weight": 1.5, "role": "harvest", "cap": 12 },
+    { "match": { "block": ["minecraft:campfire", "minecraft:soul_campfire"] },
+                                                                         "weight": 1.5, "role": "smoker",  "cap": 2  },
+    { "match": { "tag": "minecraft:flowers" },                          "weight": 1.0, "role": "forage",  "cap": 32 },
+    { "match": { "tag": "soulhome:lighting" },                          "weight": 0.4, "role": "light",   "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "soulhome:smithing" }, "weight": -1.5 },
+    { "match": { "block": "minecraft:lava" },  "weight": -2.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 5,  "tier": 1 },
+    { "min_score": 33, "tier": 2 },
+    { "min_score": 53, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:calming_smoke", "per_tier": 1.0, "max": 3.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "the_hive_row",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "hives":  { "block": ["minecraft:beehive", "minecraft:bee_nest"] },
+        "forage": { "tag": "minecraft:flowers" },
+        "smoker": { "block": ["minecraft:campfire", "minecraft:soul_campfire"] }
+      },
+      "all": [
+        { "shape": "soulhome:line", "of": "hives", "min_run": 3, "ideal_run": 6, "weight": 2.0 },
+        { "relation": "within",   "of": "forage", "to": "hives", "max_distance": 4, "weight": 1.5 },
+        { "relation": "at_range", "of": "smoker", "to": "hives", "min_distance": 1, "max_distance": 3, "weight": 1.0 }
+      ]
+    }
+  ]
+}

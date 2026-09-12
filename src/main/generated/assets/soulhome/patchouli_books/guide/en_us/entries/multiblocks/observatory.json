@@ -1,0 +1,31 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:daylight_detector",
+  "name": "Observatory",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Clear Sight, growing with the tier, up to +3.$(p)Tiers begin at a score of 5."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)2 of Daylight Detector$(p)Rewards, most first:$(li)Daylight Detector$(li)End Rod$(li)Glass or Glass Pane$(li)$(l:soulhome:multiblocks/tags#structural)any structural$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(p)Counts against it:$(li)any crops$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Sensor crowns the structure, within 1 of its highest layer, and dome encloses the room, and starlight sits over sensor.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Sensor: Daylight Detector$(li)Dome: Glass or Glass Pane$(li)Starlight: End Rod",
+      "title": "How you arrange it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 17
+}

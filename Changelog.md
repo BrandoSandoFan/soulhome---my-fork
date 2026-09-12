@@ -893,3 +893,27 @@ say about it either way.
   scores full, a stair placed one compass notch off still scores nearly as well, and turning away
   scores nothing. A block with no facing of its own (most of a room) is simply left out of the
   average rather than counted against it.
+
+Three new rooms
+
+Each written to stand on a block palette none of the existing thirty rooms already leans on, and
+each paying out a buff of its own rather than a re-skin of one the mod already grants.
+
+- An **Apiary** - three or more beehives set in a row, near flowers and a smoker - grants Calming
+  Smoke: every neutral mob nearby - a zombified piglin, an enderman, a bee, a wolf, anything that
+  is only hostile once provoked - is warded from anger for a span, reapplied tick by tick rather
+  than granted once, so nothing the player's own presence or another mob's alert would otherwise
+  trigger gets even a moment to land. A warded mob that is actually struck, by anyone, is provoked
+  on the spot regardless of how much of the span was left - the smoke calms, it does not armour.
+- An **Observatory** - a daylight detector at the top of a glazed dome, end rods marking the sky
+  above it - grants Clear Sight: a dedicated brightening shader whose strength ramps smoothly with
+  the room's own score, rather than a potion effect that is either fully on or not there at all.
+  Nothing server-side acts on the magnitude at all - it is display-only, read straight off the same
+  number `/soulhome buffs` already shows, the same way every other client-only number in this mod
+  works.
+- An **Ossuary** - bone blocks gathered in one mass, ringed by candles, walled in stone - grants
+  Last Stand: temporary armour scaled by how much of the player's own health is already gone,
+  pressed at full health and it does next to nothing - a crypt does not steady someone who was
+  never at risk. Spent rather than banked, and it ends on its own clock rather than fading.
+- None of the three reuses a signal another archetype already scores as its own core - Apiary's
+  beehives are Farm's smallest bonus and nothing more there.

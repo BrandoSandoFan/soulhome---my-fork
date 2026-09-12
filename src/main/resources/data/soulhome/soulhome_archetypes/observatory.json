@@ -1,0 +1,51 @@
+{
+  "display_name": "archetype.soulhome.observatory",
+  "region_types": ["open", "enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:daylight_detector" }, "min_count": 2 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:daylight_detector" }, "weight": 6.0, "role": "sensor",    "cap": 4  },
+    { "match": { "block": "minecraft:end_rod" },           "weight": 1.5, "role": "starlight", "cap": 12 },
+    { "match": { "block": ["minecraft:glass", "minecraft:glass_pane"] },
+                                                             "weight": 1.0, "role": "dome",      "cap": 32 },
+    { "match": { "tag": "soulhome:structural" },            "weight": 0.4, "role": "gantry",    "cap": 32 },
+    { "match": { "tag": "soulhome:lighting" },              "weight": 0.4, "role": "light",     "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:crops" },   "weight": -1.0 },
+    { "match": { "tag": "soulhome:smithing" }, "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 5,  "tier": 1 },
+    { "min_score": 24, "tier": 2 },
+    { "min_score": 43, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:clear_sight", "per_tier": 1.0, "max": 3.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "the_reading_of_the_sky",
+      "weight": 5.0,
+      "role": "arrangement",
+      "elements": {
+        "sensor":     { "block": "minecraft:daylight_detector" },
+        "dome":       { "block": ["minecraft:glass", "minecraft:glass_pane"] },
+        "starlight":  { "block": "minecraft:end_rod" }
+      },
+      "all": [
+        { "shape": "soulhome:apex", "of": "sensor", "tolerance": 1, "weight": 2.0 },
+        { "shape": "soulhome:enclosure", "of": "dome", "weight": 1.5 },
+        { "relation": "above", "of": "starlight", "to": "sensor", "max_drop": 3, "weight": 1.0 }
+      ]
+    }
+  ]
+}
