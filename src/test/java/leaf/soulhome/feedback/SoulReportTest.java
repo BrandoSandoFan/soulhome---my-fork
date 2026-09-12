@@ -182,6 +182,103 @@ class SoulReportTest
         return new ClassificationResult(region, ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
     }
 
+    // region bonds (#148)
+
+    @Test
+    @DisplayName("a credited bond names the relation and the other room, and what it was worth")
+    void aCreditedBondIsNamed()
+    {
+        ArchetypeScore.BondContribution hit = new ArchetypeScore.BondContribution(
+                "soulhome:enchanting_room", "archetype.soulhome.enchanting_room", 2, "connects",
+                "with a way through between them", "study", 4d, 0.8d, 3.2d, "a way through 3 blocks long", false);
+
+        List<Component> lines = SoulReport.region(bonded(List.of(hit), List.of(), false), 1);
+
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_BOND_HEADER).isPresent());
+
+        TranslatableContents line = findByKey(lines, Constants.StringKeys.REGION_BOND_HIT).orElseThrow();
+        assertEquals(Constants.StringKeys.BOND_RELATION_PREFIX + "connects", keyOf(line.getArgs()[0]),
+                "the relation is a translated phrase, not an id");
+        assertEquals("archetype.soulhome.enchanting_room", keyOf(line.getArgs()[1]),
+                "the other room is named, never its id");
+        assertEquals("3.2", line.getArgs()[2]);
+    }
+
+    @Test
+    @DisplayName("a near miss states the gap and the threshold")
+    void aNearMissSaysWhy()
+    {
+        ArchetypeScore.BondContribution miss = new ArchetypeScore.BondContribution(
+                "soulhome:hearth", "archetype.soulhome.hearth", 1, "near",
+                "within 12 blocks", "warmth", 2d, 0d, 0d, "19 blocks away; within 12 would count", false);
+
+        List<Component> lines = SoulReport.region(bonded(List.of(), List.of(miss), false), 1);
+
+        TranslatableContents line = findByKey(lines, Constants.StringKeys.REGION_BOND_MISS).orElseThrow();
+        assertEquals("19 blocks away; within 12 would count", line.getArgs()[2]);
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_BOND_HIT).isEmpty());
+    }
+
+    @Test
+    @DisplayName("a discord is named as such, and a discord that did not fire is not mentioned")
+    void discordsAreNamedOnlyWhenTheyFire()
+    {
+        ArchetypeScore.BondContribution fired = new ArchetypeScore.BondContribution(
+                "soulhome:powder_magazine", "archetype.soulhome.powder_magazine", 3, "near",
+                "within 8 blocks", "hazard", -3d, 1d, -3d, "right beside it", true);
+        ArchetypeScore.BondContribution quiet = new ArchetypeScore.BondContribution(
+                "soulhome:cold_storage", "archetype.soulhome.cold_storage", -1, "adjoins",
+                "sharing a wall", "hazard", -2d, 0d, 0d, "there is no such room in this soul yet", true);
+
+        List<Component> lines = SoulReport.region(bonded(List.of(fired), List.of(quiet), false), 1);
+
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_BOND_DISCORD).isPresent());
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_BOND_MISS).isEmpty(),
+                "a hazard that is not next door is exactly what the player wants; no line");
+    }
+
+    @Test
+    @DisplayName("a region with no bonds to speak of says nothing about bonds")
+    void noBondsMeansNoSection()
+    {
+        List<Component> lines = SoulReport.region(bonded(List.of(), List.of(), false), 1);
+
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_BOND_HEADER).isEmpty());
+    }
+
+    @Test
+    @DisplayName("bond credit held at the cap is flagged on the header")
+    void cappedBondsAreFlagged()
+    {
+        ArchetypeScore.BondContribution hit = new ArchetypeScore.BondContribution(
+                "soulhome:enchanting_room", "archetype.soulhome.enchanting_room", 2, "connects",
+                "with a way through between them", "study", 40d, 1d, 40d, "opens straight into it", false);
+
+        List<Component> lines = SoulReport.region(bonded(List.of(hit), List.of(), true), 1);
+
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_BOND_CAPPED).isPresent());
+    }
+
+    private static ClassificationResult bonded(
+            List<ArchetypeScore.BondContribution> hits, List<ArchetypeScore.BondContribution> misses, boolean capped)
+    {
+        ArchetypeScore best = new ArchetypeScore(
+                "soulhome:library", "archetype.soulhome.library", 30d, 30d, 1d, 1d, 2,
+                OptionalDouble.of(10d), List.of(), List.of(), List.of(), null, List.of(), List.of(), false,
+                hits, misses, capped);
+
+        return new ClassificationResult(plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
+    }
+
+    private static String keyOf(Object argument)
+    {
+        return argument instanceof Component component && component.getContents() instanceof TranslatableContents translatable
+                ? translatable.getKey()
+                : String.valueOf(argument);
+    }
+
+    // endregion
+
     private static SoulRegion plainRegion()
     {
         return SoulRegion.create(

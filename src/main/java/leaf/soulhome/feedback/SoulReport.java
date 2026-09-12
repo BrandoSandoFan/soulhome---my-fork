@@ -260,6 +260,7 @@ public final class SoulReport
     {
         List<Component> lines = new ArrayList<>(contributions(best));
         lines.addAll(structuralSection(best, region));
+        lines.addAll(bondSection(best));
 
         final OptionalDouble toNext = best.scoreToNextTier();
 
@@ -485,6 +486,70 @@ public final class SoulReport
                     .withStyle(ChatFormatting.GRAY));
 
             lines.addAll(clauseLines(miss.root(), 0));
+        }
+
+        return lines;
+    }
+
+    /**
+     * The bonds half of the report - the Soul Architecture epic (#140). Which bonds were credited,
+     * naming the other room and what it was worth; which were available and not earned, and
+     * specifically why not, since "your Enchanting Room is 19 blocks away; within 12 would count"
+     * is actionable and "no bond" is not; and discords, named as such, so a player can see that
+     * their powder magazine is costing their hearth.
+     *
+     * <p>A region with nothing to say about bonds says nothing - a player with one room should
+     * not be told about a system they cannot use yet. Only an awarded room ever has anything to
+     * say, so this is only reached from {@link #explainSuccess}.
+     */
+    private static List<Component> bondSection(ArchetypeScore score)
+    {
+        List<Component> lines = new ArrayList<>();
+
+        if (!score.hasBondsToReport())
+        {
+            return lines;
+        }
+
+        MutableComponent header = translated(Constants.StringKeys.REGION_BOND_HEADER)
+                .withStyle(ChatFormatting.LIGHT_PURPLE);
+
+        if (score.bondCapped())
+        {
+            header.append(Component.literal(" "))
+                    .append(translated(Constants.StringKeys.REGION_BOND_CAPPED).withStyle(ChatFormatting.GOLD));
+        }
+
+        lines.add(indent(header));
+
+        for (ArchetypeScore.BondContribution bond : score.bondContributions())
+        {
+            final Component relation = BondNames.relation(bond.relationId());
+            final Component room = BondNames.room(bond.otherDisplayName(), bond.otherArchetypeId());
+
+            lines.add(indent(bond.discord()
+                    ? translated(Constants.StringKeys.REGION_BOND_DISCORD, relation, room, score(bond.contribution()))
+                            .withStyle(ChatFormatting.RED)
+                    : translated(Constants.StringKeys.REGION_BOND_HIT, relation, room, score(bond.contribution()))
+                            .withStyle(ChatFormatting.DARK_GREEN), 2));
+        }
+
+        for (ArchetypeScore.BondContribution miss : score.missingBonds())
+        {
+            if (miss.discord())
+            {
+                // a hazard that is not next door is not worth a line - it is exactly what a
+                // player wants, and telling them "your powder magazine is not near your hearth"
+                // reads as a nudge to move it closer
+                continue;
+            }
+
+            lines.add(indent(translated(
+                    Constants.StringKeys.REGION_BOND_MISS,
+                    BondNames.relation(miss.relationId()),
+                    BondNames.room(miss.otherDisplayName(), miss.otherArchetypeId()),
+                    miss.diagnostic()), 2)
+                    .withStyle(ChatFormatting.GRAY));
         }
 
         return lines;
