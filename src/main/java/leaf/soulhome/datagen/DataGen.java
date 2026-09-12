@@ -15,6 +15,7 @@ import leaf.soulhome.datagen.language.EngLangGen;
 import leaf.soulhome.datagen.loot.LootTablesGen;
 import leaf.soulhome.datagen.patchouli.PatchouliGen;
 import leaf.soulhome.datagen.recipe.RecipeGen;
+import leaf.soulhome.structures.BuiltinBondRelations;
 import leaf.soulhome.structures.BuiltinFormClauses;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -37,6 +38,7 @@ public class DataGen
         // any provider reads the archetype JSON (see SoulHome#commonSetup for the same call on the
         // real game's boot path)
         BuiltinFormClauses.registerAll();
+        BuiltinBondRelations.registerAll();
 
         DataGenerator generator = event.getGenerator();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
