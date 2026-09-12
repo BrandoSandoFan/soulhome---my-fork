@@ -1,0 +1,72 @@
+{
+  "_comment": [
+    "Every block the three shipped starter islands are made of, with the passability the game",
+    "would derive for it (SnapshotBlockVolume#passabilityOf: empty collision is PASSABLE, a full",
+    "cube is BLOCKING, anything else is PARTIAL) and the tags the shipped tag files and vanilla give",
+    "it. Read by SoulIslandVolume for the regression corpus (#139). A template block missing from",
+    "here fails the corpus with a message naming it - add it, do not guess in Java.",
+    "",
+    "passability_by picks the passability from one block state property, for the few blocks whose",
+    "shape depends on their state: a one-layer snow cover has no collision at all, a double slab is a",
+    "full cube."
+  ],
+
+  "minecraft:air":              { "passability": "EMPTY" },
+
+  "minecraft:stone":            { "passability": "BLOCKING", "tags": ["soulhome:structural"] },
+  "minecraft:cobblestone":      { "passability": "BLOCKING", "tags": ["soulhome:structural"] },
+  "minecraft:mossy_cobblestone":{ "passability": "BLOCKING", "tags": ["soulhome:structural"] },
+  "minecraft:andesite":         { "passability": "BLOCKING" },
+  "minecraft:diorite":          { "passability": "BLOCKING" },
+  "minecraft:tuff":             { "passability": "BLOCKING" },
+  "minecraft:gravel":           { "passability": "BLOCKING" },
+  "minecraft:dirt":             { "passability": "BLOCKING" },
+  "minecraft:coarse_dirt":      { "passability": "BLOCKING" },
+  "minecraft:rooted_dirt":      { "passability": "BLOCKING" },
+  "minecraft:grass_block":      { "passability": "BLOCKING" },
+
+  "minecraft:stone_slab":              { "passability_by": { "property": "type", "values": { "double": "BLOCKING" }, "default": "PARTIAL" }, "tags": ["minecraft:slabs"] },
+  "minecraft:andesite_slab":           { "passability_by": { "property": "type", "values": { "double": "BLOCKING" }, "default": "PARTIAL" }, "tags": ["minecraft:slabs"] },
+  "minecraft:cobblestone_slab":        { "passability_by": { "property": "type", "values": { "double": "BLOCKING" }, "default": "PARTIAL" }, "tags": ["minecraft:slabs"] },
+  "minecraft:mossy_cobblestone_slab":  { "passability_by": { "property": "type", "values": { "double": "BLOCKING" }, "default": "PARTIAL" }, "tags": ["minecraft:slabs"] },
+
+  "minecraft:stone_stairs":            { "passability": "PARTIAL", "tags": ["minecraft:stairs", "soulhome:seating"] },
+  "minecraft:andesite_stairs":         { "passability": "PARTIAL", "tags": ["minecraft:stairs", "soulhome:seating"] },
+  "minecraft:cobblestone_stairs":      { "passability": "PARTIAL", "tags": ["minecraft:stairs", "soulhome:seating"] },
+  "minecraft:mossy_cobblestone_stairs":{ "passability": "PARTIAL", "tags": ["minecraft:stairs", "soulhome:seating"] },
+  "minecraft:oak_stairs":              { "passability": "PARTIAL", "tags": ["minecraft:stairs", "minecraft:wooden_stairs", "soulhome:seating"] },
+
+  "minecraft:oak_log":          { "passability": "BLOCKING", "tags": ["minecraft:logs", "soulhome:structural"] },
+  "minecraft:spruce_log":       { "passability": "BLOCKING", "tags": ["minecraft:logs", "soulhome:structural"] },
+  "minecraft:oak_leaves":       { "passability": "BLOCKING", "tags": ["minecraft:leaves"] },
+  "minecraft:spruce_leaves":    { "passability": "BLOCKING", "tags": ["minecraft:leaves"] },
+
+  "minecraft:snow":             { "passability_by": { "property": "layers", "values": { "1": "PASSABLE" }, "default": "PARTIAL" } },
+  "minecraft:water":            { "passability": "PASSABLE" },
+  "minecraft:lily_pad":         { "passability": "PARTIAL" },
+  "minecraft:moss_carpet":      { "passability": "PARTIAL" },
+  "minecraft:small_dripleaf":   { "passability": "PASSABLE" },
+  "minecraft:sugar_cane":       { "passability": "PASSABLE", "tags": ["soulhome:reagents"] },
+  "minecraft:grass":            { "passability": "PASSABLE" },
+  "minecraft:short_grass":      { "passability": "PASSABLE" },
+  "minecraft:tall_grass":       { "passability": "PASSABLE" },
+  "minecraft:fern":             { "passability": "PASSABLE" },
+  "minecraft:large_fern":       { "passability": "PASSABLE" },
+
+  "minecraft:dandelion":        { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:poppy":            { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:blue_orchid":      { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:allium":           { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:azure_bluet":      { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:red_tulip":        { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:pink_tulip":       { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:white_tulip":      { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:oxeye_daisy":      { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:cornflower":       { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:small_flowers"] },
+  "minecraft:lilac":            { "passability": "PASSABLE", "tags": ["minecraft:flowers", "minecraft:tall_flowers"] },
+
+  "minecraft:white_candle":     { "passability": "PARTIAL", "tags": ["minecraft:candles", "soulhome:lighting"] },
+  "minecraft:campfire":         { "passability": "PARTIAL", "tags": ["minecraft:campfires", "soulhome:lighting"] },
+  "minecraft:water_cauldron":   { "passability": "PARTIAL", "tags": ["soulhome:alchemy_vessels"] },
+  "minecraft:spruce_fence":     { "passability": "PARTIAL", "tags": ["minecraft:fences", "minecraft:wooden_fences"] }
+}

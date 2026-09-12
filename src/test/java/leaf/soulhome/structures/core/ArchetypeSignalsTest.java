@@ -116,6 +116,28 @@ class ArchetypeSignalsTest
         assertTrue(filter.test(TestBlocks.FARMLAND));
     }
 
+    @Test
+    @DisplayName("a signal marked seed: false is counted but never gathered around")
+    void aNonSeedingSignalDoesNotSeedClusters()
+    {
+        ArchetypeDefinition spire = new ArchetypeDefinition(
+                "soulhome:test_spire", "archetype.soulhome.test", List.of(RegionType.OPEN), 1,
+                List.of(),
+                List.of(
+                        new ArchetypeDefinition.Signal(BlockMatcher.ofBlocks("minecraft:lightning_rod"), 6d, "conductor", 3),
+                        new ArchetypeDefinition.Signal(BlockMatcher.ofTags("soulhome:structural"), 0.5d, "masonry", 48, false)),
+                List.of(),
+                List.of(new ArchetypeDefinition.Tier(1d, 1)),
+                List.of(),
+                List.of());
+
+        assertTrue(ArchetypeSignals.openClusterFilterFor(List.of(spire)).test(TestBlocks.LIGHTNING_ROD));
+        assertFalse(ArchetypeSignals.openClusterFilterFor(List.of(spire)).test(TestBlocks.DEEPSLATE),
+                "the ground a spire stands on must not gather the island around it");
+        assertTrue(ArchetypeSignals.filterFor(List.of(spire)).test(TestBlocks.DEEPSLATE),
+                "but masonry the spire's region takes in still counts");
+    }
+
     private static ArchetypeDefinition archetypeNaming(List<RegionType> regionTypes, BlockMatcher signal)
     {
         return new ArchetypeDefinition(

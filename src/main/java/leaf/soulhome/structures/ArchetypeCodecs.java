@@ -81,7 +81,9 @@ public final class ArchetypeCodecs
                             Codec.STRING.optionalFieldOf("role", ArchetypeDefinition.Signal.DEFAULT_ROLE)
                                     .forGetter(ArchetypeDefinition.Signal::role),
                             Codec.INT.optionalFieldOf("cap", ArchetypeDefinition.DEFAULT_CAP)
-                                    .forGetter(ArchetypeDefinition.Signal::cap))
+                                    .forGetter(ArchetypeDefinition.Signal::cap),
+                            Codec.BOOL.optionalFieldOf("seed", true)
+                                    .forGetter(ArchetypeDefinition.Signal::seed))
                     .apply(instance, ArchetypeDefinition.Signal::new));
 
     public static final Codec<ArchetypeDefinition.Tier> TIER =

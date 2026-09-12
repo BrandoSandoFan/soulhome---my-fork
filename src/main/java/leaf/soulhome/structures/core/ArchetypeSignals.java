@@ -58,20 +58,41 @@ public final class ArchetypeSignals
      * its contents; what it no longer does is chain across the snow to the next build. A datapack
      * that adds an {@code open} archetype naming snow gets snow back as a cluster seed with no Java
      * change - derived from the definitions, exactly as {@link #filterFor} is.
+     *
+     * <p>An open archetype can also name a block it is glad of that is nonetheless simply what
+     * the ground is made of - a storm spire's masonry is stone, a farm's water is the pond that
+     * was already there - and those it marks {@link ArchetypeDefinition.Signal#seed seed: false},
+     * which leaves them out of here too. The regression corpus over the shipped starter islands
+     * (#139) is what found that: with every open palette seeding, the islands' own stone gathered
+     * into one region the size of the island before a player had placed a block.
      */
     public static Predicate<BlockSignature> openClusterFilterFor(Collection<ArchetypeDefinition> archetypes)
     {
-        List<ArchetypeDefinition> openCapable = new ArrayList<>();
+        List<BlockMatcher> matchers = new ArrayList<>();
 
         for (ArchetypeDefinition archetype : archetypes)
         {
-            if (archetype.accepts(RegionType.OPEN))
+            if (!archetype.accepts(RegionType.OPEN))
             {
-                openCapable.add(archetype);
+                continue;
+            }
+
+            for (ArchetypeDefinition.Signal signal : archetype.signals())
+            {
+                if (signal.seed())
+                {
+                    matchers.add(signal.match());
+                }
+            }
+
+            // a requirement is what the room is, and always gathers
+            for (ArchetypeDefinition.Requirement requirement : archetype.requirements())
+            {
+                matchers.add(requirement.match());
             }
         }
 
-        return matcherFilter(collectSignalMatchers(openCapable));
+        return matcherFilter(matchers);
     }
 
     /**

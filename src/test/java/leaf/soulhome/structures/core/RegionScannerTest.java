@@ -1133,12 +1133,20 @@ class RegionScannerTest
     }
 
     @Test
-    @DisplayName("logs are not a cluster seed, and this is the test that notices if someone tags them")
-    void logsDoNotSeedClusters()
+    @DisplayName("neither a tree trunk nor the stone under it is a cluster seed")
+    void terrainDoesNotSeedClusters()
     {
-        // recorded rather than assumed (#135): a tag that pulled logs into an open archetype's
-        // palette would put every tree trunk on a starter island back in the open-air pass
+        // recorded rather than assumed (#135, #139): logs and stone are both soulhome:structural,
+        // which a storm spire and an observatory - both open archetypes - score as masonry. Those
+        // signals are marked seed: false in the data, and a change that let either back into the
+        // open-air pass would put every trunk and every block of ground on a starter island back
+        // into one island-sized region
         assertFalse(ArchetypeSignals.openClusterFilterFor(shipped()).test(TestBlocks.OAK_LOG));
+        assertFalse(ArchetypeSignals.openClusterFilterFor(shipped()).test(TestBlocks.DEEPSLATE));
+        assertFalse(ArchetypeSignals.openClusterFilterFor(shipped()).test(TestBlocks.WATER),
+                "a pond is terrain; the farm counts water it takes in, it does not gather around it");
+        assertTrue(ArchetypeSignals.filterFor(shipped()).test(TestBlocks.DEEPSLATE),
+                "still counted wherever a region takes it in");
     }
 
     /**

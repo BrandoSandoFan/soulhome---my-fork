@@ -174,6 +174,20 @@ touching it - it explains each decision and why the obvious alternative is worse
   loaded, so an unloaded dimension reads as bare. Only `Capture.Outcome.EMPTY` - loaded and
   genuinely empty - may clear a soulhome's saved rooms. Every other failure leaves them alone. This
   has caused a "all my buffs vanished" bug more than once.
+- **Only an open archetype's palette seeds an open-air cluster, and only the parts of it that are
+  not terrain.** `ArchetypeSignals.openClusterFilterFor` is what the scanner clusters around;
+  `filterFor` is what the classifier counts, and the two are different questions (#134). A signal
+  that is also simply what the ground is made of - a spire's masonry, a farm's water, an apiary's
+  wildflowers - is marked `"seed": false` in its archetype and is counted only where a region takes
+  it in. Let terrain seed and a fresh soul is one island-sized region before a block is placed,
+  and two builds chain together through the ground between them.
+- **A shared shell cell is worth one block in total**, split evenly among the rooms touching it,
+  except that a cell a room's air stands on is that room's floor and is credited only to it
+  (#136, #137). Decided on who touches the cell and from which face, never on scan order. This is
+  why `BlockCounts` carries fractional credit: the classifier scores `credit()` exactly and
+  `count()` is the whole-block view, rounded down, for reports and requirements.
+- **Fabric is full blocks.** `claimBuildingFabric` claims only `isFullBlock()` blocks packed
+  against a shell; a garden's farmland on a flat roof is on the building, not part of it (#138).
 
 ---
 
@@ -255,9 +269,20 @@ rather than repeating a number.
   other and disagree with the game.
 - `ArchetypeJsonReader` loads the real shipped archetype JSON, so scoring tests are against what
   actually ships rather than a fixture.
+- **`SoulIslandCorpusTest`** is the regression corpus (#139): it scans the three shipped starter
+  islands - read straight from `data/soulhome/structures/soul_island{0,1,2}.nbt` by
+  `SoulIslandVolume`, through a Minecraft-free `NbtReader` - and asserts what a brand-new soul
+  reports: no classified rooms, no region covering more than a small share of the island, two
+  builds a modest distance apart read as two regions, a sealed room classifies as what it was built
+  as, and identical hashes on a second scan. It runs offline. The one thing a template cannot say is
+  how each block behaves in a scan; that lives in `src/test/resources/soul_islands/palette.json`
+  (passability as `SnapshotBlockVolume` would derive it, tags as the tag files give them), and a
+  template block missing from it fails the corpus by name. A changed template needs no
+  regeneration step - only a palette entry for any new block it introduces.
 
 When you change region detection, reproduce the bug as a failing test in `RegionScannerTest` first.
-Its layouts are the clearest documentation of what the scanner is supposed to do.
+Its layouts are the clearest documentation of what the scanner is supposed to do. Then run the
+corpus: every fault in #133 was one the corpus would have caught on the day the islands shipped.
 
 ---
 

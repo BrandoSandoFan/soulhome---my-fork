@@ -135,7 +135,8 @@ public final class TestBlocks
     public static final TestBlock PACKED_ICE = block("minecraft:packed_ice", Passability.BLOCKING);
     public static final TestBlock SNOW_BLOCK = block("minecraft:snow_block", Passability.BLOCKING);
     public static final TestBlock DIRT = block("minecraft:dirt", Passability.BLOCKING);
-    public static final TestBlock OAK_LOG = block("minecraft:oak_log", Passability.BLOCKING, "minecraft:logs");
+    // #minecraft:logs is in soulhome:structural, so a tree trunk is masonry to a spire
+    public static final TestBlock OAK_LOG = block("minecraft:oak_log", Passability.BLOCKING, "minecraft:logs", "soulhome:structural");
 
     // shrine
     public static final TestBlock LODESTONE = block("minecraft:lodestone", Passability.BLOCKING);

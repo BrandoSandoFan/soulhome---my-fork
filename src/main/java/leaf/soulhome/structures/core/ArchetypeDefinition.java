@@ -298,14 +298,30 @@ public record ArchetypeDefinition(
      *             harder - this is the main lever that rewards building a room over stacking a
      *             block.
      * @param cap  the count past which more of this block stops helping at all
+     * @param seed whether, for an archetype that accepts open regions, the scanner may gather an
+     *             open-air region around this block - seed a cluster on it, and cross it to
+     *             reach the next. {@code true} unless the datapack says otherwise. Off for
+     *             evidence a room is glad of but which is also simply what the ground is made
+     *             of: the masonry of a storm spire is stone, and stone is what a starter island
+     *             is, so the whole island used to gather into one region around it (#139). A
+     *             non-seeding signal still counts wherever a region takes it in - beside a
+     *             build's own blocks, or closed around by them - it just never starts or
+     *             extends one. Meaningless for a detractor, and for an archetype that only
+     *             accepts enclosed regions.
      */
-    public record Signal(BlockMatcher match, double weight, String role, int cap)
+    public record Signal(BlockMatcher match, double weight, String role, int cap, boolean seed)
     {
         public static final String DEFAULT_ROLE = "general";
 
         public Signal
         {
             role = role == null || role.isBlank() ? DEFAULT_ROLE : role;
+        }
+
+        /** The common case: a signal the scanner may gather an open-air region around. */
+        public Signal(BlockMatcher match, double weight, String role, int cap)
+        {
+            this(match, weight, role, cap, true);
         }
     }
 

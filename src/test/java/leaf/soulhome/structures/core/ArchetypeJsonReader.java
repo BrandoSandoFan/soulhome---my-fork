@@ -161,7 +161,8 @@ public final class ArchetypeJsonReader
                     readMatcher(entry.getAsJsonObject("match")),
                     entry.get("weight").getAsDouble(),
                     entry.has("role") ? entry.get("role").getAsString() : ArchetypeDefinition.Signal.DEFAULT_ROLE,
-                    entry.has("cap") ? entry.get("cap").getAsInt() : ArchetypeDefinition.DEFAULT_CAP));
+                    entry.has("cap") ? entry.get("cap").getAsInt() : ArchetypeDefinition.DEFAULT_CAP,
+                    !entry.has("seed") || entry.get("seed").getAsBoolean()));
         }
 
         return signals;

@@ -12,7 +12,7 @@
     { "match": { "block": "minecraft:end_rod" },           "weight": 1.5, "role": "starlight", "cap": 12 },
     { "match": { "block": ["minecraft:glass", "minecraft:glass_pane"] },
                                                              "weight": 1.0, "role": "dome",      "cap": 32 },
-    { "match": { "tag": "soulhome:structural" },            "weight": 0.4, "role": "gantry",    "cap": 32 },
+    { "match": { "tag": "soulhome:structural" },            "weight": 0.4, "role": "gantry",    "cap": 32, "seed": false },
     { "match": { "tag": "soulhome:lighting" },              "weight": 0.4, "role": "light",     "cap": 12 }
   ],
 
