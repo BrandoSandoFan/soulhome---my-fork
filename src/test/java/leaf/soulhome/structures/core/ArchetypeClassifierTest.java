@@ -52,12 +52,12 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(29, shipped.size(),
+        assertEquals(32, shipped.size(),
                 "alchemy lab, arcane sanctum, armoury, aquarium, bedchamber, bulwark, cold storage, "
                         + "enchanting room, farm, gale roost, greenhouse, hearth, infected grotto, library, "
                         + "mead hall, mine, powder magazine, purifying font, rift chamber, ritual chamber, "
                         + "shrine, stable, storm spire, track, training yard, treasury, trophy room, "
-                        + "watchtower, workshop");
+                        + "watchtower, workshop, apiary, observatory, ossuary");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -490,7 +490,10 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:powder_magazine", TestBlocks.TNT),
                 Map.entry("soulhome:infected_grotto", TestBlocks.SCULK_CATALYST),
                 Map.entry("soulhome:purifying_font", TestBlocks.WATER_CAULDRON),
-                Map.entry("soulhome:gale_roost", TestBlocks.BAMBOO));
+                Map.entry("soulhome:gale_roost", TestBlocks.BAMBOO),
+                Map.entry("soulhome:apiary", TestBlocks.BEEHIVE),
+                Map.entry("soulhome:observatory", TestBlocks.DAYLIGHT_DETECTOR),
+                Map.entry("soulhome:ossuary", TestBlocks.BONE_BLOCK));
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -684,7 +687,10 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:powder_magazine", powderMagazine()),
                 Map.entry("soulhome:infected_grotto", infectedGrotto()),
                 Map.entry("soulhome:purifying_font", purifyingFont()),
-                Map.entry("soulhome:gale_roost", galeRoost()));
+                Map.entry("soulhome:gale_roost", galeRoost()),
+                Map.entry("soulhome:apiary", apiary()),
+                Map.entry("soulhome:observatory", observatory()),
+                Map.entry("soulhome:ossuary", ossuary()));
 
         assertEquals(shipped.size(), canonicalBuild.size(),
                 "every shipped archetype needs a canonical-build fixture here, or a newly added one goes untested");
@@ -1566,6 +1572,62 @@ class ArchetypeClassifierTest
                         "#.....#",
                         "#######"},
                 SLAB);
+    }
+
+    /** Three beehives in a row, flowers either side, a campfire close enough to work the smoke. */
+    private static GridVolume apiary()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#e)))e#",
+                        "#..<..#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** Two daylight detectors and an end rod under a glazed dome. */
+    private static GridVolume observatory()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "ggggggg",
+                        "g.....g",
+                        "g.....g",
+                        "g.....g",
+                        "g.....g",
+                        "g.....g",
+                        "ggggggg"},
+                new String[]{
+                        "ggggggg",
+                        "g.....g",
+                        "g.....g",
+                        "g.>3>.g",
+                        "g.....g",
+                        "g.....g",
+                        "ggggggg"},
+                SLAB);
+    }
+
+    /** Bone blocks gathered in one mass, candles ringed around them, deepslate walling it in. */
+    private static GridVolume ossuary()
+    {
+        return GridVolume.of(
+                DEEP_SLAB,
+                new String[]{
+                        "&&&&&&&",
+                        "&c...c&",
+                        "&.]]].&",
+                        "&.]]].&",
+                        "&.....&",
+                        "&c...c&",
+                        "&&&&&&&"},
+                DEEP_SLAB);
     }
 
     // endregion

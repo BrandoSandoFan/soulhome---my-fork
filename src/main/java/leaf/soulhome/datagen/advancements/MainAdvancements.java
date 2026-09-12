@@ -163,6 +163,11 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
         archetypeAdvancement(advancementConsumer, roomAdvancement, "infected_grotto", Items.SCULK_CATALYST);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "purifying_font", Items.CAULDRON);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "gale_roost", Items.BAMBOO);
+
+        // Three more: apiary and observatory grant a passive, ossuary an active - see Changelog.md
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "apiary", Items.HONEYCOMB);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "observatory", Items.DAYLIGHT_DETECTOR);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "ossuary", Items.BONE_BLOCK);
     }
 
     /**

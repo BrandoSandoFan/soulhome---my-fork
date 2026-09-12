@@ -279,6 +279,11 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.purifying_font", "Purifying Font");
         add("archetype.soulhome.gale_roost", "Gale Roost");
 
+        // Three more, each granting a buff written for its own room - see Changelog.md
+        add("archetype.soulhome.apiary", "Apiary");
+        add("archetype.soulhome.observatory", "Observatory");
+        add("archetype.soulhome.ossuary", "Ossuary");
+
         //The abilities those rooms grant. A room and the thing it grants are not the same noun,
         //so these are their own keys rather than reusing the archetype names
         add(Constants.StringKeys.ABILITY_NAME_SURVEYORS_EYE, "Surveyor's Eye");
@@ -291,6 +296,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_NAME_RUPTURE, "Rupture");
         add(Constants.StringKeys.ABILITY_NAME_CLEANSING_FONT, "Cleansing Font");
         add(Constants.StringKeys.ABILITY_NAME_UPDRAFT, "Updraft");
+        add(Constants.StringKeys.ABILITY_NAME_LAST_STAND, "Last Stand");
+        add(Constants.StringKeys.ABILITY_NAME_CALMING_SMOKE, "Calming Smoke");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -316,6 +323,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_THUNDERCLAP_NOTHING, "Nothing hostile within reach.");
         add(Constants.StringKeys.ABILITY_CLEANSING_FONT_NOTHING, "There was nothing to cleanse.");
         add(Constants.StringKeys.ABILITY_CLEANSING_FONT_CLEANSED, "Cleansed %s harmful effect(s).");
+        add(Constants.StringKeys.ABILITY_LAST_STAND_UNHURT, "You are not hurt enough for this to do anything yet.");
+        add(Constants.StringKeys.ABILITY_CALMING_SMOKE_NOTHING, "Nothing nearby needed calming.");
         add(Constants.StringKeys.ABILITY_RECHARGING, "Still recharging - %s seconds to go.");
         add(Constants.StringKeys.ABILITY_NO_DAMAGE, "It struck, and nothing took damage from it.");
 
@@ -422,6 +431,15 @@ public class EngLangGen extends LanguageProvider
 
         add("advancements.soulhome.gale_roost.title", "Rising On It");
         add("advancements.soulhome.gale_roost.description", "Raise a bamboo mast in your soul taller than it is wide, with banners flying from the top.");
+
+        add("advancements.soulhome.apiary.title", "Kept Hives");
+        add("advancements.soulhome.apiary.description", "Keep bees in your soul in enough of a row that it reads as an apiary.");
+
+        add("advancements.soulhome.observatory.title", "Reading The Sky");
+        add("advancements.soulhome.observatory.description", "Set a daylight sensor at the top of a room in your soul, and study what it sees.");
+
+        add("advancements.soulhome.ossuary.title", "Kept Vigil");
+        add("advancements.soulhome.ossuary.description", "Set candles around the bones in your soul, and learn what standing vigil is worth.");
 
         //misc
 

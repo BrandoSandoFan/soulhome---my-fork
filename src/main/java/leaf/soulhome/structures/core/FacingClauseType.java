@@ -85,6 +85,7 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
      * - a stair placed exactly right, and the small aiming slop nobody would call "off".
      */
     private static final double FULL_CREDIT_DEGREES = 22.5;
+    private static final double EXACT_ALIGNMENT_EPSILON = 1e-9;
 
     @Override
     public String typeId()
@@ -121,11 +122,13 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
             return FormResult.of(0d, ClauseMath.missingElementDiagnostic(this.to));
         }
 
-        final double zeroCreditDegrees = zeroCreditDegrees();
+        final boolean exactTolerance = exactTolerance();
+        final double zeroCreditDegrees = zeroCreditDegrees(exactTolerance);
 
         double total = 0d;
         int judged = 0;
         int facingAway = 0;
+        int outOfRange = 0;
 
         for (RegionGeometry.Cell of : ofCells)
         {
@@ -137,6 +140,7 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
             judged++;
 
             double best = 0d;
+            boolean candidateInRange = false;
 
             for (RegionGeometry.Cell to : toCells)
             {
@@ -145,15 +149,22 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
                     continue;
                 }
 
-                if (ClauseMath.distance(of, to, "chebyshev") > this.maxDistance)
+                if (ClauseMath.distance(of, to, "euclidean") > this.maxDistance)
                 {
                     continue;
                 }
 
-                best = Math.max(best, gradeAlignment(of, to, zeroCreditDegrees));
+                candidateInRange = true;
+                best = Math.max(best, gradeAlignment(of, to, exactTolerance, zeroCreditDegrees));
             }
 
             total += best;
+
+            if (!candidateInRange)
+            {
+                outOfRange++;
+                continue;
+            }
 
             if (best < 0.5d)
             {
@@ -167,7 +178,7 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
         }
 
         double confidence = ClauseMath.clamp01(total / judged);
-        return FormResult.of(confidence, diagnostic(facingAway, judged));
+        return FormResult.of(confidence, diagnostic(outOfRange, facingAway, judged));
     }
 
     /**
@@ -176,7 +187,8 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
      * beyond {@code zeroCreditDegrees} is none, and the gap between the two ramps down linearly -
      * exactly the "off by one sector still counts nearly in full" shape #36 asks for.
      */
-    private double gradeAlignment(RegionGeometry.Cell of, RegionGeometry.Cell to, double zeroCreditDegrees)
+    private double gradeAlignment(RegionGeometry.Cell of, RegionGeometry.Cell to,
+                                  boolean exactTolerance, double zeroCreditDegrees)
     {
         final Facing facing = of.facing();
         final double dx = to.x() - of.x();
@@ -192,6 +204,11 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
         final double dot = facing.dx * dx + facing.dy * dy + facing.dz * dz;
         final double cosine = Math.max(-1d, Math.min(1d, dot / magnitude));
         final double angle = Math.toDegrees(Math.acos(cosine));
+
+        if (exactTolerance)
+        {
+            return angle <= EXACT_ALIGNMENT_EPSILON ? 1d : 0d;
+        }
 
         if (angle <= FULL_CREDIT_DEGREES)
         {
@@ -210,22 +227,32 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
      * {@code adjacent_sector} (the default) ramps down over the next two 45-degree compass
      * sectors, so a build one sector off - the common case, since nobody places a whole ring of
      * stairs with the same one wrong - still scores around three-quarters credit, and only a
-     * genuinely sideways or reversed block reads as not facing. {@code exact} asks for the same
-     * sector {@code of} itself occupies and nothing more. Anything else - a typo, a future value
-     * not yet understood - falls back to {@code adjacent_sector} rather than failing the
+     * genuinely sideways or reversed block reads as not facing. {@code exact} asks for dead-ahead
+     * alignment and nothing more: any sideways component, however small, scores zero. Anything else
+     * - a typo, a future value not yet understood - falls back to {@code adjacent_sector} rather than failing the
      * archetype, matching how an unrecognised {@code metric} elsewhere in this vocabulary quietly
      * defaults instead.
      */
-    private double zeroCreditDegrees()
+    private boolean exactTolerance()
     {
-        return "exact".equalsIgnoreCase(this.tolerance) ? FULL_CREDIT_DEGREES : FULL_CREDIT_DEGREES + 90d;
+        return "exact".equalsIgnoreCase(this.tolerance);
     }
 
-    private String diagnostic(int facingAway, int judged)
+    private double zeroCreditDegrees(boolean exactTolerance)
     {
-        if (facingAway == 0)
+        return exactTolerance ? FULL_CREDIT_DEGREES : FULL_CREDIT_DEGREES + 90d;
+    }
+
+    private String diagnostic(int outOfRange, int facingAway, int judged)
+    {
+        if (outOfRange == 0 && facingAway == 0)
         {
             return "";
+        }
+
+        if (outOfRange >= judged)
+        {
+            return "no '" + this.to + "' are within " + this.maxDistance + " blocks of any '" + this.of + "'";
         }
 
         if (facingAway >= judged)
@@ -233,7 +260,20 @@ record FacingClause(String of, String to, int maxDistance, String tolerance) imp
             return "no '" + this.of + "' point towards '" + this.to + "'";
         }
 
-        return facingAway + " of " + judged + " '" + this.of + "' do not point towards '" + this.to + "'";
+        List<String> parts = new ArrayList<>();
+
+        if (facingAway > 0)
+        {
+            parts.add(facingAway + " of " + judged + " '" + this.of + "' do not point towards '" + this.to + "'");
+        }
+
+        if (outOfRange > 0)
+        {
+            parts.add(outOfRange + " of " + judged + " '" + this.of + "' have no '" + this.to
+                    + "' within " + this.maxDistance + " blocks");
+        }
+
+        return String.join("; ", parts);
     }
 
     @Override

@@ -1,0 +1,31 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:beehive",
+  "name": "Apiary",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Calming Smoke, growing with the tier, up to +3.$(p)Tiers begin at a score of 5."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)3 of Beehive or Bee Nest$(p)Rewards, most first:$(li)Beehive or Bee Nest$(li)Honey Block$(li)Honeycomb Block$(li)Campfire or Soul Campfire$(li)any flowers$(p)Counts against it:$(li)$(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)Lava",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Hives runs in a line of at least 3, best at 6, and forage is within 4 of hives, and smoker is 1-3 from hives.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Hives: Beehive or Bee Nest$(li)Forage: any flowers$(li)Smoker: Campfire or Soul Campfire",
+      "title": "How you arrange it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 1
+}
