@@ -172,8 +172,9 @@ public final class RegionScanner
      * {@link #scan(BlockVolume, Predicate, Predicate, ScanSettings)} for when one does.
      *
      * @param signalFilter blocks worth clustering an open-air region around - in practice, every
-     *                     block named by some loaded archetype. May be {@code null}, which skips
-     *                     open-air detection entirely.
+     *                     block named by some loaded archetype that accepts open regions, see
+     *                     {@code ArchetypeSignals#openClusterFilterFor}. May be {@code null},
+     *                     which skips open-air detection entirely.
      * @throws IllegalArgumentException if the volume fails {@link #isScannable}
      */
     public static List<SoulRegion> scan(
@@ -186,8 +187,8 @@ public final class RegionScanner
 
     /**
      * @param signalFilter   blocks worth clustering an open-air region around - in practice, every
-     *                       block named by some loaded archetype. May be {@code null}, which skips
-     *                       open-air detection entirely.
+     *                       block named by some loaded archetype that accepts open regions. May be
+     *                       {@code null}, which skips open-air detection entirely.
      * @param geometryFilter blocks worth keeping a position for - in practice, every block named by
      *                       some loaded archetype's structural forms. May be {@code null}, which
      *                       indexes nothing and leaves every {@link SoulRegion#geometry()} empty.

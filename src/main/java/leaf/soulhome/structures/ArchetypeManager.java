@@ -64,7 +64,11 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
         return loaded.classifier();
     }
 
-    /** Which blocks {@code RegionScanner} should cluster open-air regions around. */
+    /**
+     * Which blocks {@code RegionScanner} should cluster open-air regions around - the palettes of
+     * the archetypes that accept open regions, not of every archetype. See
+     * {@link ArchetypeSignals#openClusterFilterFor} for why the two differ (#134).
+     */
     public static Predicate<BlockSignature> signalFilter()
     {
         return loaded.signalFilter();
@@ -222,7 +226,7 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
             return new Loaded(
                     frozen,
                     new ArchetypeClassifier(frozen, SoulHomeConfig.scoringSettings()),
-                    ArchetypeSignals.filterFor(frozen),
+                    ArchetypeSignals.openClusterFilterFor(frozen),
                     ArchetypeSignals.geometryFilterFor(frozen),
                     ArchetypeSignals.needsClearance(frozen));
         }

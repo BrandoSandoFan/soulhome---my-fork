@@ -13,9 +13,9 @@ import java.util.function.Predicate;
  * Bridges the loaded archetypes to {@link RegionScanner}, which needs to know which blocks are
  * worth clustering an open-air region around.
  *
- * <p>"Worth clustering" means "some archetype cares about it". Deriving that from the definitions
- * rather than hardcoding a list is what lets a datapack add an archetype and have its blocks
- * become detectable without touching Java.
+ * <p>"Worth clustering" means "some archetype that can be scored on open ground cares about it".
+ * Deriving that from the definitions rather than hardcoding a list is what lets a datapack add an
+ * archetype and have its blocks become detectable without touching Java.
  */
 public final class ArchetypeSignals
 {
@@ -25,14 +25,53 @@ public final class ArchetypeSignals
 
     /**
      * A predicate matching any block named as a signal or a requirement by any of these
-     * archetypes.
+     * archetypes - everything the classifier could ever count.
      *
      * <p>Detractors are excluded on purpose: an anvil is evidence a room is <i>not</i> a library,
      * which is no reason to go looking for open-air anvil fields.
+     *
+     * <p>This is <b>not</b> what the scanner should cluster open-air regions around - see
+     * {@link #openClusterFilterFor} for why the two are different questions with different
+     * answers. It was, for a while, and that is the fault #134 is about.
      */
     public static Predicate<BlockSignature> filterFor(Collection<ArchetypeDefinition> archetypes)
     {
         return matcherFilter(collectSignalMatchers(archetypes));
+    }
+
+    /**
+     * A predicate matching any block named as a signal or a requirement by an archetype that
+     * accepts {@link RegionType#OPEN} regions - what {@link RegionScanner}'s {@code signalFilter}
+     * should seed and grow open-air clusters from.
+     *
+     * <p>Two jobs used to share one filter: deciding which blocks are worth <i>counting</i>, which
+     * is every archetype's palette, and deciding which blocks <i>seed and extend a cluster</i>,
+     * which should not be. Most shipped archetypes are {@code enclosed}-only, and their palettes
+     * still seeded open-air clusters they could never be scored by. Snow is a cold storage signal
+     * and leaves are a greenhouse signal, and both are what the starter islands are made of - so
+     * on a snowy island the ground itself was one island-spanning cluster, every open-air build a
+     * player laid on it joined that one region, and building a wall between two builds did nothing
+     * because there was no gap for a wall to close (#134).
+     *
+     * <p>Nothing stops being counted. A cluster still takes in whatever it closes around and
+     * whatever sits a cell beyond its own blocks, so a farm planted on snow still has that snow in
+     * its contents; what it no longer does is chain across the snow to the next build. A datapack
+     * that adds an {@code open} archetype naming snow gets snow back as a cluster seed with no Java
+     * change - derived from the definitions, exactly as {@link #filterFor} is.
+     */
+    public static Predicate<BlockSignature> openClusterFilterFor(Collection<ArchetypeDefinition> archetypes)
+    {
+        List<ArchetypeDefinition> openCapable = new ArrayList<>();
+
+        for (ArchetypeDefinition archetype : archetypes)
+        {
+            if (archetype.accepts(RegionType.OPEN))
+            {
+                openCapable.add(archetype);
+            }
+        }
+
+        return matcherFilter(collectSignalMatchers(openCapable));
     }
 
     /**

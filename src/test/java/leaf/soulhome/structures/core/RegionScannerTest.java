@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -713,6 +714,268 @@ class RegionScannerTest
                         "..." + divider + "..",
                         "..." + divider + ".."},
                 new String[]{"......", "......", "......", "......", "......", "......"});
+    }
+
+    // endregion
+
+    // region what the ground is made of (#134, #135)
+
+    /**
+     * The real shipped archetypes and the real filters the game builds from them - these cases
+     * reproduce reports from players entering a brand-new soul, and a hand-rolled predicate would
+     * only prove the scanner agrees with itself.
+     */
+    private static List<ArchetypeDefinition> shipped()
+    {
+        try
+        {
+            return ArchetypeJsonReader.shipped();
+        }
+        catch (java.io.IOException e)
+        {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
+    /** What {@code ArchetypeManager} hands the scanner since #134. */
+    private static List<SoulRegion> scanAsTheGameDoes(GridVolume volume)
+    {
+        List<ArchetypeDefinition> archetypes = shipped();
+        return RegionScanner.scan(
+                volume,
+                ArchetypeSignals.openClusterFilterFor(archetypes),
+                ArchetypeSignals.geometryFilterFor(archetypes),
+                ArchetypeSignals.needsClearance(archetypes),
+                ScanSettings.DEFAULTS);
+    }
+
+    @Test
+    @DisplayName("two open-air builds on snow are two regions, exactly as they are on dirt (#134)")
+    void twoBuildsOnSnowAreTwoRegions()
+    {
+        // the "snow soul is one giant room" report. Snow is a cold storage signal, cold storage is
+        // enclosed-only, and the old filter seeded open-air clusters from every archetype's
+        // palette regardless - so on a snowy island the ground itself was one island-spanning
+        // cluster, and every build laid on it joined that one region. The builds here are
+        // byte-identical between the two runs; only what they stand on differs.
+        List<SoulRegion> onDirt = scanAsTheGameDoes(twoBuildsOn(TestBlocks.DIRT));
+        List<SoulRegion> onSnow = scanAsTheGameDoes(twoBuildsOn(TestBlocks.SNOW_BLOCK));
+
+        assertEquals(2, onDirt.size(), "the ground nothing names never chained anything");
+        assertEquals(2, onSnow.size(), "and now neither does the ground cold storage names");
+
+        for (SoulRegion region : onSnow)
+        {
+            assertEquals(RegionType.OPEN, region.type());
+        }
+
+        // a farm on snow is still a farm standing on snow: the fix stops snow chaining two builds
+        // together, it does not stop a build from taking in the snow it is built on
+        SoulRegion farm = onSnow.get(0).allBlocks().count(BlockMatcher.ofTags("minecraft:crops")) > 0
+                ? onSnow.get(0) : onSnow.get(1);
+        SoulRegion yard = farm == onSnow.get(0) ? onSnow.get(1) : onSnow.get(0);
+
+        assertEquals(16, countIn(farm, "minecraft:crops"));
+        assertEquals(0, countIn(farm, "minecraft:fences"), "the yard is not part of the farm");
+        assertTrue(farm.allBlocks().count(BlockMatcher.ofBlocks("minecraft:snow_block")) > 0,
+                "the snow under the farm is in the farm's contents");
+        assertEquals(32, countIn(yard, "minecraft:fences"));
+        assertEquals(0, countIn(yard, "minecraft:crops"), "nor the farm part of the yard");
+    }
+
+    @Test
+    @DisplayName("the old all-archetypes filter is what made a snowy island one region")
+    void theCountingFilterSeedsTheWholeIsland()
+    {
+        // kept beside the case above so the next person can see the two filters are not
+        // interchangeable: cluster on everything the classifier can count and the snow chains
+        // both builds into one region that then scores as neither
+        List<SoulRegion> regions = RegionScanner.scan(
+                twoBuildsOn(TestBlocks.SNOW_BLOCK), ArchetypeSignals.filterFor(shipped()), ScanSettings.DEFAULTS);
+
+        assertEquals(1, regions.size(), "seeded on snow, the ground is one cluster");
+        assertEquals(16, countIn(regions.get(0), "minecraft:crops"));
+        assertEquals(32, countIn(regions.get(0), "minecraft:fences"));
+    }
+
+    @Test
+    @DisplayName("a treed starter island with nothing built on it produces no open-air region (#135)")
+    void aTreedIslandIsNotARegion()
+    {
+        // leaves are a greenhouse signal, greenhouse is enclosed-only, and a full-cube leaf block
+        // used to seed a cluster that grew up the trunks, along the canopy, and then took in
+        // everything the canopy closed around: 169 cells of ground became a 1014-cell region
+        // reaching canopy height, and the advice was "cut the trees down before you build"
+        List<SoulRegion> regions = scanAsTheGameDoes(treedIsland(false, false));
+
+        assertTrue(regions.isEmpty(), "nothing on a bare treed island seeds anything: " + regions);
+    }
+
+    @Test
+    @DisplayName("a build on a treed island is its own region, not merged with the trees (#135)")
+    void aBuildOnATreedIslandIsItsOwnRegion()
+    {
+        List<SoulRegion> regions = scanAsTheGameDoes(treedIsland(true, false));
+
+        assertEquals(1, regions.size(), "the farm, and nothing else: " + regions);
+
+        SoulRegion farm = regions.get(0);
+        assertEquals(RegionType.OPEN, farm.type());
+        assertEquals(9, countIn(farm, "minecraft:crops"));
+        assertEquals(0, countIn(farm, "minecraft:leaves"), "the canopy is not part of the farm");
+        assertEquals(0, farm.allBlocks().count(BlockMatcher.ofTags("minecraft:logs")), "nor the trunks");
+        assertTrue(farm.bounds().maxY() <= 2, "the farm's box stays at ground level: " + farm.bounds());
+    }
+
+    @Test
+    @DisplayName("a sealed room on a treed island survives the trees intact (#135)")
+    void aSealedRoomOnATreedIslandIsUnaffected()
+    {
+        // the fault was always confined to the open-air pass: the library came back the same with
+        // and without the trees, and this pins that
+        List<SoulRegion> regions = scanAsTheGameDoes(treedIsland(false, true));
+
+        assertEquals(1, regions.size(), "the library, and nothing else: " + regions);
+        assertEquals(RegionType.ENCLOSED, regions.get(0).type());
+        assertEquals(3, countIn(regions.get(0), "soulhome:bookshelves"));
+    }
+
+    @Test
+    @DisplayName("logs are not a cluster seed, and this is the test that notices if someone tags them")
+    void logsDoNotSeedClusters()
+    {
+        // recorded rather than assumed (#135): a tag that pulled logs into an open archetype's
+        // palette would put every tree trunk on a starter island back in the open-air pass
+        assertFalse(ArchetypeSignals.openClusterFilterFor(shipped()).test(TestBlocks.OAK_LOG));
+    }
+
+    /**
+     * A 15x15 island with two builds ten blocks apart: a 4x4 farm in one corner and a fenced yard,
+     * two rails high, in the other. Everything either build is made of is an open archetype's
+     * signal; the ground is whichever block the caller names.
+     */
+    private static GridVolume twoBuildsOn(TestBlocks.TestBlock ground)
+    {
+        String[] groundLayer = new String[15];
+        Arrays.fill(groundLayer, "GGGGGGGGGGGGGGG");
+
+        // the farm's farmland is sunk into the ground layer above, as a player would till it
+        String[] tilled = new String[15];
+        Arrays.fill(tilled, "GGGGGGGGGGGGGGG");
+
+        for (int z = 0; z < 4; z++)
+        {
+            tilled[z] = "ffff" + "G".repeat(11);
+        }
+
+        String[] surface = new String[15];
+        Arrays.fill(surface, "...............");
+
+        for (int z = 0; z < 4; z++)
+        {
+            surface[z] = "wwww" + ".".repeat(11);
+        }
+
+        String[] yard = new String[15];
+        Arrays.fill(yard, "...............");
+
+        yard[9] = ".".repeat(10) + "FFFFF";
+        yard[10] = ".".repeat(10) + "F...F";
+        yard[11] = ".".repeat(10) + "F...F";
+        yard[12] = ".".repeat(10) + "F...F";
+        yard[13] = ".".repeat(10) + "FFFFF";
+
+        // the fences stand on the ground, alongside the wheat; a second course above them
+        String[] surfaceWithYard = surface.clone();
+
+        for (int z = 9; z <= 13; z++)
+        {
+            surfaceWithYard[z] = yard[z];
+        }
+
+        return GridVolume.of(Map.of('G', ground), groundLayer, tilled, surfaceWithYard, yard);
+    }
+
+    /**
+     * A 13x13 snowy island with a tree in each corner - a three-block trunk under a 3x3 canopy,
+     * the shape of a vanilla oak - and optionally a 3x3 farm or a sealed stone library in the
+     * middle.
+     */
+    private static GridVolume treedIsland(boolean withFarm, boolean withLibrary)
+    {
+        final int size = 13;
+        String[] ground = new String[size];
+        Arrays.fill(ground, "S".repeat(size));
+
+        // y=1..3 trunks, y=3..5 canopy
+        String[][] layers = new String[7][size];
+
+        for (int y = 0; y < 7; y++)
+        {
+            Arrays.fill(layers[y], ".".repeat(size));
+        }
+
+        int[][] trunks = {{1, 1}, {1, 11}, {11, 1}, {11, 11}};
+
+        for (int[] trunk : trunks)
+        {
+            for (int y = 1; y <= 3; y++)
+            {
+                layers[y][trunk[1]] = replaceAt(layers[y][trunk[1]], trunk[0], 'T');
+            }
+
+            for (int y = 3; y <= 5; y++)
+            {
+                for (int dz = -1; dz <= 1; dz++)
+                {
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        final boolean centre = dx == 0 && dz == 0;
+
+                        if (centre && y == 3)
+                        {
+                            continue; // the trunk's top
+                        }
+
+                        layers[y][trunk[1] + dz] = replaceAt(layers[y][trunk[1] + dz], trunk[0] + dx, 'z');
+                    }
+                }
+            }
+        }
+
+        if (withFarm)
+        {
+            for (int z = 5; z <= 7; z++)
+            {
+                ground[z] = ground[z].substring(0, 5) + "fff" + ground[z].substring(8);
+                layers[1][z] = layers[1][z].substring(0, 5) + "www" + layers[1][z].substring(8);
+            }
+        }
+
+        if (withLibrary)
+        {
+            // a 5x5 stone box, one block of air high inside, with three bookshelves on one wall
+            for (int z = 4; z <= 8; z++)
+            {
+                layers[1][z] = layers[1][z].substring(0, 4) + (z == 4 ? "#BBB#" : z == 8 ? "#####" : "#...#")
+                        + layers[1][z].substring(9);
+                layers[2][z] = layers[2][z].substring(0, 4) + "#####" + layers[2][z].substring(9);
+            }
+        }
+
+        // layers[0] is the ground's own height and holds nothing, so the ground row takes its place
+        String[][] stacked = new String[7][];
+        stacked[0] = ground;
+        System.arraycopy(layers, 1, stacked, 1, 6);
+
+        return GridVolume.of(
+                Map.of('S', TestBlocks.SNOW_BLOCK, 'T', TestBlocks.OAK_LOG),
+                stacked);
+    }
+
+    private static String replaceAt(String row, int x, char symbol)
+    {
+        return row.substring(0, x) + symbol + row.substring(x + 1);
     }
 
     // endregion
