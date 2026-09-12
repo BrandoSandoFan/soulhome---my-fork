@@ -24,6 +24,16 @@ import java.util.Set;
  * Confidence is {@code 1 - regular/total}, so a wandering hand-carved hollow scores high and a
  * clean 5x5x5 room scores near zero.
  *
+ * <h2>Why {@code soulhome:spacing} is a separate clause and not this one inverted</h2>
+ *
+ * #169 asked whether this could be generalised rather than a second, near-opposite measure added,
+ * and the answer is no: the two measure different objects. This one reads the surface of a single
+ * mass - do its cells lie on straight axis-aligned runs - which is what tells a carved hollow from a
+ * squared-off room. {@link SpacingClauseType} reads the gaps <i>between</i> separate masses, after
+ * collapsing each into a group, which is what tells a colonnade from a pile of pillars. Inverting
+ * this clause does not produce that one: a solid cube is maximally regular here and says nothing at
+ * all about whether anything repeats at an interval. The same note is on that class.
+ *
  * <p><b>The tuning caution matters more than the formula.</b> Minecraft's grid makes right angles
  * the default rather than a lazy choice - most players build boxes because the game nudges them to.
  * This has to read as a bonus for going out of your way to carve something organic, never as a tax

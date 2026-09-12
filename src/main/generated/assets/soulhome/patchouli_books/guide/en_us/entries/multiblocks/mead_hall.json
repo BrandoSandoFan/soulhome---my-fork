@@ -15,12 +15,12 @@
     },
     {
       "type": "text",
-      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Table runs in a line of at least 5, best at 9, and benches is beside table, and cellar is within 8 of table.",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Table runs in a line of at least 5, best at 9, and benches is beside table, and cellar is within 8 of table, and light repeats at regular intervals, in at least 4 separate runs.",
       "title": "How you arrange it"
     },
     {
       "type": "text",
-      "text": "What those parts are:$(li)Table: any wooden slabs or any wooden trapdoors$(li)Benches: $(l:soulhome:multiblocks/tags#seating)any seating$(/l)$(li)Cellar: Barrel",
+      "text": "What those parts are:$(li)Table: any wooden slabs or any wooden trapdoors$(li)Benches: $(l:soulhome:multiblocks/tags#seating)any seating$(/l)$(li)Cellar: Barrel$(li)Light: $(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)",
       "title": "How you arrange it"
     },
     {
