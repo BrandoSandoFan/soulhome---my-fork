@@ -50,5 +50,9 @@
         { "relation": "within", "of": "charge",  "to": "battery",  "max_distance": 3, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:storm_spire", "relation": "near", "weight": -4.0, "role": "hazard", "max_distance": 10 }
   ]
 }

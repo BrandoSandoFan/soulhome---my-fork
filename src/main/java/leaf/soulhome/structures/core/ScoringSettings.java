@@ -45,8 +45,13 @@ public record ScoringSettings(
         double structuralRoleThreshold,
         double bondShareCap)
 {
-    /** Suggested default - see the field javadoc above, and the balance pass in #149. */
-    public static final double DEFAULT_BOND_SHARE_CAP = 0.35d;
+    /**
+     * Suggested default - see the field javadoc above. A quarter: with the shipped bonds a room
+     * in a well-laid-out house earns around a tenth to a fifth more than the same room alone,
+     * which lifts a strong tier 2 to tier 3 and does nothing for an empty box. See the balance
+     * pass in #149, and {@code ArchetypeCeilingTest}'s bound on how much headroom bonds may add.
+     */
+    public static final double DEFAULT_BOND_SHARE_CAP = 0.25d;
 
     public static final ScoringSettings DEFAULTS =
             new ScoringSettings(0.15d, 0.02d, 0.25d, 1.15d, 1.0d, 0.25d, DEFAULT_BOND_SHARE_CAP);

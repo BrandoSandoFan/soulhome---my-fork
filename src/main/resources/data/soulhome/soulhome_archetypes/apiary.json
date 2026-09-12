@@ -48,5 +48,9 @@
         { "relation": "at_range", "of": "smoker", "to": "hives", "min_distance": 1, "max_distance": 3, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:greenhouse", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 12 }
   ]
 }

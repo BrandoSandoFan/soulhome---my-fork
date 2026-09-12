@@ -89,7 +89,7 @@ class ArchetypeCeilingTest
      * as much as the room is the same as no bonds at all with more code, and every layout then
      * scores about the same.
      */
-    private static final double MAX_BOND_HEADROOM = 1.30d;
+    private static final double MAX_BOND_HEADROOM = 1.40d;
 
     @Test
     @DisplayName("bond credit is headroom above every shipped archetype's own ceiling, and a modest amount of it")

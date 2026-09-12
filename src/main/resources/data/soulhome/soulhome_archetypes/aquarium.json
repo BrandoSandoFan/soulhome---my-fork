@@ -43,5 +43,9 @@
         { "relation": "within", "of": "reef", "to": "viewing", "max_distance": 4, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:cold_storage", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 10 }
   ]
 }

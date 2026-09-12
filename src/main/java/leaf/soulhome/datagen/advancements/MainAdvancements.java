@@ -122,6 +122,24 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
                 .rewards(new AdvancementRewards(10, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, firstRoom));
 
+        // Two rooms at once: the moment bonds (#140) can first mean anything, and what the guide
+        // book's page on them is gated behind - a player with one room has nothing to bond.
+        final String twoRooms = "two_rooms";
+        Advancement.Builder.advancement()
+                .parent(roomAdvancement)
+                .display(
+                        Items.OAK_DOOR,
+                        Component.translatable(String.format(titleFormat, twoRooms)),
+                        Component.translatable(String.format(descriptionFormat, twoRooms)),
+                        (ResourceLocation)null,
+                        FrameType.TASK,
+                        true, //showToast
+                        true, //announce
+                        false)//hidden
+                .addCriterion("classified_rooms", ClassifiedRoomTrigger.Instance.atLeastRooms(2))
+                .rewards(new AdvancementRewards(10, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
+                .save(advancementConsumer, String.format(achievementPathFormat, tabName, twoRooms));
+
         // One per shipped archetype. Named after the archetype id so that the advancement, the
         // book entry and the datapack file all agree without anything mapping between them.
         archetypeAdvancement(advancementConsumer, roomAdvancement, "farm", Items.WHEAT);

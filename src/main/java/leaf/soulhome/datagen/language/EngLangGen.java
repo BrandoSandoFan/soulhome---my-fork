@@ -363,6 +363,8 @@ public class EngLangGen extends LanguageProvider
 
         add("advancements.soulhome.first_room.title", "Furnished");
         add("advancements.soulhome.first_room.description", "Build something in your soul that the world recognises.");
+        add("advancements.soulhome.two_rooms.title", "Rooms Off a Hall");
+        add("advancements.soulhome.two_rooms.description", "Have two rooms in your soul at once. Where you put them relative to each other now matters.");
 
         add("advancements.soulhome.farm.title", "Soul Food");
         add("advancements.soulhome.farm.description", "Grow enough in your soul that it counts as a farm.");

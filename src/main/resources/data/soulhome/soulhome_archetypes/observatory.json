@@ -47,5 +47,9 @@
         { "relation": "above", "of": "starlight", "to": "sensor", "max_drop": 3, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:library", "relation": "above", "weight": 3.0, "role": "layout", "max_vertical_gap": 6 }
   ]
 }
