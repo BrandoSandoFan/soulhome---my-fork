@@ -14,6 +14,14 @@ import java.util.Map;
 /**
  * A multiset of blocks. This is what a region hands to the classifier.
  *
+ * <p>Since #136 and #137 a block's credit to a region is not always a whole block: a wall shared
+ * between two rooms is worth half to each, so that partitioning a space does not manufacture
+ * evidence, and a slab between two stacked rooms belongs to the room that stands on it. See
+ * {@link RegionScanner}'s "A shared wall is one wall" for the rule. The classifier scores
+ * {@link #credit} exactly; {@link #count} is the whole-block view for reports, tests and anything
+ * that has to print "x6" rather than "x3.5", and it rounds down so a region can never be told it
+ * has more of something than it was credited with.
+ *
  * <p>Iteration order is insertion order, and {@link #sortedEntries()} gives a stable order
  * independent of how the world was walked - region identity hashes depend on that stability.
  */
@@ -21,11 +29,19 @@ public final class BlockCounts
 {
     private static final BlockCounts EMPTY = new BlockCounts(Map.of());
 
-    private final Map<BlockSignature, Integer> counts;
+    /**
+     * A shared cell's credit is a unit fraction of at most one sixth - six faces, so at most six
+     * rooms can touch one cell - and a region's total is a short sum of those, so this is far
+     * below anything a real value could differ by and well above the noise a sum of them
+     * accumulates.
+     */
+    private static final double EPSILON = 1.0e-6d;
 
-    private BlockCounts(Map<BlockSignature, Integer> counts)
+    private final Map<BlockSignature, Double> credit;
+
+    private BlockCounts(Map<BlockSignature, Double> credit)
     {
-        this.counts = counts;
+        this.credit = credit;
     }
 
     public static BlockCounts empty()
@@ -39,14 +55,14 @@ public final class BlockCounts
     }
 
     /**
-     * Total number of blocks matching the predicate. This is the primitive both requirements and
-     * signals are counted with.
+     * Exact credit for every block matching the predicate. This is the primitive both
+     * requirements and signals are scored with.
      */
-    public int count(BlockMatcher matcher)
+    public double credit(BlockMatcher matcher)
     {
-        int total = 0;
+        double total = 0d;
 
-        for (Map.Entry<BlockSignature, Integer> entry : this.counts.entrySet())
+        for (Map.Entry<BlockSignature, Double> entry : this.credit.entrySet())
         {
             if (matcher.test(entry.getKey()))
             {
@@ -57,46 +73,67 @@ public final class BlockCounts
         return total;
     }
 
-    public int countOf(BlockSignature signature)
+    /**
+     * Whole blocks matching the predicate - {@link #credit} rounded down. Half a shared wall of
+     * seven bookshelves reads as three, never four: a report must not promise more than the
+     * classifier will score.
+     */
+    public int count(BlockMatcher matcher)
     {
-        return this.counts.getOrDefault(signature, 0);
+        return wholeBlocks(credit(matcher));
     }
 
-    /** Total number of blocks, counting duplicates. */
-    public int total()
+    public double creditOf(BlockSignature signature)
     {
-        int total = 0;
+        return this.credit.getOrDefault(signature, 0d);
+    }
 
-        for (int count : this.counts.values())
+    public int countOf(BlockSignature signature)
+    {
+        return wholeBlocks(creditOf(signature));
+    }
+
+    /** Total credit across every block, counting duplicates. */
+    public double totalCredit()
+    {
+        double total = 0d;
+
+        for (double value : this.credit.values())
         {
-            total += count;
+            total += value;
         }
 
         return total;
     }
 
+    /** Total whole blocks, counting duplicates - {@link #totalCredit} rounded down. */
+    public int total()
+    {
+        return wholeBlocks(totalCredit());
+    }
+
     /** Number of distinct block types. */
     public int distinct()
     {
-        return this.counts.size();
+        return this.credit.size();
     }
 
     public boolean isEmpty()
     {
-        return this.counts.isEmpty();
+        return this.credit.isEmpty();
     }
 
-    public Map<BlockSignature, Integer> asMap()
+    public Map<BlockSignature, Double> asMap()
     {
-        return Collections.unmodifiableMap(this.counts);
+        return Collections.unmodifiableMap(this.credit);
     }
 
     /**
      * Entries ordered by block id, so that two scans of the same build produce the same sequence.
      */
-    public List<Map.Entry<BlockSignature, Integer>> sortedEntries()
+    public List<Map.Entry<BlockSignature, Double>> sortedEntries()
     {
-        List<Map.Entry<BlockSignature, Integer>> entries = new ArrayList<>(this.counts.entrySet());
+        List<Map.Entry<BlockSignature, Double>> entries = new ArrayList<>(this.credit.entrySet());
         entries.sort(Comparator.comparing(entry -> entry.getKey().id()));
         return entries;
     }
@@ -119,49 +156,75 @@ public final class BlockCounts
         return builder.build();
     }
 
+    /**
+     * A credit as whole blocks, tolerating the last bit of a sum of sixths - {@code 0.5 + 0.5}
+     * lands on {@code 1.0} exactly, but {@code 1/3 + 1/3 + 1/3} need not, and a wall three rooms
+     * share should still read as one block, not zero.
+     */
+    static int wholeBlocks(double credit)
+    {
+        return (int) Math.floor(credit + EPSILON);
+    }
+
     @Override
     public String toString()
     {
         StringBuilder builder = new StringBuilder("BlockCounts{");
         boolean first = true;
 
-        for (Map.Entry<BlockSignature, Integer> entry : sortedEntries())
+        for (Map.Entry<BlockSignature, Double> entry : sortedEntries())
         {
             if (!first)
             {
                 builder.append(", ");
             }
 
-            builder.append(entry.getKey().id()).append('=').append(entry.getValue());
+            builder.append(entry.getKey().id()).append('=').append(formatCredit(entry.getValue()));
             first = false;
         }
 
         return builder.append('}').toString();
     }
 
+    private static String formatCredit(double value)
+    {
+        final int whole = wholeBlocks(value);
+        return Math.abs(value - whole) < EPSILON ? Integer.toString(whole) : Double.toString(value);
+    }
+
     public static final class Builder
     {
-        private final Map<BlockSignature, Integer> counts = new LinkedHashMap<>();
+        private final Map<BlockSignature, Double> credit = new LinkedHashMap<>();
 
         public Builder add(BlockSignature signature)
         {
-            return add(signature, 1);
+            return add(signature, 1d);
         }
 
         public Builder add(BlockSignature signature, int amount)
         {
-            if (signature == null || amount <= 0)
+            return add(signature, (double) amount);
+        }
+
+        /**
+         * @param amount how much of a block this is worth to the region - one for a block the
+         *               region owns outright, a fraction for one it shares. See
+         *               {@link RegionScanner}.
+         */
+        public Builder add(BlockSignature signature, double amount)
+        {
+            if (signature == null || amount <= 0d)
             {
                 return this;
             }
 
-            this.counts.merge(signature, amount, Integer::sum);
+            this.credit.merge(signature, amount, Double::sum);
             return this;
         }
 
         public Builder addAll(BlockCounts other)
         {
-            for (Map.Entry<BlockSignature, Integer> entry : other.counts.entrySet())
+            for (Map.Entry<BlockSignature, Double> entry : other.credit.entrySet())
             {
                 add(entry.getKey(), entry.getValue());
             }
@@ -171,12 +234,12 @@ public final class BlockCounts
 
         public boolean isEmpty()
         {
-            return this.counts.isEmpty();
+            return this.credit.isEmpty();
         }
 
         public BlockCounts build()
         {
-            return this.counts.isEmpty() ? EMPTY : new BlockCounts(new LinkedHashMap<>(this.counts));
+            return this.credit.isEmpty() ? EMPTY : new BlockCounts(new LinkedHashMap<>(this.credit));
         }
     }
 }

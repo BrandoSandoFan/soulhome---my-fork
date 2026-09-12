@@ -34,6 +34,7 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
 
     private static final String KEY_ARCHETYPE = "archetype";
     private static final String KEY_MIN_TIER = "min_tier";
+    private static final String KEY_MIN_ROOMS = "min_rooms";
 
     @Override
     public ResourceLocation getId()
@@ -48,21 +49,38 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
                 ? GsonHelper.getAsString(json, KEY_ARCHETYPE)
                 : null;
 
-        return new Instance(player, archetype, GsonHelper.getAsInt(json, KEY_MIN_TIER, 1));
+        return new Instance(
+                player, archetype, GsonHelper.getAsInt(json, KEY_MIN_TIER, 1), GsonHelper.getAsInt(json, KEY_MIN_ROOMS, 1));
     }
 
     /** Tell the game a room was awarded. Cheap when the player has no advancement waiting on it. */
     public void trigger(ServerPlayer player, String archetypeId, int tier)
     {
-        trigger(player, instance -> instance.matches(archetypeId, tier));
+        trigger(player, archetypeId, tier, 1);
+    }
+
+    /**
+     * @param roomsAwarded how many rooms the same scan awarded in total, for an advancement about
+     *                     having more than one - the guide book's bonds page (#150) gates behind
+     *                     two, since a player with one room has nothing to bond
+     */
+    public void trigger(ServerPlayer player, String archetypeId, int tier, int roomsAwarded)
+    {
+        trigger(player, instance -> instance.matches(archetypeId, tier, roomsAwarded));
     }
 
     public static class Instance extends AbstractCriterionTriggerInstance
     {
         private final String archetypeId;
         private final int minTier;
+        private final int minRooms;
 
         public Instance(ContextAwarePredicate player, String archetypeId, int minTier)
+        {
+            this(player, archetypeId, minTier, 1);
+        }
+
+        public Instance(ContextAwarePredicate player, String archetypeId, int minTier, int minRooms)
         {
             super(ID, player);
 
@@ -70,12 +88,19 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
                     ? null
                     : archetypeId.toLowerCase(Locale.ROOT);
             this.minTier = Math.max(1, minTier);
+            this.minRooms = Math.max(1, minRooms);
         }
 
         /** Any room of any archetype, at any tier. */
         public static Instance any()
         {
             return new Instance(ContextAwarePredicate.ANY, null, 1);
+        }
+
+        /** At least this many rooms awarded by one scan, of any archetype. */
+        public static Instance atLeastRooms(int minRooms)
+        {
+            return new Instance(ContextAwarePredicate.ANY, null, 1, minRooms);
         }
 
         public static Instance of(String archetypeId)
@@ -90,7 +115,12 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
 
         public boolean matches(String awardedArchetype, int awardedTier)
         {
-            if (awardedTier < this.minTier)
+            return matches(awardedArchetype, awardedTier, 1);
+        }
+
+        public boolean matches(String awardedArchetype, int awardedTier, int roomsAwarded)
+        {
+            if (awardedTier < this.minTier || roomsAwarded < this.minRooms)
             {
                 return false;
             }
@@ -109,6 +139,11 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
             }
 
             json.addProperty(KEY_MIN_TIER, this.minTier);
+
+            if (this.minRooms > 1)
+            {
+                json.addProperty(KEY_MIN_ROOMS, this.minRooms);
+            }
 
             return json;
         }

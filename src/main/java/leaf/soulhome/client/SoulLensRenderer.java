@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.feedback.RegionHighlight;
+import leaf.soulhome.network.SyncSoulLensReportMessage;
 import leaf.soulhome.network.SyncSoulRegionsMessage;
 import leaf.soulhome.registry.ItemsRegistry;
 import net.minecraft.client.Minecraft;
@@ -41,7 +42,11 @@ import java.util.List;
  * the same room", which is a problem a player can actually fix.
  *
  * <p>Colour carries the classification: green was awarded, yellow was too close to call between
- * two archetypes, grey was found but is not anything yet.
+ * two archetypes, grey was found but is not anything yet. While the lens screen has a region
+ * selected, that region is drawn white and the rooms it is bonded to (#148) are drawn in cyan: a
+ * bond is a property of two rooms at once, and nothing about standing in either one suggests the
+ * other exists, so the outlines are the one surface that can show the relationship in the world
+ * rather than only describe it.
  */
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class SoulLensRenderer
@@ -88,15 +93,30 @@ public final class SoulLensRenderer
         //world space is relative to the camera at this point in the frame
         pose.translate(-camera.x, -camera.y, -camera.z);
 
-        for (RegionHighlight region : regions)
+        // the lens report and the outlines are built from the same result list in the same order,
+        // so a report index is an outline index
+        final int selected = SyncSoulLensReportMessage.ClientLensReport.selectedRegion();
+        final List<Integer> bonded = SyncSoulLensReportMessage.ClientLensReport.bondedWithSelected();
+
+        for (int i = 0; i < regions.size(); i++)
         {
+            final RegionHighlight region = regions.get(i);
+
             //bounds are inclusive block positions, so the far corner runs to the far side of that block
             final AABB box = new AABB(
                     region.minX(), region.minY(), region.minZ(),
                     region.maxX() + 1d, region.maxY() + 1d, region.maxZ() + 1d)
                     .inflate(INFLATE);
 
-            if (region.isClassified())
+            if (i == selected)
+            {
+                LevelRenderer.renderLineBox(pose, lines, box, 1.0f, 1.0f, 1.0f, LINE_ALPHA);
+            }
+            else if (bonded.contains(i))
+            {
+                LevelRenderer.renderLineBox(pose, lines, box, 0.3f, 0.9f, 1.0f, LINE_ALPHA);
+            }
+            else if (region.isClassified())
             {
                 LevelRenderer.renderLineBox(pose, lines, box, 0.35f, 1.0f, 0.45f, LINE_ALPHA);
             }

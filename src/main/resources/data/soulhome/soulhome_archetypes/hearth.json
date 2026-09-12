@@ -48,5 +48,12 @@
         { "relation": "at_range",  "of": "light",   "to": "fire", "min_distance": 1, "max_distance": 6, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:bedchamber", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 12 },
+    { "with": "soulhome:mead_hall", "relation": "adjoins", "weight": 4.0, "role": "layout" },
+    { "with": "soulhome:powder_magazine", "relation": "near", "weight": -4.0, "role": "hazard", "max_distance": 8 },
+    { "with": "soulhome:cold_storage", "relation": "adjoins", "weight": -3.0, "role": "hazard" }
   ]
 }

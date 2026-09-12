@@ -39,6 +39,7 @@ curl -sSL -o $SP/gson.jar  https://repo1.maven.org/maven2/com/google/code/gson/g
 javac -nowarn -d $SP/out -cp "$SP/junit.jar:$SP/gson.jar" \
   $(find src/main/java/leaf/soulhome/structures/core -name '*.java') \
   src/main/java/leaf/soulhome/structures/BuiltinFormClauses.java \
+  src/main/java/leaf/soulhome/structures/BuiltinBondRelations.java \
   $(find src/test/java/leaf/soulhome/structures/core -name '*.java')
 
 java -jar $SP/junit.jar execute -cp "$SP/out:$SP/gson.jar:src/main/resources:src/test/resources" \
@@ -71,8 +72,10 @@ The whole feature is one pipeline. Follow it in this order when you need to unde
 ```
 ServerLevel
   └─ SnapshotBlockVolume.capture      server thread; copies a box of blocks into arrays
-      └─ RegionScanner.scan           worker thread; carves the copy into SoulRegions
-          └─ ArchetypeClassifier      worker thread; scores each region against every archetype
+      └─ RegionScanner.scanWithAdjacency   worker thread; carves the copy into SoulRegions, and
+          │                                  computes how they relate (RegionAdjacency)
+          └─ ArchetypeClassifier      worker thread; scores each region against every archetype,
+              │                       then each awarded room's bonds against the other awards
               └─ AwardedRoom / BuffCalculator   what the rooms are worth
                   └─ SoulBuffs / PlayerSoulBuffs   capability on the player
                       └─ buffs/effects/*          what a magnitude actually does in the world
@@ -101,7 +104,7 @@ The bridge is three small interfaces/records:
 | Package | What lives there |
 | --- | --- |
 | `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. |
-| `structures` | the game-facing half: snapshot, datapack loading, scan scheduling, saved data, codecs |
+| `structures` | the game-facing half: snapshot, datapack loading, scan scheduling, saved data, codecs (`ArchetypeCodecs`, `FormCodecs`, `BondCodecs`) |
 | `config` | one `ForgeConfigSpec`; every knob is server-side and read through an immutable `Snapshot` |
 | `buffs`, `buffs/effects` | the capability holding a player's magnitudes, and one class per buff type |
 | `feedback` | `SoulReport` (chat text for `/soulhome analyse`) and `RegionHighlight` (lens boxes) |
@@ -174,6 +177,20 @@ touching it - it explains each decision and why the obvious alternative is worse
   loaded, so an unloaded dimension reads as bare. Only `Capture.Outcome.EMPTY` - loaded and
   genuinely empty - may clear a soulhome's saved rooms. Every other failure leaves them alone. This
   has caused a "all my buffs vanished" bug more than once.
+- **Only an open archetype's palette seeds an open-air cluster, and only the parts of it that are
+  not terrain.** `ArchetypeSignals.openClusterFilterFor` is what the scanner clusters around;
+  `filterFor` is what the classifier counts, and the two are different questions (#134). A signal
+  that is also simply what the ground is made of - a spire's masonry, a farm's water, an apiary's
+  wildflowers - is marked `"seed": false` in its archetype and is counted only where a region takes
+  it in. Let terrain seed and a fresh soul is one island-sized region before a block is placed,
+  and two builds chain together through the ground between them.
+- **A shared shell cell is worth one block in total**, split evenly among the rooms touching it,
+  except that a cell a room's air stands on is that room's floor and is credited only to it
+  (#136, #137). Decided on who touches the cell and from which face, never on scan order. This is
+  why `BlockCounts` carries fractional credit: the classifier scores `credit()` exactly and
+  `count()` is the whole-block view, rounded down, for reports and requirements.
+- **Fabric is full blocks.** `claimBuildingFabric` claims only `isFullBlock()` blocks packed
+  against a shell; a garden's farmland on a flat roof is on the building, not part of it (#138).
 
 ---
 
@@ -202,6 +219,40 @@ Shape of one:
 Which blocks the scanner even bothers clustering around is derived from the loaded archetypes by
 `ArchetypeSignals`, so a datapack that adds an archetype gets its blocks detected with no Java
 change. Tags live in `data/soulhome/tags/blocks/`.
+
+### Bonds: how a room sits relative to other rooms
+
+`bonds` on an archetype (#140) is the third kind of evidence beside `signals` and `structures`:
+`with` names another archetype, `relation` one of a closed vocabulary registered in
+`BondRelationRegistry` (`adjoins`, `near`, `connects`, `above`/`beneath`, `encloses`/`within`, via
+`BuiltinBondRelations`), `weight` is positive for a bond and negative for a discord, `role` feeds
+the diversity multiplier, and relation-specific parameters follow the same `ClauseParamSpec` shape
+clauses use. Rules that hold, and that the tests pin:
+
+- **Declared once, credited to both rooms.** `BondBook` resolves every declaration for both sides,
+  mirrors a directional relation (`mine beneath workshop` reads `workshop above mine` from the
+  workshop), and keeps one of two declarations that describe the same bond - the one on the
+  archetype whose id sorts first - logging the other at load.
+- **Bonds are scored against the awards, and never re-run.** `ArchetypeClassifier.classify(List,
+  RegionAdjacency)` classifies every region on its own first, then grades each awarded room's bonds
+  against the other awards. A bond adjusts what a room is worth, never what it is. Bond credit is
+  capped at `bondShareCap` of the room's own signal and arrangement total; discords are not capped,
+  and can cost a room every tier but its first.
+- **Every relation reads only `RegionAdjacency`**, computed once per scan by `RegionScanner`:
+  shared shell cells, a walkable path length, a geodesic separation, and hole-filled footprints. The
+  floods behind path and separation run out to `ArchetypeSignals.adjacencyReachFor`, which is zero
+  when no loaded bond is distance-based - so a pack without bonds pays nothing for them.
+- **Connectivity crosses doors; region detection does not.** Both are right, for different
+  questions, and the javadocs on `RegionAdjacency` and `RegionScanner` each point at the other so
+  neither is "fixed" to match.
+- **Order independence.** Every relationship is symmetric, and each region's `identityHash` folds
+  in a commutative digest of its relationships computed from every region's own hash in a second
+  pass. `RegionAdjacencyTest` and `BondScoringTest` mirror layouts to prove it.
+- **`ArchetypeCeilingTest` judges the tier bands on the solo ceiling** and separately bounds how
+  much headroom bonds may add (`ArchetypeCeiling.withBonds`), because thresholds only ever come
+  down. Give every positive bond on a room the same role, or the diversity bump alone trips it.
+- **The book documents bonds from the data** (`PatchouliMultiblocks.bondPages`), and its explainer
+  gates on the `two_rooms` advancement, fired when one scan awards two rooms.
 
 ### Rooms written for mods this one does not depend on
 
@@ -255,9 +306,20 @@ rather than repeating a number.
   other and disagree with the game.
 - `ArchetypeJsonReader` loads the real shipped archetype JSON, so scoring tests are against what
   actually ships rather than a fixture.
+- **`SoulIslandCorpusTest`** is the regression corpus (#139): it scans the three shipped starter
+  islands - read straight from `data/soulhome/structures/soul_island{0,1,2}.nbt` by
+  `SoulIslandVolume`, through a Minecraft-free `NbtReader` - and asserts what a brand-new soul
+  reports: no classified rooms, no region covering more than a small share of the island, two
+  builds a modest distance apart read as two regions, a sealed room classifies as what it was built
+  as, and identical hashes on a second scan. It runs offline. The one thing a template cannot say is
+  how each block behaves in a scan; that lives in `src/test/resources/soul_islands/palette.json`
+  (passability as `SnapshotBlockVolume` would derive it, tags as the tag files give them), and a
+  template block missing from it fails the corpus by name. A changed template needs no
+  regeneration step - only a palette entry for any new block it introduces.
 
 When you change region detection, reproduce the bug as a failing test in `RegionScannerTest` first.
-Its layouts are the clearest documentation of what the scanner is supposed to do.
+Its layouts are the clearest documentation of what the scanner is supposed to do. Then run the
+corpus: every fault in #133 was one the corpus would have caught on the day the islands shipped.
 
 ---
 

@@ -1,0 +1,26 @@
+{
+  "advancement": "soulhome:main/two_rooms",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:oak_door",
+  "name": "Rooms That Go Together",
+  "pages": [
+    {
+      "type": "text",
+      "text": "A room is worth what is in it and how it is arranged. It is also worth a little more for where it stands: a library that opens into the enchanting room, a cellar dug under the kitchen, a garden inside a courtyard.$(p)This is a bond, and each room's page says which rooms it has them with.",
+      "title": "Rooms that go together"
+    },
+    {
+      "type": "text",
+      "text": "None of it is required. A room on its own loses nothing, and no layout is the right one - a bond says what two rooms should be to each other, never which way round. Sharing a wall, a doorway or a short hall, one over the other, one inside the other: several arrangements count, and every one of them counts by degrees.$(p)Bond credit can only ever add a share of what a room earned on its own, so a perfect plan of empty boxes is still empty boxes."
+    },
+    {
+      "type": "text",
+      "text": "A few pairs are the other way about: a powder magazine beside a hearth costs the hearth, not the magazine's fault but its own. Room pages name those apart, as rooms that do not go together.$(p)$(l)/soulhome analyse$() and the $(item)Soul Lens$(0) say which bonds a room has earned, which it nearly has, and what would close the gap - the lens outlines the room a bond is with, so you can see it rather than read about it.",
+      "title": "And rooms that do not"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": -8
+}

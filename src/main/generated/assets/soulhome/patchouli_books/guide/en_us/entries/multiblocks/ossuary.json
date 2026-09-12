@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Bones: Bone Block$(li)Candles: any candles$(li)Walls: $(l:soulhome:multiblocks/tags#structural)any structural$(/l)",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "And rooms that do not go with it - each one costs this room while it stands there:$(li)$(l:soulhome:multiblocks/bedchamber)Bedchamber$(/l), sharing a wall",
+      "title": "Rooms that do not"
     }
   ],
   "priority": false,

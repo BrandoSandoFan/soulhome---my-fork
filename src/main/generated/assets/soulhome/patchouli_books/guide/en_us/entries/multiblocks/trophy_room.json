@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Heads: Zombie Head or Skeleton Skull or Creeper Head or Piglin Head or Wither Skeleton Skull or Dragon Head or Player Head$(li)Posts: any fences",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/mead_hall)Mead Hall$(/l), with a way through between them, up to 12 blocks long",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

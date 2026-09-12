@@ -35,7 +35,8 @@ class ArchetypeClassifierTest
     {
         shipped = ArchetypeJsonReader.shipped();
         classifier = new ArchetypeClassifier(shipped);
-        signals = ArchetypeSignals.filterFor(shipped);
+        // the filter the game hands the scanner since #134 - open-capable archetypes' palettes only
+        signals = ArchetypeSignals.openClusterFilterFor(shipped);
         geometry = ArchetypeSignals.geometryFilterFor(shipped);
     }
 

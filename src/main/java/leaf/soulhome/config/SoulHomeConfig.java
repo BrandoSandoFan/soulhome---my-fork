@@ -299,7 +299,8 @@ public final class SoulHomeConfig
                                 SERVER.minDensityFactor.get(),
                                 SERVER.ambiguityMargin.get(),
                                 SERVER.structuralShareCap.get(),
-                                SERVER.structuralRoleThreshold.get()),
+                                SERVER.structuralRoleThreshold.get(),
+                                SERVER.bondShareCap.get()),
                         new BuffSettings(
                                 SERVER.repeatedRoomFalloff.get(),
                                 SERVER.maxRoomsPerArchetype.get(),
@@ -475,6 +476,7 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.DoubleValue ambiguityMargin;
         public final ForgeConfigSpec.DoubleValue structuralShareCap;
         public final ForgeConfigSpec.DoubleValue structuralRoleThreshold;
+        public final ForgeConfigSpec.DoubleValue bondShareCap;
 
         public final ForgeConfigSpec.IntValue minRoomVolume;
         public final ForgeConfigSpec.IntValue maxRoomVolume;
@@ -662,6 +664,14 @@ public final class SoulHomeConfig
                             "bonus above. Below this, an accidental sliver of a match does not buy a full",
                             "diversity bonus for free.")
                     .defineInRange("structural_role_threshold", 0.25d, 0d, 1d);
+
+            this.bondShareCap = builder
+                    .comment(
+                            "Bond credit (from where a room sits relative to other rooms - a library that opens",
+                            "into the enchanting room, a mine under the workshop) is capped at this fraction of",
+                            "what the room earned on its own, so a perfect floor plan of empty boxes is worth",
+                            "nothing. Discords - bonds with a negative weight - are not capped by this.")
+                    .defineInRange("bond_share_cap", ScoringSettings.DEFAULT_BOND_SHARE_CAP, 0d, 10d);
 
             builder.pop();
 

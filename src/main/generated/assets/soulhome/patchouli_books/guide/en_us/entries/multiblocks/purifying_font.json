@@ -22,6 +22,16 @@
       "type": "text",
       "text": "What those parts are:$(li)Dripstone: Pointed Dripstone$(li)Basin: Water Cauldron$(li)Greenery: Azalea or Flowering Azalea or Moss Block or Moss Carpet",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/alchemy_lab)Alchemy Lab$(/l), within 10 blocks",
+      "title": "Rooms that go together"
+    },
+    {
+      "type": "text",
+      "text": "And rooms that do not go with it - each one costs this room while it stands there:$(li)$(l:soulhome:multiblocks/infected_grotto)Infected Grotto$(/l), within 10 blocks",
+      "title": "Rooms that do not"
     }
   ],
   "priority": false,

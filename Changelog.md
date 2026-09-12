@@ -870,3 +870,80 @@ say about it either way.
   scores full, a stair placed one compass notch off still scores nearly as well, and turning away
   scores nothing. A block with no facing of its own (most of a room) is simply left out of the
   average rather than counted against it.
+
+What the scanner calls a room, and what you actually built
+
+Five things the region scanner got wrong, all of them found by a player walking into a fresh soul
+and noticing something odd, and four of them the same fault: the scanner could not tell a block
+you placed as part of a build from a block that merely happened to be next to it. Nothing here
+changes what a block is worth once it is counted. Every fix is about which region a block counts
+for - and, in one case, that it counted twice.
+
+- Fix: a fresh soul is no longer one enormous region. Open-air regions were gathered around every
+  block any room could score, including rooms that can only ever be sealed spaces - so snow, a
+  cold storage signal, and leaves, a greenhouse signal, seeded clusters they could never be scored
+  by, and on a snowy or wooded island the ground itself became one island-spanning region that
+  every build you laid on it joined. Two open-air builds ten blocks apart are now two regions
+  whatever they stand on, and a wall between them does something again. A farm on snow still has
+  its snow; it just no longer chains across it to the next build.
+- Fix: the stone an island is made of, the pond that was already on it and the wildflowers growing
+  across it no longer gather regions of their own, or chain two of your builds together through
+  the meadow between them. A storm spire's masonry, a farm's water and an apiary's forage are still
+  counted wherever a region takes them in; they are marked in the archetype data as evidence the
+  scanner must not gather a build around. A datapack can do the same to any signal with
+  `"seed": false`.
+- Fix: a wall shared between two rooms is one wall. It used to be scored in full by both sides, so
+  cutting one long space into four with three bookshelf walls placed 18 bookshelves and was
+  credited 36, each room nearly clearing a gate the whole build could not clear once. Each side is
+  now credited half; a room's own outer walls, which nothing else touches, still count in full,
+  and two identical rooms still score identically. Partitioning is break-even rather than
+  profitable, which is a nerf only for the build that was gaming it.
+- Fix: the floor of a loft is no longer evidence about the room beneath it. A slab between two
+  stacked rooms was the upper room's floor and the lower room's ceiling at full strength in both,
+  so floor a loft in hay and the library under it was a library holding six hay blocks. A cell a
+  room stands on is that room's floor and is credited to it alone.
+- Fix: a garden planted on a flat roof keeps its soil. The farmland sat directly against the roof
+  and was claimed as the building's own fabric, so `/soulhome analyse` reported a farm with no
+  farmland while you stood on it. Only full blocks are fabric now: a barn's hay roof is still the
+  barn's, and a tilled field on top of a house is a field.
+- The three shipped starter islands are now a regression corpus the tests scan, so the next fault
+  of this kind fails a build rather than surprising a player.
+
+Soul architecture: a house is worth more than a grid of boxes
+
+Every room in your soul used to be scored on its own. A library sharing a wall with the enchanting
+room scored exactly what a library scores 180 blocks away across the void; a hearth in the middle
+of a house and a hearth in a shed at the bottom of the garden were the same hearth; and since
+repeats are penalised, the best soul you could build was one of every room, each in its own box,
+laid out in a grid. Where you put things was the one part of your soul that was worth nothing.
+
+- Buff: rooms now carry bonds - a way two rooms should relate, declared in the archetype data and
+  credited to both. A library that opens into the enchanting room, through a door, an arch or a
+  short hall. A hearth beside the mead hall, or near the bedchamber. A mine beneath the workshop,
+  an observatory over the library, a treasury behind the bulwark, a garden in a courtyard. Every
+  bond is graded by degrees - rooms that nearly touch score nearly as well as rooms that touch -
+  and several arrangements count, never one particular floor plan. Nothing is required: a room on
+  its own loses nothing, no build loses a tier, and bond credit can only ever add a share of what
+  a room earned on its own, so a perfect plan of empty boxes is still empty boxes.
+- Nerf, deliberately opted into per room: a few pairs are the other way about. A powder magazine
+  near a hearth or a workshop, or under a storm spire, costs the room next to it; cold storage
+  against a hearth or a greenhouse, a stable or an ossuary against a bedchamber, and the infected
+  grotto near the purifying font do the same. A discord can cost a room every tier but its first -
+  what a room is was decided before its neighbours were looked at, and a hearth beside the
+  gunpowder is still a hearth.
+- `/soulhome analyse` says which bonds a room earned and what they were worth, which it nearly
+  earned and exactly why not - "your Enchanting Room is 19 blocks away; within 12 would count" -
+  and which discords are costing it. The Soul Lens shows the same, and selecting a room outlines
+  the rooms it is bonded to in the world, since a bond is a property of two rooms at once and
+  nothing about standing in either one suggests the other exists.
+- The guide book's room pages list which rooms go together, linked to each other's pages, with a
+  new page explaining what a bond is - unlocked by having two rooms at once, since with one there
+  is nothing to bond. A new advancement marks the moment.
+- Fix: moving a room, or building a corridor between two rooms without touching either, now
+  counts as a change. A room's identity used to be its own blocks alone, so a bond that no longer
+  existed would have stayed credited until something unrelated dirtied the scan.
+- Config: `bond_share_cap` under `scoring`, a quarter by default. Datapacks declare bonds under
+  `bonds` on either archetype, with `adjoins`, `near`, `connects`, `above`, `beneath`, `encloses`
+  and `within` as the vocabulary; a bond naming a room from a mod that is not installed is fine
+  and simply never matches.
+

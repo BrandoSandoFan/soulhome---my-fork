@@ -35,6 +35,52 @@ public final class ArchetypeCeiling
     {
     }
 
+    /**
+     * The ceiling with every positive bond the archetype takes part in graded at 1.0 on top -
+     * what a room could earn with a perfect floor plan around it. Deliberately <b>not</b> what
+     * the tier bands are checked against: a band judged on this would force thresholds up as
+     * bonds were added, and rule 6 of #140 is that thresholds only ever come down. Bond credit is
+     * headroom above a solo build's ceiling; {@link ArchetypeCeilingTest} bounds how much.
+     */
+    public static double withBonds(ArchetypeDefinition archetype, BondBook bonds, ScoringSettings settings)
+    {
+        double signalRaw = 0d;
+        Set<String> roles = new HashSet<>();
+
+        for (ArchetypeDefinition.Signal signal : archetype.signals())
+        {
+            signalRaw += signal.weight() * ArchetypeClassifier.curve(signal.cap());
+            roles.add(signal.role());
+        }
+
+        double structuralRaw = 0d;
+
+        for (Form form : archetype.structures())
+        {
+            structuralRaw += form.weight();
+            roles.add(form.role());
+        }
+
+        final double structuralCredited = Math.min(structuralRaw, settings.structuralShareCap() * signalRaw);
+
+        double bondRaw = 0d;
+
+        for (BondBook.Resolved bond : bonds.bondsOf(archetype.id()))
+        {
+            if (!bond.isDiscord())
+            {
+                bondRaw += bond.weight();
+                roles.add(bond.role());
+            }
+        }
+
+        final double bondCredited = Math.min(bondRaw, settings.bondShareCap() * (signalRaw + structuralCredited));
+        final double raw = signalRaw + structuralCredited + bondCredited;
+        final double diversity = 1d + settings.diversityBonusPerRole() * Math.max(0, roles.size() - 1);
+
+        return raw * diversity;
+    }
+
     public static double of(ArchetypeDefinition archetype, ScoringSettings settings)
     {
         double signalRaw = 0d;

@@ -48,5 +48,9 @@
         { "relation": "within", "of": "ores",     "to": "rails", "max_distance": 3, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:workshop", "relation": "beneath", "weight": 4.0, "role": "layout", "max_vertical_gap": 6 }
   ]
 }

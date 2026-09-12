@@ -10,6 +10,9 @@ import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.TagDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.BlockMatcher;
+import leaf.soulhome.structures.core.Bond;
+import leaf.soulhome.structures.core.BondBook;
+import leaf.soulhome.structures.core.ClauseParams;
 import leaf.soulhome.structures.core.Form;
 import leaf.soulhome.utils.StringHelper;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +36,145 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class PatchouliMultiblocksTest
 {
+    @org.junit.jupiter.api.BeforeAll
+    static void registerVocabulary()
+    {
+        // a bond built by hand here still resolves its relation against BUILTIN, which nothing in
+        // a test JVM fills unless asked - see ArchetypeDocs for the shipped set's own copy of this
+        leaf.soulhome.structures.BuiltinBondRelations.registerAll();
+    }
+
+    // region bonds (#150)
+
+    @Test
+    @DisplayName("every shipped archetype that takes part in a bond gets a bonds page, and only those")
+    void shippedArchetypesWithBondsGetThePage()
+    {
+        List<ArchetypeDefinition> shipped = ArchetypeDocs.shipped();
+        BondBook bonds = BondBook.of(shipped);
+        int withPages = 0;
+
+        for (ArchetypeDefinition archetype : shipped)
+        {
+            List<BookStuff.Page> pages = PatchouliMultiblocks.bondPages(archetype, bonds);
+
+            if (bonds.bondsOf(archetype.id()).isEmpty())
+            {
+                assertTrue(pages.isEmpty(), archetype.id() + " has no bonds, so should have no bonds page");
+            }
+            else
+            {
+                assertFalse(pages.isEmpty(), archetype.id() + " has bonds, so should document them");
+                withPages++;
+
+                for (BookStuff.Page page : pages)
+                {
+                    assertFalse(page.text.isBlank());
+                }
+            }
+        }
+
+        assertTrue(withPages > 0, "the shipped set declares bonds, so some page should carry them");
+    }
+
+    @Test
+    @DisplayName("a bond entry links the other room's page and states the relation's numbers")
+    void bondEntriesLinkAndStateNumbers()
+    {
+        List<ArchetypeDefinition> shipped = ArchetypeDocs.shipped();
+        BondBook bonds = BondBook.of(shipped);
+
+        ArchetypeDefinition library = shipped.stream()
+                .filter(archetype -> archetype.id().equals("soulhome:library")).findFirst().orElseThrow();
+
+        String text = PatchouliMultiblocks.bondPages(library, bonds).stream()
+                .map(page -> page.text).collect(Collectors.joining(" "));
+
+        assertTrue(text.contains("$(l:soulhome:multiblocks/enchanting_room)Enchanting Room$(/l)"), text);
+        assertTrue(text.contains("12 blocks"), "the relation's own number is stated, not hidden behind a key: " + text);
+    }
+
+    @Test
+    @DisplayName("a bond declared on the other room still appears on this room's page")
+    void mirroredBondsAppearOnBothPages()
+    {
+        List<ArchetypeDefinition> shipped = ArchetypeDocs.shipped();
+        BondBook bonds = BondBook.of(shipped);
+
+        // mine declares "beneath workshop"; the workshop's page should say "above"
+        ArchetypeDefinition workshop = shipped.stream()
+                .filter(archetype -> archetype.id().equals("soulhome:workshop")).findFirst().orElseThrow();
+
+        String text = PatchouliMultiblocks.bondPages(workshop, bonds).stream()
+                .map(page -> page.text).collect(Collectors.joining(" "));
+
+        assertTrue(text.contains("multiblocks/mine)Mine$(/l), built above it"), text);
+    }
+
+    @Test
+    @DisplayName("discords are set apart from bonds on the page")
+    void discordsAreSetApart()
+    {
+        List<ArchetypeDefinition> shipped = ArchetypeDocs.shipped();
+        BondBook bonds = BondBook.of(shipped);
+
+        ArchetypeDefinition hearth = shipped.stream()
+                .filter(archetype -> archetype.id().equals("soulhome:hearth")).findFirst().orElseThrow();
+
+        String text = PatchouliMultiblocks.bondPages(hearth, bonds).stream()
+                .map(page -> page.text).collect(Collectors.joining(" "));
+
+        final int apart = text.indexOf("rooms that do not go with it");
+        assertTrue(apart > 0, text);
+        assertTrue(text.indexOf("Powder Magazine") > apart, "the magazine is listed among the rooms that do not go with it");
+        assertTrue(text.indexOf("Mead Hall") < apart, "and the hall among the ones that do");
+
+        // and every page of discords says so in its title, so a discord at the top of a
+        // continuation page is never mistaken for a room to build beside
+        for (BookStuff.Page page : PatchouliMultiblocks.bondPages(hearth, bonds))
+        {
+            if (page.text.contains("Powder Magazine"))
+            {
+                assertEquals("Rooms that do not", page.title);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("a room with many bonds runs onto as many pages as it needs")
+    void manyBondsRunOntoMorePages()
+    {
+        List<Bond> many = new java.util.ArrayList<>();
+
+        for (int i = 0; i < 11; i++)
+        {
+            many.add(new Bond("soulhome:other_" + i, "adjoins", 1d, "layout",
+                    ClauseParams.builder().put("min_coverage", 0.1d).build()));
+        }
+
+        ArchetypeDefinition sociable = new ArchetypeDefinition(
+                "soulhome:sociable", "archetype.soulhome.sociable", List.of(), 1,
+                List.of(), List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofBlocks("minecraft:torch"), 1d, "light", 4)),
+                List.of(), List.of(new ArchetypeDefinition.Tier(1d, 1)), List.of(), List.of(), many);
+
+        List<BookStuff.Page> pages = PatchouliMultiblocks.bondPages(sociable, BondBook.of(List.of(sociable)));
+
+        assertTrue(pages.size() >= 3, "eleven bonds at a few per page: " + pages.size());
+    }
+
+    @Test
+    @DisplayName("the bonds explainer is gated behind having two rooms")
+    void explainerIsGatedBehindTwoRooms()
+    {
+        BookStuff.Category category = new BookStuff.Category("multiblocks", "", "soulhome:soul_lens");
+        BookStuff.Entry entry = PatchouliMultiblocks.bondsExplainer(category);
+
+        assertEquals("soulhome:main/two_rooms", entry.advancement);
+        assertTrue(entry.pages.length >= 2);
+    }
+
+    // endregion
+
     @Test
     @DisplayName("every shipped archetype with structures gets an arrangement page, and it mentions the form")
     void shippedArchetypesWithFormsGetThePage()

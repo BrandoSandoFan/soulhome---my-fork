@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Armament: $(l:soulhome:multiblocks/tags#armament)any armament$(/l)$(li)Forge: $(l:soulhome:multiblocks/tags#smithing)any smithing$(/l)$(li)Storage: $(l:soulhome:multiblocks/tags#storage)any storage$(/l)",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/workshop)Workshop$(/l), with a way through between them, up to 12 blocks long",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

@@ -11,7 +11,7 @@
     { "match": { "block": "minecraft:lightning_rod" }, "weight": 6.0, "role": "conductor", "cap": 3  },
     { "match": { "tag": "soulhome:conductive" },       "weight": 1.0, "role": "copper",    "cap": 32 },
     { "match": { "block": "minecraft:chain" },         "weight": 0.8, "role": "rigging",   "cap": 12 },
-    { "match": { "tag": "soulhome:structural" },       "weight": 0.5, "role": "masonry",   "cap": 48 },
+    { "match": { "tag": "soulhome:structural" },       "weight": 0.5, "role": "masonry",   "cap": 48, "seed": false },
     { "match": { "tag": "soulhome:lighting" },         "weight": 0.5, "role": "light",     "cap": 12 }
   ],
 
