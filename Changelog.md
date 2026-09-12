@@ -995,3 +995,29 @@ laid out in a grid. Where you put things was the one part of your soul that was 
   and `within` as the vocabulary; a bond naming a room from a mod that is not installed is fine
   and simply never matches.
 
+A training yard with no room to train in, and a hall lit at random
+
+Two questions the mod could not ask about a room, both of them about space rather than blocks.
+A training yard packed wall to wall with slime and scaffolding out-scored one that left a floor to
+fight on, because the density multiplier reads empty space as an absence and nothing could say that
+for this room the empty space is the point. And a mead hall's lanterns counted the same bunched in
+one corner as ranged down the hall at even bays, because the mod could tell a laid floor from a heap
+and a run from a scatter, but never regularly placed from clumped.
+
+- Buff: a training yard now scores for having room to move - the largest stretch of clear floor,
+  with something solid under it and headroom to stand, up to about six blocks square. Equipment you
+  can walk on top of costs nothing; equipment stacked to the ceiling takes the space it occupies.
+  Nerf, for the same reason and deliberately: a yard filled to the roof is worth about two points
+  less than it was, which is a tier only for a build that was already sitting on the boundary. The
+  course as a whole is worth more than before, so a yard with a floor gains more than a crowded one
+  loses.
+- Buff: a mead hall now scores for lanterns, torches or candles placed at intervals rather than
+  gathered in one place - four bays down the hall reads as a hall, four in a corner reads as
+  storage. Wide, solid fixtures are not punished for being solid: anything touching counts as one
+  light, so a chandelier of four blocks is one light and not four perfectly spaced ones. Nothing
+  else about the hall changed, and a hall that lights itself however it likes keeps exactly the
+  score it had.
+- Both are ordinary form clauses (`soulhome:clearance` and `soulhome:spacing`), so a datapack can
+  ask either question of its own rooms: clearance takes `min_volume`, `ideal_volume` and `headroom`;
+  spacing takes `min_count`, `group_radius` and `tolerance`. Spacing says nothing at all below three
+  separate groups, because two of anything are always perfectly spaced.

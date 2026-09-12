@@ -34,7 +34,7 @@
   "structures": [
     {
       "name": "course",
-      "weight": 6.0,
+      "weight": 6.5,
       "role": "arrangement",
       "elements": {
         "fences":      { "tag": "minecraft:fences" },
@@ -46,7 +46,8 @@
         { "shape": "soulhome:enclosure", "of": "fences", "around": "floor", "min_coverage": 0.5, "weight": 1.5 },
         { "relation": "at_range", "of": "slime", "to": "scaffolding",
           "min_distance": 1, "max_distance": 4, "weight": 2.0 },
-        { "shape": "soulhome:line", "of": "scaffolding", "min_run": 3, "ideal_run": 6 }
+        { "shape": "soulhome:line", "of": "scaffolding", "min_run": 3, "ideal_run": 6 },
+        { "shape": "soulhome:clearance", "min_volume": 9, "ideal_volume": 36, "headroom": 2, "weight": 1.5 }
       ]
     }
   ]

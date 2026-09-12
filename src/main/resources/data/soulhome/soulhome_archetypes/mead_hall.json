@@ -37,17 +37,19 @@
   "structures": [
     {
       "name": "the_long_table",
-      "weight": 9.0,
+      "weight": 10.7,
       "role": "arrangement",
       "elements": {
         "table":   { "tag": ["minecraft:wooden_slabs", "minecraft:wooden_trapdoors"] },
         "benches": { "tag": "soulhome:seating" },
-        "cellar":  { "block": "minecraft:barrel" }
+        "cellar":  { "block": "minecraft:barrel" },
+        "light":   { "tag": "soulhome:lighting" }
       },
       "all": [
         { "shape": "soulhome:line", "of": "table", "min_run": 5, "ideal_run": 9, "weight": 2.5 },
         { "relation": "beside", "of": "benches", "to": "table", "max_drop": 1, "max_gap": 1, "weight": 2.0 },
-        { "relation": "within", "of": "cellar", "to": "table", "max_distance": 8, "weight": 1.0 }
+        { "relation": "within", "of": "cellar", "to": "table", "max_distance": 8, "weight": 1.0 },
+        { "shape": "soulhome:spacing", "of": "light", "min_count": 4, "weight": 1.0 }
       ]
     }
   ]
