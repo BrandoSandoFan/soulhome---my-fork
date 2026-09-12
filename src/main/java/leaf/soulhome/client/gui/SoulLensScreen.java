@@ -5,9 +5,11 @@
 package leaf.soulhome.client.gui;
 
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.feedback.BondNames;
 import leaf.soulhome.feedback.BuffNames;
 import leaf.soulhome.feedback.LensRegionReport;
 import leaf.soulhome.network.SyncSoulBoundsMessage;
+import leaf.soulhome.network.SyncSoulLensReportMessage;
 import leaf.soulhome.structures.core.SoulBounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -59,6 +61,7 @@ public class SoulLensScreen extends Screen
     private static final int MAX_MISSING_SHOWN = 5;
     private static final int MAX_CLAUSES_SHOWN = 6;
     private static final int MAX_BUFFS_SHOWN = 4;
+    private static final int MAX_BONDS_SHOWN = 6;
 
     private static final int COLOR_TITLE = 0xE0E0FF;
     private static final int COLOR_HEADER = 0xC7A6FF;
@@ -68,6 +71,7 @@ public class SoulLensScreen extends Screen
     private static final int COLOR_MISS = 0xAAAAAA;
     private static final int COLOR_MISSING = 0x5599FF;
     private static final int COLOR_CAPPED = 0xFFAA00;
+    private static final int COLOR_DISCORD = 0xFF5555;
     private static final int COLOR_BAR_BACK = 0xFF2A2A2E;
     private static final int COLOR_BAR_FILL = 0xFF55AAFF;
 
@@ -83,6 +87,9 @@ public class SoulLensScreen extends Screen
         super(Component.translatable(Constants.StringKeys.LENS_SCREEN_TITLE));
         this.regions = regions;
         this.selected = standingIn >= 0 && standingIn < regions.size() ? standingIn : 0;
+
+        // the world outlines pick out the selected region and the rooms it is bonded to (#148)
+        SyncSoulLensReportMessage.ClientLensReport.select(regions.isEmpty() ? -1 : this.selected);
     }
 
     @Override
@@ -122,6 +129,7 @@ public class SoulLensScreen extends Screen
                     {
                         this.selected = index;
                         this.detailPanel.resetScroll();
+                        SyncSoulLensReportMessage.ClientLensReport.select(index);
                     })
                     .bounds(LIST_LEFT, rowY(i), LIST_WIDTH, ROW_HEIGHT - 4)
                     .build());
@@ -316,9 +324,52 @@ public class SoulLensScreen extends Screen
         appendSignalSection(out, Constants.StringKeys.LENS_SCREEN_SIGNALS_HEADER, region.matched(), MAX_MATCHED_SHOWN, maxWidth);
         appendMissingSection(out, region.missing(), maxWidth);
         appendArrangementSection(out, region, maxWidth);
+        appendBondSection(out, region, maxWidth);
         appendGrantsSection(out, region, maxWidth);
 
         return out;
+    }
+
+    /**
+     * The bonds section (#148), matching the signals and arrangement sections above it. A region
+     * with nothing to say about bonds says nothing. The rooms a credited bond is with are also
+     * picked out in the world outlines behind this screen - see {@code SoulLensRenderer}.
+     */
+    private void appendBondSection(List<ScrollableDetailPanel.VisualLine> out, LensRegionReport region, int maxWidth)
+    {
+        if (region.bonds().isEmpty())
+        {
+            return;
+        }
+
+        out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_BONDS_HEADER), 0, COLOR_HEADER, maxWidth));
+
+        final int shown = Math.min(MAX_BONDS_SHOWN, region.bonds().size());
+
+        for (int i = 0; i < shown; i++)
+        {
+            final LensRegionReport.BondLine bond = region.bonds().get(i);
+
+            MutableComponent line = Component.literal(bond.credited() ? "+ " : "- ")
+                    .append(BondNames.relation(bond.relationId()))
+                    .append(Component.literal(" "))
+                    .append(BondNames.room(bond.otherDisplayName(), bond.otherArchetypeId()));
+
+            if (bond.credited())
+            {
+                line = line.append(Component.literal(" (" + score(bond.contribution()) + ")"));
+            }
+            else if (!bond.diagnostic().isBlank())
+            {
+                line = line.append(Component.literal(": " + bond.diagnostic()));
+            }
+
+            final int color = bond.discord() ? COLOR_DISCORD : (bond.credited() ? COLOR_HIT : COLOR_MISS);
+            out.addAll(wrap(line, 4, color, maxWidth));
+        }
+
+        appendMoreLine(out, region.bonds().size(), shown, maxWidth);
+        out.add(ScrollableDetailPanel.VisualLine.spacer(4));
     }
 
     private void appendProgress(List<ScrollableDetailPanel.VisualLine> out, LensRegionReport region, int maxWidth)

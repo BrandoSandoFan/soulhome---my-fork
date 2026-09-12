@@ -129,8 +129,14 @@ public final class TestBlocks
     public static final TestBlock BELT = block("create:belt", Passability.PARTIAL, "soulhome:machinery");
     public static final TestBlock ITEM_VAULT = block("create:item_vault", Passability.BLOCKING, "soulhome:storage");
 
-    // cold storage
+    // cold storage - and, for #134, what a snowy starter island is made of. A full cube, and a
+    // cold storage signal, which is the whole trouble: cold storage is enclosed-only, and yet snow
+    // used to seed open-air clusters that ran the length of the island.
     public static final TestBlock PACKED_ICE = block("minecraft:packed_ice", Passability.BLOCKING);
+    public static final TestBlock SNOW_BLOCK = block("minecraft:snow_block", Passability.BLOCKING);
+    public static final TestBlock DIRT = block("minecraft:dirt", Passability.BLOCKING);
+    // #minecraft:logs is in soulhome:structural, so a tree trunk is masonry to a spire
+    public static final TestBlock OAK_LOG = block("minecraft:oak_log", Passability.BLOCKING, "minecraft:logs", "soulhome:structural");
 
     // shrine
     public static final TestBlock LODESTONE = block("minecraft:lodestone", Passability.BLOCKING);

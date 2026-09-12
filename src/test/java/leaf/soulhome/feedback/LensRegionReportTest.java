@@ -154,6 +154,38 @@ class LensRegionReportTest
         assertFalse(form.clauses().get(1).hit());
     }
 
+    @Test
+    @DisplayName("bonds carry the partner region so the lens can highlight it, and misses keep their reason")
+    void bondsCarryTheirPartnerAndReason()
+    {
+        ArchetypeScore.BondContribution hit = new ArchetypeScore.BondContribution(
+                "soulhome:enchanting_room", "archetype.soulhome.enchanting_room", 2, "connects",
+                "with a way through between them", "study", 4d, 1d, 4d, "opens straight into it", false);
+        ArchetypeScore.BondContribution miss = new ArchetypeScore.BondContribution(
+                "soulhome:hearth", "archetype.soulhome.hearth", 5, "near",
+                "within 12 blocks", "warmth", 2d, 0d, 0d, "19 blocks away; within 12 would count", false);
+        ArchetypeScore.BondContribution quietDiscord = new ArchetypeScore.BondContribution(
+                "soulhome:powder_magazine", "archetype.soulhome.powder_magazine", -1, "near",
+                "within 8 blocks", "hazard", -3d, 0d, 0d, "there is no such room in this soul yet", true);
+
+        ArchetypeScore best = new ArchetypeScore(
+                "soulhome:library", "archetype.soulhome.library", 30d, 30d, 1d, 1d, 2,
+                OptionalDouble.empty(), List.of(), List.of(), List.of(), null, List.of(), List.of(), false,
+                List.of(hit), List.of(miss, quietDiscord), false);
+
+        ClassificationResult result = new ClassificationResult(
+                plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
+
+        LensRegionReport report = LensRegionReport.of(result, 0, BuffBreakdown.EMPTY);
+
+        assertEquals(2, report.bonds().size(), "the hit and the near miss; the quiet discord is left out");
+        assertTrue(report.bonds().get(0).credited());
+        assertEquals(2, report.bonds().get(0).otherRegion());
+        assertFalse(report.bonds().get(1).credited());
+        assertEquals("19 blocks away; within 12 would count", report.bonds().get(1).diagnostic());
+        assertEquals(List.of(2), report.bondedRegions(), "only credited partners are highlighted");
+    }
+
     private static ArchetypeScore score(String archetypeId, double value, int tier)
     {
         return new ArchetypeScore(

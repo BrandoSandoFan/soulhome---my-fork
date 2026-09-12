@@ -10,6 +10,8 @@ import com.mojang.serialization.JsonOps;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.structures.ArchetypeCodecs;
 import leaf.soulhome.structures.ArchetypeManager;
+import leaf.soulhome.structures.BuiltinBondRelations;
+import leaf.soulhome.structures.BuiltinFormClauses;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.utils.LogHelper;
 
@@ -49,6 +51,17 @@ public final class ArchetypeDocs
     /** Where the definitions live, relative to the project root. */
     private static final Path RELATIVE_DIRECTORY =
             Path.of("src", "main", "resources", "data", SoulHome.MODID, ArchetypeManager.DIRECTORY);
+
+    static
+    {
+        // the codecs resolve every "shape"/"relation" clause and every bond relation against the
+        // BUILTIN registries, which only the mod's bootstrap (or DataGen's own copy of this call)
+        // fills. The unit tests that read the shipped archetypes through here run neither, and in
+        // a shared test JVM whether the vocabulary was registered depended on which test happened
+        // to run first - a form or a bond silently dropped, and a page silently missing
+        BuiltinFormClauses.registerAll();
+        BuiltinBondRelations.registerAll();
+    }
 
     private ArchetypeDocs()
     {
@@ -117,7 +130,12 @@ public final class ArchetypeDocs
     /** {@code soulhome:library} to {@code library}. */
     public static String pathOf(ArchetypeDefinition archetype)
     {
-        final int separator = archetype.id().indexOf(':');
-        return separator < 0 ? archetype.id() : archetype.id().substring(separator + 1);
+        return pathOf(archetype.id());
+    }
+
+    public static String pathOf(String archetypeId)
+    {
+        final int separator = archetypeId.indexOf(':');
+        return separator < 0 ? archetypeId : archetypeId.substring(separator + 1);
     }
 }

@@ -50,5 +50,9 @@
         { "relation": "within", "of": "sight", "to": "windows", "max_distance": 6, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:bulwark", "relation": "adjoins", "weight": 4.0, "role": "layout" }
   ]
 }

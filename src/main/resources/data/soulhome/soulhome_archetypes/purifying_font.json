@@ -49,5 +49,9 @@
         { "relation": "surrounds", "of": "greenery", "to": "basin", "max_radius": 3, "weight": 1.5 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:infected_grotto", "relation": "near", "weight": -3.0, "role": "hazard", "max_distance": 10 }
   ]
 }

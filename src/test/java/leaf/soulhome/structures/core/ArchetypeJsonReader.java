@@ -8,6 +8,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import leaf.soulhome.structures.BuiltinBondRelations;
 import leaf.soulhome.structures.BuiltinFormClauses;
 
 import java.io.IOException;
@@ -46,6 +47,7 @@ public final class ArchetypeJsonReader
         // against it by default (see #read(JsonObject)) runs - safe to call more than once, see
         // BuiltinFormClauses#registerAll(FormClauseRegistry)
         BuiltinFormClauses.registerAll(FormClauseRegistry.BUILTIN);
+        BuiltinBondRelations.registerAll(BondRelationRegistry.BUILTIN);
     }
 
     private ArchetypeJsonReader()
@@ -113,6 +115,14 @@ public final class ArchetypeJsonReader
      */
     public static ArchetypeDefinition read(JsonObject json, FormClauseRegistry registry)
     {
+        return read(json, registry, BondRelationRegistry.BUILTIN);
+    }
+
+    /**
+     * @param bondRegistry which bond relations {@code bonds} may name - see {@link BondRelationRegistry}
+     */
+    public static ArchetypeDefinition read(JsonObject json, FormClauseRegistry registry, BondRelationRegistry bondRegistry)
+    {
         List<RegionType> regionTypes = new ArrayList<>();
 
         for (String name : stringList(json, "region_types"))
@@ -131,7 +141,8 @@ public final class ArchetypeJsonReader
                 readSignals(json, "detractors"),
                 readTiers(json),
                 readBuffs(json),
-                readStructures(json, registry));
+                readStructures(json, registry),
+                readBonds(json, bondRegistry));
     }
 
     private static List<ArchetypeDefinition.Requirement> readRequirements(JsonObject json)
@@ -141,6 +152,15 @@ public final class ArchetypeJsonReader
         for (JsonElement element : array(json, "requirements"))
         {
             JsonObject entry = element.getAsJsonObject();
+
+            if (entry.has("with") || entry.has("relation"))
+            {
+                // rule 1 of #140: a bond is evidence, never a gate. The production loader refuses
+                // this with the same words - see ArchetypeManager
+                throw new IllegalArgumentException(
+                        "'requirements' holds a bond; a bond is evidence, never a gate, and belongs under 'bonds'");
+            }
+
             requirements.add(new ArchetypeDefinition.Requirement(
                     readMatcher(entry.getAsJsonObject("match")),
                     entry.has("min_count") ? entry.get("min_count").getAsInt() : 1,
@@ -161,7 +181,8 @@ public final class ArchetypeJsonReader
                     readMatcher(entry.getAsJsonObject("match")),
                     entry.get("weight").getAsDouble(),
                     entry.has("role") ? entry.get("role").getAsString() : ArchetypeDefinition.Signal.DEFAULT_ROLE,
-                    entry.has("cap") ? entry.get("cap").getAsInt() : ArchetypeDefinition.DEFAULT_CAP));
+                    entry.has("cap") ? entry.get("cap").getAsInt() : ArchetypeDefinition.DEFAULT_CAP,
+                    !entry.has("seed") || entry.get("seed").getAsBoolean()));
         }
 
         return signals;
@@ -202,6 +223,83 @@ public final class ArchetypeJsonReader
     {
         return new BlockMatcher(stringList(json, "block"), stringList(json, "tag"));
     }
+
+    // region bonds (#143) - mirrors BondCodecs, reading each relation's own ClauseParamSpec
+
+    private static List<Bond> readBonds(JsonObject json, BondRelationRegistry registry)
+    {
+        List<Bond> bonds = new ArrayList<>();
+
+        for (JsonElement element : array(json, "bonds"))
+        {
+            Bond bond = readBond(element.getAsJsonObject(), registry);
+
+            if (bond != null)
+            {
+                bonds.add(bond);
+            }
+        }
+
+        return bonds;
+    }
+
+    /** {@code null} for a bond that names an unknown relation or gets a parameter wrong - dropped, as the loader drops it. */
+    public static Bond readBond(JsonObject json, BondRelationRegistry registry)
+    {
+        if (!json.has("with") || !json.has("relation") || !json.has("weight"))
+        {
+            return null;
+        }
+
+        final String relationId = json.get("relation").getAsString().toLowerCase(Locale.ROOT);
+        Optional<BondRelation> relation = registry.get(relationId);
+
+        if (relation.isEmpty())
+        {
+            return null;
+        }
+
+        try
+        {
+            ClauseParams.Builder params = ClauseParams.builder();
+
+            for (ClauseParamSpec spec : relation.get().params())
+            {
+                if (!json.has(spec.name()))
+                {
+                    if (spec.required())
+                    {
+                        return null;
+                    }
+
+                    params.put(spec.name(), spec.defaultValue());
+                    continue;
+                }
+
+                JsonElement raw = json.get(spec.name());
+
+                params.put(spec.name(), switch (spec.type())
+                {
+                    case DOUBLE -> raw.getAsDouble();
+                    case INT -> raw.getAsInt();
+                    case STRING, ELEMENT -> raw.getAsString();
+                });
+            }
+
+            return new Bond(
+                    json.get("with").getAsString().toLowerCase(Locale.ROOT),
+                    relationId,
+                    json.get("weight").getAsDouble(),
+                    json.has("role") ? json.get("role").getAsString() : Bond.DEFAULT_ROLE,
+                    params.build());
+        }
+        catch (RuntimeException exception)
+        {
+            return null;
+        }
+    }
+
+    // endregion
 
     // region structural forms - mirrors the shape/relation/all/any dispatch in the production
     // codec (structures.FormCodecs), reading the same ClauseParamSpec each FormClauseType declares

@@ -87,6 +87,7 @@ public class SyncSoulLensReportMessage implements SoulPayload
     {
         private static volatile List<LensRegionReport> regions = List.of();
         private static volatile int standingIn = -1;
+        private static volatile int selected = -1;
         private static volatile long generation;
         private static volatile long consumedGeneration;
 
@@ -98,7 +99,37 @@ public class SyncSoulLensReportMessage implements SoulPayload
         {
             ClientLensReport.regions = regions;
             ClientLensReport.standingIn = standingIn;
+            ClientLensReport.selected = standingIn;
             ClientLensReport.generation++;
+        }
+
+        /**
+         * The region the lens screen has selected, so the world outlines can pick it out and the
+         * rooms it is bonded to (#148) - a bond is spatial, and the outlines are the one surface
+         * that can show it spatially. Starts as the region the player was standing in.
+         */
+        public static void select(int region)
+        {
+            selected = region;
+        }
+
+        public static int selectedRegion()
+        {
+            return selected;
+        }
+
+        /** Indices of the regions the selected one has credited bonds with - empty when nothing is selected. */
+        public static List<Integer> bondedWithSelected()
+        {
+            final List<LensRegionReport> current = regions;
+            final int index = selected;
+
+            if (index < 0 || index >= current.size())
+            {
+                return List.of();
+            }
+
+            return current.get(index).bondedRegions();
         }
 
         /**

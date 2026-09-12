@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Shell: $(l:soulhome:multiblocks/tags#structural)any structural$(/l)$(li)Growth: Sculk or Sculk Vein$(li)Catalyst: Sculk Catalyst",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "And rooms that do not go with it - each one costs this room while it stands there:$(li)$(l:soulhome:multiblocks/purifying_font)Purifying Font$(/l), within 10 blocks",
+      "title": "Rooms that do not"
     }
   ],
   "priority": false,

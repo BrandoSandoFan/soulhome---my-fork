@@ -55,6 +55,16 @@ public class Constants
         public static final String REGION_STRUCTURE_TRUNCATED = "message.soulhome.region.structure_truncated";
         public static final String REGION_STRUCTURE_SKIPPED = "message.soulhome.region.structure_skipped";
 
+        // Soul Architecture (#140): the bonds half of the report. A bond names the other room by
+        // its display name and its relation by a translated phrase - never an id (#103) - and a
+        // miss states the gap and the threshold, since the near miss is the useful half.
+        public static final String REGION_BOND_HEADER = "message.soulhome.region.bond_header";
+        public static final String REGION_BOND_HIT = "message.soulhome.region.bond_hit";
+        public static final String REGION_BOND_MISS = "message.soulhome.region.bond_miss";
+        public static final String REGION_BOND_DISCORD = "message.soulhome.region.bond_discord";
+        public static final String REGION_BOND_CAPPED = "message.soulhome.region.bond_capped";
+        public static final String BOND_RELATION_PREFIX = "bond.soulhome.relation.";
+
         public static final String BUFFS_HEADER = "message.soulhome.buffs.header";
         public static final String BUFFS_NONE = "message.soulhome.buffs.none";
         public static final String BUFFS_ENTRY = "message.soulhome.buffs.entry";
@@ -129,6 +139,7 @@ public class Constants
         public static final String LENS_SCREEN_MISSING_HEADER = "gui.soulhome.lens.missing_header";
         public static final String LENS_SCREEN_ARRANGEMENT_HEADER = "gui.soulhome.lens.arrangement_header";
         public static final String LENS_SCREEN_GRANTS_HEADER = "gui.soulhome.lens.grants_header";
+        public static final String LENS_SCREEN_BONDS_HEADER = "gui.soulhome.lens.bonds_header";
         public static final String LENS_SCREEN_MORE = "gui.soulhome.lens.more";
         public static final String LENS_SCREEN_EMPTY_DETAIL = "gui.soulhome.lens.empty_detail";
         public static final String LENS_SCREEN_BUFFS_TITLE = "gui.soulhome.lens.buffs_title";

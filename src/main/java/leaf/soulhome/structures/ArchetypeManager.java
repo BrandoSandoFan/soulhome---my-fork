@@ -14,6 +14,8 @@ import leaf.soulhome.structures.core.ArchetypeClassifier;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.ArchetypeSignals;
 import leaf.soulhome.structures.core.BlockSignature;
+import leaf.soulhome.structures.core.BondBook;
+import leaf.soulhome.structures.core.BondRelationRegistry;
 import leaf.soulhome.structures.core.RegionGeometry;
 import leaf.soulhome.utils.LogHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -64,7 +66,11 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
         return loaded.classifier();
     }
 
-    /** Which blocks {@code RegionScanner} should cluster open-air regions around. */
+    /**
+     * Which blocks {@code RegionScanner} should cluster open-air regions around - the palettes of
+     * the archetypes that accept open regions, not of every archetype. See
+     * {@link ArchetypeSignals#openClusterFilterFor} for why the two differ (#134).
+     */
     public static Predicate<BlockSignature> signalFilter()
     {
         return loaded.signalFilter();
@@ -124,6 +130,17 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
         {
             final String id = entry.getKey();
 
+            if (holdsABondAsARequirement(entry.getValue()))
+            {
+                // rule 1 of the Soul Architecture epic (#140): a bond is evidence, never a gate, and
+                // the codec is the cheapest place to guarantee it. Said in as many words, because
+                // the parse failure that would otherwise report this names a missing 'match' key
+                LogHelper.error("Could not read soulhome archetype " + id
+                        + ": 'requirements' holds a bond. A bond is evidence, never a gate; it belongs under 'bonds'.");
+                rejected++;
+                continue;
+            }
+
             ArchetypeDefinition definition = ArchetypeCodecs.ARCHETYPE
                     .parse(JsonOps.INSTANCE, entry.getValue())
                     .resultOrPartial(error -> LogHelper.error("Could not read soulhome archetype " + id + ": " + error))
@@ -161,9 +178,50 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
 
         replaceAll(accepted.values());
 
+        // the bonds between them, resolved once here so a mirror declared on both sides or a
+        // relation nothing registered is said once at load rather than discovered per scan
+        BondBook bonds = BondBook.of(accepted.values(), BondRelationRegistry.BUILTIN);
+
+        for (String warning : bonds.duplicates())
+        {
+            LogHelper.warn("Soulhome bond: " + warning);
+        }
+
+        for (String warning : bonds.unknownRelations())
+        {
+            LogHelper.warn("Soulhome bond: " + warning);
+        }
+
         LogHelper.info("Loaded " + accepted.size() + " soulhome archetype(s)"
                 + (rejected > 0 ? ", skipped " + rejected + " that failed to load" : "")
                 + ": " + accepted.keySet());
+    }
+
+    /** Whether any entry of {@code requirements} looks like a bond - carries {@code with} or {@code relation}. */
+    private static boolean holdsABondAsARequirement(JsonElement json)
+    {
+        if (!json.isJsonObject() || !json.getAsJsonObject().has("requirements"))
+        {
+            return false;
+        }
+
+        JsonElement requirements = json.getAsJsonObject().get("requirements");
+
+        if (!requirements.isJsonArray())
+        {
+            return false;
+        }
+
+        for (JsonElement requirement : requirements.getAsJsonArray())
+        {
+            if (requirement.isJsonObject()
+                    && (requirement.getAsJsonObject().has("with") || requirement.getAsJsonObject().has("relation")))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -206,13 +264,18 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
     /**
      * One immutable bundle, so readers never observe a torn update: the classifier and the signal
      * filter are always the ones derived from exactly these archetypes.
+     *
+     * @param adjacencyReach how far {@code RegionScanner} should look for paths and routes between
+     *                       regions - the furthest any loaded bond could grade, and zero when none
+     *                       is distance-based, see {@link ArchetypeSignals#adjacencyReachFor}
      */
     public record Loaded(
             List<ArchetypeDefinition> archetypes,
             ArchetypeClassifier classifier,
             Predicate<BlockSignature> signalFilter,
             Predicate<BlockSignature> geometryFilter,
-            boolean needsClearance)
+            boolean needsClearance,
+            int adjacencyReach)
     {
         private static final Loaded EMPTY = of(List.of());
 
@@ -222,9 +285,10 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
             return new Loaded(
                     frozen,
                     new ArchetypeClassifier(frozen, SoulHomeConfig.scoringSettings()),
-                    ArchetypeSignals.filterFor(frozen),
+                    ArchetypeSignals.openClusterFilterFor(frozen),
                     ArchetypeSignals.geometryFilterFor(frozen),
-                    ArchetypeSignals.needsClearance(frozen));
+                    ArchetypeSignals.needsClearance(frozen),
+                    ArchetypeSignals.adjacencyReachFor(frozen, BondRelationRegistry.BUILTIN));
         }
     }
 }

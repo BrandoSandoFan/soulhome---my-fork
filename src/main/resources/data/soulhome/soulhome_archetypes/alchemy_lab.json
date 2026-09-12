@@ -45,5 +45,10 @@
         { "relation": "within", "of": "storage",  "to": "stand", "max_distance": 5, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:greenhouse", "relation": "connects", "weight": 4.0, "role": "layout", "max_distance": 12 },
+    { "with": "soulhome:purifying_font", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 10 }
   ]
 }

@@ -39,6 +39,16 @@ import java.util.OptionalDouble;
  *                             score stop moving deserves to know why rather than concluding the mod
  *                             is broken. Always {@code false} for a gated region: nothing is credited
  *                             far enough to be capped.
+ * @param bondContributions    bonds credited to this room (see the Soul Architecture epic, #140):
+ *                             which other room it relates to, how, and what that was worth. Only
+ *                             ever non-empty on an awarded room scored through
+ *                             {@code ArchetypeClassifier#classify(List, RegionAdjacency)}; a room
+ *                             scored on its own has none. Discords appear here too, with a negative
+ *                             contribution.
+ * @param missingBonds         bonds this archetype declares that were not earned, each with why -
+ *                             the near miss is the useful half: "your Enchanting Room is 19 blocks
+ *                             away; within 12 would count", or that no such room exists yet
+ * @param bondCapped           whether bond credit hit {@code ScoringSettings#bondShareCap}
  */
 public record ArchetypeScore(
         String archetypeId,
@@ -55,7 +65,10 @@ public record ArchetypeScore(
         String ineligibleReason,
         List<StructureContribution> structuralContributions,
         List<StructureContribution> missingStructures,
-        boolean structuralCapped)
+        boolean structuralCapped,
+        List<BondContribution> bondContributions,
+        List<BondContribution> missingBonds,
+        boolean bondCapped)
 {
     public ArchetypeScore
     {
@@ -64,6 +77,37 @@ public record ArchetypeScore(
         failedRequirements = List.copyOf(failedRequirements);
         structuralContributions = structuralContributions == null ? List.of() : List.copyOf(structuralContributions);
         missingStructures = missingStructures == null ? List.of() : List.copyOf(missingStructures);
+        bondContributions = bondContributions == null ? List.of() : List.copyOf(bondContributions);
+        missingBonds = missingBonds == null ? List.of() : List.copyOf(missingBonds);
+    }
+
+    /** A score with no bonds - every score before #140, and every score of a region on its own. */
+    public ArchetypeScore(
+            String archetypeId,
+            String displayName,
+            double score,
+            double rawScore,
+            double diversityMultiplier,
+            double densityMultiplier,
+            int tier,
+            OptionalDouble scoreToNextTier,
+            List<SignalContribution> contributions,
+            List<SignalContribution> missingSignals,
+            List<FailedRequirement> failedRequirements,
+            String ineligibleReason,
+            List<StructureContribution> structuralContributions,
+            List<StructureContribution> missingStructures,
+            boolean structuralCapped)
+    {
+        this(archetypeId, displayName, score, rawScore, diversityMultiplier, densityMultiplier, tier,
+                scoreToNextTier, contributions, missingSignals, failedRequirements, ineligibleReason,
+                structuralContributions, missingStructures, structuralCapped, List.of(), List.of(), false);
+    }
+
+    /** Whether there is anything to say about bonds at all - a region with none says nothing. */
+    public boolean hasBondsToReport()
+    {
+        return !this.bondContributions.isEmpty() || !this.missingBonds.isEmpty();
     }
 
     /** Whether the score was forced to zero rather than simply being low. */
@@ -128,6 +172,40 @@ public record ArchetypeScore(
             double contribution,
             ClauseEvaluation root)
     {
+    }
+
+    /**
+     * One bond's contribution, credited or not - {@code contribution = weight × confidence}.
+     *
+     * @param otherArchetypeId  the archetype this room is bonded to
+     * @param otherDisplayName  its translation key, for a report that names rooms, never ids
+     * @param otherRegion       index into the scan's region list of the room the bond was graded
+     *                          against - the best partner when several qualified - or {@code -1}
+     *                          when no room of that archetype exists. The Soul Lens highlights it.
+     * @param relationId        {@code "adjoins"}, {@code "near"}, ...
+     * @param description       the relation in plain words with its numbers - see
+     *                          {@link BondRelation#describe}
+     * @param diagnostic        the graded relation's own reason - the gap and the threshold on a
+     *                          miss, what was credited on a hit
+     * @param discord           whether the weight is negative
+     */
+    public record BondContribution(
+            String otherArchetypeId,
+            String otherDisplayName,
+            int otherRegion,
+            String relationId,
+            String description,
+            String role,
+            double weight,
+            double confidence,
+            double contribution,
+            String diagnostic,
+            boolean discord)
+    {
+        public boolean isCredited()
+        {
+            return this.confidence > 0d;
+        }
     }
 
     /**

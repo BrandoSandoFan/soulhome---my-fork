@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Shelves: $(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)Table: Enchanting Table$(li)Candles: any candles",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/library)Library$(/l), with a way through between them, up to 12 blocks long",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

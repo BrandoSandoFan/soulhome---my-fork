@@ -11,7 +11,7 @@
   "signals": [
     { "match": { "tag": "minecraft:crops" },        "weight": 2.0,  "role": "core",    "cap": 64 },
     { "match": { "block": "minecraft:farmland" },   "weight": 0.75, "role": "growth",  "cap": 64 },
-    { "match": { "block": "minecraft:water" },      "weight": 3.0,  "role": "water",   "cap": 4  },
+    { "match": { "block": "minecraft:water" },      "weight": 3.0,  "role": "water",   "cap": 4, "seed": false },
     { "match": { "block": "minecraft:composter" },  "weight": 4.0,  "role": "tending", "cap": 2  },
     { "match": { "block": ["minecraft:beehive", "minecraft:bee_nest"] }, "weight": 4.0, "role": "tending", "cap": 2 },
     { "match": { "block": "minecraft:hay_block" },  "weight": 1.5,  "role": "harvest", "cap": 8  },
@@ -46,5 +46,11 @@
         { "relation": "at_range", "of": "water", "to": "soil",  "min_distance": 0, "max_distance": 4, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:stable", "relation": "near", "weight": 4.0, "role": "layout", "max_distance": 12 },
+    { "with": "soulhome:greenhouse", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 12 },
+    { "with": "soulhome:apiary", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 12 }
   ]
 }

@@ -10,6 +10,7 @@ import leaf.soulhome.compat.patchouli.PatchouliCompat;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.registry.*;
+import leaf.soulhome.structures.BuiltinBondRelations;
 import leaf.soulhome.structures.BuiltinFormClauses;
 import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.utils.ResourceLocationHelper;
@@ -82,6 +83,10 @@ public class SoulHome
         // happen before any datapack is read, or every "shape"/"relation" clause in it resolves to
         // UnknownClause the way an unrecognised one always does
         BuiltinFormClauses.registerAll();
+
+        // and the bond relations (#140) - the same rule: before any datapack is read, or every
+        // bond in it names a relation nothing knows and is dropped
+        BuiltinBondRelations.registerAll();
 
         //each buff type subscribes its own hook; see SoulBuffEffect
         SoulBuffEffects.init();
