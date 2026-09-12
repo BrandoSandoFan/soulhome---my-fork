@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Sensor: Daylight Detector$(li)Dome: Glass or Glass Pane$(li)Starlight: End Rod",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/library)Library$(/l), built above it, with at most 6 blocks between",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

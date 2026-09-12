@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Hives: Beehive or Bee Nest$(li)Forage: any flowers$(li)Smoker: Campfire or Soul Campfire",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/farm)Farm$(/l), within 12 blocks$(li)$(l:soulhome:multiblocks/greenhouse)Greenhouse$(/l), within 12 blocks",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

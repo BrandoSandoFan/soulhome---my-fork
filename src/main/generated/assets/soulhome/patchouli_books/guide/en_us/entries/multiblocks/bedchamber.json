@@ -22,6 +22,16 @@
       "type": "text",
       "text": "What those parts are:$(li)Bed: any beds$(li)Wall: $(l:soulhome:multiblocks/tags#structural)any structural$(/l)$(li)Light: $(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Storage: $(l:soulhome:multiblocks/tags#storage)any storage$(/l)",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/hearth)Hearth$(/l), within 12 blocks",
+      "title": "Rooms that go together"
+    },
+    {
+      "type": "text",
+      "text": "And rooms that do not go with it - each one costs this room while it stands there:$(li)$(l:soulhome:multiblocks/ossuary)Ossuary$(/l), sharing a wall$(li)$(l:soulhome:multiblocks/stable)Stable$(/l), sharing a wall",
+      "title": "Rooms that do not"
     }
   ],
   "priority": false,

@@ -908,3 +908,42 @@ for - and, in one case, that it counted twice.
   barn's, and a tilled field on top of a house is a field.
 - The three shipped starter islands are now a regression corpus the tests scan, so the next fault
   of this kind fails a build rather than surprising a player.
+
+Soul architecture: a house is worth more than a grid of boxes
+
+Every room in your soul used to be scored on its own. A library sharing a wall with the enchanting
+room scored exactly what a library scores 180 blocks away across the void; a hearth in the middle
+of a house and a hearth in a shed at the bottom of the garden were the same hearth; and since
+repeats are penalised, the best soul you could build was one of every room, each in its own box,
+laid out in a grid. Where you put things was the one part of your soul that was worth nothing.
+
+- Buff: rooms now carry bonds - a way two rooms should relate, declared in the archetype data and
+  credited to both. A library that opens into the enchanting room, through a door, an arch or a
+  short hall. A hearth beside the mead hall, or near the bedchamber. A mine beneath the workshop,
+  an observatory over the library, a treasury behind the bulwark, a garden in a courtyard. Every
+  bond is graded by degrees - rooms that nearly touch score nearly as well as rooms that touch -
+  and several arrangements count, never one particular floor plan. Nothing is required: a room on
+  its own loses nothing, no build loses a tier, and bond credit can only ever add a share of what
+  a room earned on its own, so a perfect plan of empty boxes is still empty boxes.
+- Nerf, deliberately opted into per room: a few pairs are the other way about. A powder magazine
+  near a hearth or a workshop, or under a storm spire, costs the room next to it; cold storage
+  against a hearth or a greenhouse, a stable or an ossuary against a bedchamber, and the infected
+  grotto near the purifying font do the same. A discord can cost a room every tier but its first -
+  what a room is was decided before its neighbours were looked at, and a hearth beside the
+  gunpowder is still a hearth.
+- `/soulhome analyse` says which bonds a room earned and what they were worth, which it nearly
+  earned and exactly why not - "your Enchanting Room is 19 blocks away; within 12 would count" -
+  and which discords are costing it. The Soul Lens shows the same, and selecting a room outlines
+  the rooms it is bonded to in the world, since a bond is a property of two rooms at once and
+  nothing about standing in either one suggests the other exists.
+- The guide book's room pages list which rooms go together, linked to each other's pages, with a
+  new page explaining what a bond is - unlocked by having two rooms at once, since with one there
+  is nothing to bond. A new advancement marks the moment.
+- Fix: moving a room, or building a corridor between two rooms without touching either, now
+  counts as a change. A room's identity used to be its own blocks alone, so a bond that no longer
+  existed would have stayed credited until something unrelated dirtied the scan.
+- Config: `bond_share_cap` under `scoring`, a quarter by default. Datapacks declare bonds under
+  `bonds` on either archetype, with `adjoins`, `near`, `connects`, `above`, `beneath`, `encloses`
+  and `within` as the vocabulary; a bond naming a room from a mod that is not installed is fine
+  and simply never matches.
+

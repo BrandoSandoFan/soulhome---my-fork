@@ -13,6 +13,7 @@ import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.TagDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.BlockMatcher;
+import leaf.soulhome.structures.core.BondBook;
 import leaf.soulhome.structures.core.Form;
 import leaf.soulhome.structures.core.RegionType;
 import leaf.soulhome.structures.core.SoulBuffTypes;
@@ -72,6 +73,16 @@ public class PatchouliMultiblocks
      */
     private static final int LEGEND_ENTRIES_PER_PAGE = 5;
 
+    /**
+     * Bond entries that fit on one page. "Enchanting Room, with a way through between them, up to
+     * 12 blocks long" is two lines; a room with many bonds runs onto as many pages as it needs
+     * rather than overrunning, which Patchouli does silently (#49).
+     */
+    private static final int BOND_ENTRIES_PER_PAGE = 4;
+
+    /** The two-rooms advancement (#150): a player with one room has nothing to bond. */
+    private static final String TWO_ROOMS_ADVANCEMENT = "soulhome:main/two_rooms";
+
     public static void collect(List<BookStuff.Category> categories, List<BookStuff.Entry> entries)
     {
         BookStuff.Category multiblocks = new BookStuff.Category(
@@ -88,12 +99,16 @@ public class PatchouliMultiblocks
 
         entries.add(introduction(multiblocks));
         entries.add(tagsGlossary(multiblocks));
+        entries.add(bondsExplainer(multiblocks));
+
+        List<ArchetypeDefinition> shipped = ArchetypeDocs.shipped();
+        BondBook bonds = BondBook.of(shipped);
 
         int sortnum = 0;
 
-        for (ArchetypeDefinition archetype : ArchetypeDocs.shipped())
+        for (ArchetypeDefinition archetype : shipped)
         {
-            entries.add(entryFor(multiblocks, archetype, sortnum++));
+            entries.add(entryFor(multiblocks, archetype, bonds, sortnum++));
         }
     }
 
@@ -131,6 +146,15 @@ public class PatchouliMultiblocks
      */
     static BookStuff.Entry entryFor(BookStuff.Category category, ArchetypeDefinition archetype, int sortnum)
     {
+        return entryFor(category, archetype, BondBook.EMPTY, sortnum);
+    }
+
+    /**
+     * @param bonds every bond the shipped set declares, resolved for both sides - a room page
+     *              lists the bonds declared on it and the ones declared on other rooms with it
+     */
+    static BookStuff.Entry entryFor(BookStuff.Category category, ArchetypeDefinition archetype, BondBook bonds, int sortnum)
+    {
         final String path = ArchetypeDocs.pathOf(archetype);
 
         BookStuff.Entry entry = new BookStuff.Entry(path, category, iconFor(archetype, category));
@@ -139,6 +163,7 @@ public class PatchouliMultiblocks
         pages.add(new BookStuff.TextPage(whereItGoes(archetype) + rewards(archetype)));
         pages.add(new BookStuff.TextPage(mustHave(archetype) + looksFor(archetype)).setTitle("What counts"));
         pages.addAll(arrangementPages(archetype));
+        pages.addAll(bondPages(archetype, bonds));
 
         entry.sortnum = sortnum;
         //an archetype only another mod can ever satisfy is gated behind classifying one, which an
@@ -392,6 +417,106 @@ public class PatchouliMultiblocks
         }
 
         return pages;
+    }
+
+    /**
+     * What a bond is, said once - the Soul Architecture epic (#140) stated to the player: rooms are
+     * worth more when they are arranged into a building, and no layout is required. Gated behind
+     * having two rooms at once, since a reader with one has nothing this applies to.
+     */
+    static BookStuff.Entry bondsExplainer(BookStuff.Category category)
+    {
+        BookStuff.Entry entry = new BookStuff.Entry("bonds", category, "minecraft:oak_door");
+        entry.setDisplayTitle("rooms that go together");
+        entry.advancement = TWO_ROOMS_ADVANCEMENT;
+        entry.sortnum = -8;
+
+        entry.pages = new BookStuff.Page[]
+                {
+                        new BookStuff.TextPage(
+                                "A room is worth what is in it and how it is arranged. It is also worth a little more for where it stands: a library that opens into the enchanting room, a cellar dug under the kitchen, a garden inside a courtyard.$(p)This is a bond, and each room's page says which rooms it has them with.")
+                                .setTitle("Rooms that go together"),
+                        new BookStuff.TextPage(
+                                "None of it is required. A room on its own loses nothing, and no layout is the right one - a bond says what two rooms should be to each other, never which way round. Sharing a wall, a doorway or a short hall, one over the other, one inside the other: several arrangements count, and every one of them counts by degrees.$(p)Bond credit can only ever add a share of what a room earned on its own, so a perfect plan of empty boxes is still empty boxes."),
+                        new BookStuff.TextPage(
+                                "A few pairs are the other way about: a powder magazine beside a hearth costs the hearth, not the magazine's fault but its own. Room pages name those apart, as rooms that do not go together.$(p)$(l)/soulhome analyse$() and the $(item)Soul Lens$(0) say which bonds a room has earned, which it nearly has, and what would close the gap - the lens outlines the room a bond is with, so you can see it rather than read about it.")
+                                .setTitle("And rooms that do not"),
+                };
+
+        return entry;
+    }
+
+    /**
+     * The "rooms that go together" pages, present only for an archetype that takes part in at
+     * least one bond - written from the bond data itself, for the same reason every other page
+     * is: a hand-written list of which rooms go together would be wrong within two balance passes.
+     * Bonds first, then discords set apart, and as many pages as the list needs.
+     */
+    static List<BookStuff.Page> bondPages(ArchetypeDefinition archetype, BondBook bonds)
+    {
+        List<BondBook.Resolved> resolved = bonds.bondsOf(archetype.id());
+
+        if (resolved.isEmpty())
+        {
+            return List.of();
+        }
+
+        List<String> together = new ArrayList<>();
+        List<String> apart = new ArrayList<>();
+
+        for (BondBook.Resolved bond : resolved)
+        {
+            (bond.isDiscord() ? apart : together).add("$(li)" + describeBond(bond));
+        }
+
+        List<BookStuff.Page> pages = new ArrayList<>();
+
+        //two runs of pages rather than one list with a heading in the middle: a list that
+        //paginates can put a discord at the top of a continuation page with nothing above it to
+        //say it is one, and "Powder Magazine, within 8 blocks" then reads as advice to build one
+        paginate(pages, together,
+                "Worth more for standing near the right neighbours - never required, only rewarded:",
+                "Rooms that go together");
+        paginate(pages, apart,
+                "And rooms that do not go with it - each one costs this room while it stands there:",
+                "Rooms that do not");
+
+        return pages;
+    }
+
+    /** Lay a list out over as many pages as it needs, the first opened with {@code opener}. */
+    private static void paginate(List<BookStuff.Page> pages, List<String> lines, String opener, String title)
+    {
+        int index = 0;
+        boolean first = true;
+
+        while (index < lines.size())
+        {
+            StringBuilder text = new StringBuilder(first ? opener : "And also:");
+
+            for (int room = BOND_ENTRIES_PER_PAGE; index < lines.size() && room > 0; index++, room--)
+            {
+                text.append(lines.get(index));
+            }
+
+            pages.add(new BookStuff.TextPage(text.toString()).setTitle(title));
+            first = false;
+        }
+    }
+
+    /**
+     * One bond as a page entry: the other room, linked to its own page, then the relation in
+     * plain words with its numbers stated (#102) - "Enchanting Room, with a way through between
+     * them, up to 12 blocks long". The room's name is read from its id the way the entry's own
+     * title is, so the link and the page it lands on agree.
+     */
+    static String describeBond(BondBook.Resolved bond)
+    {
+        final String otherPath = ArchetypeDocs.pathOf(bond.other());
+        final String otherName = StringHelper.fixCapitalisation(otherPath);
+
+        return "$(l:" + SoulHome.MODID + ":multiblocks/" + otherPath + ")" + otherName + "$(/l), "
+                + bond.relation().describe(bond.params());
     }
 
     private static String whereItGoes(ArchetypeDefinition archetype)

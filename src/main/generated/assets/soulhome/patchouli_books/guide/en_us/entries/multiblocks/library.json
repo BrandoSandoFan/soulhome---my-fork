@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Seating: $(l:soulhome:multiblocks/tags#seating)any seating$(/l)$(li)Lectern: Lectern$(li)Shelves: $(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/arcane_sanctum)Arcane Sanctum$(/l), with a way through between them, up to 12 blocks long$(li)$(l:soulhome:multiblocks/enchanting_room)Enchanting Room$(/l), with a way through between them, up to 12 blocks long$(li)$(l:soulhome:multiblocks/observatory)Observatory$(/l), built beneath it, with at most 6 blocks between",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

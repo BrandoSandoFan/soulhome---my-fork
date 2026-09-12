@@ -39,6 +39,7 @@ curl -sSL -o $SP/gson.jar  https://repo1.maven.org/maven2/com/google/code/gson/g
 javac -nowarn -d $SP/out -cp "$SP/junit.jar:$SP/gson.jar" \
   $(find src/main/java/leaf/soulhome/structures/core -name '*.java') \
   src/main/java/leaf/soulhome/structures/BuiltinFormClauses.java \
+  src/main/java/leaf/soulhome/structures/BuiltinBondRelations.java \
   $(find src/test/java/leaf/soulhome/structures/core -name '*.java')
 
 java -jar $SP/junit.jar execute -cp "$SP/out:$SP/gson.jar:src/main/resources:src/test/resources" \
@@ -71,8 +72,10 @@ The whole feature is one pipeline. Follow it in this order when you need to unde
 ```
 ServerLevel
   └─ SnapshotBlockVolume.capture      server thread; copies a box of blocks into arrays
-      └─ RegionScanner.scan           worker thread; carves the copy into SoulRegions
-          └─ ArchetypeClassifier      worker thread; scores each region against every archetype
+      └─ RegionScanner.scanWithAdjacency   worker thread; carves the copy into SoulRegions, and
+          │                                  computes how they relate (RegionAdjacency)
+          └─ ArchetypeClassifier      worker thread; scores each region against every archetype,
+              │                       then each awarded room's bonds against the other awards
               └─ AwardedRoom / BuffCalculator   what the rooms are worth
                   └─ SoulBuffs / PlayerSoulBuffs   capability on the player
                       └─ buffs/effects/*          what a magnitude actually does in the world
@@ -101,7 +104,7 @@ The bridge is three small interfaces/records:
 | Package | What lives there |
 | --- | --- |
 | `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. |
-| `structures` | the game-facing half: snapshot, datapack loading, scan scheduling, saved data, codecs |
+| `structures` | the game-facing half: snapshot, datapack loading, scan scheduling, saved data, codecs (`ArchetypeCodecs`, `FormCodecs`, `BondCodecs`) |
 | `config` | one `ForgeConfigSpec`; every knob is server-side and read through an immutable `Snapshot` |
 | `buffs`, `buffs/effects` | the capability holding a player's magnitudes, and one class per buff type |
 | `feedback` | `SoulReport` (chat text for `/soulhome analyse`) and `RegionHighlight` (lens boxes) |
@@ -216,6 +219,40 @@ Shape of one:
 Which blocks the scanner even bothers clustering around is derived from the loaded archetypes by
 `ArchetypeSignals`, so a datapack that adds an archetype gets its blocks detected with no Java
 change. Tags live in `data/soulhome/tags/blocks/`.
+
+### Bonds: how a room sits relative to other rooms
+
+`bonds` on an archetype (#140) is the third kind of evidence beside `signals` and `structures`:
+`with` names another archetype, `relation` one of a closed vocabulary registered in
+`BondRelationRegistry` (`adjoins`, `near`, `connects`, `above`/`beneath`, `encloses`/`within`, via
+`BuiltinBondRelations`), `weight` is positive for a bond and negative for a discord, `role` feeds
+the diversity multiplier, and relation-specific parameters follow the same `ClauseParamSpec` shape
+clauses use. Rules that hold, and that the tests pin:
+
+- **Declared once, credited to both rooms.** `BondBook` resolves every declaration for both sides,
+  mirrors a directional relation (`mine beneath workshop` reads `workshop above mine` from the
+  workshop), and keeps one of two declarations that describe the same bond - the one on the
+  archetype whose id sorts first - logging the other at load.
+- **Bonds are scored against the awards, and never re-run.** `ArchetypeClassifier.classify(List,
+  RegionAdjacency)` classifies every region on its own first, then grades each awarded room's bonds
+  against the other awards. A bond adjusts what a room is worth, never what it is. Bond credit is
+  capped at `bondShareCap` of the room's own signal and arrangement total; discords are not capped,
+  and can cost a room every tier but its first.
+- **Every relation reads only `RegionAdjacency`**, computed once per scan by `RegionScanner`:
+  shared shell cells, a walkable path length, a geodesic separation, and hole-filled footprints. The
+  floods behind path and separation run out to `ArchetypeSignals.adjacencyReachFor`, which is zero
+  when no loaded bond is distance-based - so a pack without bonds pays nothing for them.
+- **Connectivity crosses doors; region detection does not.** Both are right, for different
+  questions, and the javadocs on `RegionAdjacency` and `RegionScanner` each point at the other so
+  neither is "fixed" to match.
+- **Order independence.** Every relationship is symmetric, and each region's `identityHash` folds
+  in a commutative digest of its relationships computed from every region's own hash in a second
+  pass. `RegionAdjacencyTest` and `BondScoringTest` mirror layouts to prove it.
+- **`ArchetypeCeilingTest` judges the tier bands on the solo ceiling** and separately bounds how
+  much headroom bonds may add (`ArchetypeCeiling.withBonds`), because thresholds only ever come
+  down. Give every positive bond on a room the same role, or the diversity bump alone trips it.
+- **The book documents bonds from the data** (`PatchouliMultiblocks.bondPages`), and its explainer
+  gates on the `two_rooms` advancement, fired when one scan awards two rooms.
 
 ### Rooms written for mods this one does not depend on
 

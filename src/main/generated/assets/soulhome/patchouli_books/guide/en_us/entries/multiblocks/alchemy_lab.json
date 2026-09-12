@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Reagents: $(l:soulhome:multiblocks/tags#reagents)any reagents$(/l)$(li)Stand: Brewing Stand$(li)Storage: $(l:soulhome:multiblocks/tags#storage)any storage$(/l)",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/greenhouse)Greenhouse$(/l), with a way through between them, up to 12 blocks long$(li)$(l:soulhome:multiblocks/purifying_font)Purifying Font$(/l), within 10 blocks",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,
