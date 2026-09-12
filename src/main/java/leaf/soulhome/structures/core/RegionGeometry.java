@@ -138,6 +138,17 @@ public final class RegionGeometry
         return this.blocked.contains(new Blocked(x, y, z));
     }
 
+    /**
+     * Whether solidity was tracked for this region at all - see {@link #isBlocked}, which cannot
+     * tell "open" from "never asked" on its own. The {@code clearance} clause (#168) needs the
+     * difference: it measures the floor a player could stand on, and an index nobody wrote would
+     * otherwise read as a room with no floor in it, which is a fair description of neither.
+     */
+    public boolean hasClearanceData()
+    {
+        return !this.blocked.isEmpty();
+    }
+
     /** This region's own extent, if the caller building this geometry supplied one. */
     public Optional<RegionBounds> bounds()
     {

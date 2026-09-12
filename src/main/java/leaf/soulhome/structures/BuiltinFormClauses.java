@@ -11,6 +11,7 @@ import leaf.soulhome.structures.core.ApexClauseType;
 import leaf.soulhome.structures.core.AtRangeClauseType;
 import leaf.soulhome.structures.core.BeneathClauseType;
 import leaf.soulhome.structures.core.BesideClauseType;
+import leaf.soulhome.structures.core.ClearanceClauseType;
 import leaf.soulhome.structures.core.ClusterClauseType;
 import leaf.soulhome.structures.core.EnclosureClauseType;
 import leaf.soulhome.structures.core.FacingClauseType;
@@ -22,6 +23,7 @@ import leaf.soulhome.structures.core.LaneClauseType;
 import leaf.soulhome.structures.core.LineClauseType;
 import leaf.soulhome.structures.core.LoopClauseType;
 import leaf.soulhome.structures.core.PlatformClauseType;
+import leaf.soulhome.structures.core.SpacingClauseType;
 import leaf.soulhome.structures.core.SurroundsClauseType;
 import leaf.soulhome.structures.core.VerticalityClauseType;
 import leaf.soulhome.structures.core.WithinClauseType;
@@ -30,7 +32,15 @@ import leaf.soulhome.structures.core.WithinClauseType;
  * Registers every {@code shape}/{@code relation} clause type the mod ships onto
  * {@link FormClauseRegistry#BUILTIN} - the vocabulary Phase 2 of the structural considerations epic
  * (#25) adds: distance and direction (#29), surrounding and containment (#30), closed circuits
- * (#31), and platforms/enclosures/lines/clusters (#32).
+ * (#31), and platforms/enclosures/lines/clusters (#32) - together with the Phase 4 additions #37
+ * held back until an archetype needed them: room to move (#168) and regular intervals (#169).
+ *
+ * <p>The third clause #37 filed, {@code soulhome:symmetry}, is deliberately absent. #170 closed it
+ * unshipped: {@code surrounds} already grades a shrine's altar on angular balance around its own
+ * core, {@code enclosure} and {@code loop} already grade a rift chamber's framing, and a clause
+ * rewarding mirror symmetry generally would be the mod telling players there is a correct way for a
+ * room to look - which is the thing #25 exists to avoid. Do not add it back without a case the
+ * existing vocabulary genuinely cannot ask.
  *
  * <p>Every shipped archetype's JSON now references some of these ids (#34), and this is what makes
  * that vocabulary resolvable rather than every {@code shape}/{@code relation} clause in the game
@@ -100,6 +110,13 @@ public final class BuiltinFormClauses
 
         // #36 - which way a block points, without widening BlockSignature to carry state
         register(registry, new FacingClauseType());
+
+        // #168 - room to move, the counterweight to a density multiplier that otherwise reads open
+        // space as an absence
+        register(registry, new ClearanceClauseType());
+
+        // #169 - repeated things at regular intervals: a colonnade, not a pile of pillars
+        register(registry, new SpacingClauseType());
     }
 
     private static void register(FormClauseRegistry registry, FormClauseType type)
