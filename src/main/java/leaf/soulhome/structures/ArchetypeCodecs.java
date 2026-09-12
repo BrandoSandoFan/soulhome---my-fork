@@ -10,6 +10,8 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.BlockMatcher;
+import leaf.soulhome.structures.core.Bond;
+import leaf.soulhome.structures.core.BondRelationRegistry;
 import leaf.soulhome.structures.core.Form;
 import leaf.soulhome.structures.core.FormClauseRegistry;
 import leaf.soulhome.structures.core.RegionType;
@@ -103,6 +105,12 @@ public final class ArchetypeCodecs
      */
     public static final Codec<Form> FORM = FormCodecs.forRegistry(FormClauseRegistry.BUILTIN);
 
+    /**
+     * Where a room sits relative to other rooms - see {@link Bond} and the Soul Architecture epic
+     * (#140). Hand-written for the same reasons {@link #FORM} is; see {@link BondCodecs}.
+     */
+    public static final Codec<List<Bond>> BONDS = BondCodecs.listForRegistry(BondRelationRegistry.BUILTIN);
+
     public static final Codec<ArchetypeDefinition.BuffSpec> BUFF_SPEC =
             RecordCodecBuilder.create(instance -> instance
                     .group(
@@ -139,11 +147,13 @@ public final class ArchetypeCodecs
                             BUFF_SPEC.listOf().optionalFieldOf("buffs", List.of())
                                     .forGetter(ArchetypeDefinition::buffs),
                             FORM.listOf().optionalFieldOf("structures", List.of())
-                                    .forGetter(ArchetypeDefinition::structures))
-                    .apply(instance, (displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures) ->
+                                    .forGetter(ArchetypeDefinition::structures),
+                            BONDS.optionalFieldOf("bonds", List.of())
+                                    .forGetter(ArchetypeDefinition::bonds))
+                    .apply(instance, (displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures, bonds) ->
                             new ArchetypeDefinition(
                                     ArchetypeDefinition.PLACEHOLDER_ID, displayName, regionTypes, minVolume,
-                                    requirements, signals, detractors, tiers, buffs, structures)));
+                                    requirements, signals, detractors, tiers, buffs, structures, bonds)));
 
     /**
      * The over-the-wire format, which does carry the id - the client has no file paths to derive
@@ -171,7 +181,9 @@ public final class ArchetypeCodecs
                             BUFF_SPEC.listOf().optionalFieldOf("buffs", List.of())
                                     .forGetter(ArchetypeDefinition::buffs),
                             FORM.listOf().optionalFieldOf("structures", List.of())
-                                    .forGetter(ArchetypeDefinition::structures))
+                                    .forGetter(ArchetypeDefinition::structures),
+                            BONDS.optionalFieldOf("bonds", List.of())
+                                    .forGetter(ArchetypeDefinition::bonds))
                     .apply(instance, ArchetypeDefinition::new));
 
     private ArchetypeCodecs()

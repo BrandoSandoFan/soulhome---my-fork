@@ -39,6 +39,10 @@ import java.util.Set;
  *                      holds. Never a gate: a {@link Form} cannot appear in {@link #requirements},
  *                      because there is nowhere on {@link Requirement} to put one. See the
  *                      structural considerations epic (#25).
+ * @param bonds        weighted evidence about where this room sits relative to other rooms - a
+ *                      library that connects to the enchanting room, a mine beneath the workshop.
+ *                      Declared once, credited to both rooms, and never a gate either. See the
+ *                      Soul Architecture epic (#140) and {@link Bond}.
  */
 public record ArchetypeDefinition(
         String id,
@@ -50,7 +54,8 @@ public record ArchetypeDefinition(
         List<Signal> detractors,
         List<Tier> tiers,
         List<BuffSpec> buffs,
-        List<Form> structures)
+        List<Form> structures,
+        List<Bond> bonds)
 {
     /**
      * Default per-signal ceiling. Caps are the hard backstop against volume-stuffing; the
@@ -74,11 +79,28 @@ public record ArchetypeDefinition(
         detractors = detractors == null ? List.of() : List.copyOf(detractors);
         buffs = buffs == null ? List.of() : List.copyOf(buffs);
         structures = structures == null ? List.of() : List.copyOf(structures);
+        bonds = bonds == null ? List.of() : List.copyOf(bonds);
 
         // ascending, so tierFor can walk them and take the last one cleared
         List<Tier> sortedTiers = new ArrayList<>(tiers == null ? List.of() : tiers);
         sortedTiers.sort(Comparator.comparingDouble(Tier::minScore));
         tiers = List.copyOf(sortedTiers);
+    }
+
+    /** An archetype declaring no bonds - every archetype before #140, and most fixtures since. */
+    public ArchetypeDefinition(
+            String id,
+            String displayName,
+            List<RegionType> regionTypes,
+            int minVolume,
+            List<Requirement> requirements,
+            List<Signal> signals,
+            List<Signal> detractors,
+            List<Tier> tiers,
+            List<BuffSpec> buffs,
+            List<Form> structures)
+    {
+        this(id, displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures, List.of());
     }
 
     /** The loader supplies the id from the file path; the file body does not get to name itself. */
@@ -87,7 +109,7 @@ public record ArchetypeDefinition(
         return new ArchetypeDefinition(
                 newId, this.displayName, this.regionTypes, this.minVolume,
                 this.requirements, this.signals, this.detractors, this.tiers, this.buffs,
-                this.structures);
+                this.structures, this.bonds);
     }
 
     public boolean accepts(RegionType type)
@@ -213,6 +235,14 @@ public record ArchetypeDefinition(
             if (form.name() != null && !form.name().isBlank() && !formNames.add(form.name()))
             {
                 errors.add(where + ": duplicate form name '" + form.name() + "'");
+            }
+        }
+
+        for (int i = 0; i < this.bonds.size(); i++)
+        {
+            for (String error : this.bonds.get(i).validationErrors())
+            {
+                errors.add("bonds[" + i + "]: " + error);
             }
         }
 

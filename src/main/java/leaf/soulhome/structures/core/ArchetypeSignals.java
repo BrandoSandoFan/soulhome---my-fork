@@ -142,6 +142,33 @@ public final class ArchetypeSignals
         return false;
     }
 
+    /**
+     * How far {@link RegionScanner} has to flood to grade every bond these archetypes declare -
+     * the largest {@link BondRelation#reach} over all of them, resolved against {@code registry}.
+     * Zero when nothing declares a distance-based bond, which makes the adjacency floods free for a
+     * pack that does not use them. Derived the way every other filter here is, so a datapack that
+     * adds a far-reaching bond gets its reach without a Java change.
+     */
+    public static int adjacencyReachFor(Collection<ArchetypeDefinition> archetypes, BondRelationRegistry registry)
+    {
+        int reach = 0;
+
+        for (ArchetypeDefinition archetype : archetypes)
+        {
+            for (Bond bond : archetype.bonds())
+            {
+                BondRelation relation = registry.get(bond.relation()).orElse(null);
+
+                if (relation != null)
+                {
+                    reach = Math.max(reach, relation.reach(bond.params()));
+                }
+            }
+        }
+
+        return reach;
+    }
+
     private static List<BlockMatcher> collectSignalMatchers(Collection<ArchetypeDefinition> archetypes)
     {
         List<BlockMatcher> matchers = new ArrayList<>();

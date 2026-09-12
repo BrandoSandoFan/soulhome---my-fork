@@ -60,6 +60,7 @@ public final class RegionAdjacency
     private final int[][] footprintOverlap;
     private final int[] interiorMinY;
     private final int[] interiorMaxY;
+    private final int[] faceArea;
 
     RegionAdjacency(
             int reach,
@@ -70,7 +71,8 @@ public final class RegionAdjacency
             int[] footprint,
             int[][] footprintOverlap,
             int[] interiorMinY,
-            int[] interiorMaxY)
+            int[] interiorMaxY,
+            int[] faceArea)
     {
         this.reach = reach;
         this.shellCells = shellCells;
@@ -81,6 +83,7 @@ public final class RegionAdjacency
         this.footprintOverlap = footprintOverlap;
         this.interiorMinY = interiorMinY;
         this.interiorMaxY = interiorMaxY;
+        this.faceArea = faceArea;
     }
 
     /** No relationships at all between this many regions: nothing shares, touches or connects. */
@@ -102,6 +105,7 @@ public final class RegionAdjacency
                 new int[regionCount],
                 new int[regionCount][regionCount],
                 new int[regionCount],
+                new int[regionCount],
                 new int[regionCount]);
     }
 
@@ -120,6 +124,16 @@ public final class RegionAdjacency
     public int shellCells(int region)
     {
         return this.shellCells[region];
+    }
+
+    /**
+     * The area of this region's largest side, from the box around its air - what a whole shared
+     * wall amounts to, so {@code adjoins} can grade "shares its entire wall" as 1.0 rather than as
+     * the sixth of a shell one face of a cube is. Zero for a region with no shell.
+     */
+    public int faceArea(int region)
+    {
+        return this.faceArea[region];
     }
 
     /** Boundary cells the two have in common - a shared wall, floor or ceiling. */

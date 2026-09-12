@@ -1340,10 +1340,12 @@ public final class RegionScanner
         int[][] overlap = new int[count][count];
         int[] interiorMinY = new int[count];
         int[] interiorMaxY = new int[count];
+        int[] faceArea = new int[count];
 
         if (count == 0)
         {
-            return new RegionAdjacency(reach, shellCells, shared, path, separation, footprint, overlap, interiorMinY, interiorMaxY);
+            return new RegionAdjacency(
+                    reach, shellCells, shared, path, separation, footprint, overlap, interiorMinY, interiorMaxY, faceArea);
         }
 
         short[] owner = new short[this.flags.length];
@@ -1355,6 +1357,10 @@ public final class RegionScanner
             shellCells[i] = region.shell().size();
             interiorMinY[i] = region.interiorBounds().minY();
             interiorMaxY[i] = region.interiorBounds().maxY();
+            faceArea[i] = region.shell().isEmpty()
+                    ? 0
+                    : Math.max(region.interiorBounds().sizeX(), region.interiorBounds().sizeZ())
+                            * region.interiorBounds().sizeY();
 
             for (int c = 0; c < region.interior().size(); c++)
             {
@@ -1426,7 +1432,8 @@ public final class RegionScanner
             }
         }
 
-        return new RegionAdjacency(reach, shellCells, shared, path, separation, footprint, overlap, interiorMinY, interiorMaxY);
+        return new RegionAdjacency(
+                reach, shellCells, shared, path, separation, footprint, overlap, interiorMinY, interiorMaxY, faceArea);
     }
 
     private static int[][] filled(int count, int value)
