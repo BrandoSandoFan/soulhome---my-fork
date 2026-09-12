@@ -91,6 +91,11 @@ public final class BuffDisplayNames
         names.put(SoulBuffTypes.RUPTURE, "Rupture");
         names.put(SoulBuffTypes.CLEANSING_FONT, "Cleansing Font");
         names.put(SoulBuffTypes.UPDRAFT, "Updraft");
+        names.put(SoulBuffTypes.LAST_STAND, "Last Stand");
+        names.put(SoulBuffTypes.CALMING_SMOKE, "Calming Smoke");
+
+        //the one passive that came with the same three rooms
+        names.put(SoulBuffTypes.CLEAR_SIGHT, "Clear Sight");
 
         //unmodifiableMap rather than Map.copyOf: the copy would be free to reorder itself, and the
         //order here is the order the lang file is written in
