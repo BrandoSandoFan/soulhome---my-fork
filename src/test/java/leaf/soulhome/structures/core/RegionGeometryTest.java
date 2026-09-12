@@ -150,6 +150,19 @@ class RegionGeometryTest
     }
 
     @Test
+    @DisplayName("hasClearanceData tells 'nothing solid was tracked' from 'nothing solid is there' (#168)")
+    void hasClearanceDataSaysWhetherSolidityWasTracked()
+    {
+        RegionGeometry untracked = RegionGeometry.builder(10).add(0, 0, 0, TestBlocks.BOOKSHELF).build();
+        assertFalse(untracked.hasClearanceData(), "isBlocked alone cannot tell open from never-asked");
+
+        RegionGeometry tracked = RegionGeometry.builder(10).addBlocked(1, 2, 3).build();
+        assertTrue(tracked.hasClearanceData());
+
+        assertFalse(RegionGeometry.EMPTY.hasClearanceData());
+    }
+
+    @Test
     @DisplayName("bounds is empty until the builder is given one, and present afterwards")
     void boundsIsOptional()
     {
