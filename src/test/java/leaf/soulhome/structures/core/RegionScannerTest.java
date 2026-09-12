@@ -511,10 +511,80 @@ class RegionScannerTest
                 new String[]{"#######", "#######", "#######", "#######", "#######"},
                 new String[]{"hhhhhhh", "hhhhhhh", "hhhhhhh", "hhhhhhh", "hhhhhhh"}));
 
+        // kept beside the roof garden below on purpose: the two are the same shape, and a hay
+        // bale filling its cell where farmland does not is the whole of what tells them apart
         assertEquals(1, regions.size(), "the barn, and nothing else");
         assertEquals(RegionType.ENCLOSED, regions.get(0).type());
         assertEquals(0, regions.get(0).allBlocks().count(BlockMatcher.ofBlocks("minecraft:hay_block")),
                 "the roof is the barn's, but it is not what the barn is scored on");
+    }
+
+    @Test
+    @DisplayName("a garden planted on a flat roof keeps its soil (#138)")
+    void aRoofGardenKeepsItsFarmland()
+    {
+        // the same shape as the barn above with farmland in place of hay and wheat planted in it.
+        // The farmland sat directly against the ceiling's outer face and was claimed as the
+        // building's fabric, so the garden came back as wheat with no ground under it
+        List<SoulRegion> regions = scanForAnySignal(roofGarden());
+
+        assertEquals(2, regions.size(), "the house and the garden on its roof: " + regions);
+
+        SoulRegion house = regions.get(0).type() == RegionType.ENCLOSED ? regions.get(0) : regions.get(1);
+        SoulRegion garden = house == regions.get(0) ? regions.get(1) : regions.get(0);
+
+        assertEquals(RegionType.ENCLOSED, house.type());
+        assertEquals(RegionType.OPEN, garden.type());
+        assertEquals(25, countIn(garden, "minecraft:crops"));
+        assertEquals(25, garden.allBlocks().count(BlockMatcher.ofBlocks("minecraft:farmland")),
+                "every block of soil the wheat is planted in");
+        assertEquals(0, garden.allBlocks().count(BlockMatcher.ofBlocks("minecraft:stone")),
+                "the roof under the soil is the house's, not the garden's");
+    }
+
+    @Test
+    @DisplayName("a two-layer roof is claimed whole and seeds nothing (#138)")
+    void aThickRoofIsClaimedWhole()
+    {
+        // a bookshelf box - every block of it a signal - with a roof two courses thick. The
+        // second course touches no interior air, so it is fabric or it is loose
+        String[] solid = {"BBBBBBB", "BBBBBBB", "BBBBBBB", "BBBBBBB", "BBBBBBB", "BBBBBBB", "BBBBBBB"};
+        GridVolume study = GridVolume.of(
+                solid,
+                new String[]{
+                        "BBBBBBB",
+                        "B.....B",
+                        "B.....B",
+                        "B.....B",
+                        "B.....B",
+                        "B.....B",
+                        "BBBBBBB"},
+                solid,
+                solid);
+
+        Predicate<BlockSignature> anyBookshelf = signature -> signature.hasTag("soulhome:bookshelves");
+        List<SoulRegion> regions = RegionScanner.scan(study, anyBookshelf, ScanSettings.DEFAULTS);
+
+        assertEquals(1, regions.size(), "the study, and nothing else: " + regions);
+        assertEquals(RegionType.ENCLOSED, regions.get(0).type());
+    }
+
+    /** A sealed 5x5 stone room with wheat planted on farmland across its flat roof. */
+    private static GridVolume roofGarden()
+    {
+        return GridVolume.of(
+                new String[]{"#######", "#######", "#######", "#######", "#######", "#######", "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                new String[]{"#######", "#######", "#######", "#######", "#######", "#######", "#######"},
+                new String[]{".......", ".fffff.", ".fffff.", ".fffff.", ".fffff.", ".fffff.", "......."},
+                new String[]{".......", ".wwwww.", ".wwwww.", ".wwwww.", ".wwwww.", ".wwwww.", "......."});
     }
 
     @Test

@@ -53,7 +53,8 @@ import java.util.function.Predicate;
  * with a hay roof came back as a barn plus a mysterious second region sitting on top of it. Blocks
  * within {@link ScanSettings#shellDepth} of a shell are claimed for that building instead. They are
  * not scored - the shell alone is still what a room is worth - they just stop being available to
- * anything else.
+ * anything else. Only full blocks are fabric: the farmland of a roof garden is something standing
+ * on the building, not part of it - see {@link #claimBuildingFabric}.
  *
  * <p>This used to be done by excluding each room's whole bounding box, which was worse in both
  * directions: it still missed anything above the roofline, and for any build that is not a plain
@@ -725,6 +726,27 @@ public final class RegionScanner
      *
      * <p>Claimed, not counted: these blocks are excluded from the pass below, but they are not
      * added to any room's boundary. What a room is worth is still what lines it.
+     *
+     * <h2>Fabric is full blocks</h2>
+     *
+     * Only a block that fills its cell is fabric - {@link Passability#isFullBlock}, not merely
+     * {@link Passability#stopsFill}. This used to claim anything that stopped the fill, and so
+     * claimed the farmland of a garden planted on a flat roof: the soil sat directly against the
+     * ceiling's outer face, was taken as the building's, and the farm came back as wheat with no
+     * ground under it - {@code /soulhome analyse} telling a player their farm was missing farmland
+     * while they stood on it (#138).
+     *
+     * <p>The tempting rules were the direction the spread travelled - upward off a roof, with sky
+     * above, is more likely a thing on the roof than part of it - and whether the candidate is the
+     * same kind of block as the shell it sits against. Both misfire on the case this pass exists
+     * for: a barn's hay roof is also one layer of a different material laid upward off a stone
+     * ceiling under open sky, and it has to stay the barn's. What actually separates the two is
+     * that hay fills its cell and farmland does not. The same split {@link Passability} already
+     * draws for what divides one open-air build from the next holds here too: a fence, a slab, a
+     * chest or a tilled field is something a player puts <i>on</i> a building, and a full block
+     * against its shell is the building. A single layer of a full-block signal on a roof - one
+     * course of ice under a rooftop rail circuit, say - still reads as roof, and that is the
+     * trade this makes knowingly rather than the one it makes by accident.
      */
     private void claimBuildingFabric()
     {
@@ -766,7 +788,7 @@ public final class RegionScanner
                         continue;
                     }
 
-                    if (!this.volume.passabilityAt(nx, ny, nz).stopsFill())
+                    if (!this.volume.passabilityAt(nx, ny, nz).isFullBlock())
                     {
                         continue;
                     }
