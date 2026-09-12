@@ -718,6 +718,228 @@ class RegionScannerTest
 
     // endregion
 
+    // region shared walls and floors (#136, #137)
+
+    private static double creditIn(SoulRegion region, String blockId)
+    {
+        return region.allBlocks().credit(BlockMatcher.ofBlocks(blockId));
+    }
+
+    @Test
+    @DisplayName("a slab between two stacked rooms is the upper room's floor, not the lower room's evidence (#136)")
+    void aSharedSlabBelongsToTheRoomStandingOnIt()
+    {
+        // build a library, then a loft on top of it with a hay floor. The hay used to be six
+        // blocks of the *lower* room's boundary, so the library beneath was a library holding
+        // hay - and floor the loft in bookshelves instead and the cellar gained shelves it did
+        // not contain
+        List<SoulRegion> shared = scanWithoutSignals(stackedRooms(true));
+
+        assertEquals(2, shared.size());
+
+        SoulRegion upper = higherOf(shared.get(0), shared.get(1));
+        SoulRegion lower = upper == shared.get(0) ? shared.get(1) : shared.get(0);
+
+        assertEquals(9, creditIn(upper, "minecraft:hay_block"), 1e-9,
+                "the loft keeps every block of the floor it is built out of");
+        assertEquals(0, creditIn(lower, "minecraft:hay_block"), 1e-9,
+                "the loft's floor says nothing about the library beneath it");
+        assertEquals(6, creditIn(lower, "minecraft:bookshelf"), 1e-9);
+        assertEquals(9 + 18, creditIn(lower, "minecraft:stone"), 1e-9,
+                "its floor and its walls - the ceiling is the loft's, and is hay anyway");
+    }
+
+    @Test
+    @DisplayName("two stacked rooms with their own floors score exactly as they always did (#136)")
+    void stackedRoomsWithTheirOwnFloorsAreUntouched()
+    {
+        // case B from the report, kept beside case A so the rule reads as a comparison: give
+        // the rooms their own slabs and nothing is shared, so nothing is split
+        List<SoulRegion> separate = scanWithoutSignals(stackedRooms(false));
+
+        assertEquals(2, separate.size());
+
+        SoulRegion upper = higherOf(separate.get(0), separate.get(1));
+        SoulRegion lower = upper == separate.get(0) ? separate.get(1) : separate.get(0);
+
+        assertEquals(9, creditIn(upper, "minecraft:hay_block"), 1e-9);
+        assertEquals(0, creditIn(lower, "minecraft:hay_block"), 1e-9);
+        assertEquals(6, creditIn(lower, "minecraft:bookshelf"), 1e-9);
+
+        // and the library's own ceiling, which nothing stands on, is still all its own: a 3x3
+        // floor, a 3x3 ceiling, and 24 wall cells of which 6 are bookshelves
+        assertEquals(9 + 9 + 18, creditIn(lower, "minecraft:stone"), 1e-9);
+    }
+
+    @Test
+    @DisplayName("a wall shared between two rooms is credited half to each, so partitioning is break-even (#137)")
+    void aSharedWallIsOneWall()
+    {
+        // one 15x3x2 space cut into four rooms by three bookshelf walls. 18 bookshelves placed;
+        // every internal wall used to be scored twice, for 36 credits, so a player who partitioned
+        // got four rooms each nearly clearing a gate the whole build could not clear once
+        List<SoulRegion> rooms = scanWithoutSignals(partitionedRooms());
+
+        assertEquals(4, rooms.size());
+
+        double credited = 0d;
+
+        for (SoulRegion room : rooms)
+        {
+            credited += creditIn(room, "minecraft:bookshelf");
+        }
+
+        assertEquals(18, credited, 1e-9, "total credit equals the number of bookshelves actually placed");
+
+        List<SoulRegion> byX = new java.util.ArrayList<>(rooms);
+        byX.sort(java.util.Comparator.comparingInt(room -> room.bounds().minX()));
+
+        assertEquals(3, creditIn(byX.get(0), "minecraft:bookshelf"), 1e-9, "an end room sees one partition");
+        assertEquals(6, creditIn(byX.get(1), "minecraft:bookshelf"), 1e-9, "a middle room sees two");
+        assertEquals(6, creditIn(byX.get(2), "minecraft:bookshelf"), 1e-9);
+        assertEquals(3, creditIn(byX.get(3), "minecraft:bookshelf"), 1e-9);
+
+        // the whole-block view rounds down rather than promising a block that was not credited
+        assertEquals(3, byX.get(0).allBlocks().count(BlockMatcher.ofBlocks("minecraft:bookshelf")));
+    }
+
+    @Test
+    @DisplayName("a room's own outer walls are unaffected by having a neighbour (#137)")
+    void outerWallsAreNotSplit()
+    {
+        List<SoulRegion> rooms = scanWithoutSignals(partitionedRooms());
+        List<SoulRegion> byX = new java.util.ArrayList<>(rooms);
+        byX.sort(java.util.Comparator.comparingInt(room -> room.bounds().minX()));
+
+        // an end room: 3x3 floor and ceiling, a 3x2 end wall, two 3x2 side walls - all stone,
+        // all its own. Its only shared cells are the partition's six bookshelves.
+        assertEquals(9 + 9 + 6 + 6 + 6, creditIn(byX.get(0), "minecraft:stone"), 1e-9);
+    }
+
+    @Test
+    @DisplayName("two standalone identical rooms score identically, and a single room is untouched")
+    void standaloneRoomsAreUnchanged()
+    {
+        List<SoulRegion> two = scanWithoutSignals(GridVolume.of(
+                new String[]{"###########", "###########", "###########", "###########", "###########", "###########"},
+                new String[]{
+                        "#BBB#.#BBB#",
+                        "#...#.#...#",
+                        "#...#.#...#",
+                        "#...#.#...#",
+                        "###########",
+                        "..........."},
+                new String[]{"###########", "###########", "###########", "###########", "###########", "###########"}));
+
+        assertEquals(2, two.size());
+        assertEquals(two.get(0).boundary().asMap(), two.get(1).boundary().asMap());
+        assertEquals(two.get(0).allBlocks().totalCredit(), two.get(1).allBlocks().totalCredit(), 1e-9);
+
+        SoulRegion alone = scan(sealedRoom()).get(0);
+        assertEquals(30, alone.boundary().totalCredit(), 1e-9, "every one of its own blocks, in full");
+        assertEquals(30, alone.boundary().total());
+    }
+
+    @Test
+    @DisplayName("credit does not depend on which room the scanner reached first")
+    void creditIsIndependentOfDiscoveryOrder()
+    {
+        // the same two stacked rooms, built the other way up: the hay-floored room below and the
+        // library above. The scanner sweeps in x, y, z order, so the room it reaches first flips
+        // - and what each room is credited must not
+        List<SoulRegion> loftAbove = scanWithoutSignals(stackedRooms(true));
+        List<SoulRegion> loftBelow = scanWithoutSignals(stackedRoomsFlipped());
+
+        SoulRegion loftA = withHayFloor(loftAbove);
+        SoulRegion loftB = withHayFloor(loftBelow);
+        SoulRegion libraryA = loftA == loftAbove.get(0) ? loftAbove.get(1) : loftAbove.get(0);
+        SoulRegion libraryB = loftB == loftBelow.get(0) ? loftBelow.get(1) : loftBelow.get(0);
+
+        assertEquals(9, creditIn(loftA, "minecraft:hay_block"), 1e-9);
+        assertEquals(9, creditIn(loftB, "minecraft:hay_block"), 1e-9);
+        assertEquals(0, creditIn(libraryA, "minecraft:hay_block"), 1e-9);
+        assertEquals(0, creditIn(libraryB, "minecraft:hay_block"), 1e-9);
+        assertEquals(6, creditIn(libraryA, "minecraft:bookshelf"), 1e-9);
+        assertEquals(6, creditIn(libraryB, "minecraft:bookshelf"), 1e-9);
+    }
+
+    private static SoulRegion higherOf(SoulRegion a, SoulRegion b)
+    {
+        return a.bounds().minY() > b.bounds().minY() ? a : b;
+    }
+
+    private static SoulRegion withHayFloor(List<SoulRegion> regions)
+    {
+        return creditIn(regions.get(0), "minecraft:hay_block") > 0 ? regions.get(0) : regions.get(1);
+    }
+
+    /**
+     * A 3x3 library two blocks high with bookshelves on two walls, and a 3x3 loft floored in hay
+     * above it. With {@code shareSlab} the hay is the library's ceiling; without it the library
+     * has a stone ceiling of its own and the hay floor sits on top of that.
+     */
+    private static GridVolume stackedRooms(boolean shareSlab)
+    {
+        String[] slab = {"#####", "#####", "#####", "#####", "#####"};
+        String[] hayFloor = {"#####", "#hhh#", "#hhh#", "#hhh#", "#####"};
+        String[] library = {
+                "#BBB#",
+                "#...#",
+                "#...#",
+                "#...#",
+                "#####"};
+        String[] loft = {
+                "#####",
+                "#...#",
+                "#...#",
+                "#...#",
+                "#####"};
+
+        return shareSlab
+                ? GridVolume.of(slab, library, library, hayFloor, loft, loft, slab)
+                : GridVolume.of(slab, library, library, slab, hayFloor, loft, loft, slab);
+    }
+
+    /** {@link #stackedRooms(boolean) stackedRooms(true)} the other way up: the hay-floored room below. */
+    private static GridVolume stackedRoomsFlipped()
+    {
+        String[] slab = {"#####", "#####", "#####", "#####", "#####"};
+        String[] hayFloor = {"#####", "#hhh#", "#hhh#", "#hhh#", "#####"};
+        String[] library = {
+                "#BBB#",
+                "#...#",
+                "#...#",
+                "#...#",
+                "#####"};
+        String[] loft = {
+                "#####",
+                "#...#",
+                "#...#",
+                "#...#",
+                "#####"};
+
+        // hay floor at the bottom this time: the loft stands on it, and the library above is
+        // separated from the loft by a stone slab the library stands on
+        return GridVolume.of(hayFloor, loft, loft, slab, library, library, slab);
+    }
+
+    /** One 15x3 space, two blocks high, partitioned into four rooms by three bookshelf walls. */
+    private static GridVolume partitionedRooms()
+    {
+        String[] slab = new String[5];
+        Arrays.fill(slab, "#################");
+        String[] rooms = {
+                "#################",
+                "#...B...B...B...#",
+                "#...B...B...B...#",
+                "#...B...B...B...#",
+                "#################"};
+
+        return GridVolume.of(slab, rooms, rooms, slab);
+    }
+
+    // endregion
+
     // region what the ground is made of (#134, #135)
 
     /**

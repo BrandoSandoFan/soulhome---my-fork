@@ -6,10 +6,11 @@ package leaf.soulhome.structures.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Comparator;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.function.Predicate;
 
 /**
@@ -58,6 +59,12 @@ import java.util.function.Predicate;
  * directions: it still missed anything above the roofline, and for any build that is not a plain
  * box it swallowed the ground around it. A farm planted in the crook of an L-shaped house fell
  * inside the house's bounding box and was never reported at all.
+ *
+ * <h2>A shared wall is one wall, and a floor belongs to the room that stands on it</h2>
+ *
+ * A shell cell is worth one block in total however many rooms touch it, and a cell a room's air
+ * stands on is that room's floor before it is anyone's ceiling. See {@link #creditShells} for the
+ * rule, the cases that forced it, and the alternatives that were rejected.
  *
  * <h2>Doors are walls</h2>
  *
@@ -327,9 +334,14 @@ public final class RegionScanner
      * Every remaining pocket of space is, by construction, sealed. Each becomes a candidate room
      * unless it is implausibly large - past a point, an enclosed space is architecture, not a room,
      * and scoring it as one lets a player wrap a wall around their whole island.
+     *
+     * <p>Every pocket is found before any room is built from one, because what a shell cell is
+     * worth to a room depends on which other rooms touch it - see {@link #creditShells}.
      */
     private void findEnclosedRegions(List<SoulRegion> regions)
     {
+        List<Pocket> pockets = new ArrayList<>();
+
         for (int x = this.bounds.minX(); x <= this.bounds.maxX(); x++)
         {
             for (int y = this.bounds.minY(); y <= this.bounds.maxY(); y++)
@@ -348,22 +360,29 @@ public final class RegionScanner
                         continue;
                     }
 
-                    SoulRegion region = collectPocket(index);
+                    IntStack interior = collectPocket(index);
 
-                    if (region != null)
+                    if (interior != null)
                     {
-                        regions.add(region);
+                        pockets.add(shellOf(interior));
                     }
                 }
             }
         }
+
+        creditShells(pockets);
+
+        for (Pocket pocket : pockets)
+        {
+            regions.add(buildEnclosedRegion(pocket));
+        }
     }
 
     /**
-     * @return the room grown from this cell, or {@code null} if the pocket is too large or too
-     *         small to be one
+     * @return the interior of the room grown from this cell, or {@code null} if the pocket is too
+     *         large or too small to be one
      */
-    private SoulRegion collectPocket(int seed)
+    private IntStack collectPocket(int seed)
     {
         IntStack stack = new IntStack();
         IntStack interior = new IntStack();
@@ -434,19 +453,36 @@ public final class RegionScanner
             return null;
         }
 
-        return buildEnclosedRegion(interior);
+        return interior;
     }
 
-    private SoulRegion buildEnclosedRegion(IntStack interior)
+    /**
+     * A sealed pocket and the shell around it, before either has been turned into a region.
+     *
+     * @param interior every air cell of the room, in flood order
+     * @param shell    every solid block touching that air, each once, in the order the interior
+     *                 first reached it
+     * @param floor    for each entry of {@code shell}, whether the room's air stands directly on
+     *                 it - the cell is the room's floor - as opposed to only beside or below it
+     * @param credit   what each entry of {@code shell} is worth to this room, filled in by
+     *                 {@link #creditShells} once every other room's shell is known
+     */
+    private record Pocket(IntStack interior, IntStack shell, BitSet floor, double[] credit)
     {
-        RegionBounds interiorBounds = boundsOf(interior);
+    }
 
-        BlockCounts.Builder boundary = BlockCounts.builder();
-        BlockCounts.Builder contents = BlockCounts.builder();
-        RegionGeometry.Builder geometry = RegionGeometry.builder(this.settings.maxGeometryCells());
-        RegionBounds regionBounds = interiorBounds;
+    /**
+     * The shell: every solid block touching the room's air. Claimed as it is found, so open-air
+     * clustering does not later treat a wall as a loose signal.
+     */
+    private Pocket shellOf(IntStack interior)
+    {
+        // which slot in the shell a cell landed in, so a cell reached first from the side and
+        // then from above can still be marked as the floor it turns out to be
+        Map<Integer, Integer> slotOf = new HashMap<>();
+        IntStack shell = new IntStack();
+        BitSet floor = new BitSet();
 
-        // blocks standing in the room itself: torches, crops, carpets, water
         for (int i = 0; i < interior.size(); i++)
         {
             final int index = interior.get(i);
@@ -455,29 +491,6 @@ public final class RegionScanner
             final int z = zOf(index);
 
             this.flags[index] |= FLAG_CLAIMED;
-
-            if (this.volume.passabilityAt(x, y, z) == Passability.PASSABLE)
-            {
-                BlockSignature signature = this.volume.signatureAt(x, y, z);
-                contents.add(signature);
-                indexIfInteresting(geometry, x, y, z, signature);
-            }
-        }
-
-        // the shell: every solid block touching the room.
-        // Deduped per region rather than globally, so two rooms sharing a wall both get credit for
-        // it. Global dedup would make a room's score depend on which of its neighbours happened to
-        // be scanned first, and two identical studies should score identically. Repeated rooms of
-        // one archetype are handled by diminishing returns in the balance pass, not here.
-        Set<Integer> shellSeen = new HashSet<>();
-        IntStack shell = new IntStack();
-
-        for (int i = 0; i < interior.size(); i++)
-        {
-            final int index = interior.get(i);
-            final int x = xOf(index);
-            final int y = yOf(index);
-            final int z = zOf(index);
 
             for (int[] offset : NEIGHBOURS)
             {
@@ -496,18 +509,152 @@ public final class RegionScanner
                 }
 
                 final int neighbour = index(nx, ny, nz);
+                Integer slot = slotOf.get(neighbour);
 
-                if (!shellSeen.add(neighbour))
+                if (slot == null)
                 {
-                    continue;
+                    slot = shell.size();
+                    slotOf.put(neighbour, slot);
+                    this.flags[neighbour] |= FLAG_CLAIMED;
+                    shell.push(neighbour);
+                    this.shellCells.push(neighbour);
                 }
 
-                // still claimed, so open-air clustering does not treat a wall as a loose signal
-                this.flags[neighbour] |= FLAG_CLAIMED;
-                shell.push(neighbour);
-                this.shellCells.push(neighbour);
+                if (offset[1] < 0)
+                {
+                    floor.set(slot);
+                }
             }
         }
+
+        return new Pocket(interior, shell, floor, new double[shell.size()]);
+    }
+
+    /**
+     * Decide what each shell cell is worth to each room that touches it.
+     *
+     * <h2>A shared wall is one wall</h2>
+     *
+     * A room's shell used to be deduplicated per room and nothing more, so a wall standing between
+     * two rooms was scored in full by both. The argument for that was fair: each room really does
+     * face one side of the wall, and two identical studies should score identically whatever is
+     * next door. What it missed is that a player can choose to subdivide. One long space cut into
+     * four by three bookshelf walls placed 18 bookshelves and was credited 36, each room nearly
+     * clearing a gate the whole build could not clear once - and the repeated-room falloff that
+     * then softened the payout is meant to say "your second library is worth less than your
+     * first", not to make up for a first library that was never really there (#137).
+     *
+     * <p>So a shell cell is worth one block <i>in total</i>, however many rooms touch it. Two
+     * rooms either side of a partition get half each; a room's own outer wall, which nothing else
+     * touches, still counts in full. Standalone rooms are untouched by this, two identical studies
+     * still score identically, and partitioning becomes exactly break-even rather than
+     * profitable. The alternative rejected here was crediting a shared cell to one room only:
+     * whichever room the scan happened to reach first would win, which is precisely the
+     * order-dependence the old comment warned about, and which would defeat the identity hashing
+     * that skips rescans.
+     *
+     * <h2>A floor belongs to the room that stands on it</h2>
+     *
+     * A slab between two stacked rooms is a different case from a wall between two neighbours,
+     * and splitting it evenly gets it wrong in both directions. The player laid that slab
+     * <i>for the room above</i>: it is the loft's floorboards, and its underside being visible
+     * from the cellar does not make the cellar a room built out of floorboards. Floor a loft in
+     * hay and the library beneath it used to be a library holding six hay blocks (#136); halve
+     * the credit and it is a library holding three, while the loft has lost half of the floor it
+     * really is built out of.
+     *
+     * <p>So the face a room reaches a cell from decides precedence. A cell some room's air stands
+     * directly on is that room's floor, and floors are credited only to the rooms they are floors
+     * of - split evenly if, oddly, more than one room stands on the same cell. Every other shared
+     * cell - a partition seen from either side, a ceiling nothing stands on - is split evenly
+     * among everyone touching it. The room below a shared slab is credited nothing for it, which
+     * is the reading a player would give: its ceiling is somebody's floor. The alternative
+     * rejected was crediting a ceiling at some reduced weight, which keeps a sliver of the
+     * contamination this exists to remove and adds a tuning knob nobody could set from first
+     * principles.
+     *
+     * <p>Only credit changes. Which cells a room's shell contains, which blocks are claimed as
+     * building fabric, and what {@link RegionGeometry} indexes are all unchanged: a bed is still
+     * against a wall whether or not the room next door shares that wall. The decision is made on
+     * how many rooms touch a cell and from which faces, never on the order the rooms were found
+     * in, so the same build yields the same credits in the same order whichever room is scanned
+     * first.
+     */
+    private void creditShells(List<Pocket> pockets)
+    {
+        if (pockets.size() < 2)
+        {
+            // nothing to share: the common case, and it should cost nothing
+            for (Pocket pocket : pockets)
+            {
+                Arrays.fill(pocket.credit(), 1d);
+            }
+
+            return;
+        }
+
+        byte[] touches = new byte[this.flags.length];
+        byte[] floorTouches = new byte[this.flags.length];
+
+        for (Pocket pocket : pockets)
+        {
+            for (int i = 0; i < pocket.shell().size(); i++)
+            {
+                final int cell = pocket.shell().get(i);
+                touches[cell]++;
+
+                if (pocket.floor().get(i))
+                {
+                    floorTouches[cell]++;
+                }
+            }
+        }
+
+        for (Pocket pocket : pockets)
+        {
+            for (int i = 0; i < pocket.shell().size(); i++)
+            {
+                final int cell = pocket.shell().get(i);
+
+                if (floorTouches[cell] == 0)
+                {
+                    pocket.credit()[i] = 1d / touches[cell];
+                }
+                else
+                {
+                    pocket.credit()[i] = pocket.floor().get(i) ? 1d / floorTouches[cell] : 0d;
+                }
+            }
+        }
+    }
+
+    private SoulRegion buildEnclosedRegion(Pocket pocket)
+    {
+        final IntStack interior = pocket.interior();
+        RegionBounds interiorBounds = boundsOf(interior);
+
+        BlockCounts.Builder boundary = BlockCounts.builder();
+        BlockCounts.Builder contents = BlockCounts.builder();
+        RegionGeometry.Builder geometry = RegionGeometry.builder(this.settings.maxGeometryCells());
+        RegionBounds regionBounds = interiorBounds;
+
+        // blocks standing in the room itself: torches, crops, carpets, water
+        for (int i = 0; i < interior.size(); i++)
+        {
+            final int index = interior.get(i);
+            final int x = xOf(index);
+            final int y = yOf(index);
+            final int z = zOf(index);
+
+            if (this.volume.passabilityAt(x, y, z) == Passability.PASSABLE)
+            {
+                BlockSignature signature = this.volume.signatureAt(x, y, z);
+                contents.add(signature);
+                indexIfInteresting(geometry, x, y, z, signature);
+            }
+        }
+
+        final IntStack shell = pocket.shell();
 
         for (int i = 0; i < shell.size(); i++)
         {
@@ -528,15 +675,19 @@ public final class RegionScanner
                 geometry.addBlocked(x, y, z);
             }
 
+            // what this cell is worth to this room, see creditShells - a cell another room owns
+            // outright still shapes the bounds and the geometry above, it just scores nothing here
+            final double credit = pocket.credit()[i];
+
             // walls, floor and ceiling sit outside the air's bounding box; anything solid *inside*
             // it is furniture standing in the room - a pillar, an enchanting table, an anvil
             if (interiorBounds.contains(x, y, z))
             {
-                contents.add(signature);
+                contents.add(signature, credit);
             }
             else
             {
-                boundary.add(signature);
+                boundary.add(signature, credit);
             }
         }
 
@@ -1070,7 +1221,7 @@ public final class RegionScanner
     private List<SoulRegion> capRegions(List<SoulRegion> regions)
     {
         Comparator<SoulRegion> byInterest = Comparator
-                .comparingInt((SoulRegion region) -> region.allBlocks().total()).reversed()
+                .comparingDouble((SoulRegion region) -> region.allBlocks().totalCredit()).reversed()
                 .thenComparingInt(region -> region.bounds().minX())
                 .thenComparingInt(region -> region.bounds().minY())
                 .thenComparingInt(region -> region.bounds().minZ());

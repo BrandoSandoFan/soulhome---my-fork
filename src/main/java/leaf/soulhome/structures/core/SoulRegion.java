@@ -88,11 +88,14 @@ public record SoulRegion(
         hash = hash * 31 + bounds.maxY();
         hash = hash * 31 + bounds.maxZ();
 
-        // sortedEntries gives a stable order regardless of how the world was walked
-        for (Map.Entry<BlockSignature, Integer> entry : blocks.sortedEntries())
+        // sortedEntries gives a stable order regardless of how the world was walked. Credit is
+        // quantised before it is folded in: a shared cell is worth a unit fraction of at most a
+        // sixth, so thousandths tell every real difference apart, and a sum of sixths that lands
+        // a bit off between two scans of the same build does not read as a change
+        for (Map.Entry<BlockSignature, Double> entry : blocks.sortedEntries())
         {
             hash = hash * 31 + entry.getKey().id().hashCode();
-            hash = hash * 31 + entry.getValue();
+            hash = hash * 31 + Math.round(entry.getValue() * 1000d);
         }
 
         // sorted by position: sliding a chair across the room must change the hash even though it

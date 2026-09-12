@@ -158,18 +158,21 @@ public final class ArchetypeClassifier
         Set<String> rolesPresent = new LinkedHashSet<>();
 
         double signalRaw = 0d;
-        int signalBlocks = 0;
+        double signalBlocks = 0d;
 
         for (ArchetypeDefinition.Signal signal : archetype.signals())
         {
-            final int count = blocks.count(signal.match());
-            final int counted = Math.min(count, signal.cap());
+            // scored on the exact credit - half a shared wall is half a wall - and reported as
+            // whole blocks, see BlockCounts#count
+            final double count = blocks.credit(signal.match());
+            final double counted = Math.min(count, signal.cap());
             final double contribution = signal.weight() * curve(counted);
 
             ArchetypeScore.SignalContribution entry = new ArchetypeScore.SignalContribution(
-                    signal.match().describe(), signal.role(), signal.weight(), count, counted, contribution);
+                    signal.match().describe(), signal.role(), signal.weight(),
+                    BlockCounts.wholeBlocks(count), BlockCounts.wholeBlocks(counted), contribution);
 
-            if (count == 0)
+            if (count <= 0d)
             {
                 missing.add(entry);
                 continue;
@@ -185,20 +188,21 @@ public final class ArchetypeClassifier
 
         for (ArchetypeDefinition.Signal detractor : archetype.detractors())
         {
-            final int count = blocks.count(detractor.match());
+            final double count = blocks.credit(detractor.match());
 
-            if (count == 0)
+            if (count <= 0d)
             {
                 continue;
             }
 
-            final int counted = Math.min(count, detractor.cap());
+            final double counted = Math.min(count, detractor.cap());
             final double contribution = detractor.weight() * curve(counted);
 
             // detractors do not count towards diversity or density - they are evidence that this
             // room is something else, not evidence that it is a well-appointed example of this
             contributions.add(new ArchetypeScore.SignalContribution(
-                    detractor.match().describe(), detractor.role(), detractor.weight(), count, counted, contribution));
+                    detractor.match().describe(), detractor.role(), detractor.weight(),
+                    BlockCounts.wholeBlocks(count), BlockCounts.wholeBlocks(counted), contribution));
 
             raw += contribution;
         }
@@ -327,6 +331,8 @@ public final class ArchetypeClassifier
 
         for (ArchetypeDefinition.Requirement requirement : archetype.requirements())
         {
+            // whole blocks, deliberately: a gate is a promise about what is there, and fifteen and
+            // a half bookshelves do not clear "at least 16" any more than fifteen do
             final int found = blocks.count(requirement.match());
             final int threshold = effectiveThreshold(requirement, region.volume());
 
@@ -356,9 +362,9 @@ public final class ArchetypeClassifier
      * gentler near the low counts players actually build at: four bookshelves are worth twice one,
      * not 2.3 times.
      */
-    static double curve(int count)
+    static double curve(double count)
     {
-        return count <= 0 ? 0d : Math.sqrt(count);
+        return count <= 0d ? 0d : Math.sqrt(count);
     }
 
     private double diversityMultiplier(int distinctRoles)
@@ -370,14 +376,14 @@ public final class ArchetypeClassifier
      * Penalises signal-sparse cathedrals. Soft rather than a hard cut, so a big airy room is worth
      * less than a well-appointed one without being disqualified for having high ceilings.
      */
-    private double densityMultiplier(int signalBlocks, int volume)
+    private double densityMultiplier(double signalBlocks, int volume)
     {
         if (volume <= 0 || this.settings.densityFloor() <= 0)
         {
             return 1d;
         }
 
-        final double ratio = (double) signalBlocks / (double) volume;
+        final double ratio = signalBlocks / (double) volume;
 
         if (ratio >= this.settings.densityFloor())
         {
