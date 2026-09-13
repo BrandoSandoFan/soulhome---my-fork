@@ -161,6 +161,19 @@ public final class BuffCalculator
         return grouped;
     }
 
+    /**
+     * <p>An aspect (the Aspects epic, #171) changes exactly one thing here: which buff spec a room
+     * is paid out of. The score it is paid at, the falloff that ranks it against its own
+     * archetype's other rooms, the multiplier, rank and every cap are untouched - see
+     * {@link ArchetypeDefinition#buffsFor}. Two rooms of one archetype that took different aspects
+     * still fall off against each other, because the falloff is about how many libraries you have,
+     * not about what each one is for.
+     *
+     * <p>The archetype's own {@code max} is applied per aspect rather than across them, because an
+     * aspect's {@code buffs} block is that aspect's whole payout rather than an addition to
+     * another's. With no aspects declared there is one bucket and the arithmetic is exactly what it
+     * was before this epic, which is the property the "off is indistinguishable" tests pin.
+     */
     private static void accumulate(
             Map<String, Double> totals,
             List<BuffBreakdown.Source> sources,
@@ -172,34 +185,38 @@ public final class BuffCalculator
         final int contributing = Math.min(awarded.size(), settings.maxRoomsPerArchetype());
         final double multiplier = settings.multiplierFor(archetype.id());
 
-        // subtotal per buff type for this archetype alone, so its own 'max' can be applied before
-        // anything is mixed in from elsewhere
-        Map<String, Double> subtotals = new LinkedHashMap<>();
+        // subtotal per aspect and buff type for this archetype alone, so its own 'max' can be
+        // applied before anything is mixed in from elsewhere
+        Map<Payout, Double> subtotals = new LinkedHashMap<>();
 
         // an archetype naming the same buff type twice is a datapack oddity rather than an error;
         // the tighter ceiling wins, and the type is still only capped once
-        Map<String, Double> ceilings = new LinkedHashMap<>();
-
-        int bestTier = 0;
+        Map<Payout, Double> ceilings = new LinkedHashMap<>();
+        Map<Payout, Integer> rooms = new LinkedHashMap<>();
+        Map<Payout, Integer> bestTiers = new LinkedHashMap<>();
 
         for (int room = 0; room < contributing; room++)
         {
+            final AwardedRoom awardedRoom = awarded.get(room);
             final double falloff = Math.pow(settings.repeatedRoomFalloff(), room);
-            final double score = awarded.get(room).score();
+            final double score = awardedRoom.score();
 
-            bestTier = Math.max(bestTier, awarded.get(room).tier());
-
-            for (ArchetypeDefinition.BuffSpec spec : archetype.buffs())
+            for (ArchetypeDefinition.BuffSpec spec : archetype.buffsFor(awardedRoom.aspectId()))
             {
-                subtotals.merge(spec.type(), spec.magnitudeAt(score, archetype, settings) * falloff, Double::sum);
-                ceilings.merge(spec.type(), spec.max(), Math::min);
+                final Payout payout = new Payout(awardedRoom.aspectId(), spec.type());
+
+                subtotals.merge(payout, spec.magnitudeAt(score, archetype, settings) * falloff, Double::sum);
+                ceilings.merge(payout, spec.max(), Math::min);
+                rooms.merge(payout, 1, Integer::sum);
+                bestTiers.merge(payout, awardedRoom.tier(), Math::max);
             }
         }
 
-        for (Map.Entry<String, Double> subtotal : subtotals.entrySet())
+        for (Map.Entry<Payout, Double> subtotal : subtotals.entrySet())
         {
-            final String buffType = subtotal.getKey();
-            final double ceiling = ceilings.getOrDefault(buffType, Double.MAX_VALUE);
+            final Payout payout = subtotal.getKey();
+            final String buffType = payout.buffType();
+            final double ceiling = ceilings.getOrDefault(payout, Double.MAX_VALUE);
             final double beforeRank = Math.min(subtotal.getValue(), ceiling) * multiplier;
 
             // rank amplification (#85): applied after the archetype's own max and the multiplier,
@@ -218,14 +235,33 @@ public final class BuffCalculator
             }
 
             totals.merge(buffType, granted, Double::sum);
+
+            final Aspect aspect = archetype.aspect(payout.aspectId());
+
             sources.add(new BuffBreakdown.Source(
                     buffType,
                     archetype.id(),
                     archetype.displayName(),
-                    contributing,
-                    bestTier,
+                    rooms.getOrDefault(payout, 0),
+                    bestTiers.getOrDefault(payout, 0),
                     granted,
-                    granted - beforeRank));
+                    granted - beforeRank,
+                    payout.aspectId(),
+                    aspect == null ? null : aspect.displayName()));
         }
+    }
+
+    /**
+     * One archetype's payout of one buff type under one aspect. The aspect is part of the key so
+     * that "from your Library (2 rooms, best tier 3)" cannot count a room that took the other
+     * aspect and paid a different buff entirely - which is the kind of quiet mismatch between what
+     * a player is told and what they were given that the whole feedback half of this mod exists to
+     * prevent.
+     *
+     * @param aspectId null for an archetype with no aspects, which is one bucket and today's
+     *                 behaviour exactly
+     */
+    private record Payout(String aspectId, String buffType)
+    {
     }
 }

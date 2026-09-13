@@ -7,6 +7,7 @@ package leaf.soulhome.feedback;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.structures.SoulAnalysis;
 import leaf.soulhome.structures.core.ArchetypeScore;
+import leaf.soulhome.structures.core.AspectSelection;
 import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.ClassificationResult;
 import leaf.soulhome.structures.core.SoulBuffSet;
@@ -184,11 +185,22 @@ public final class SoulReport
 
             for (BuffBreakdown.Source source : breakdown.sourcesOf(buffType))
             {
-                lines.add(indent(translated(
-                        Constants.StringKeys.BUFFS_SOURCE,
-                        Component.translatable(source.displayName()),
-                        source.rooms(),
-                        source.bestTier()))
+                // the aspect beside the room it came from (#175): a player looking at a buff list
+                // should be able to see why it is the buff it is without going and analysing the
+                // room. Absent, and the line is exactly what it was, which is what the switch
+                // being off produces
+                lines.add(indent(source.hasAspect()
+                        ? translated(
+                                Constants.StringKeys.BUFFS_SOURCE_ASPECT,
+                                Component.translatable(source.displayName()),
+                                Component.translatable(source.aspectName()),
+                                source.rooms(),
+                                source.bestTier())
+                        : translated(
+                                Constants.StringKeys.BUFFS_SOURCE,
+                                Component.translatable(source.displayName()),
+                                source.rooms(),
+                                source.bestTier()))
                         .withStyle(ChatFormatting.DARK_AQUA));
             }
         }
@@ -259,6 +271,7 @@ public final class SoulReport
     private static List<Component> explainSuccess(ArchetypeScore best, SoulRegion region)
     {
         List<Component> lines = new ArrayList<>(contributions(best));
+        lines.addAll(aspectSection(best));
         lines.addAll(structuralSection(best, region));
         lines.addAll(bondSection(best));
 
@@ -487,6 +500,74 @@ public final class SoulReport
 
             lines.addAll(clauseLines(miss.root(), 0));
         }
+
+        return lines;
+    }
+
+    /**
+     * Which aspect the room took, and what it would take to have the other one - the Aspects epic
+     * (#171), stated to the player.
+     *
+     * <p>Silent for an archetype with no aspects, and silent for every room when the switch is off,
+     * which is what "off is indistinguishable from before the epic" means at this surface: not even
+     * a line saying aspects are disabled. {@code score.aspect()} is null in both cases, so there is
+     * nothing here to check the config for.
+     *
+     * <p>The last line is the one that is easy to think optional and is not. A player shown "Archive
+     * 12.4, Scriptorium 9.1" will read those as a split that cost them something, because in this
+     * mod two competing numbers always have. Saying in as many words that the room scored and pays
+     * exactly what it would have either way is the difference between a feature and a suspected
+     * nerf - and it is true: see {@code AspectSelector}.
+     */
+    private static List<Component> aspectSection(ArchetypeScore score)
+    {
+        List<Component> lines = new ArrayList<>();
+        final AspectSelection aspect = score.aspect();
+
+        if (aspect == null)
+        {
+            return lines;
+        }
+
+        lines.add(indent(translated(Constants.StringKeys.REGION_ASPECT_HEADER))
+                .withStyle(ChatFormatting.LIGHT_PURPLE));
+
+        lines.add(indent(translated(
+                Constants.StringKeys.REGION_ASPECT_TAKEN,
+                Component.translatable(aspect.takenDisplayName())), 2)
+                .withStyle(ChatFormatting.GREEN));
+
+        final AspectSelection.Support runnerUp = aspect.runnerUp();
+        final AspectSelection.Support taken = aspect.taken();
+
+        if (runnerUp != null && taken != null)
+        {
+            // the gap between them, which decides ties and reporting and never payout. Unsigned:
+            // the winner is "ahead by" and a default holding its room against a leader is "behind
+            // by", and a minus sign in either sentence would be nonsense
+            lines.add(indent(translated(
+                    aspect.heldByDefault()
+                            ? Constants.StringKeys.REGION_ASPECT_HELD
+                            : Constants.StringKeys.REGION_ASPECT_RUNNER_UP,
+                    Component.translatable(runnerUp.displayName()),
+                    score(Math.abs(taken.support() - runnerUp.support()))), 2)
+                    .withStyle(ChatFormatting.GRAY));
+        }
+
+        final AspectSelection.Tip tip = aspect.tip();
+
+        if (tip != null)
+        {
+            lines.add(indent(translated(
+                    Constants.StringKeys.REGION_ASPECT_TIP,
+                    tip.blocksNeeded(),
+                    BlockNames.of(tip.blockDescription()),
+                    Component.translatable(tip.displayName())), 2)
+                    .withStyle(ChatFormatting.BLUE));
+        }
+
+        lines.add(indent(translated(Constants.StringKeys.REGION_ASPECT_FREE), 2)
+                .withStyle(ChatFormatting.DARK_GRAY));
 
         return lines;
     }

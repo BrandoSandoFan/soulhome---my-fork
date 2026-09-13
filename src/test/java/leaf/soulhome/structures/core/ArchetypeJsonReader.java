@@ -142,7 +142,43 @@ public final class ArchetypeJsonReader
                 readTiers(json),
                 readBuffs(json),
                 readStructures(json, registry),
-                readBonds(json, bondRegistry));
+                readBonds(json, bondRegistry),
+                readAspects(json, registry));
+    }
+
+    /**
+     * Aspects (#171), mirroring {@code ArchetypeCodecs.ASPECT} field for field. An aspect's own
+     * {@code structures} are read exactly as the archetype's are, since they are the same grammar
+     * asked a different question - what the room is for, rather than what it is.
+     */
+    private static List<Aspect> readAspects(JsonObject json, FormClauseRegistry registry)
+    {
+        List<Aspect> aspects = new ArrayList<>();
+
+        for (JsonElement element : array(json, "aspects"))
+        {
+            JsonObject entry = element.getAsJsonObject();
+            List<Aspect.Lean> leans = new ArrayList<>();
+
+            for (JsonElement leanElement : array(entry, "leans"))
+            {
+                JsonObject lean = leanElement.getAsJsonObject();
+                leans.add(new Aspect.Lean(
+                        readMatcher(lean.getAsJsonObject("match")),
+                        lean.get("weight").getAsDouble(),
+                        lean.has("cap") ? lean.get("cap").getAsInt() : ArchetypeDefinition.DEFAULT_CAP));
+            }
+
+            aspects.add(new Aspect(
+                    entry.get("id").getAsString(),
+                    entry.get("display_name").getAsString(),
+                    entry.has("default") && entry.get("default").getAsBoolean(),
+                    leans,
+                    readStructures(entry, registry),
+                    readBuffs(entry)));
+        }
+
+        return aspects;
     }
 
     private static List<ArchetypeDefinition.Requirement> readRequirements(JsonObject json)

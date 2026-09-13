@@ -300,7 +300,9 @@ public final class SoulHomeConfig
                                 SERVER.ambiguityMargin.get(),
                                 SERVER.structuralShareCap.get(),
                                 SERVER.structuralRoleThreshold.get(),
-                                SERVER.bondShareCap.get()),
+                                SERVER.bondShareCap.get(),
+                                SERVER.aspectsEnabled.get(),
+                                SERVER.aspectMargin.get()),
                         new BuffSettings(
                                 SERVER.repeatedRoomFalloff.get(),
                                 SERVER.maxRoomsPerArchetype.get(),
@@ -477,6 +479,9 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.DoubleValue structuralShareCap;
         public final ForgeConfigSpec.DoubleValue structuralRoleThreshold;
         public final ForgeConfigSpec.DoubleValue bondShareCap;
+
+        public final ForgeConfigSpec.BooleanValue aspectsEnabled;
+        public final ForgeConfigSpec.DoubleValue aspectMargin;
 
         public final ForgeConfigSpec.IntValue minRoomVolume;
         public final ForgeConfigSpec.IntValue maxRoomVolume;
@@ -672,6 +677,38 @@ public final class SoulHomeConfig
                             "what the room earned on its own, so a perfect floor plan of empty boxes is worth",
                             "nothing. Discords - bonds with a negative weight - are not capped by this.")
                     .defineInRange("bond_share_cap", ScoringSettings.DEFAULT_BOND_SHARE_CAP, 0d, 10d);
+
+            builder.pop();
+
+            builder.comment(
+                            "What a room is for, as opposed to what it is. An archetype may declare several",
+                            "aspects - a library as an archive or as a scriptorium - and a room takes the one its",
+                            "contents most support. The aspect chooses which buff the room's magnitude is paid",
+                            "into and changes nothing about how much that magnitude is: two rooms that score the",
+                            "same are worth the same, whichever aspects they took.")
+                    .push("aspects");
+
+            this.aspectsEnabled = builder
+                    .comment(
+                            "Whether rooms take aspects at all.",
+                            "Off is not 'aspects are skipped': it is the mod exactly as it was before they existed.",
+                            "Every archetype grants its own top-level buffs, nothing about an aspect appears in",
+                            "/soulhome analyse, the Soul Lens, /soulhome buffs or the guide book, and no aspect is",
+                            "written to a soulhome's save. An archetype or datapack that declares aspects still",
+                            "loads and still works - it simply pays what it always paid.",
+                            "Turn this off for a pack that wants one room to mean one thing.")
+                    .define("aspects_enabled", ScoringSettings.DEFAULT_ASPECTS_ENABLED);
+
+            this.aspectMargin = builder
+                    .comment(
+                            "How far clear of the default aspect another one must stand before it takes the room.",
+                            "1.15 means '15% clear'. Ties and near-ties go to the default, which is the aspect that",
+                            "pays what the room paid before aspects existed - so a player who updates and changes",
+                            "nothing keeps the buff they had unless they had plainly already built the other thing,",
+                            "and a room whose two aspects are near-equal does not flip its buff every time a block",
+                            "moves. Raise this to make an alternative aspect something you have to commit to;",
+                            "set it to 1 for a straight contest, at the cost of that stability.")
+                    .defineInRange("aspect_margin", ScoringSettings.DEFAULT_ASPECT_MARGIN, 1d, 10d);
 
             builder.pop();
 

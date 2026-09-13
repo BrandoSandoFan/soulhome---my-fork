@@ -52,5 +52,29 @@
 
   "bonds": [
     { "with": "soulhome:workshop", "relation": "beneath", "weight": 4.0, "role": "layout", "max_vertical_gap": 6 }
+  ],
+
+  "aspects": [
+    {
+      "id": "shaft",
+      "display_name": "aspect.soulhome.mine.shaft",
+      "default": true,
+      "leans": [
+        { "match": { "tag": "minecraft:rails" },    "weight": 2.0, "cap": 16 },
+        { "match": { "block": "minecraft:ladder" }, "weight": 2.0, "cap": 12 },
+        { "match": { "tag": "soulhome:lighting" },  "weight": 1.0, "cap": 16 }
+      ]
+    },
+    {
+      "id": "vein",
+      "display_name": "aspect.soulhome.mine.vein",
+      "leans": [
+        { "match": { "tag": "forge:storage_blocks" }, "weight": 3.0, "cap": 8  },
+        { "match": { "tag": "forge:ores" },           "weight": 1.0, "cap": 24 }
+      ],
+      "buffs": [
+        { "type": "soulhome:fortune", "per_tier": 0.04, "max": 0.12 }
+      ]
+    }
   ]
 }

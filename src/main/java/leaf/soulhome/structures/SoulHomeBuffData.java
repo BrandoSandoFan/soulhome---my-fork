@@ -40,6 +40,14 @@ public class SoulHomeBuffData extends SavedData
     private static final String KEY_ARCHETYPE = "Archetype";
     private static final String KEY_TIER = "Tier";
     private static final String KEY_SCORE = "Score";
+
+    /**
+     * Which aspect a room took (#171). Written only when there is one, so a save from a server with
+     * {@code aspects.enabled} off - or from before the epic - is byte-for-byte what it always was,
+     * which is the promise #176 makes about the switch. Read back as "no aspect", which grants the
+     * archetype's own buffs: the same answer the switch being off gives.
+     */
+    private static final String KEY_ASPECT = "Aspect";
     private static final String KEY_CONTENT_HASH = "ContentHash";
     private static final String KEY_SCANNED = "Scanned";
 
@@ -126,7 +134,8 @@ public class SoulHomeBuffData extends SavedData
                 continue;
             }
 
-            rooms.add(new AwardedRoom(archetype, tier, room.getDouble(KEY_SCORE)));
+            rooms.add(new AwardedRoom(
+                    archetype, tier, room.getDouble(KEY_SCORE), room.getString(KEY_ASPECT)));
         }
 
         data.awardedRooms = List.copyOf(rooms);
@@ -188,6 +197,12 @@ public class SoulHomeBuffData extends SavedData
             entry.putString(KEY_ARCHETYPE, room.archetypeId());
             entry.putInt(KEY_TIER, room.tier());
             entry.putDouble(KEY_SCORE, room.score());
+
+            if (room.hasAspect())
+            {
+                entry.putString(KEY_ASPECT, room.aspectId());
+            }
+
             list.add(entry);
         }
 

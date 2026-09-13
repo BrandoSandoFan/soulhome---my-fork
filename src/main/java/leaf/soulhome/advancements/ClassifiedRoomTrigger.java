@@ -36,6 +36,13 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
     private static final String KEY_MIN_TIER = "min_tier";
     private static final String KEY_MIN_ROOMS = "min_rooms";
 
+    /**
+     * The room took an aspect (#171) - which only a room of a kind that can be more than one thing
+     * ever does. What the guide book's aspects page gates on, so a player whose soul holds no such
+     * room never reads about a system they cannot use.
+     */
+    private static final String KEY_WITH_ASPECT = "with_aspect";
+
     @Override
     public ResourceLocation getId()
     {
@@ -50,7 +57,8 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
                 : null;
 
         return new Instance(
-                player, archetype, GsonHelper.getAsInt(json, KEY_MIN_TIER, 1), GsonHelper.getAsInt(json, KEY_MIN_ROOMS, 1));
+                player, archetype, GsonHelper.getAsInt(json, KEY_MIN_TIER, 1), GsonHelper.getAsInt(json, KEY_MIN_ROOMS, 1),
+                GsonHelper.getAsBoolean(json, KEY_WITH_ASPECT, false));
     }
 
     /** Tell the game a room was awarded. Cheap when the player has no advancement waiting on it. */
@@ -66,7 +74,18 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
      */
     public void trigger(ServerPlayer player, String archetypeId, int tier, int roomsAwarded)
     {
-        trigger(player, instance -> instance.matches(archetypeId, tier, roomsAwarded));
+        trigger(player, archetypeId, tier, roomsAwarded, false);
+    }
+
+    /**
+     * @param withAspect whether this room took an aspect (#171), which a room of an archetype that
+     *                   declares none never does - nor does any room while {@code aspects.enabled}
+     *                   is off, which is how the book's aspect page stays invisible on a server
+     *                   that has the feature switched off
+     */
+    public void trigger(ServerPlayer player, String archetypeId, int tier, int roomsAwarded, boolean withAspect)
+    {
+        trigger(player, instance -> instance.matches(archetypeId, tier, roomsAwarded, withAspect));
     }
 
     public static class Instance extends AbstractCriterionTriggerInstance
@@ -74,6 +93,7 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
         private final String archetypeId;
         private final int minTier;
         private final int minRooms;
+        private final boolean withAspect;
 
         public Instance(ContextAwarePredicate player, String archetypeId, int minTier)
         {
@@ -82,6 +102,11 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
 
         public Instance(ContextAwarePredicate player, String archetypeId, int minTier, int minRooms)
         {
+            this(player, archetypeId, minTier, minRooms, false);
+        }
+
+        public Instance(ContextAwarePredicate player, String archetypeId, int minTier, int minRooms, boolean withAspect)
+        {
             super(ID, player);
 
             this.archetypeId = archetypeId == null || archetypeId.isBlank()
@@ -89,6 +114,7 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
                     : archetypeId.toLowerCase(Locale.ROOT);
             this.minTier = Math.max(1, minTier);
             this.minRooms = Math.max(1, minRooms);
+            this.withAspect = withAspect;
         }
 
         /** Any room of any archetype, at any tier. */
@@ -101,6 +127,12 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
         public static Instance atLeastRooms(int minRooms)
         {
             return new Instance(ContextAwarePredicate.ANY, null, 1, minRooms);
+        }
+
+        /** Any room that took an aspect (#171) - what the book's aspect page gates on. */
+        public static Instance withAnAspect()
+        {
+            return new Instance(ContextAwarePredicate.ANY, null, 1, 1, true);
         }
 
         public static Instance of(String archetypeId)
@@ -120,7 +152,17 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
 
         public boolean matches(String awardedArchetype, int awardedTier, int roomsAwarded)
         {
+            return matches(awardedArchetype, awardedTier, roomsAwarded, false);
+        }
+
+        public boolean matches(String awardedArchetype, int awardedTier, int roomsAwarded, boolean tookAnAspect)
+        {
             if (awardedTier < this.minTier || roomsAwarded < this.minRooms)
+            {
+                return false;
+            }
+
+            if (this.withAspect && !tookAnAspect)
             {
                 return false;
             }
@@ -143,6 +185,13 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
             if (this.minRooms > 1)
             {
                 json.addProperty(KEY_MIN_ROOMS, this.minRooms);
+            }
+
+            // written only when asked for, so every advancement that existed before aspects did
+            // serialises byte-for-byte as it always has
+            if (this.withAspect)
+            {
+                json.addProperty(KEY_WITH_ASPECT, true);
             }
 
             return json;

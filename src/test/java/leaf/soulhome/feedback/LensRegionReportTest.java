@@ -4,7 +4,9 @@
 
 package leaf.soulhome.feedback;
 
+import com.mojang.serialization.JsonOps;
 import leaf.soulhome.structures.core.ArchetypeScore;
+import leaf.soulhome.structures.core.AspectSelection;
 import leaf.soulhome.structures.core.BlockCounts;
 import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.ClassificationResult;
@@ -184,6 +186,63 @@ class LensRegionReportTest
         assertFalse(report.bonds().get(1).credited());
         assertEquals("19 blocks away; within 12 would count", report.bonds().get(1).diagnostic());
         assertEquals(List.of(2), report.bondedRegions(), "only credited partners are highlighted");
+    }
+
+    @Test
+    @DisplayName("the aspect a room took reaches the lens, with its runner-up and its tip, and survives the wire")
+    void theAspectReachesTheLens()
+    {
+        AspectSelection selection = new AspectSelection(
+                "scriptorium", "aspect.soulhome.library.scriptorium", false, false, 1.15d,
+                List.of(
+                        new AspectSelection.Support("scriptorium", "aspect.soulhome.library.scriptorium", false, 9d),
+                        new AspectSelection.Support("archive", "aspect.soulhome.library.archive", true, 8d)),
+                new AspectSelection.Tip("archive", "aspect.soulhome.library.archive", "#soulhome:bookshelves", 3));
+
+        ArchetypeScore best = new ArchetypeScore(
+                "soulhome:library", "archetype.soulhome.library", 42d, 42d, 1d, 1d, 2,
+                OptionalDouble.empty(), List.of(), List.of(), List.of(), null, List.of(), List.of(), false,
+                List.of(), List.of(), false, selection);
+
+        LensRegionReport report = LensRegionReport.of(
+                new ClassificationResult(plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best)),
+                0, BuffBreakdown.EMPTY);
+
+        assertTrue(report.hasAspect());
+        assertEquals("scriptorium", report.aspect().aspectId());
+        assertEquals("aspect.soulhome.library.archive", report.aspect().runnerUpDisplayName());
+        assertEquals(1d, report.aspect().margin(), 1e-9);
+        assertTrue(report.aspect().hasTip());
+        assertEquals(3, report.aspect().tipBlocks());
+
+        LensRegionReport roundTripped = LensRegionReport.CODEC
+                .parse(JsonOps.INSTANCE, LensRegionReport.CODEC
+                        .encodeStart(JsonOps.INSTANCE, report).result().orElseThrow())
+                .result()
+                .orElseThrow();
+
+        assertEquals(report.aspect(), roundTripped.aspect());
+    }
+
+    @Test
+    @DisplayName("a room that took no aspect carries none, and round-trips without one")
+    void noAspectSurvivesTheWireToo()
+    {
+        ArchetypeScore best = score("soulhome:library", 42d, 2);
+
+        LensRegionReport report = LensRegionReport.of(
+                new ClassificationResult(plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best)),
+                0, BuffBreakdown.EMPTY);
+
+        assertFalse(report.hasAspect());
+
+        LensRegionReport roundTripped = LensRegionReport.CODEC
+                .parse(JsonOps.INSTANCE, LensRegionReport.CODEC
+                        .encodeStart(JsonOps.INSTANCE, report).result().orElseThrow())
+                .result()
+                .orElseThrow();
+
+        assertFalse(roundTripped.hasAspect());
     }
 
     private static ArchetypeScore score(String archetypeId, double value, int tier)

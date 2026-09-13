@@ -12,6 +12,7 @@ import leaf.soulhome.datagen.patchouli.categories.data.BookStuff;
 import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.TagDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
+import leaf.soulhome.structures.core.Aspect;
 import leaf.soulhome.structures.core.BlockMatcher;
 import leaf.soulhome.structures.core.BondBook;
 import leaf.soulhome.structures.core.Form;
@@ -83,6 +84,12 @@ public class PatchouliMultiblocks
     /** The two-rooms advancement (#150): a player with one room has nothing to bond. */
     private static final String TWO_ROOMS_ADVANCEMENT = "soulhome:main/two_rooms";
 
+    /**
+     * The aspect advancement (#175): fired by classifying a room whose kind can be more than one
+     * thing, so a reader whose soul holds none of those never reads about aspects at all.
+     */
+    private static final String ASPECT_ADVANCEMENT = "soulhome:main/aspect_taken";
+
     public static void collect(List<BookStuff.Category> categories, List<BookStuff.Entry> entries)
     {
         BookStuff.Category multiblocks = new BookStuff.Category(
@@ -100,6 +107,7 @@ public class PatchouliMultiblocks
         entries.add(introduction(multiblocks));
         entries.add(tagsGlossary(multiblocks));
         entries.add(bondsExplainer(multiblocks));
+        entries.add(aspectsExplainer(multiblocks));
 
         List<ArchetypeDefinition> shipped = ArchetypeDocs.shipped();
         BondBook bonds = BondBook.of(shipped);
@@ -162,6 +170,7 @@ public class PatchouliMultiblocks
         List<BookStuff.Page> pages = new ArrayList<>();
         pages.add(new BookStuff.TextPage(whereItGoes(archetype) + rewards(archetype)));
         pages.add(new BookStuff.TextPage(mustHave(archetype) + looksFor(archetype)).setTitle("What counts"));
+        pages.addAll(aspectPages(archetype));
         pages.addAll(arrangementPages(archetype));
         pages.addAll(bondPages(archetype, bonds));
 
@@ -417,6 +426,116 @@ public class PatchouliMultiblocks
         }
 
         return pages;
+    }
+
+    /**
+     * The "what it can be for" pages, present only for an archetype that declares aspects - the
+     * Aspects epic (#171). Written from the aspect data for the same reason every other page is: a
+     * hand-written list of what tips a room one way would be wrong within two balance passes.
+     *
+     * <p>One page per aspect rather than a list of all of them, because each needs three things
+     * said - what it is, what it grants, and what leans toward it - and a page holding two of those
+     * for two aspects holds none of them well. The default comes first: it is what the room grants
+     * to a reader who never thinks about this again.
+     */
+    static List<BookStuff.Page> aspectPages(ArchetypeDefinition archetype)
+    {
+        if (archetype.aspects().isEmpty())
+        {
+            return List.of();
+        }
+
+        List<BookStuff.Page> pages = new ArrayList<>();
+
+        pages.add(new BookStuff.TextPage(
+                "A room of this kind can be one of two things, and which one is decided by what you put in it - not by choosing.$(p)"
+                        + "Either way it scores the same and is worth the same. What changes is which gift it gives, never how large.")
+                .setTitle("What it is for"));
+
+        List<Aspect> ordered = new ArrayList<>(archetype.aspects());
+        ordered.sort((left, right) -> Boolean.compare(right.isDefault(), left.isDefault()));
+
+        for (Aspect aspect : ordered)
+        {
+            StringBuilder text = new StringBuilder(aspectRewards(archetype, aspect));
+
+            text.append("$(p)Leans this way:");
+
+            for (Aspect.Lean lean : aspect.leans())
+            {
+                text.append("$(li)").append(readable(lean.match().describe()));
+            }
+
+            for (Form form : aspect.structures())
+            {
+                text.append("$(li)").append(FormDocs.describe(form));
+            }
+
+            pages.add(new BookStuff.TextPage(text.toString())
+                    .setTitle(StringHelper.fixCapitalisation(aspect.id())));
+        }
+
+        return pages;
+    }
+
+    /** What one aspect pays: its own buffs, or - for the default - the room's own. */
+    private static String aspectRewards(ArchetypeDefinition archetype, Aspect aspect)
+    {
+        List<ArchetypeDefinition.BuffSpec> buffs = archetype.buffsFor(aspect.id());
+
+        if (buffs.isEmpty())
+        {
+            return "Grants nothing on its own.";
+        }
+
+        StringBuilder text = new StringBuilder(aspect.isDefault()
+                ? "The usual reading of the room. Grants:"
+                : "Grants instead:");
+
+        for (ArchetypeDefinition.BuffSpec buff : buffs)
+        {
+            text.append("$(li)")
+                    .append(describeBuff(buff.type()))
+                    .append(", growing with the tier, up to ")
+                    .append(magnitude(buff.type(), buff.max()))
+                    .append('.')
+                    .append(caveat(buff.type()));
+        }
+
+        return text.toString();
+    }
+
+    /**
+     * What an aspect is, said once - the Aspects epic (#171) stated to the player. Gated behind
+     * having classified a room that has aspects at all, so a reader whose soul holds none never
+     * reads about a system they cannot use.
+     *
+     * <p>The middle page is the one that matters. A player who sees two readings of a room listed
+     * side by side will assume that material for both splits their score, because that is what
+     * mixed evidence does everywhere else in this mod. It does not here, and saying so plainly is
+     * the difference between a mechanic and a suspected nerf.
+     */
+    static BookStuff.Entry aspectsExplainer(BookStuff.Category category)
+    {
+        BookStuff.Entry entry = new BookStuff.Entry("aspects", category, "minecraft:lectern");
+        entry.setDisplayTitle("what a room is for");
+        entry.advancement = ASPECT_ADVANCEMENT;
+        entry.sortnum = -7;
+
+        entry.pages = new BookStuff.Page[]
+                {
+                        new BookStuff.TextPage(
+                                "Some rooms can be more than one thing. A library heavy with shelves and stores is an archive; one turned over to writing desks is a scriptorium. Both are libraries. Both are judged the same way and score the same.$(p)What differs is the gift. The room takes whichever reading its contents most support, and pays that one.")
+                                .setTitle("What a room is for"),
+                        new BookStuff.TextPage(
+                                "Building for both costs nothing. A library with a fine archive and a fine scriptorium in it is a better library than either alone, and it is scored as one - the two readings are compared against each other, never added up or averaged.$(p)So there is no wrong mixture, and no reason to strip a room back to make it read more clearly. Put in what belongs there.")
+                                .setTitle("Both is not worse"),
+                        new BookStuff.TextPage(
+                                "A room keeps its usual reading unless the other is clearly ahead, so a room does not change what it gives because of one block moved.$(p)$(l)/soulhome analyse$() and the $(item)Soul Lens$(0) say which reading a room took, which came second, and what would tip it the other way - in blocks, so you can go and do it.")
+                                .setTitle("And how to change it"),
+                };
+
+        return entry;
     }
 
     /**

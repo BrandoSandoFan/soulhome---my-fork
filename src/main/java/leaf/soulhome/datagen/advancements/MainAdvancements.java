@@ -140,6 +140,25 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
                 .rewards(new AdvancementRewards(10, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, twoRooms));
 
+        // A room of a kind that can be more than one thing (#171), and what the guide book's page
+        // on aspects is gated behind - a player whose soul holds no such room has nothing this
+        // applies to, and a server with aspects switched off never fires it at all.
+        final String aspectTaken = "aspect_taken";
+        Advancement.Builder.advancement()
+                .parent(roomAdvancement)
+                .display(
+                        Items.LECTERN,
+                        Component.translatable(String.format(titleFormat, aspectTaken)),
+                        Component.translatable(String.format(descriptionFormat, aspectTaken)),
+                        (ResourceLocation)null,
+                        FrameType.TASK,
+                        true, //showToast
+                        true, //announce
+                        false)//hidden
+                .addCriterion("classified_room", ClassifiedRoomTrigger.Instance.withAnAspect())
+                .rewards(new AdvancementRewards(10, new ResourceLocation[0], new ResourceLocation[0], CommandFunction.CacheableFunction.NONE))
+                .save(advancementConsumer, String.format(achievementPathFormat, tabName, aspectTaken));
+
         // One per shipped archetype. Named after the archetype id so that the advancement, the
         // book entry and the datapack file all agree without anything mapping between them.
         archetypeAdvancement(advancementConsumer, roomAdvancement, "farm", Items.WHEAT);

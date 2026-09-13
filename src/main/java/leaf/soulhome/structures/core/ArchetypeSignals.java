@@ -103,6 +103,11 @@ public final class ArchetypeSignals
      *
      * <p>Derived the same way {@link #filterFor} is, and for the same reason: a datapack that adds
      * a form gets its elements indexed without a Java change.
+     *
+     * <p>Reads {@link ArchetypeDefinition#allForms}, so an aspect's own forms (#171) are indexed
+     * too. An aspect form is credited only to its aspect and never to the room, but it still has to
+     * be able to see the cells it asks about - a scriptorium's rows of lecterns cannot be graded
+     * from an index that left the lecterns out.
      */
     public static Predicate<BlockSignature> geometryFilterFor(Collection<ArchetypeDefinition> archetypes)
     {
@@ -110,7 +115,7 @@ public final class ArchetypeSignals
 
         for (ArchetypeDefinition archetype : archetypes)
         {
-            for (Form form : archetype.structures())
+            for (Form form : archetype.allForms())
             {
                 matchers.addAll(form.elements().values());
             }
@@ -130,7 +135,7 @@ public final class ArchetypeSignals
     {
         for (ArchetypeDefinition archetype : archetypes)
         {
-            for (Form form : archetype.structures())
+            for (Form form : archetype.allForms())
             {
                 if (form.needsClearance())
                 {
