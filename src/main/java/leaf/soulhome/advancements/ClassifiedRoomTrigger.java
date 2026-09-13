@@ -24,7 +24,8 @@ import java.util.Optional;
  * archetype, and so a pack can ask for "a tier 3 library" without needing its own trigger - and,
  * since the Soul Architecture epic (#140), how many rooms the same scan awarded, so an
  * advancement can ask for two at once: the guide book's bonds page gates behind that, since a
- * player with one room has nothing to bond.
+ * player with one room has nothing to bond. Since the Aspects epic (#171) it also carries
+ * whether the room took an aspect, which the book's page on those gates behind.
  *
  * <p>{@code archetype} is optional: an instance without one matches any classified room, which is
  * what the "you built your first room" advancement wants.
@@ -58,10 +59,34 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
      */
     public void trigger(ServerPlayer player, String archetypeId, int tier, int roomsAwarded)
     {
-        trigger(player, instance -> instance.matches(archetypeId, tier, roomsAwarded));
+        trigger(player, archetypeId, tier, roomsAwarded, false);
     }
 
-    public record Instance(Optional<ContextAwarePredicate> player, Optional<String> archetype, int minTier, int minRooms)
+    /**
+     * @param withAspect whether this room took an aspect (#171), which a room of an archetype that
+     *                   declares none never does - nor does any room while {@code aspects.enabled}
+     *                   is off, which is how the book's aspect page stays invisible on a server
+     *                   that has the feature switched off
+     */
+    public void trigger(ServerPlayer player, String archetypeId, int tier, int roomsAwarded, boolean withAspect)
+    {
+        trigger(player, instance -> instance.matches(archetypeId, tier, roomsAwarded, withAspect));
+    }
+
+    /**
+     * @param withAspect the room took an aspect (#171) - which only a room of a kind that can be
+     *                   more than one thing ever does. What the guide book's aspects page gates on,
+     *                   so a player whose soul holds no such room never reads about a system they
+     *                   cannot use. {@code optionalFieldOf} with {@code false} as its default means
+     *                   it is written only when asked for, so every advancement that existed before
+     *                   aspects did serialises byte-for-byte as it always has.
+     */
+    public record Instance(
+            Optional<ContextAwarePredicate> player,
+            Optional<String> archetype,
+            int minTier,
+            int minRooms,
+            boolean withAspect)
             implements SimpleCriterionTrigger.SimpleInstance
     {
         public static final Codec<Instance> CODEC = RecordCodecBuilder.create(builder -> builder
@@ -69,7 +94,8 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
                         EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(Instance::player),
                         Codec.STRING.optionalFieldOf("archetype").forGetter(Instance::archetype),
                         Codec.INT.optionalFieldOf("min_tier", 1).forGetter(Instance::minTier),
-                        Codec.INT.optionalFieldOf("min_rooms", 1).forGetter(Instance::minRooms))
+                        Codec.INT.optionalFieldOf("min_rooms", 1).forGetter(Instance::minRooms),
+                        Codec.BOOL.optionalFieldOf("with_aspect", false).forGetter(Instance::withAspect))
                 .apply(builder, Instance::new));
 
         public Instance
@@ -91,6 +117,12 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
             return criterion(Optional.empty(), 1, minRooms);
         }
 
+        /** Any room that took an aspect (#171) - what the book's aspect page gates on. */
+        public static Criterion<Instance> withAnAspect()
+        {
+            return criterion(Optional.empty(), 1, 1, true);
+        }
+
         public static Criterion<Instance> of(String archetypeId)
         {
             return criterion(Optional.ofNullable(archetypeId), 1, 1);
@@ -103,12 +135,18 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
 
         private static Criterion<Instance> criterion(Optional<String> archetype, int minTier, int minRooms)
         {
+            return criterion(archetype, minTier, minRooms, false);
+        }
+
+        private static Criterion<Instance> criterion(
+                Optional<String> archetype, int minTier, int minRooms, boolean withAspect)
+        {
             // A Criterion wraps the instance with the trigger it belongs to, which is what an
             // advancement builder takes now - the trigger type is no longer named in JSON by the
             // instance itself.
             return SoulAdvancements.CLASSIFIED_ROOM
                     .get()
-                    .createCriterion(new Instance(Optional.empty(), archetype, minTier, minRooms));
+                    .createCriterion(new Instance(Optional.empty(), archetype, minTier, minRooms, withAspect));
         }
 
         public boolean matches(String awardedArchetype, int awardedTier)
@@ -118,7 +156,17 @@ public class ClassifiedRoomTrigger extends SimpleCriterionTrigger<ClassifiedRoom
 
         public boolean matches(String awardedArchetype, int awardedTier, int roomsAwarded)
         {
+            return matches(awardedArchetype, awardedTier, roomsAwarded, false);
+        }
+
+        public boolean matches(String awardedArchetype, int awardedTier, int roomsAwarded, boolean tookAnAspect)
+        {
             if (awardedTier < this.minTier || roomsAwarded < this.minRooms)
+            {
+                return false;
+            }
+
+            if (this.withAspect && !tookAnAspect)
             {
                 return false;
             }

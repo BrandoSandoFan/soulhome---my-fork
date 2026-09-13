@@ -180,10 +180,20 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.BOND_RELATION_PREFIX + "encloses", "stands around");
         add(Constants.StringKeys.BOND_RELATION_PREFIX + "within", "stands within");
 
+        // Aspects (#171). The last line reads as a disclaimer and is doing real work: without it a
+        // player sees two aspects with numbers beside them and concludes the split cost them a buff
+        add(Constants.StringKeys.REGION_ASPECT_HEADER, "What it is for:");
+        add(Constants.StringKeys.REGION_ASPECT_TAKEN, "This one is %s.");
+        add(Constants.StringKeys.REGION_ASPECT_RUNNER_UP, "Next closest was %1$s, behind by %2$s.");
+        add(Constants.StringKeys.REGION_ASPECT_HELD, "%1$s is ahead by %2$s, but not far enough to take it.");
+        add(Constants.StringKeys.REGION_ASPECT_TIP, "%1$s more %2$s would make it %3$s instead.");
+        add(Constants.StringKeys.REGION_ASPECT_FREE, "Either way the room scores the same - what it is for changes which buff it gives, never how much.");
+
         add(Constants.StringKeys.BUFFS_HEADER, "What your soul is giving you:");
         add(Constants.StringKeys.BUFFS_NONE, "Your soul is giving you nothing yet. Build a room in it.");
         add(Constants.StringKeys.BUFFS_ENTRY, "%s %s");
         add(Constants.StringKeys.BUFFS_SOURCE, "from your %s (%s room(s), best tier %s)");
+        add(Constants.StringKeys.BUFFS_SOURCE_ASPECT, "from your %1$s as %2$s (%3$s room(s), best tier %4$s)");
         add(Constants.StringKeys.BUFFS_CAPPED, "(held at the cap)");
         add(Constants.StringKeys.BUFFS_RANK_BONUS, "of which %s is from your soul's rank");
         add(Constants.StringKeys.BUFFS_SOFT_CEILING_CONVERTED, "%s past its useful ceiling became %s");
@@ -245,10 +255,12 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_ARRANGEMENT_HEADER, "Arrangement");
         add(Constants.StringKeys.LENS_SCREEN_GRANTS_HEADER, "Grants");
         add(Constants.StringKeys.LENS_SCREEN_BONDS_HEADER, "Bonds with other rooms");
+        add(Constants.StringKeys.LENS_SCREEN_ASPECT_HEADER, "What it is for");
         add(Constants.StringKeys.LENS_SCREEN_MORE, "...and %s more");
         add(Constants.StringKeys.LENS_SCREEN_EMPTY_DETAIL, "No archetypes are loaded, so nothing here can ever count.");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_TITLE, "Your Soul's Buffs");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_FROM, "%s (%s room(s), best tier %s)");
+        add(Constants.StringKeys.LENS_SCREEN_BUFFS_FROM_ASPECT, "%1$s as %2$s (%3$s room(s), best tier %4$s)");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_RANK_BONUS, "of which %s is from your soul's rank");
         add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
 
@@ -301,6 +313,17 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.apiary", "Apiary");
         add("archetype.soulhome.observatory", "Observatory");
         add("archetype.soulhome.ossuary", "Ossuary");
+
+        //Aspects (#171): what a room of one of these kinds turned out to be for. Keyed under their
+        //archetype, since two archetypes may each have an aspect of the same name without meaning
+        //the same thing by it. The first of each pair is the default and pays what the room always
+        //paid, so a player who never engages with this reads none of these names
+        add("aspect.soulhome.library.archive", "an Archive");
+        add("aspect.soulhome.library.scriptorium", "a Scriptorium");
+        add("aspect.soulhome.hearth.fireplace", "a Fireside");
+        add("aspect.soulhome.hearth.kitchen", "a Kitchen");
+        add("aspect.soulhome.mine.shaft", "a Working Shaft");
+        add("aspect.soulhome.mine.vein", "a Lode");
 
         //The abilities those rooms grant. A room and the thing it grants are not the same noun,
         //so these are their own keys rather than reusing the archetype names
@@ -365,6 +388,8 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.first_room.description", "Build something in your soul that the world recognises.");
         add("advancements.soulhome.two_rooms.title", "Rooms Off a Hall");
         add("advancements.soulhome.two_rooms.description", "Have two rooms in your soul at once. Where you put them relative to each other now matters.");
+        add("advancements.soulhome.aspect_taken.title", "What It Is For");
+        add("advancements.soulhome.aspect_taken.description", "Build a room of a kind that can be more than one thing. What you put in it decides which, and what it gives you.");
 
         add("advancements.soulhome.farm.title", "Soul Food");
         add("advancements.soulhome.farm.description", "Grow enough in your soul that it counts as a farm.");

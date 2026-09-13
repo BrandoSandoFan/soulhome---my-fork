@@ -65,10 +65,24 @@ public class Constants
         public static final String REGION_BOND_CAPPED = "message.soulhome.region.bond_capped";
         public static final String BOND_RELATION_PREFIX = "bond.soulhome.relation.";
 
+        // Aspects (#171): which of the things a room of this kind can be for it turned out to be.
+        // The near miss is the actionable half here as it is everywhere else - and the line saying
+        // the aspect cost the room nothing is not decoration. A player shown two aspects with
+        // numbers beside them will assume the split cost them something, because that is what every
+        // other pair of competing numbers in this mod means, and a suspected nerf nobody denies is
+        // the fastest way for a feature to be read as a bug.
+        public static final String REGION_ASPECT_HEADER = "message.soulhome.region.aspect_header";
+        public static final String REGION_ASPECT_TAKEN = "message.soulhome.region.aspect_taken";
+        public static final String REGION_ASPECT_RUNNER_UP = "message.soulhome.region.aspect_runner_up";
+        public static final String REGION_ASPECT_HELD = "message.soulhome.region.aspect_held";
+        public static final String REGION_ASPECT_TIP = "message.soulhome.region.aspect_tip";
+        public static final String REGION_ASPECT_FREE = "message.soulhome.region.aspect_free";
+
         public static final String BUFFS_HEADER = "message.soulhome.buffs.header";
         public static final String BUFFS_NONE = "message.soulhome.buffs.none";
         public static final String BUFFS_ENTRY = "message.soulhome.buffs.entry";
         public static final String BUFFS_SOURCE = "message.soulhome.buffs.source";
+        public static final String BUFFS_SOURCE_ASPECT = "message.soulhome.buffs.source_aspect";
         public static final String BUFFS_CAPPED = "message.soulhome.buffs.capped";
         public static final String BUFFS_RANK_BONUS = "message.soulhome.buffs.rank_bonus";
 
@@ -140,10 +154,12 @@ public class Constants
         public static final String LENS_SCREEN_ARRANGEMENT_HEADER = "gui.soulhome.lens.arrangement_header";
         public static final String LENS_SCREEN_GRANTS_HEADER = "gui.soulhome.lens.grants_header";
         public static final String LENS_SCREEN_BONDS_HEADER = "gui.soulhome.lens.bonds_header";
+        public static final String LENS_SCREEN_ASPECT_HEADER = "gui.soulhome.lens.aspect_header";
         public static final String LENS_SCREEN_MORE = "gui.soulhome.lens.more";
         public static final String LENS_SCREEN_EMPTY_DETAIL = "gui.soulhome.lens.empty_detail";
         public static final String LENS_SCREEN_BUFFS_TITLE = "gui.soulhome.lens.buffs_title";
         public static final String LENS_SCREEN_BUFFS_FROM = "gui.soulhome.lens.buffs_from";
+        public static final String LENS_SCREEN_BUFFS_FROM_ASPECT = "gui.soulhome.lens.buffs_from_aspect";
         public static final String LENS_SCREEN_BUFFS_RANK_BONUS = "gui.soulhome.lens.buffs_rank_bonus";
         public static final String LENS_SCREEN_CLOSE = "gui.soulhome.lens.close";
 

@@ -1021,3 +1021,47 @@ and a run from a scatter, but never regularly placed from clumped.
   ask either question of its own rooms: clearance takes `min_volume`, `ideal_volume` and `headroom`;
   spacing takes `min_count`, `group_radius` and `tolerance`. Spacing says nothing at all below three
   separate groups, because two of anything are always perfectly spaced.
+
+Two libraries that want different things
+
+An archetype mapped one-to-one onto a buff. A library granted experience gain, forever, for every
+player, in every pack, however it was built - and since repeats are penalised, a second library was
+wasted floor space rather than an interesting alternative. The only intent a build could carry was
+which archetype it landed on and how well it scored; the reward for building the same room a
+different way was exactly nothing.
+
+- Buff: some rooms can now be more than one thing. A library heavy with shelves and stores is an
+  archive and keeps its experience gain; one turned over to writing desks, laid out in rows under
+  their own light, is a scriptorium and grants enchanting levels instead. A hearth of seating round
+  the fire is a fireside and still sets what you hit alight; one with a smoker, a cauldron and
+  stores is a kitchen, and your hunger builds up slower. A mine of rails, ladders and light is a
+  working shaft and digs faster; one where what you dug up is massed in blocks is a lode, and blocks
+  you break drop more. Nothing else has aspects, deliberately - a room for every reading of every
+  room is a book nobody finishes.
+- The aspect decides which gift a room gives and never how large it is. A room of a given score is
+  worth exactly what it was worth before, whichever reading it takes, and a room holding material
+  for both readings is a better room rather than a split one - the two are compared against each
+  other, never added up or averaged. This is the opposite of how a region holding two archetypes'
+  blocks behaves, and deliberately so: mixed evidence should make it harder to say what a room is,
+  and should say nothing at all about what it is for.
+- No build loses anything. Every room keeps the gift it had as its usual reading, and the other
+  reading only takes a room when it is clearly ahead - so a soul you go to bed with is the soul you
+  log in to, unless you had plainly already built the other thing.
+- `/soulhome analyse` and the Soul Lens say which reading a room took, which came second and by how
+  much, what would tip it the other way in blocks - "3 more lecterns would make it a Scriptorium" -
+  and, in as many words, that the split cost the room nothing. `/soulhome buffs` names the reading
+  beside the room that granted the buff.
+- The guide book's room pages list what each reading is and what leans toward it, written from the
+  archetype data like every other page, with a new page explaining the idea - unlocked by building a
+  room that has readings at all, so a soul with none never reads about it. A new advancement marks
+  the moment.
+- Config: `aspects.enabled` under `aspects`, on by default, and turning it off is the mod exactly as
+  it was - every room grants its archetype's own buff, nothing about a reading appears in analyse,
+  the lens, the buff list or the book, and nothing about one is written to your soul's save. A room
+  keeps its usual reading unless another leads it by `aspect_margin`, 15% by default; set that to 1
+  for a straight contest.
+- Datapacks declare aspects under `aspects` on an archetype, each with `leans` and its own `buffs`,
+  and exactly one marked `default`. An aspect may also ask for an arrangement its room does not -
+  rows of lecterns are a scriptorium, and a plain library is not expected to have them - but every
+  block it reads must be one the room already scores, checked at load, so no block ever counts
+  toward a reading without counting toward the room.

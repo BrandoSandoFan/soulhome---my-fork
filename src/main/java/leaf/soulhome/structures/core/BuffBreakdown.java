@@ -90,6 +90,11 @@ public record BuffBreakdown(SoulBuffSet totals, List<Source> sources)
      * @param magnitude  what was granted, rank included
      * @param rankBonus  how much of {@code magnitude} rank (#85) alone added - 0 for an unascended
      *                   soul, or for a buff type {@link SoulBuffTypes#amplifiesWithRank} excludes
+     * @param aspectId   which aspect these rooms took (#171), or null when their archetype declares
+     *                   none or the switch is off. Carried so {@code /soulhome buffs} can name it
+     *                   beside the room: a player looking at their buff list should be able to see
+     *                   why it is the buff it is, rather than having to go and analyse the room.
+     * @param aspectName that aspect's translation key, so the report names it and never its id (#103)
      */
     public record Source(
             String buffType,
@@ -98,7 +103,26 @@ public record BuffBreakdown(SoulBuffSet totals, List<Source> sources)
             int rooms,
             int bestTier,
             double magnitude,
-            double rankBonus)
+            double rankBonus,
+            String aspectId,
+            String aspectName)
     {
+        /** A source with no aspect - every source before #171, and most fixtures since. */
+        public Source(
+                String buffType,
+                String archetypeId,
+                String displayName,
+                int rooms,
+                int bestTier,
+                double magnitude,
+                double rankBonus)
+        {
+            this(buffType, archetypeId, displayName, rooms, bestTier, magnitude, rankBonus, null, null);
+        }
+
+        public boolean hasAspect()
+        {
+            return this.aspectId != null && this.aspectName != null && !this.aspectName.isBlank();
+        }
     }
 }

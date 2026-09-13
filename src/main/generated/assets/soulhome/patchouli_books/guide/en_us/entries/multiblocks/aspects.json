@@ -1,0 +1,27 @@
+{
+  "advancement": "soulhome:main/aspect_taken",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:lectern",
+  "name": "What A Room Is For",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Some rooms can be more than one thing. A library heavy with shelves and stores is an archive; one turned over to writing desks is a scriptorium. Both are libraries. Both are judged the same way and score the same.$(p)What differs is the gift. The room takes whichever reading its contents most support, and pays that one.",
+      "title": "What a room is for"
+    },
+    {
+      "type": "text",
+      "text": "Building for both costs nothing. A library with a fine archive and a fine scriptorium in it is a better library than either alone, and it is scored as one - the two readings are compared against each other, never added up or averaged.$(p)So there is no wrong mixture, and no reason to strip a room back to make it read more clearly. Put in what belongs there.",
+      "title": "Both is not worse"
+    },
+    {
+      "type": "text",
+      "text": "A room keeps its usual reading unless the other is clearly ahead, so a room does not change what it gives because of one block moved.$(p)$(l)/soulhome analyse$() and the $(item)Soul Lens$(0) say which reading a room took, which came second, and what would tip it the other way - in blocks, so you can go and do it.",
+      "title": "And how to change it"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": -7
+}
