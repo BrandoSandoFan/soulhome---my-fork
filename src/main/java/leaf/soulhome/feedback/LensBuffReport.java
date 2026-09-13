@@ -48,7 +48,9 @@ public record LensBuffReport(String buffType, double magnitude, boolean capped, 
 
             for (BuffBreakdown.Source source : breakdown.sourcesOf(buffType))
             {
-                sources.add(new Source(source.archetypeId(), source.displayName(), source.rooms(), source.bestTier(), source.magnitude()));
+                sources.add(new Source(
+                        source.archetypeId(), source.displayName(), source.rooms(), source.bestTier(),
+                        source.magnitude(), source.hasAspect() ? source.aspectName() : ""));
             }
 
             reports.add(new LensBuffReport(
@@ -58,7 +60,18 @@ public record LensBuffReport(String buffType, double magnitude, boolean capped, 
         return reports;
     }
 
-    public record Source(String archetypeId, String displayName, int rooms, int bestTier, double magnitude)
+    /**
+     * @param aspectName which aspect of the room granted this (#171), or blank when it took none -
+     *                   the same thing {@code /soulhome buffs} names, so the screen and the command
+     *                   read alike. Blank for every source on a server with the switch off.
+     */
+    public record Source(
+            String archetypeId,
+            String displayName,
+            int rooms,
+            int bestTier,
+            double magnitude,
+            String aspectName)
     {
         public static final Codec<Source> CODEC = RecordCodecBuilder.create(instance -> instance
                 .group(
@@ -66,7 +79,19 @@ public record LensBuffReport(String buffType, double magnitude, boolean capped, 
                         Codec.STRING.optionalFieldOf("display_name", "").forGetter(Source::displayName),
                         Codec.INT.fieldOf("rooms").forGetter(Source::rooms),
                         Codec.INT.fieldOf("best_tier").forGetter(Source::bestTier),
-                        Codec.DOUBLE.fieldOf("magnitude").forGetter(Source::magnitude))
+                        Codec.DOUBLE.fieldOf("magnitude").forGetter(Source::magnitude),
+                        Codec.STRING.optionalFieldOf("aspect_name", "").forGetter(Source::aspectName))
                 .apply(instance, Source::new));
+
+        /** A source from before aspects existed, or from a room that took none. */
+        public Source(String archetypeId, String displayName, int rooms, int bestTier, double magnitude)
+        {
+            this(archetypeId, displayName, rooms, bestTier, magnitude, "");
+        }
+
+        public boolean hasAspect()
+        {
+            return !this.aspectName.isBlank();
+        }
     }
 }

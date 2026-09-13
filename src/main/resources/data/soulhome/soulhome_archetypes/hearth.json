@@ -55,5 +55,29 @@
     { "with": "soulhome:mead_hall", "relation": "adjoins", "weight": 4.0, "role": "layout" },
     { "with": "soulhome:powder_magazine", "relation": "near", "weight": -4.0, "role": "hazard", "max_distance": 8 },
     { "with": "soulhome:cold_storage", "relation": "adjoins", "weight": -3.0, "role": "hazard" }
+  ],
+
+  "aspects": [
+    {
+      "id": "fireplace",
+      "display_name": "aspect.soulhome.hearth.fireplace",
+      "default": true,
+      "leans": [
+        { "match": { "block": ["minecraft:furnace", "minecraft:campfire", "minecraft:soul_campfire"] }, "weight": 2.0, "cap": 3 },
+        { "match": { "tag": ["soulhome:seating", "soulhome:furnishing"] }, "weight": 1.5, "cap": 12 },
+        { "match": { "block": "minecraft:magma_block" }, "weight": 1.0, "cap": 8 }
+      ]
+    },
+    {
+      "id": "kitchen",
+      "display_name": "aspect.soulhome.hearth.kitchen",
+      "leans": [
+        { "match": { "block": ["minecraft:smoker", "minecraft:cauldron"] }, "weight": 4.0, "cap": 2 },
+        { "match": { "tag": "soulhome:storage" }, "weight": 2.0, "cap": 4 }
+      ],
+      "buffs": [
+        { "type": "soulhome:nourished", "per_tier": 0.08, "max": 0.24 }
+      ]
+    }
   ]
 }

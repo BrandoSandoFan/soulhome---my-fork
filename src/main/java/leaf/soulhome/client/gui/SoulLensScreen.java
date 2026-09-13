@@ -323,11 +323,64 @@ public class SoulLensScreen extends Screen
 
         appendSignalSection(out, Constants.StringKeys.LENS_SCREEN_SIGNALS_HEADER, region.matched(), MAX_MATCHED_SHOWN, maxWidth);
         appendMissingSection(out, region.missing(), maxWidth);
+        appendAspectSection(out, region, maxWidth);
         appendArrangementSection(out, region, maxWidth);
         appendBondSection(out, region, maxWidth);
         appendGrantsSection(out, region, maxWidth);
 
         return out;
+    }
+
+    /**
+     * What the room turned out to be for - the Aspects epic (#171) - carrying the same four things
+     * {@code /soulhome analyse} says, wrapped and scrolling with the rest of the panel (#67).
+     *
+     * <p>Silent for a room that took no aspect, which covers both an archetype declaring none and
+     * every room on a server with the switch off: there is no config read here, because there is
+     * nothing to read - the report simply carries no aspect (#176).
+     *
+     * <p>The closing line is the one that looks like filler and is not. Two aspects listed with a
+     * margin between them read, in this mod, as a split that cost the player something. Saying that
+     * it did not is what keeps a feature from being reported as a bug.
+     */
+    private void appendAspectSection(List<ScrollableDetailPanel.VisualLine> out, LensRegionReport region, int maxWidth)
+    {
+        if (!region.hasAspect())
+        {
+            return;
+        }
+
+        final LensRegionReport.AspectLine aspect = region.aspect();
+
+        out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_ASPECT_HEADER), 0, COLOR_HEADER, maxWidth));
+
+        out.addAll(wrap(Component.translatable(
+                        Constants.StringKeys.REGION_ASPECT_TAKEN, Component.translatable(aspect.displayName())),
+                4, COLOR_HIT, maxWidth));
+
+        if (aspect.hasRunnerUp())
+        {
+            out.addAll(wrap(Component.translatable(
+                            aspect.heldByDefault()
+                                    ? Constants.StringKeys.REGION_ASPECT_HELD
+                                    : Constants.StringKeys.REGION_ASPECT_RUNNER_UP,
+                            Component.translatable(aspect.runnerUpDisplayName()),
+                            score(aspect.margin())),
+                    4, COLOR_MUTED, maxWidth));
+        }
+
+        if (aspect.hasTip())
+        {
+            out.addAll(wrap(Component.translatable(
+                            Constants.StringKeys.REGION_ASPECT_TIP,
+                            aspect.tipBlocks(),
+                            Component.literal(aspect.tipDescription()),
+                            Component.translatable(aspect.tipDisplayName())),
+                    4, COLOR_MISS, maxWidth));
+        }
+
+        out.addAll(wrap(Component.translatable(Constants.StringKeys.REGION_ASPECT_FREE), 4, COLOR_MUTED, maxWidth));
+        out.add(ScrollableDetailPanel.VisualLine.spacer(4));
     }
 
     /**

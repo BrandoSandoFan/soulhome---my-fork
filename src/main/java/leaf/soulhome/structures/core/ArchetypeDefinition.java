@@ -43,6 +43,12 @@ import java.util.Set;
  *                      library that connects to the enchanting room, a mine beneath the workshop.
  *                      Declared once, credited to both rooms, and never a gate either. See the
  *                      Soul Architecture epic (#140) and {@link Bond}.
+ * @param aspects      what a room of this archetype can be <i>for</i> - a library as an archive or
+ *                      as a scriptorium. Optional, and empty for most archetypes: an archetype
+ *                      declaring none behaves exactly as it did before the Aspects epic (#171), and
+ *                      that must stay the zero-cost path. An aspect is not evidence and is not
+ *                      scored: it selects which buff the room's magnitude is paid into and changes
+ *                      nothing else. See {@link Aspect}.
  */
 public record ArchetypeDefinition(
         String id,
@@ -55,7 +61,8 @@ public record ArchetypeDefinition(
         List<Tier> tiers,
         List<BuffSpec> buffs,
         List<Form> structures,
-        List<Bond> bonds)
+        List<Bond> bonds,
+        List<Aspect> aspects)
 {
     /**
      * Default per-signal ceiling. Caps are the hard backstop against volume-stuffing; the
@@ -80,6 +87,7 @@ public record ArchetypeDefinition(
         buffs = buffs == null ? List.of() : List.copyOf(buffs);
         structures = structures == null ? List.of() : List.copyOf(structures);
         bonds = bonds == null ? List.of() : List.copyOf(bonds);
+        aspects = aspects == null ? List.of() : List.copyOf(aspects);
 
         // ascending, so tierFor can walk them and take the last one cleared
         List<Tier> sortedTiers = new ArrayList<>(tiers == null ? List.of() : tiers);
@@ -103,13 +111,106 @@ public record ArchetypeDefinition(
         this(id, displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures, List.of());
     }
 
+    /** An archetype declaring no aspects - every archetype before #171, and most fixtures since. */
+    public ArchetypeDefinition(
+            String id,
+            String displayName,
+            List<RegionType> regionTypes,
+            int minVolume,
+            List<Requirement> requirements,
+            List<Signal> signals,
+            List<Signal> detractors,
+            List<Tier> tiers,
+            List<BuffSpec> buffs,
+            List<Form> structures,
+            List<Bond> bonds)
+    {
+        this(id, displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs,
+                structures, bonds, List.of());
+    }
+
     /** The loader supplies the id from the file path; the file body does not get to name itself. */
     public ArchetypeDefinition withId(String newId)
     {
         return new ArchetypeDefinition(
                 newId, this.displayName, this.regionTypes, this.minVolume,
                 this.requirements, this.signals, this.detractors, this.tiers, this.buffs,
-                this.structures, this.bonds);
+                this.structures, this.bonds, this.aspects);
+    }
+
+    /**
+     * The aspect with this id, or null - including for a null id, which is what an archetype with no
+     * aspects, and every room awarded before this epic, carries.
+     */
+    public Aspect aspect(String aspectId)
+    {
+        if (aspectId == null || aspectId.isBlank())
+        {
+            return null;
+        }
+
+        for (Aspect aspect : this.aspects)
+        {
+            if (aspect.id().equals(aspectId))
+            {
+                return aspect;
+            }
+        }
+
+        return null;
+    }
+
+    /** The aspect that pays this archetype's own {@link #buffs}, or null when none is declared. */
+    public Aspect defaultAspect()
+    {
+        for (Aspect aspect : this.aspects)
+        {
+            if (aspect.isDefault())
+            {
+                return aspect;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * What a room that took this aspect pays. The archetype's own {@link #buffs} unless a non-default
+     * aspect declared its own - which is the whole of what an aspect does (#171 rule 3).
+     *
+     * <p>Falls back to the archetype's own payout for an aspect id it does not know, which is what a
+     * save written against a datapack that has since dropped the aspect hands back. That is the same
+     * answer the switch being off gives, and both are the answer a player expects: the room keeps
+     * granting what its kind of room grants.
+     */
+    public List<BuffSpec> buffsFor(String aspectId)
+    {
+        final Aspect aspect = aspect(aspectId);
+
+        return aspect == null || !aspect.paysItsOwn() ? this.buffs : aspect.buffs();
+    }
+
+    /**
+     * Every form this archetype can evaluate, its aspects' included - what
+     * {@code ArchetypeSignals} has to index geometry for. An aspect form is still credited only to
+     * its aspect; what it shares with the archetype's own forms is the cell index it reads, not the
+     * score it feeds.
+     */
+    public List<Form> allForms()
+    {
+        if (this.aspects.isEmpty())
+        {
+            return this.structures;
+        }
+
+        List<Form> forms = new ArrayList<>(this.structures);
+
+        for (Aspect aspect : this.aspects)
+        {
+            forms.addAll(aspect.structures());
+        }
+
+        return List.copyOf(forms);
     }
 
     public boolean accepts(RegionType type)
@@ -246,7 +347,72 @@ public record ArchetypeDefinition(
             }
         }
 
+        collectAspectErrors(errors);
+
         return errors;
+    }
+
+    /**
+     * The aspect rules from #172, checked here rather than left to authors to remember: exactly one
+     * default, ids unique within the archetype, and every block an aspect reads already scored by
+     * the room (#171 rule 2, see {@link Aspect}).
+     *
+     * <p>A malformed aspect fails the whole archetype rather than being dropped on its own. An
+     * archetype missing one of its aspects is an archetype that quietly pays the wrong buff, and a
+     * packmaker is far better served by a room that does not load and says why.
+     */
+    private void collectAspectErrors(List<String> errors)
+    {
+        if (this.aspects.isEmpty())
+        {
+            return;
+        }
+
+        Set<String> ids = new HashSet<>();
+        int defaults = 0;
+
+        for (int i = 0; i < this.aspects.size(); i++)
+        {
+            final Aspect aspect = this.aspects.get(i);
+
+            // named as well as numbered: "aspects[1] 'scriptorium': '#soulhome:writing' is not one
+            // of this archetype's own signals" is a line an author can act on without counting
+            // entries in their own file (#172)
+            final String where = aspect.id() == null || aspect.id().isBlank()
+                    ? "aspects[" + i + "]: "
+                    : "aspects[" + i + "] '" + aspect.id() + "': ";
+
+            for (String error : aspect.validationErrors(this.signals))
+            {
+                errors.add(where + error);
+            }
+
+            if (aspect.id() != null && !aspect.id().isBlank() && !ids.add(aspect.id()))
+            {
+                errors.add(where + "duplicate aspect id '" + aspect.id() + "'");
+            }
+
+            if (aspect.isDefault())
+            {
+                defaults++;
+            }
+        }
+
+        if (defaults == 0)
+        {
+            errors.add("aspects: none is marked 'default', so there is nothing to pay the"
+                    + " archetype's own 'buffs' and no anchor for a room that leans nowhere");
+        }
+        else if (defaults > 1)
+        {
+            errors.add("aspects: " + defaults + " are marked 'default', and exactly one may be");
+        }
+
+        if (this.aspects.size() == 1)
+        {
+            errors.add("aspects: only one is declared, so there is nothing to choose between -"
+                    + " an archetype with a single payout should declare no aspects at all");
+        }
     }
 
     /**
@@ -262,6 +428,14 @@ public record ArchetypeDefinition(
             for (String warning : this.structures.get(i).validationWarnings())
             {
                 warnings.add("structures[" + i + "]: " + warning);
+            }
+        }
+
+        for (int i = 0; i < this.aspects.size(); i++)
+        {
+            for (String warning : this.aspects.get(i).validationWarnings())
+            {
+                warnings.add("aspects[" + i + "]: " + warning);
             }
         }
 

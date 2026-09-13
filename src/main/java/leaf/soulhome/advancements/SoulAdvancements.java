@@ -52,7 +52,11 @@ public final class SoulAdvancements
 
         for (AwardedRoom room : awarded)
         {
-            CLASSIFIED_ROOM.get().trigger(player, room.archetypeId(), room.tier(), awarded.size());
+            // whether the room took an aspect (#171) comes off the awarded room itself, so a server
+            // with aspects switched off never fires the aspect criterion and the book's page on
+            // them stays invisible there - no config read, because there is nothing to read
+            CLASSIFIED_ROOM.get().trigger(
+                    player, room.archetypeId(), room.tier(), awarded.size(), room.hasAspect());
         }
     }
 

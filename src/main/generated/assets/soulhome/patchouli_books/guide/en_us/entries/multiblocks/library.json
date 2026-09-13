@@ -15,6 +15,21 @@
     },
     {
       "type": "text",
+      "text": "A room of this kind can be one of two things, and which one is decided by what you put in it - not by choosing.$(p)Either way it scores the same and is worth the same. What changes is which gift it gives, never how large.",
+      "title": "What it is for"
+    },
+    {
+      "type": "text",
+      "text": "The usual reading of the room. Grants:$(li)Experience gain, growing with the tier, up to +30%%.$(p)Leans this way:$(li)$(l:soulhome:multiblocks/tags#bookshelves)any bookshelves$(/l)$(li)$(l:soulhome:multiblocks/tags#storage)any storage$(/l)",
+      "title": "Archive"
+    },
+    {
+      "type": "text",
+      "text": "Grants instead:$(li)Enchanting levels, growing with the tier, up to +3.$(p)Leans this way:$(li)Lectern$(li)Cartography Table$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Lecterns repeats at regular intervals, in at least 3 separate runs, and light is 1-3 from lecterns.",
+      "title": "Scriptorium"
+    },
+    {
+      "type": "text",
       "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Seating is across from lectern, and seating is within 6 of shelves.",
       "title": "How you arrange it"
     },

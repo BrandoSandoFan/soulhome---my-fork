@@ -13,6 +13,7 @@ import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.structures.core.ArchetypeClassifier;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.ArchetypeSignals;
+import leaf.soulhome.structures.core.Aspect;
 import leaf.soulhome.structures.core.BlockSignature;
 import leaf.soulhome.structures.core.BondBook;
 import leaf.soulhome.structures.core.BondRelationRegistry;
@@ -231,11 +232,23 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
      */
     private static void warnAboutUnknownBuffs(ArchetypeDefinition definition)
     {
-        for (ArchetypeDefinition.BuffSpec buff : definition.buffs())
+        warnAboutUnknownBuffs(definition, definition.id(), definition.buffs());
+
+        // an aspect's payout is as easy to typo as the archetype's own, and the result is worse:
+        // a room that classifies, takes the aspect the player built for, and grants nothing (#172)
+        for (Aspect aspect : definition.aspects())
+        {
+            warnAboutUnknownBuffs(definition, definition.id() + " aspect '" + aspect.id() + "'", aspect.buffs());
+        }
+    }
+
+    private static void warnAboutUnknownBuffs(ArchetypeDefinition definition, String where, List<ArchetypeDefinition.BuffSpec> buffs)
+    {
+        for (ArchetypeDefinition.BuffSpec buff : buffs)
         {
             if (!SoulBuffEffects.isKnown(buff.type()))
             {
-                LogHelper.warn("Soulhome archetype " + definition.id() + " grants '" + buff.type()
+                LogHelper.warn("Soulhome archetype " + where + " grants '" + buff.type()
                         + "', which nothing is registered to apply. Known buff types: "
                         + SoulBuffEffects.knownTypes());
             }

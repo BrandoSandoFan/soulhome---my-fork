@@ -15,6 +15,21 @@
     },
     {
       "type": "text",
+      "text": "A room of this kind can be one of two things, and which one is decided by what you put in it - not by choosing.$(p)Either way it scores the same and is worth the same. What changes is which gift it gives, never how large.",
+      "title": "What it is for"
+    },
+    {
+      "type": "text",
+      "text": "The usual reading of the room. Grants:$(li)Fire on hit, growing with the tier, up to +6.$(p)Leans this way:$(li)Furnace or Campfire or Soul Campfire$(li)$(l:soulhome:multiblocks/tags#seating)any seating$(/l) or $(l:soulhome:multiblocks/tags#furnishing)any furnishing$(/l)$(li)Magma Block",
+      "title": "Fireplace"
+    },
+    {
+      "type": "text",
+      "text": "Grants instead:$(li)Slower hunger, growing with the tier, up to +24%%.$(p)Leans this way:$(li)Smoker or Cauldron$(li)$(l:soulhome:multiblocks/tags#storage)any storage$(/l)",
+      "title": "Kitchen"
+    },
+    {
+      "type": "text",
       "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Seating surrounds fire, and light is 1-6 from fire.",
       "title": "How you arrange it"
     },

@@ -7,11 +7,13 @@ package leaf.soulhome.feedback;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.structures.core.ArchetypeScore;
+import leaf.soulhome.structures.core.AspectSelection;
 import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.ClassificationResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalDouble;
 
 /**
@@ -44,7 +46,8 @@ public record LensRegionReport(
         List<String> missing,
         List<Form> forms,
         List<BuffEntry> buffs,
-        List<BondLine> bonds)
+        List<BondLine> bonds,
+        AspectLine aspect)
 {
     /** Sentinel for {@link #scoreToNextTier}: no next tier to reach, or nothing scored at all. */
     public static final double NO_NEXT_TIER = -1d;
@@ -65,8 +68,12 @@ public record LensRegionReport(
                     Codec.STRING.listOf().optionalFieldOf("missing", List.of()).forGetter(LensRegionReport::missing),
                     Form.CODEC.listOf().optionalFieldOf("forms", List.of()).forGetter(LensRegionReport::forms),
                     BuffEntry.CODEC.listOf().optionalFieldOf("buffs", List.of()).forGetter(LensRegionReport::buffs),
-                    BondLine.CODEC.listOf().optionalFieldOf("bonds", List.of()).forGetter(LensRegionReport::bonds))
-            .apply(instance, LensRegionReport::new));
+                    BondLine.CODEC.listOf().optionalFieldOf("bonds", List.of()).forGetter(LensRegionReport::bonds),
+                    // absent for a room with no aspect, which is every room when the switch is off
+                    // and every room of an archetype that declares none (#176)
+                    AspectLine.CODEC.optionalFieldOf("aspect")
+                            .forGetter((LensRegionReport report) -> Optional.ofNullable(report.aspect())))
+            .apply(instance, LensRegionReport::withOptionalAspect));
 
     public LensRegionReport
     {
@@ -96,6 +103,57 @@ public record LensRegionReport(
     {
         this(index, status, archetypeId, displayName, tier, score, scoreToNextTier, runnerUpDisplayName,
                 runnerUpScore, noArchetypes, matched, missing, forms, buffs, List.of());
+    }
+
+    /** A report from before aspects existed, or of a room that took none. */
+    public LensRegionReport(
+            int index,
+            String status,
+            String archetypeId,
+            String displayName,
+            int tier,
+            double score,
+            double scoreToNextTier,
+            String runnerUpDisplayName,
+            double runnerUpScore,
+            boolean noArchetypes,
+            List<Signal> matched,
+            List<String> missing,
+            List<Form> forms,
+            List<BuffEntry> buffs,
+            List<BondLine> bonds)
+    {
+        this(index, status, archetypeId, displayName, tier, score, scoreToNextTier, runnerUpDisplayName,
+                runnerUpScore, noArchetypes, matched, missing, forms, buffs, bonds, null);
+    }
+
+    /** The codec's own constructor: an absent aspect field is a room that took none. */
+    private static LensRegionReport withOptionalAspect(
+            int index,
+            String status,
+            String archetypeId,
+            String displayName,
+            int tier,
+            double score,
+            double scoreToNextTier,
+            String runnerUpDisplayName,
+            double runnerUpScore,
+            boolean noArchetypes,
+            List<Signal> matched,
+            List<String> missing,
+            List<Form> forms,
+            List<BuffEntry> buffs,
+            List<BondLine> bonds,
+            Optional<AspectLine> aspect)
+    {
+        return new LensRegionReport(
+                index, status, archetypeId, displayName, tier, score, scoreToNextTier, runnerUpDisplayName,
+                runnerUpScore, noArchetypes, matched, missing, forms, buffs, bonds, aspect.orElse(null));
+    }
+
+    public boolean hasAspect()
+    {
+        return this.aspect != null;
     }
 
     /** Indices of the regions this one's credited bonds are with, for the lens to highlight. */
@@ -154,7 +212,7 @@ public record LensRegionReport(
         {
             return new LensRegionReport(
                     index, result.status().name(), "", "", 0, 0d, NO_NEXT_TIER, "", 0d, true,
-                    List.of(), List.of(), List.of(), List.of(), List.of());
+                    List.of(), List.of(), List.of(), List.of(), List.of(), null);
         }
 
         final boolean classified = result.status() == ClassificationResult.Status.CLASSIFIED;
@@ -177,7 +235,39 @@ public record LensRegionReport(
                 missing(best.missingSignals()),
                 forms(best),
                 classified ? buffsOf(best.archetypeId(), breakdown) : List.of(),
-                bonds(best));
+                bonds(best),
+                aspectOf(best));
+    }
+
+    /**
+     * The aspect the room took, its near miss, and what would tip it - the same four things
+     * {@code SoulReport} says, so the screen and the chat command cannot disagree. Null when the
+     * room took no aspect, which is the whole of what the switch being off looks like here (#176).
+     */
+    private static AspectLine aspectOf(ArchetypeScore score)
+    {
+        final AspectSelection aspect = score.aspect();
+
+        if (aspect == null)
+        {
+            return null;
+        }
+
+        final AspectSelection.Support runnerUp = aspect.runnerUp();
+        final AspectSelection.Support taken = aspect.taken();
+        final AspectSelection.Tip tip = aspect.tip();
+
+        return new AspectLine(
+                aspect.takenId(),
+                aspect.takenDisplayName(),
+                runnerUp == null ? "" : runnerUp.displayName(),
+                // unsigned, for the same reason SoulReport takes it unsigned: the winner is "ahead
+                // by" and a default that held its room is "behind by", and neither wants a minus
+                taken == null || runnerUp == null ? 0d : Math.abs(taken.support() - runnerUp.support()),
+                aspect.heldByDefault(),
+                tip == null ? "" : BlockNames.text(tip.blockDescription()),
+                tip == null ? 0 : tip.blocksNeeded(),
+                tip == null ? "" : tip.displayName());
     }
 
     /**
@@ -370,6 +460,51 @@ public record LensRegionReport(
                         Codec.BOOL.optionalFieldOf("discord", false).forGetter(BondLine::discord),
                         Codec.STRING.optionalFieldOf("diagnostic", "").forGetter(BondLine::diagnostic))
                 .apply(instance, BondLine::new));
+    }
+
+    /**
+     * What the room turned out to be for, as the lens shows it - the Aspects epic (#171).
+     *
+     * <p>Carries the margin between first and second because the near miss is the actionable half,
+     * and carries it knowing it decides nothing: the room scores and pays the same whichever aspect
+     * it took. The screen says so in as many words for the same reason the chat report does.
+     *
+     * @param heldByDefault the runner-up leads on support but not by enough to take the room -
+     *                      a different sentence from "this is an archive", and the useful one
+     * @param tipBlocks     how many more of {@code tipDescription} would hand it over, or 0 when no
+     *                      number of blocks would
+     */
+    public record AspectLine(
+            String aspectId,
+            String displayName,
+            String runnerUpDisplayName,
+            double margin,
+            boolean heldByDefault,
+            String tipDescription,
+            int tipBlocks,
+            String tipDisplayName)
+    {
+        public static final Codec<AspectLine> CODEC = RecordCodecBuilder.create(instance -> instance
+                .group(
+                        Codec.STRING.fieldOf("id").forGetter(AspectLine::aspectId),
+                        Codec.STRING.fieldOf("display_name").forGetter(AspectLine::displayName),
+                        Codec.STRING.optionalFieldOf("runner_up_display_name", "").forGetter(AspectLine::runnerUpDisplayName),
+                        Codec.DOUBLE.optionalFieldOf("margin", 0d).forGetter(AspectLine::margin),
+                        Codec.BOOL.optionalFieldOf("held_by_default", false).forGetter(AspectLine::heldByDefault),
+                        Codec.STRING.optionalFieldOf("tip_description", "").forGetter(AspectLine::tipDescription),
+                        Codec.INT.optionalFieldOf("tip_blocks", 0).forGetter(AspectLine::tipBlocks),
+                        Codec.STRING.optionalFieldOf("tip_display_name", "").forGetter(AspectLine::tipDisplayName))
+                .apply(instance, AspectLine::new));
+
+        public boolean hasRunnerUp()
+        {
+            return !this.runnerUpDisplayName.isBlank();
+        }
+
+        public boolean hasTip()
+        {
+            return this.tipBlocks > 0 && !this.tipDescription.isBlank();
+        }
     }
 
     public record BuffEntry(String buffType, double magnitude)

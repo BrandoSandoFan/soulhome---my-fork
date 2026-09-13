@@ -9,6 +9,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
+import leaf.soulhome.structures.core.Aspect;
 import leaf.soulhome.structures.core.BlockMatcher;
 import leaf.soulhome.structures.core.Bond;
 import leaf.soulhome.structures.core.BondRelationRegistry;
@@ -131,6 +132,55 @@ public final class ArchetypeCodecs
                     .apply(instance, ArchetypeDefinition.BuffSpec::new));
 
     /**
+     * One piece of evidence that a room is meant for an aspect - the Aspects epic (#171). Shaped
+     * like a {@link #SIGNAL} minus the two fields that would mean nothing on it: an aspect touches
+     * no diversity multiplier, so there is no {@code role}, and it never seeds an open-air cluster,
+     * so there is no {@code seed}.
+     */
+    public static final Codec<Aspect.Lean> LEAN =
+            RecordCodecBuilder.create(instance -> instance
+                    .group(
+                            BLOCK_MATCHER.fieldOf("match")
+                                    .forGetter(Aspect.Lean::match),
+                            Codec.DOUBLE.fieldOf("weight")
+                                    .forGetter(Aspect.Lean::weight),
+                            Codec.INT.optionalFieldOf("cap", ArchetypeDefinition.DEFAULT_CAP)
+                                    .forGetter(Aspect.Lean::cap))
+                    .apply(instance, Aspect.Lean::new));
+
+    /**
+     * What a room of this archetype can be <i>for</i>. {@code default} marks the one aspect that
+     * pays the archetype's own top-level {@code buffs}; an aspect's own {@code structures} are
+     * graded exactly as the archetype's are but credited only to the aspect, since a library is
+     * expected to hold a lectern and only a scriptorium is expected to hold them in rows. They read
+     * through {@link #FORM_LIST} for the same reason the archetype's own do: a form this install
+     * cannot evaluate drops out rather than taking the archetype with it.
+     *
+     * <p>The rule that every block an aspect reads is a block the room already scores is not
+     * expressed here. It cannot be: a codec sees one field at a time and the check needs the
+     * archetype's own signals beside the aspect. It lives in
+     * {@link ArchetypeDefinition#validationErrors} instead, which {@link ArchetypeManager} already
+     * runs over every loaded archetype - so a malformed aspect is logged and skipped like any other
+     * malformed element rather than failing the reload.
+     */
+    public static final Codec<Aspect> ASPECT =
+            RecordCodecBuilder.create(instance -> instance
+                    .group(
+                            Codec.STRING.fieldOf("id")
+                                    .forGetter(Aspect::id),
+                            Codec.STRING.fieldOf("display_name")
+                                    .forGetter(Aspect::displayName),
+                            Codec.BOOL.optionalFieldOf("default", false)
+                                    .forGetter(Aspect::isDefault),
+                            LEAN.listOf().optionalFieldOf("leans", List.of())
+                                    .forGetter(Aspect::leans),
+                            FORM_LIST.optionalFieldOf("structures", List.of())
+                                    .forGetter(Aspect::structures),
+                            BUFF_SPEC.listOf().optionalFieldOf("buffs", List.of())
+                                    .forGetter(Aspect::buffs))
+                    .apply(instance, Aspect::new));
+
+    /**
      * The datapack file format. There is no {@code id} field: an archetype is named by its file
      * path, so a file cannot claim to be something it is not. {@link ArchetypeManager} supplies the
      * real id via {@link ArchetypeDefinition#withId}.
@@ -157,11 +207,13 @@ public final class ArchetypeCodecs
                             FORM_LIST.optionalFieldOf("structures", List.of())
                                     .forGetter(ArchetypeDefinition::structures),
                             BONDS.optionalFieldOf("bonds", List.of())
-                                    .forGetter(ArchetypeDefinition::bonds))
-                    .apply(instance, (displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures, bonds) ->
+                                    .forGetter(ArchetypeDefinition::bonds),
+                            ASPECT.listOf().optionalFieldOf("aspects", List.of())
+                                    .forGetter(ArchetypeDefinition::aspects))
+                    .apply(instance, (displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures, bonds, aspects) ->
                             new ArchetypeDefinition(
                                     ArchetypeDefinition.PLACEHOLDER_ID, displayName, regionTypes, minVolume,
-                                    requirements, signals, detractors, tiers, buffs, structures, bonds)));
+                                    requirements, signals, detractors, tiers, buffs, structures, bonds, aspects)));
 
     /**
      * The over-the-wire format, which does carry the id - the client has no file paths to derive
@@ -191,7 +243,11 @@ public final class ArchetypeCodecs
                             FORM_LIST.optionalFieldOf("structures", List.of())
                                     .forGetter(ArchetypeDefinition::structures),
                             BONDS.optionalFieldOf("bonds", List.of())
-                                    .forGetter(ArchetypeDefinition::bonds))
+                                    .forGetter(ArchetypeDefinition::bonds),
+                            // aspects reach the client alongside everything else: the lens names
+                            // them and the client has no datapack to read them from (#172)
+                            ASPECT.listOf().optionalFieldOf("aspects", List.of())
+                                    .forGetter(ArchetypeDefinition::aspects))
                     .apply(instance, ArchetypeDefinition::new));
 
     private ArchetypeCodecs()
