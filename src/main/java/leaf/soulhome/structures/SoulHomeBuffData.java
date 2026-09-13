@@ -5,8 +5,10 @@
 package leaf.soulhome.structures;
 
 import leaf.soulhome.config.SoulHomeConfig;
+import leaf.soulhome.structures.core.AttunementBook;
 import leaf.soulhome.structures.core.AwardedRoom;
 import leaf.soulhome.structures.core.RegionBounds;
+import leaf.soulhome.structures.core.RoomBinding;
 import leaf.soulhome.structures.core.SoulRegion;
 import leaf.soulhome.utils.LogHelper;
 import net.minecraft.core.BlockPos;
@@ -48,6 +50,33 @@ public class SoulHomeBuffData extends SavedData
      * archetype's own buffs: the same answer the switch being off gives.
      */
     private static final String KEY_ASPECT = "Aspect";
+
+    /**
+     * A room's stable identity across scans, and where it stood when it was last seen (the
+     * Attunement epic, #152). Written only while {@code attunement.enabled} is on - see
+     * {@link AttunementBook#anonymise} - so a save from a server with the switch off, or from before
+     * the epic, is byte-for-byte what it always was.
+     */
+    private static final String KEY_ROOM_ID = "RoomId";
+    private static final String KEY_FOOTPRINT = "Footprint";
+
+    /**
+     * Which rooms this soulhome is carrying (#152), and the serial the next new room gets. Both
+     * absent on a soulhome that has never attuned anything, which is every soulhome the update lands
+     * on: nothing is bound, so the player's first scan hands them every buff they had, and the first
+     * time they exceed their slots is the first time they hear about it (#157).
+     */
+    private static final String KEY_ATTUNEMENTS = "Attunements";
+    private static final String KEY_NEXT_ROOM_ID = "NextRoomId";
+
+    /**
+     * Whether this soulhome's owner has been told, once, that they have more rooms than slots
+     * (#157). Saved rather than held in memory so that the message is a one-off across restarts
+     * rather than one per login - a nag is how a player learns to ignore the thing that explains
+     * the mechanic to them.
+     */
+    private static final String KEY_SLOTS_EXPLAINED = "SlotsExplained";
+
     private static final String KEY_CONTENT_HASH = "ContentHash";
     private static final String KEY_SCANNED = "Scanned";
 
@@ -94,6 +123,9 @@ public class SoulHomeBuffData extends SavedData
     private static final int CURRENT_DATA_VERSION = 1;
 
     private List<AwardedRoom> awardedRooms = List.of();
+    private List<RoomBinding> attunements = List.of();
+    private int nextRoomId = 1;
+    private boolean slotsExplained;
     private long contentHash;
     private boolean scanned;
     private int dataVersion = CURRENT_DATA_VERSION;
@@ -144,10 +176,16 @@ public class SoulHomeBuffData extends SavedData
             }
 
             rooms.add(new AwardedRoom(
-                    archetype, tier, room.getDouble(KEY_SCORE), room.getString(KEY_ASPECT)));
+                    archetype, tier, room.getDouble(KEY_SCORE), room.getString(KEY_ASPECT),
+                    room.getInt(KEY_ROOM_ID), readBounds(room, KEY_FOOTPRINT)));
         }
 
         data.awardedRooms = List.copyOf(rooms);
+        data.attunements = readAttunements(tag);
+        // absent on every save written before attunement existed, and on one written while it was
+        // off - reads back as 1, which is simply "no room has been numbered yet"
+        data.nextRoomId = Math.max(1, tag.getInt(KEY_NEXT_ROOM_ID));
+        data.slotsExplained = tag.getBoolean(KEY_SLOTS_EXPLAINED);
         data.contentHash = tag.getLong(KEY_CONTENT_HASH);
         data.scanned = tag.getBoolean(KEY_SCANNED);
         // absent on any save written before the legacy grant existed - reads back as 0, which is
@@ -216,10 +254,57 @@ public class SoulHomeBuffData extends SavedData
                 entry.putString(KEY_ASPECT, room.aspectId());
             }
 
+            // written only when there is one, for the same reason the aspect above is: a soulhome
+            // whose server has attunement off carries no identities, and its save is the save it
+            // always was rather than the same save with two empty columns
+            if (room.hasIdentity())
+            {
+                entry.putInt(KEY_ROOM_ID, room.roomId());
+            }
+
+            if (room.footprint() != null)
+            {
+                entry.putIntArray(KEY_FOOTPRINT, bounds(room.footprint()));
+            }
+
             list.add(entry);
         }
 
         tag.put(KEY_ROOMS, list);
+
+        if (!this.attunements.isEmpty())
+        {
+            ListTag bound = new ListTag();
+
+            for (RoomBinding binding : this.attunements)
+            {
+                CompoundTag entry = new CompoundTag();
+                entry.putInt(KEY_ROOM_ID, binding.roomId());
+                entry.putString(KEY_ARCHETYPE, binding.archetypeId());
+
+                if (binding.footprint() != null)
+                {
+                    entry.putIntArray(KEY_FOOTPRINT, bounds(binding.footprint()));
+                }
+
+                bound.add(entry);
+            }
+
+            tag.put(KEY_ATTUNEMENTS, bound);
+            tag.putInt(KEY_NEXT_ROOM_ID, this.nextRoomId);
+        }
+        else if (this.nextRoomId > 1)
+        {
+            // nothing is bound, but rooms have been numbered: keeping the counter means a room that
+            // is unbound today and rebound tomorrow is not handed an id something else already used
+            tag.putInt(KEY_NEXT_ROOM_ID, this.nextRoomId);
+        }
+
+        if (this.slotsExplained)
+        {
+            tag.putBoolean(KEY_SLOTS_EXPLAINED, true);
+        }
+
         tag.putLong(KEY_CONTENT_HASH, this.contentHash);
         tag.putBoolean(KEY_SCANNED, this.scanned);
         tag.putInt(KEY_DATA_VERSION, this.dataVersion);
@@ -299,6 +384,59 @@ public class SoulHomeBuffData extends SavedData
     public List<AwardedRoom> awardedRooms()
     {
         return this.awardedRooms;
+    }
+
+    /**
+     * Which rooms this soulhome is carrying (#151). Empty on every soulhome that has never bound
+     * anything, and on every soulhome at all while {@code attunement.enabled} is off.
+     */
+    public List<RoomBinding> attunements()
+    {
+        return this.attunements;
+    }
+
+    /** The serial the next newly-classified room is given - see {@link AttunementBook#reconcile}. */
+    public int nextRoomId()
+    {
+        return this.nextRoomId;
+    }
+
+    /**
+     * Take on a scan's reconciled room identities and the bindings brought up to date alongside
+     * them. Separate from {@link #update} because a binding change made at the anchor writes
+     * bindings without there having been a scan at all.
+     */
+    public void setAttunement(List<RoomBinding> bindings, int nextRoomId)
+    {
+        final List<RoomBinding> updated = List.copyOf(bindings);
+        final int next = Math.max(1, nextRoomId);
+
+        if (updated.equals(this.attunements) && next == this.nextRoomId)
+        {
+            return;
+        }
+
+        this.attunements = updated;
+        this.nextRoomId = next;
+        setDirty();
+    }
+
+    /**
+     * Whether this soulhome's owner has already been told, once, that they have more rooms than
+     * slots (#157).
+     *
+     * @return whether this call is the one that should say it, marking it said if so
+     */
+    public boolean explainSlotsOnce()
+    {
+        if (this.slotsExplained)
+        {
+            return false;
+        }
+
+        this.slotsExplained = true;
+        setDirty();
+        return true;
     }
 
     /**
@@ -522,6 +660,67 @@ public class SoulHomeBuffData extends SavedData
         }
 
         return changed;
+    }
+
+    /** Reads the bindings written by {@link #save}, skipping any row a hand edit has broken. */
+    private static List<RoomBinding> readAttunements(CompoundTag tag)
+    {
+        if (!tag.contains(KEY_ATTUNEMENTS))
+        {
+            return List.of();
+        }
+
+        List<RoomBinding> bindings = new ArrayList<>();
+        ListTag list = tag.getList(KEY_ATTUNEMENTS, Tag.TAG_COMPOUND);
+
+        for (int index = 0; index < list.size(); index++)
+        {
+            CompoundTag entry = list.getCompound(index);
+            final int roomId = entry.getInt(KEY_ROOM_ID);
+            final String archetype = entry.getString(KEY_ARCHETYPE);
+
+            if (roomId <= 0 || archetype.isBlank())
+            {
+                continue;
+            }
+
+            bindings.add(new RoomBinding(roomId, archetype, readBounds(entry, KEY_FOOTPRINT)));
+        }
+
+        return List.copyOf(bindings);
+    }
+
+    private static int[] bounds(RegionBounds box)
+    {
+        return new int[] {box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()};
+    }
+
+    /** The inverse of {@link #bounds}, null for an absent or malformed box rather than a throw. */
+    private static RegionBounds readBounds(CompoundTag tag, String key)
+    {
+        if (!tag.contains(key))
+        {
+            return null;
+        }
+
+        final int[] box = tag.getIntArray(key);
+
+        if (box.length != 6)
+        {
+            return null;
+        }
+
+        try
+        {
+            return new RegionBounds(box[0], box[1], box[2], box[3], box[4], box[5]);
+        }
+        catch (IllegalArgumentException e)
+        {
+            // an inverted box carries no information about where a room stood; the next scan simply
+            // numbers it afresh, which costs a binding rather than the level's whole saved data
+            LogHelper.warn("Discarding an invalid saved room footprint: " + e);
+            return null;
+        }
     }
 
     /**

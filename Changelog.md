@@ -1051,3 +1051,52 @@ from.
 - Bare ground, deliberately: no trees, no boulders, no ponds. Terrain that carries signal is exactly
   the shape of the region-detection fault where a fresh soul reads as one island-sized region, and
   an apron is by construction a large connected mass of terrain.
+
+You cannot carry every buff at once
+
+A soul with twenty rooms in it granted twenty buffs, and you chose none of them. Nothing anywhere
+discouraged breadth: build one of everything and you carried everything, so the thirtieth room was a
+checkbox rather than a decision, and every number in the mod was tuned one room at a time and
+experienced twenty at once.
+
+- Nerf, and the first one this mod has handed an existing save. Your soul now has a fixed number of
+  attunement slots, and only the rooms bound into them grant anything. An untouched soul starts with
+  five rooms and two abilities; each rank of the Ascent adds one of each, reaching ten and seven at
+  rank V. If you have more rooms than that, you are carrying fewer buffs today than you were
+  yesterday, and you choose which.
+- If your soul is under its limit you will not notice any of this. A room nobody has decided about
+  takes an empty slot on its own, best first, so a soul with five rooms and five slots carries what
+  it always carried and a newly built room simply works. The choice only presents itself at the
+  point where there is actually one to make - and once you release a room, it stays released.
+- Nothing is lost. An unattuned room still stands, still classifies, still scores, still shows in
+  `/soulhome analyse` and the Soul Lens - and, the part that matters, still counts in full toward
+  your soul's residue and toward the willpower your next ascension asks for. There is never a reason
+  to leave a slot empty while you climb.
+- Rooms and abilities are counted apart. A shield you can raise and a few percent of mining speed
+  are not the same kind of thing, and a single pool would have meant every slot going to an ability.
+- Binding and releasing happen at the Soul Anchor, which now opens a screen listing every room your
+  soul holds, what each grants or would grant, and how many slots are spoken for. It is free, there
+  is no cooldown and no confirmation, and what you are carrying changes the moment you click - swap
+  the aquarium in before you dive and the mine back in afterward. The anchor's ascension report and
+  its residue conversion are exactly where they were.
+- What is attuned is the room, not the archetype and not its contents. Add a bookshelf to your bound
+  library, knock a wall through, extend it, re-roof it - it is the same room and it stays bound. Pull
+  it down entirely and it keeps its slot until you release it; build it again on the same spot and
+  you are carrying it again with nothing to set up twice.
+- `/soulhome buffs` says how many slots are in use, names every room you are not carrying and what
+  each would grant, and states plainly that those rooms still count toward the climb. The Soul Lens
+  says the same out in the world, where the question actually comes up. `/soulhome analyse` marks
+  each room attuned or not. The first time your soul holds more than it can carry, it tells you once
+  - and only once.
+- A visitor to your soul can see what it carries and cannot change it, and their own buffs and their
+  own attunement are untouched by standing in it.
+- The guide book has a page on it, written from the config's own numbers, unlocked by actually
+  having more rooms than you can carry. A new advancement marks that moment.
+- Config: `attunement.enabled`, on by default. Off is not "the limit is very large" - it is the mod
+  exactly as it was before this existed: every room grants its buff, no slots are counted, the anchor
+  behaves as it always did, nothing about attunement appears in any report, and nothing is written to
+  your soul's save. Slot counts at rank 0 and per rank are knobs, for both pools.
+- Rank now grants a third thing, and `ascension_per_rank` has deliberately not been cut to pay for
+  it. Rank V carries fewer buffs after this change than it did before it, so rank is not inflating -
+  trimming the amplification as well would have made the climb weaker in both breadth and depth,
+  which is a straight nerf rather than a mechanic.

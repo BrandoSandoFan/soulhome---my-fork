@@ -65,6 +65,16 @@ final class ScrollableDetailPanel
         this.scrollOffset = 0;
     }
 
+    /**
+     * How far the content is currently scrolled. Needed by {@link SoulAnchorScreen}, whose lines are
+     * clickable rather than only readable: a click has to be turned back into the row it landed on,
+     * and the row positions are in content space rather than screen space.
+     */
+    int scrollOffset()
+    {
+        return this.scrollOffset;
+    }
+
     /** Draws {@code lines} clipped to [left, top, right, bottom], offset by the current scroll position. */
     void render(GuiGraphics graphics, Font font, List<VisualLine> lines, int left, int top, int right, int bottom,
                 int barWidth, int barBackColor, int barFillColor)

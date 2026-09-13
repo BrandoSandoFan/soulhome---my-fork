@@ -7,9 +7,14 @@ package leaf.soulhome.structures;
 import leaf.soulhome.advancements.SoulAdvancements;
 import leaf.soulhome.buffs.SoulBuffs;
 import leaf.soulhome.config.SoulHomeConfig;
+import leaf.soulhome.feedback.AttunementReport;
+import leaf.soulhome.feedback.SoulReport;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncSoulBoundsMessage;
+import leaf.soulhome.structures.core.AttunementBook;
+import leaf.soulhome.structures.core.AttunementSettings;
 import leaf.soulhome.structures.core.AwardedRoom;
+import leaf.soulhome.structures.core.RoomBinding;
 import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.BuffCalculator;
 import leaf.soulhome.structures.core.ClassificationResult;
@@ -24,6 +29,7 @@ import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.Util;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -385,8 +391,38 @@ public final class StructureScanService
         }
 
         final SoulHomeBuffData data = SoulHomeBuffData.get(level);
+        final AttunementSettings attunement = SoulHomeConfig.attunementSettings();
+        final List<AwardedRoom> rooms;
 
-        data.update(awarded, contentHash);
+        if (attunement.enabled())
+        {
+            // identities are carried across here rather than by the classifier, which sees one scan
+            // at a time and has no way to know that this library is the one the player bound (#152)
+            final AttunementBook.Reconciliation reconciled = AttunementBook.reconcile(
+                    data.awardedRooms(), data.attunements(), awarded, data.nextRoomId());
+
+            rooms = reconciled.rooms();
+
+            // a room the player has never had the chance to decide about takes a free slot on its
+            // own, so a soul under its limit carries exactly what it always did and the choice only
+            // presents itself once there is actually one to make - see AttunementBook.autoFill
+            final List<RoomBinding> bindings = new ArrayList<>(reconciled.bindings());
+
+            AttunementBook.autoFill(
+                    bindings, reconciled.rooms(), reconciled.newlyNumbered(), ArchetypeManager.byId(),
+                    attunement, data.ascensionRank());
+
+            data.setAttunement(bindings, reconciled.nextRoomId());
+        }
+        else
+        {
+            // the switch being off is the mod as it was, save file included - see AttunementBook.
+            // Existing bindings are left on disk untouched rather than erased: a server that turns
+            // the switch back on should hand every player the loadout they had, not a blank one.
+            rooms = AttunementBook.anonymise(awarded);
+        }
+
+        data.update(rooms, contentHash);
 
         // Sublime Essence's soul-residue tap (#82): "the same schedule the scan service already
         // runs on; no new timer". Rate is set by the same total awarded room score the ascension
@@ -399,10 +435,10 @@ public final class StructureScanService
         // carrying and what their soulhome says they earned drifting apart is the one failure this
         // feature cannot explain to them, since /soulhome buffs reads the saved side. Costs
         // nothing to rule out - SoulBuffs.set is already a no-op when nothing is different.
-        DimensionHelper.soulOwner(level).ifPresent(owner -> pushBuffs(server, owner, awarded, data.ascensionRank()));
+        DimensionHelper.soulOwner(level).ifPresent(owner -> pushBuffs(server, owner, data));
     }
 
-    private static void pushBuffs(MinecraftServer server, UUID owner, List<AwardedRoom> awarded, int rank)
+    private static void pushBuffs(MinecraftServer server, UUID owner, SoulHomeBuffData data)
     {
         final ServerPlayer player = server.getPlayerList().getPlayer(owner);
 
@@ -412,8 +448,50 @@ public final class StructureScanService
             return;
         }
 
-        SoulBuffs.set(player, buffsFrom(awarded, rank), rank);
+        final List<AwardedRoom> awarded = data.awardedRooms();
+        final int rank = data.ascensionRank();
+
+        SoulBuffs.set(player, buffsFrom(carriedRooms(data), rank), rank);
+
+        // fired for every awarded room, attuned or not: an unattuned room is built, and an
+        // advancement for having built it is not a buff a player is being handed twice
         SoulAdvancements.onRoomsAwarded(player, awarded);
+
+        explainSlotsIfExceeded(player, data);
+    }
+
+    /**
+     * Tell a player once, and only once, that their soul now holds more rooms than it can carry
+     * (#157). Attunement is the first thing this mod has done that takes something away from a save
+     * that already exists, and a player who finds fewer buffs than they went to bed with and is told
+     * nothing will reasonably conclude it is broken.
+     */
+    private static void explainSlotsIfExceeded(ServerPlayer player, SoulHomeBuffData data)
+    {
+        final AttunementSettings settings = SoulHomeConfig.attunementSettings();
+
+        if (!settings.enabled())
+        {
+            return;
+        }
+
+        final int rank = data.ascensionRank();
+
+        if (!AttunementBook.exceedsSlots(
+                data.awardedRooms(), ArchetypeManager.byId(), settings, rank))
+        {
+            return;
+        }
+
+        if (!data.explainSlotsOnce())
+        {
+            return;
+        }
+
+        for (Component line : SoulReport.slotsExceeded(settings, rank))
+        {
+            player.sendSystemMessage(line);
+        }
     }
 
     /**
@@ -447,14 +525,32 @@ public final class StructureScanService
         final List<AwardedRoom> awarded = data.awardedRooms();
         final int rank = data.ascensionRank();
 
-        SoulBuffs.set(player, buffsFrom(awarded, rank), rank);
+        SoulBuffs.set(player, buffsFrom(carriedRooms(data), rank), rank);
         SoulBuffs.sync(player);
 
         // a room earned while the owner was offline should still produce its toast when they
         // next log in, so the triggers are fired from the restore path too
         SoulAdvancements.onRoomsAwarded(player, awarded);
 
+        explainSlotsIfExceeded(player, data);
+
         sendBounds(player, soulhome);
+    }
+
+    /**
+     * The rooms this soulhome's owner is actually carrying - every classified room while
+     * {@code attunement.enabled} is off, and the bound ones while it is on (#153).
+     *
+     * <p>The one place the distinction is made, so that what a player is given and what
+     * {@code /soulhome buffs} tells them it gave them cannot be computed from different lists.
+     * {@link SoulHomeBuffData#totalScore} deliberately does <b>not</b> come through here: residue
+     * (#82) and the ascension ritual's willpower check (#83) read every classified room, attuned or
+     * not, so a player never faces a choice between being strong now and climbing later.
+     */
+    private static List<AwardedRoom> carriedRooms(SoulHomeBuffData data)
+    {
+        return AttunementBook.carried(
+                data.awardedRooms(), data.attunements(), SoulHomeConfig.attunementSettings());
     }
 
     /**
@@ -492,16 +588,28 @@ public final class StructureScanService
     /** The rooms this player's own soulhome has been awarded, as of its last scan. */
     public static List<AwardedRoom> awardedRoomsOf(ServerPlayer player)
     {
+        final SoulHomeBuffData data = dataOf(player);
+
+        return data == null ? List.of() : data.awardedRooms();
+    }
+
+    /**
+     * This player's own soulhome's saved data, or null if they have never opened one. The one read
+     * every attunement-aware surface goes through, so that the rooms, the bindings and the rank a
+     * report is built from all come off the same soulhome at the same moment.
+     */
+    public static SoulHomeBuffData dataOf(ServerPlayer player)
+    {
         final MinecraftServer server = player.getServer();
 
         if (server == null)
         {
-            return List.of();
+            return null;
         }
 
         final ServerLevel soulhome = server.getLevel(soulDimensionKeyOf(player));
 
-        return soulhome == null ? List.of() : SoulHomeBuffData.get(soulhome).awardedRooms();
+        return soulhome == null ? null : SoulHomeBuffData.get(soulhome);
     }
 
     /**
@@ -516,24 +624,46 @@ public final class StructureScanService
             return BuffBreakdown.EMPTY;
         }
 
+        final SoulHomeBuffData data = dataOf(player);
+
+        if (data == null)
+        {
+            return BuffBreakdown.EMPTY;
+        }
+
         return BuffCalculator.explain(
-                awardedRoomsOf(player), ArchetypeManager.archetypes(), SoulHomeConfig.buffSettings(),
-                ascensionRankOf(player));
+                carriedRooms(data), ArchetypeManager.archetypes(), SoulHomeConfig.buffSettings(),
+                data.ascensionRank());
+    }
+
+    /**
+     * What this player's own soulhome is carrying, and what it could be carrying instead (#151).
+     * {@link AttunementReport#EMPTY} while attunement is off, which every surface that reads this
+     * then renders as nothing at all - there is no switch for them to check.
+     *
+     * @param owner whether the player may change any of it. Always their own soul here; the anchor
+     *              passes false for a visitor
+     */
+    public static AttunementReport attunementOf(ServerPlayer player, boolean owner)
+    {
+        final SoulHomeBuffData data = dataOf(player);
+
+        if (data == null || !SoulHomeConfig.enabled())
+        {
+            return AttunementReport.EMPTY;
+        }
+
+        return AttunementReport.of(
+                data.awardedRooms(), data.attunements(), ArchetypeManager.byId(),
+                SoulHomeConfig.attunementSettings(), SoulHomeConfig.buffSettings(), data.ascensionRank(), owner);
     }
 
     /** This player's own soulhome's ascension rank (#84), or 0 if they have never opened one. */
-    private static int ascensionRankOf(ServerPlayer player)
+    public static int ascensionRankOf(ServerPlayer player)
     {
-        final MinecraftServer server = player.getServer();
+        final SoulHomeBuffData data = dataOf(player);
 
-        if (server == null)
-        {
-            return 0;
-        }
-
-        final ServerLevel soulhome = server.getLevel(soulDimensionKeyOf(player));
-
-        return soulhome == null ? 0 : SoulHomeBuffData.get(soulhome).ascensionRank();
+        return data == null ? 0 : data.ascensionRank();
     }
 
     /** This player's own soul dimension, or null if they have never opened it. */

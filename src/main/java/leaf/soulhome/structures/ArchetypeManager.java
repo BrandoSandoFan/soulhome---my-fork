@@ -61,6 +61,15 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
         return loaded.archetypes();
     }
 
+    /**
+     * The loaded archetypes keyed on their ids. Held rather than built per call because attunement
+     * (#151) asks "which pool is this room's archetype in" once per room per report.
+     */
+    public static Map<String, ArchetypeDefinition> byId()
+    {
+        return loaded.byId();
+    }
+
     /** Classifier built over the currently loaded archetypes. */
     public static ArchetypeClassifier classifier()
     {
@@ -284,6 +293,7 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
      */
     public record Loaded(
             List<ArchetypeDefinition> archetypes,
+            Map<String, ArchetypeDefinition> byId,
             ArchetypeClassifier classifier,
             Predicate<BlockSignature> signalFilter,
             Predicate<BlockSignature> geometryFilter,
@@ -295,8 +305,16 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
         private static Loaded of(Collection<ArchetypeDefinition> archetypes)
         {
             List<ArchetypeDefinition> frozen = List.copyOf(archetypes);
+            Map<String, ArchetypeDefinition> byId = new LinkedHashMap<>();
+
+            for (ArchetypeDefinition archetype : frozen)
+            {
+                byId.put(archetype.id(), archetype);
+            }
+
             return new Loaded(
                     frozen,
+                    Map.copyOf(byId),
                     new ArchetypeClassifier(frozen, SoulHomeConfig.scoringSettings()),
                     ArchetypeSignals.openClusterFilterFor(frozen),
                     ArchetypeSignals.geometryFilterFor(frozen),
