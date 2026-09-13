@@ -65,6 +65,14 @@ public class SoulHomeBuffData extends SavedData
     // breaking the anchor with a stray pickaxe swing must not cost four ranks of progress.
     private static final String KEY_ASCENSION_RANK = "AscensionRank";
 
+    // Terrain growth (#158): the rank the island's ground has actually been grown out to, which is
+    // not the same question as what rank the soulhome holds. Growth is due whenever this trails
+    // AscensionRank, whatever put it there - an ascension a moment ago, a soulhome that was already
+    // rank III before growth shipped, or a server that stopped halfway through a band. One rule
+    // covers all three, so there is no ascension-shaped trigger for a duplicated event to fire
+    // twice and no separate "already grown" flag to keep in step (#160's idempotence).
+    private static final String KEY_GROWN_RANK = "GrownRank";
+
     // Sublime Essence's soul-residue tap (#82): also the soulhome's, not the player's or the
     // anchor's, for exactly the same reason rank is. LastResidueAccrualMillis is real wall-clock
     // time, not a tick count, because residue has to keep earning while nobody is around to tick it
@@ -91,6 +99,7 @@ public class SoulHomeBuffData extends SavedData
     private int dataVersion = CURRENT_DATA_VERSION;
     private RegionBounds legacyBox;
     private int ascensionRank;
+    private int grownRank;
     private double residue;
     private long lastResidueAccrualMillis;
     private BlockPos anchorPos;
@@ -147,6 +156,10 @@ public class SoulHomeBuffData extends SavedData
         // absent on any save written before rank existed - reads back as 0, same as every soulhome
         // actually was before the ascension ritual (#83) could raise it
         data.ascensionRank = tag.getInt(KEY_ASCENSION_RANK);
+        // absent on any save written before terrain growth existed - reads back as 0, which is
+        // exactly right: no soulhome had ever had a block of ground added to it, so every one of
+        // them is owed every rank's worth of apron and will grow it the next time it is loaded
+        data.grownRank = tag.getInt(KEY_GROWN_RANK);
         data.residue = tag.getDouble(KEY_RESIDUE);
         // absent on any save written before residue existed, and on a soulhome's very first save -
         // reads back as 0, which accrueResidue treats as "start the clock now" rather than as an
@@ -211,6 +224,7 @@ public class SoulHomeBuffData extends SavedData
         tag.putBoolean(KEY_SCANNED, this.scanned);
         tag.putInt(KEY_DATA_VERSION, this.dataVersion);
         tag.putInt(KEY_ASCENSION_RANK, this.ascensionRank);
+        tag.putInt(KEY_GROWN_RANK, this.grownRank);
         tag.putDouble(KEY_RESIDUE, this.residue);
         tag.putLong(KEY_LAST_RESIDUE_ACCRUAL_MILLIS, this.lastResidueAccrualMillis);
 
@@ -316,6 +330,37 @@ public class SoulHomeBuffData extends SavedData
         }
 
         this.ascensionRank = clamped;
+        setDirty();
+        return true;
+    }
+
+    /**
+     * How far the island's own ground has been grown out to (#158), as a rank. Trails
+     * {@link #ascensionRank()} for exactly as long as it takes the growth job to finish, and is the
+     * only thing that decides whether growth is due - see {@link #KEY_GROWN_RANK}.
+     */
+    public int grownRank()
+    {
+        return this.grownRank;
+    }
+
+    /**
+     * Record that ground has been grown out to {@code rank}. Written only once a growth job has
+     * finished, never when one starts: a server that stops halfway through leaves this trailing,
+     * and a soulhome whose ground is half grown is one whose growth is still due.
+     *
+     * @return whether this actually moved, and so whether it needs writing to disk
+     */
+    public boolean setGrownRank(int rank)
+    {
+        final int clamped = Math.max(0, rank);
+
+        if (clamped <= this.grownRank)
+        {
+            return false;
+        }
+
+        this.grownRank = clamped;
         setDirty();
         return true;
     }

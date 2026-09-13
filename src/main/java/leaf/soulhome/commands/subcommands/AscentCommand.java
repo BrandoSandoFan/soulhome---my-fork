@@ -13,8 +13,10 @@ import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.structures.SoulHomeBuffData;
 import leaf.soulhome.structures.StructureScanService;
+import leaf.soulhome.structures.TerrainGrowthService;
 import leaf.soulhome.structures.core.RegionBounds;
 import leaf.soulhome.structures.core.SoulBounds;
+import leaf.soulhome.structures.core.TerrainGrowthSettings;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -81,6 +83,8 @@ public class AscentCommand
         player.sendSystemMessage(Component.translatable(Constants.StringKeys.ASCENT_BUILD_LAYERS, bounds.buildLayers())
                 .withStyle(ChatFormatting.GRAY));
 
+        reportGround(player, soulhome, bounds, rank);
+
         SoulHomeBuffData.get(soulhome).legacyBox().ifPresent(legacy -> player.sendSystemMessage(
                 Component.translatable(Constants.StringKeys.ASCENT_LEGACY, describe(legacy))
                         .withStyle(ChatFormatting.YELLOW)));
@@ -129,10 +133,53 @@ public class AscentCommand
         // resends the box (and everything else refresh already keeps in step) at the new rank,
         // rather than leaving the client showing the box for the rank it had a moment ago
         StructureScanService.refresh(player);
+        // and grows the ground the new rank is owed (#158), the same as a real ascension would.
+        // Setting a rank down grows nothing and takes nothing away: ground already grown stays.
+        TerrainGrowthService.rankChanged(soulhome);
 
         reply(player, Constants.StringKeys.ASCENT_SET_SUCCESS, ChatFormatting.AQUA, SoulBounds.rankLabel(requested));
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    /**
+     * Ground, beside walls (#162). These are different numbers on purpose and the whole epic is
+     * invisible unless a player is told so: a soul whose walls are at 104 and whose ground reaches
+     * 78 has open void inside its own box, and a player who has not been told that is deliberate
+     * reads it as growth having failed.
+     */
+    private static void reportGround(ServerPlayer player, ServerLevel soulhome, SoulBounds bounds, int rank)
+    {
+        final TerrainGrowthSettings growth = SoulHomeConfig.terrainGrowthSettings();
+
+        if (!growth.enabled())
+        {
+            reply(player, Constants.StringKeys.ASCENT_GROUND_OFF, ChatFormatting.DARK_GRAY);
+            return;
+        }
+
+        final int reach = TerrainGrowthService.groundReach(soulhome, bounds);
+
+        player.sendSystemMessage(Component.translatable(
+                        Constants.StringKeys.ASCENT_GROUND, reach, bounds.vergeHalfExtent())
+                .withStyle(ChatFormatting.GRAY));
+
+        player.sendSystemMessage(Component.translatable(
+                        Constants.StringKeys.ASCENT_GROUND_VERGE, Math.max(0, bounds.vergeHalfExtent() - reach))
+                .withStyle(ChatFormatting.DARK_GRAY));
+
+        TerrainGrowthService.progress(soulhome.dimension()).ifPresent(progress -> player.sendSystemMessage(
+                Component.translatable(Constants.StringKeys.ASCENT_GROUND_GROWING, (int) Math.round(progress * 100))
+                        .withStyle(ChatFormatting.AQUA)));
+
+        if (rank < SoulHomeConfig.maxRank())
+        {
+            final int next = growth.groundLimit(rank + 1, SoulHomeConfig.soulBounds(rank + 1).vergeHalfExtent());
+
+            player.sendSystemMessage(Component.translatable(
+                            Constants.StringKeys.ASCENT_GROUND_NEXT, Math.max(0, next - reach), next)
+                    .withStyle(ChatFormatting.GRAY));
+        }
     }
 
     private static String describe(RegionBounds box)

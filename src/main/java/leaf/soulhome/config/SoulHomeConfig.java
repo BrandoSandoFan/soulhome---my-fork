@@ -14,6 +14,7 @@ import leaf.soulhome.structures.core.ScanDebouncer;
 import leaf.soulhome.structures.core.ScanSettings;
 import leaf.soulhome.structures.core.ScoringSettings;
 import leaf.soulhome.structures.core.SoulBounds;
+import leaf.soulhome.structures.core.TerrainGrowthSettings;
 import leaf.soulhome.utils.LogHelper;
 import org.apache.commons.lang3.tuple.Pair;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -167,6 +168,12 @@ public final class SoulHomeConfig
         return snapshot.ascension();
     }
 
+    /** How much ground an ascension adds, and in what shape (#158). See {@link TerrainGrowthSettings}. */
+    public static TerrainGrowthSettings terrainGrowthSettings()
+    {
+        return snapshot.terrainGrowth();
+    }
+
     /** The bounds every active ability is subject to (#87). See {@link ActiveAbilitySettings}. */
     public static ActiveAbilitySettings activeAbilitySettings()
     {
@@ -251,6 +258,7 @@ public final class SoulHomeConfig
             boolean residueTapEnabled,
             EssenceSettings essence,
             AscensionSettings ascension,
+            TerrainGrowthSettings terrainGrowth,
             ActiveAbilitySettings activeAbilities,
             Set<String> disabledAbilities)
     {
@@ -274,6 +282,7 @@ public final class SoulHomeConfig
                 true,
                 EssenceSettings.DEFAULTS,
                 AscensionSettings.DEFAULTS,
+                TerrainGrowthSettings.DEFAULTS,
                 ActiveAbilitySettings.DEFAULTS,
                 Set.of());
 
@@ -334,6 +343,16 @@ public final class SoulHomeConfig
                                 SERVER.baseWillpowerThreshold.get(),
                                 SERVER.willpowerPerRank.get(),
                                 SERVER.pillarSearchRadius.get()),
+                        new TerrainGrowthSettings(
+                                SERVER.growthEnabled.get(),
+                                SERVER.baseGround.get(),
+                                SERVER.groundPerRank.get(),
+                                SERVER.growthVergeMargin.get(),
+                                SERVER.groundBand.get(),
+                                SERVER.growthClearanceMargin.get(),
+                                SERVER.growthSoilDepth.get(),
+                                SERVER.growthEdgeJitter.get(),
+                                SERVER.growthChunksPerTick.get()),
                         new ActiveAbilitySettings(
                                 SERVER.abilitiesEnabled.get(),
                                 SERVER.abilityCooldownMultiplier.get(),
@@ -514,6 +533,16 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.DoubleValue baseWillpowerThreshold;
         public final ForgeConfigSpec.DoubleValue willpowerPerRank;
         public final ForgeConfigSpec.IntValue pillarSearchRadius;
+
+        public final ForgeConfigSpec.BooleanValue growthEnabled;
+        public final ForgeConfigSpec.IntValue baseGround;
+        public final ForgeConfigSpec.IntValue groundPerRank;
+        public final ForgeConfigSpec.IntValue growthVergeMargin;
+        public final ForgeConfigSpec.IntValue groundBand;
+        public final ForgeConfigSpec.IntValue growthClearanceMargin;
+        public final ForgeConfigSpec.IntValue growthSoilDepth;
+        public final ForgeConfigSpec.IntValue growthEdgeJitter;
+        public final ForgeConfigSpec.IntValue growthChunksPerTick;
 
         public final ForgeConfigSpec.BooleanValue abilitiesEnabled;
         public final ForgeConfigSpec.DoubleValue abilityCooldownMultiplier;
@@ -901,6 +930,82 @@ public final class SoulHomeConfig
                             "ritual simply stops looking, so raising this scales the cost of every check.")
                     .defineInRange(
                             "pillar_search_radius", AscensionSettings.DEFAULT_PILLAR_SEARCH_RADIUS, 2, 16);
+
+            builder.pop();
+
+            builder.comment(
+                            "Terrain growth (#158): ascending grows the island outward, so a new rank is somewhere",
+                            "to build rather than more air. The apron follows the island's own outline, is made of",
+                            "the island's own blocks, and never lands on anything a player built.",
+                            "Ground deliberately lags the walls - the open verge left at the edge is somewhere to",
+                            "build outward into, not a shortfall.")
+                    .push("growth");
+
+            this.growthEnabled = builder
+                    .comment(
+                            "Whether ascending grows ground at all. Off leaves every soulhome exactly as it is -",
+                            "the box still grows with rank, and the void inside it stays void. For a pack that",
+                            "wants bridging out over nothing to be the point.")
+                    .define("enabled", TerrainGrowthSettings.DEFAULTS.enabled());
+
+            this.baseGround = builder
+                    .comment(
+                            "How far ground may reach at rank 0, before the verge margin below has its say. Growth",
+                            "never runs at rank 0 - there is nothing to catch up to - so this is the point the",
+                            "ladder is measured from rather than a promise about a fresh soul.")
+                    .defineInRange("base_ground", TerrainGrowthSettings.DEFAULT_BASE_GROUND, 0, 128);
+
+            this.groundPerRank = builder
+                    .comment(
+                            "How much further ground reaches per ascension rank. Keep this below verge_per_rank in",
+                            "the ascent section above, or the ground catches the walls and there is no verge left",
+                            "to build outward into.")
+                    .defineInRange("ground_per_rank", TerrainGrowthSettings.DEFAULT_GROUND_PER_RANK, 0, 128);
+
+            this.growthVergeMargin = builder
+                    .comment(
+                            "How much open verge is kept between the apron and the wall, at every rank. This is what",
+                            "makes 'your walls are at 104 and your ground reaches 78' true, which is the distinction",
+                            "the guide book explains - a player who does not know those are different numbers reads",
+                            "the void inside their own walls as growth having failed.")
+                    .defineInRange("verge_margin", TerrainGrowthSettings.DEFAULT_VERGE_MARGIN, 0, 128);
+
+            this.groundBand = builder
+                    .comment(
+                            "How far above the floor a column's highest block may sit and still read as ground",
+                            "rather than as something built. Ground is what the apron grows out of; anything above",
+                            "this band is built, and is kept clear of instead. Three is enough for a patio or a path",
+                            "laid at floor level, and short of anything with walls.")
+                    .defineInRange("ground_band", TerrainGrowthSettings.DEFAULT_GROUND_BAND, 0, 64);
+
+            this.growthClearanceMargin = builder
+                    .comment(
+                            "How wide a margin is kept around anything built. Generated ground never appears inside",
+                            "this distance of a block a player placed. Widening it grows less ground; narrowing it",
+                            "grows ground closer to people's builds, which is the direction that cannot be undone.")
+                    .defineInRange("clearance_margin", TerrainGrowthSettings.DEFAULT_CLEARANCE_MARGIN, 0, 32);
+
+            this.growthSoilDepth = builder
+                    .comment(
+                            "How deep the apron is cut. The box floor clamps this, and generated ground is not exempt",
+                            "from the floor any more than a player is - so where the island's surface sits on the",
+                            "floor datum, the apron is one layer whatever this says.")
+                    .defineInRange("soil_depth", TerrainGrowthSettings.DEFAULT_SOIL_DEPTH, 1, 64);
+
+            this.growthEdgeJitter = builder
+                    .comment(
+                            "How many blocks the band's outer edge may fall short of its full reach, varying across",
+                            "the coast. Zero is a straight offset, which reads as a machine-cut collar around the",
+                            "island rather than as ground that grew. The variation is a function of the soul's own",
+                            "id, so the same soul grows the same coastline every time.")
+                    .defineInRange("edge_jitter", TerrainGrowthSettings.DEFAULT_EDGE_JITTER, 0, 32);
+
+            this.growthChunksPerTick = builder
+                    .comment(
+                            "How many chunks growth surveys or writes per server tick. The ascension completes",
+                            "immediately and the ground arrives over the following seconds; this is the dial between",
+                            "how fast it arrives and how much of a tick it costs while it does.")
+                    .defineInRange("chunks_per_tick", TerrainGrowthSettings.DEFAULT_CHUNKS_PER_TICK, 1, 64);
 
             builder.pop();
 

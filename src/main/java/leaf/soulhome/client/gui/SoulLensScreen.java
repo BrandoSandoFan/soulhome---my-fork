@@ -202,7 +202,17 @@ public class SoulLensScreen extends Screen
                 .append(Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_LAYERS,
                         bounds.getCeilingY() - bounds.getFloorY(), bounds.getFloorY(), bounds.getCeilingY()))
                 .append(Component.literal("  "))
-                .append(Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_VERGE, bounds.getVergeHalfExtent()));
+                .append(Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_VERGE, bounds.getVergeHalfExtent()))
+                // ground beside walls, because they are different numbers and the gap between them
+                // is the open verge terrain growth deliberately leaves (#158/#162)
+                .append(Component.literal("  "))
+                .append(Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_GROUND, bounds.getGroundReach()));
+
+        if (bounds.isGrowing())
+        {
+            line = line.append(Component.literal("  "))
+                    .append(Component.translatable(Constants.StringKeys.LENS_SCREEN_BOX_GROWING));
+        }
 
         if (!bounds.getLegacyBox().isEmpty())
         {

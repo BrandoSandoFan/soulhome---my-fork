@@ -26,10 +26,17 @@ import java.util.function.Consumer;
  *
  * <p>{@code rank} rides along too (#84): the client needs it to label the firmament with the same
  * rank the server actually used to compute this box, rather than guessing from the box's size.
+ *
+ * <p>{@code groundReach} and {@code growing} are terrain growth (#158/#162). Ground and walls are
+ * deliberately different numbers, and the lens is where a player already is when they want to know
+ * how much room they have - so it reports both rather than only the box. Sent on the same occasions
+ * as everything else here, plus once when a growth job starts and once when it finishes, which is
+ * every moment either of these two can change.
  */
 public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
 {
-    public static final SyncSoulBoundsMessage INVALID = new SyncSoulBoundsMessage("", 0, 0, 1, 1, List.of());
+    public static final SyncSoulBoundsMessage INVALID =
+            new SyncSoulBoundsMessage("", 0, 0, 1, 1, List.of(), 0, false);
 
     public static final Codec<SyncSoulBoundsMessage> CODEC =
             RecordCodecBuilder.create(instance -> instance
@@ -39,7 +46,9 @@ public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
                             Codec.INT.fieldOf("floor_y").forGetter(SyncSoulBoundsMessage::getFloorY),
                             Codec.INT.fieldOf("ceiling_y").forGetter(SyncSoulBoundsMessage::getCeilingY),
                             Codec.INT.fieldOf("verge_half_extent").forGetter(SyncSoulBoundsMessage::getVergeHalfExtent),
-                            Codec.INT.listOf().fieldOf("legacy_box").forGetter(SyncSoulBoundsMessage::getLegacyBox))
+                            Codec.INT.listOf().fieldOf("legacy_box").forGetter(SyncSoulBoundsMessage::getLegacyBox),
+                            Codec.INT.fieldOf("ground_reach").forGetter(SyncSoulBoundsMessage::getGroundReach),
+                            Codec.BOOL.fieldOf("growing").forGetter(SyncSoulBoundsMessage::isGrowing))
                     .apply(instance, SyncSoulBoundsMessage::new));
 
     private final String dimension;
@@ -48,9 +57,12 @@ public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
     private final int ceilingY;
     private final int vergeHalfExtent;
     private final List<Integer> legacyBox;
+    private final int groundReach;
+    private final boolean growing;
 
     public SyncSoulBoundsMessage(
-            String dimension, int rank, int floorY, int ceilingY, int vergeHalfExtent, List<Integer> legacyBox)
+            String dimension, int rank, int floorY, int ceilingY, int vergeHalfExtent, List<Integer> legacyBox,
+            int groundReach, boolean growing)
     {
         this.dimension = dimension == null ? "" : dimension;
         this.rank = rank;
@@ -58,6 +70,8 @@ public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
         this.ceilingY = ceilingY;
         this.vergeHalfExtent = vergeHalfExtent;
         this.legacyBox = legacyBox == null || legacyBox.size() != 6 ? List.of() : List.copyOf(legacyBox);
+        this.groundReach = groundReach;
+        this.growing = growing;
     }
 
     public int getRank()
@@ -88,6 +102,18 @@ public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
     public List<Integer> getLegacyBox()
     {
         return this.legacyBox;
+    }
+
+    /** How far this soulhome's ground actually reaches, as a half-extent - not how far it may. */
+    public int getGroundReach()
+    {
+        return this.groundReach;
+    }
+
+    /** Whether ground is still arriving, so the lens can say so rather than reporting a half-grown reach flatly. */
+    public boolean isGrowing()
+    {
+        return this.growing;
     }
 
     @Override
