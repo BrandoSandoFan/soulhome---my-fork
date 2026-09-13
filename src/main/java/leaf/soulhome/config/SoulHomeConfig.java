@@ -8,6 +8,7 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.structures.ArchetypeManager;
 import leaf.soulhome.structures.core.ActiveAbilitySettings;
 import leaf.soulhome.structures.core.AscensionSettings;
+import leaf.soulhome.structures.core.AttunementSettings;
 import leaf.soulhome.structures.core.BuffSettings;
 import leaf.soulhome.structures.core.EssenceSettings;
 import leaf.soulhome.structures.core.ScanDebouncer;
@@ -111,6 +112,22 @@ public final class SoulHomeConfig
     public static BuffSettings buffSettings()
     {
         return snapshot.buffs();
+    }
+
+    /**
+     * How many rooms a soulhome carries at once, and whether it is limited at all (#151). Read
+     * everywhere attunement could show, so that a server with the switch off has nothing to check:
+     * see {@link AttunementSettings}.
+     */
+    public static AttunementSettings attunementSettings()
+    {
+        return snapshot.attunement();
+    }
+
+    /** Shorthand for the master switch, which every attunement-aware surface tests first. */
+    public static boolean attunementEnabled()
+    {
+        return snapshot.attunement().enabled();
     }
 
     /**
@@ -244,6 +261,7 @@ public final class SoulHomeConfig
             ScanSettings scan,
             ScoringSettings scoring,
             BuffSettings buffs,
+            AttunementSettings attunement,
             long quietPeriodMillis,
             long maxScanDelayMillis,
             int checkIntervalTicks,
@@ -268,6 +286,7 @@ public final class SoulHomeConfig
                 ScanSettings.DEFAULTS,
                 ScoringSettings.DEFAULTS,
                 BuffSettings.DEFAULTS,
+                AttunementSettings.DEFAULTS,
                 ScanDebouncer.DEFAULT_QUIET_PERIOD_MILLIS,
                 ScanDebouncer.DEFAULT_MAX_DELAY_MILLIS,
                 20,
@@ -322,6 +341,12 @@ public final class SoulHomeConfig
                                 SERVER.rampExponent.get(),
                                 SERVER.ascensionPerRank.get(),
                                 SERVER.ascensionCapPerRank.get()),
+                        new AttunementSettings(
+                                SERVER.attunementEnabled.get(),
+                                SERVER.basePassiveSlots.get(),
+                                SERVER.passiveSlotsPerRank.get(),
+                                SERVER.baseActiveSlots.get(),
+                                SERVER.activeSlotsPerRank.get()),
                         SERVER.quietPeriodMillis.get(),
                         SERVER.maxScanDelayMillis.get(),
                         SERVER.checkIntervalTicks.get(),
@@ -501,6 +526,12 @@ public final class SoulHomeConfig
 
         public final ForgeConfigSpec.BooleanValue aspectsEnabled;
         public final ForgeConfigSpec.DoubleValue aspectMargin;
+
+        public final ForgeConfigSpec.BooleanValue attunementEnabled;
+        public final ForgeConfigSpec.IntValue basePassiveSlots;
+        public final ForgeConfigSpec.IntValue passiveSlotsPerRank;
+        public final ForgeConfigSpec.IntValue baseActiveSlots;
+        public final ForgeConfigSpec.IntValue activeSlotsPerRank;
 
         public final ForgeConfigSpec.IntValue minRoomVolume;
         public final ForgeConfigSpec.IntValue maxRoomVolume;
@@ -738,6 +769,51 @@ public final class SoulHomeConfig
                             "moves. Raise this to make an alternative aspect something you have to commit to;",
                             "set it to 1 for a straight contest, at the cost of that stability.")
                     .defineInRange("aspect_margin", ScoringSettings.DEFAULT_ASPECT_MARGIN, 1d, 10d);
+
+            builder.pop();
+
+            builder.comment(
+                            "How many of a soulhome's rooms its owner actually carries at once.",
+                            "An unattuned room is not lost: it still classifies, still scores, still shows in",
+                            "/soulhome analyse and the Soul Lens, and still counts in full toward residue and toward",
+                            "the willpower the ascension ritual checks. It simply grants nothing until it is bound.",
+                            "Binding and unbinding happen at the Soul Anchor, are free, and take effect at once.")
+                    .push("attunement");
+
+            this.attunementEnabled = builder
+                    .comment(
+                            "Whether attunement limits anything at all.",
+                            "Off is not 'the limit is very large': it is the mod exactly as it was before attunement",
+                            "existed. Every classified room grants its buff, no slots are counted, the Soul Anchor",
+                            "behaves as it always did, nothing about attunement appears in any report, and no",
+                            "attunement is written to a soulhome's save.",
+                            "This is the switch for a pack that wants the old 'build everything, carry everything'.")
+                    .define("enabled", AttunementSettings.DEFAULT_ENABLED);
+
+            this.basePassiveSlots = builder
+                    .comment(
+                            "Passive rooms a soulhome may carry at rank 0 - a library, a farm, an armoury.",
+                            "Chosen so that a player meets the limit at about their eighth room rather than their",
+                            "third: at rank 0 the island's ground is 37 blocks across against a single build layer,",
+                            "which holds on the order of twenty small rooms, and the mod ships 20 passive archetypes.")
+                    .defineInRange("base_passive_slots", AttunementSettings.DEFAULT_BASE_PASSIVE_SLOTS, 0, 512);
+
+            this.passiveSlotsPerRank = builder
+                    .comment("Further passive slots granted by each ascension rank.")
+                    .defineInRange("passive_slots_per_rank", AttunementSettings.DEFAULT_PASSIVE_SLOTS_PER_RANK, 0, 512);
+
+            this.baseActiveSlots = builder
+                    .comment(
+                            "Active rooms a soulhome may carry at rank 0 - the rooms whose buff is pressed rather",
+                            "than carried (Aegis, Soul Step, Barrage).",
+                            "Held in their own pool because a passive buff and an ability are not comparable goods:",
+                            "asked to trade Aegis against a few percent of mining speed, everyone picks Aegis, and",
+                            "one pool would quietly mean 'every slot is an ability, plus the leftovers'.")
+                    .defineInRange("base_active_slots", AttunementSettings.DEFAULT_BASE_ACTIVE_SLOTS, 0, 512);
+
+            this.activeSlotsPerRank = builder
+                    .comment("Further active slots granted by each ascension rank.")
+                    .defineInRange("active_slots_per_rank", AttunementSettings.DEFAULT_ACTIVE_SLOTS_PER_RANK, 0, 512);
 
             builder.pop();
 

@@ -13,10 +13,12 @@ import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.TagDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.Aspect;
+import leaf.soulhome.structures.core.AttunementSettings;
 import leaf.soulhome.structures.core.BlockMatcher;
 import leaf.soulhome.structures.core.BondBook;
 import leaf.soulhome.structures.core.Form;
 import leaf.soulhome.structures.core.RegionType;
+import leaf.soulhome.structures.core.SoulBounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
 import leaf.soulhome.utils.StringHelper;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -90,6 +92,13 @@ public class PatchouliMultiblocks
      */
     private static final String ASPECT_ADVANCEMENT = "soulhome:main/aspect_taken";
 
+    /**
+     * The crowded-soul advancement (#157): fired by holding more rooms at once than a rank 0
+     * soulhome can carry, so a reader with three rooms is never taught about a constraint they have
+     * not met.
+     */
+    private static final String CROWDED_SOUL_ADVANCEMENT = "soulhome:main/crowded_soul";
+
     public static void collect(List<BookStuff.Category> categories, List<BookStuff.Entry> entries)
     {
         BookStuff.Category multiblocks = new BookStuff.Category(
@@ -108,6 +117,7 @@ public class PatchouliMultiblocks
         entries.add(tagsGlossary(multiblocks));
         entries.add(bondsExplainer(multiblocks));
         entries.add(aspectsExplainer(multiblocks));
+        entries.add(attunementExplainer(multiblocks));
 
         List<ArchetypeDefinition> shipped = ArchetypeDocs.shipped();
         BondBook bonds = BondBook.of(shipped);
@@ -532,6 +542,52 @@ public class PatchouliMultiblocks
                                 .setTitle("Both is not worse"),
                         new BookStuff.TextPage(
                                 "A room keeps its usual reading unless the other is clearly ahead, so a room does not change what it gives because of one block moved.$(p)$(l)/soulhome analyse$() and the $(item)Soul Lens$(0) say which reading a room took, which came second, and what would tip it the other way - in blocks, so you can go and do it.")
+                                .setTitle("And how to change it"),
+                };
+
+        return entry;
+    }
+
+    /**
+     * What attunement is, said once - the Attunement epic (#151) stated to the player. Gated behind
+     * actually holding more rooms than a soul can carry, so a reader with three rooms never meets a
+     * page about a limit they have not met.
+     *
+     * <p>The numbers come off {@link AttunementSettings}' own defaults, which the config spec reads
+     * its defaults from too, so the page and a fresh install agree by construction rather than by
+     * anyone remembering to update prose after a balance pass.
+     *
+     * <p>The second page is the one that has to exist. Attunement is the first thing this mod has
+     * done that takes something away from a save that already exists, and the assumption a player
+     * will otherwise make - that an unattuned room has stopped counting toward the climb - is both
+     * wrong and the kind of wrong that makes them play badly, by attuning nothing while grinding for
+     * rank.
+     */
+    static BookStuff.Entry attunementExplainer(BookStuff.Category category)
+    {
+        final int rooms = AttunementSettings.DEFAULT_BASE_PASSIVE_SLOTS;
+        final int abilities = AttunementSettings.DEFAULT_BASE_ACTIVE_SLOTS;
+        final int roomsAtMax = rooms + SoulBounds.MAX_RANK * AttunementSettings.DEFAULT_PASSIVE_SLOTS_PER_RANK;
+        final int abilitiesAtMax = abilities + SoulBounds.MAX_RANK * AttunementSettings.DEFAULT_ACTIVE_SLOTS_PER_RANK;
+
+        BookStuff.Entry entry = new BookStuff.Entry("attunement", category, "minecraft:chain");
+        entry.setDisplayTitle("what you can carry");
+        entry.advancement = CROWDED_SOUL_ADVANCEMENT;
+        entry.sortnum = -6;
+
+        entry.pages = new BookStuff.Page[]
+                {
+                        new BookStuff.TextPage(
+                                "You can build every room there is. You cannot carry them all at once.$(p)A soul has a number of slots, and only the rooms attuned into them grant anything. A new soul has "
+                                        + rooms + " for rooms and " + abilities
+                                        + " for abilities; each rank of the Ascent adds one of each, reaching "
+                                        + roomsAtMax + " and " + abilitiesAtMax + ".$(p)A new room takes an empty slot by itself, so until you have more than you can carry there is nothing here to do.")
+                                .setTitle("What you can carry"),
+                        new BookStuff.TextPage(
+                                "$(bold)Nothing you build is ever lost.$(0)$(p)A room you have not attuned still stands, still classifies, still shows in $(l)/soulhome analyse$() and the $(item)Soul Lens$(0), and still counts in full toward your soul's residue and toward the willpower your next ascension asks for.$(p)It simply gives you nothing until you bind it. There is never a reason to leave a slot empty while you climb.")
+                                .setTitle("Nothing is lost"),
+                        new BookStuff.TextPage(
+                                "Bind and release at the $(item)Soul Anchor$(0). It costs nothing, there is no waiting, and what you are carrying changes the moment you click.$(p)Rooms and abilities are counted apart, so a shield you can raise never has to be weighed against a few percent of mining speed.$(p)Pull a bound room down and it keeps its slot until you release it - build it again and you are carrying it again, with nothing to set up twice.")
                                 .setTitle("And how to change it"),
                 };
 

@@ -303,6 +303,50 @@ archetype's own top-level `buffs`. The rules that hold, and that the tests pin:
   the room nothing. That last line is not decoration: two competing numbers mean a dilution
   everywhere else in this mod, and an unexplained aspect reads as a nerf.
 
+### Attunement: which rooms a soul is actually carrying
+
+A soulhome grants only the rooms bound into its attunement slots (#151). Everything lives in
+`structures/core/AttunementBook` (Minecraft-free, so identity matching is testable), with
+`AttunementSettings` for the numbers, `RoomBinding` for the state and `structures/AttunementService`
+for the server half. The rules, and what breaks if one is missed:
+
+- **What is attuned is the room, and a room is a footprint.** Not the archetype (a player with two
+  libraries could not choose), not the `SoulRegion` (its `identityHash` is a digest of contents, so
+  one bookshelf would silently unbind an attuned library), not the position. Every classified room
+  gets a serial the first time it is seen, and later scans carry it forward by footprint overlap of
+  at least `AttunementBook.MIN_OVERLAP_SHARE` of the smaller box. Archetype agreement is a *tiebreak*
+  only - a library converted to a workshop is still that room.
+- **A binding outlives its room.** Demolish an attuned room and it keeps its slot until the player
+  releases it; rebuild it on the same spot and the ghost is re-matched. Freeing the slot would mean
+  demolishing something silently re-arms something else, and rebuilding it silently takes that back.
+- **A free slot fills itself, once per room.** `AttunementBook.autoFill` binds only ids handed out
+  for the first time this scan. That is what makes "a player under their limit notices nothing"
+  a property rather than a hope - without it, this epic landing on an existing save zeroes every buff
+  in it until its owner walks to their anchor. It never reaches for a room the player *released*:
+  that decision is the only thing the whole mechanic exists to ask for.
+- **Two pools, decided by what the room pays.** `RoomPool.ACTIVE` for any room granting a
+  `SoulBuffTypes.ACTIVE` buff under the aspect it took, `PASSIVE` otherwise. One pool would quietly
+  mean every slot goes to an ability.
+- **Attunement never touches the total.** `SoulHomeBuffData#totalScore` reads *every* classified
+  room, because residue (#82) and the ascension willpower check (#83) do. If attunement ever reduced
+  it, attuning nothing while grinding for rank would be the correct play, and that is a worse game.
+  `StructureScanService#carriedRooms` is the only filter, and `totalScore` deliberately does not go
+  through it.
+- **The falloff ranks the attuned subset.** Filtering happens before `BuffCalculator`, so attuning
+  your second-best library grants what your best one would have. Anything else punishes a player for
+  a choice the system invited.
+- **Off means off.** With `attunement.enabled` false nothing is given an identity, so nothing can be
+  bound, nothing is written to the save (`AttunementBook.anonymise`), and every report reads
+  `AttunementReport.EMPTY` and draws nothing without checking the config. Existing bindings are left
+  on disk rather than erased, so turning it back on restores the loadout. `AttunementDisabledTest`
+  and `AttunementReportTest` pin that.
+- **The player is told, once.** `/soulhome buffs` names every room not being carried and what it
+  would grant, the lens says the same out in the world, `/soulhome analyse` marks each room, and the
+  first time a soul exceeds its slots it gets one message and a saved flag so it is never repeated.
+  Every one of those surfaces says, in as many words, that an unattuned room still counts toward the
+  climb - that is the assumption a player will otherwise get wrong, and getting it wrong makes them
+  play badly.
+
 ### Rooms written for mods this one does not depend on
 
 Two archetypes, `arcane_sanctum` and `ritual_chamber` (Iron's Spells 'n Spellbooks), name another
