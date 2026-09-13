@@ -6,6 +6,7 @@ package leaf.soulhome.feedback;
 
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.structures.core.ArchetypeScore;
+import leaf.soulhome.structures.core.AspectSelection;
 import leaf.soulhome.structures.core.BlockCounts;
 import leaf.soulhome.structures.core.ClassificationResult;
 import leaf.soulhome.structures.core.RegionBounds;
@@ -270,14 +271,104 @@ class SoulReportTest
         return new ClassificationResult(plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
     }
 
+    // endregion
+
+    // region aspects (#175)
+
+    @Test
+    @DisplayName("the aspect taken is named, with the runner-up and what would tip it")
+    void theAspectIsReported()
+    {
+        List<Component> lines = SoulReport.region(withAspect(selection(false)), 1);
+
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_ASPECT_HEADER).isPresent());
+
+        TranslatableContents taken = findByKey(lines, Constants.StringKeys.REGION_ASPECT_TAKEN).orElseThrow();
+        assertEquals("aspect.soulhome.library.scriptorium", keyOf(taken.getArgs()[0]),
+                "the aspect is named, never its id");
+
+        TranslatableContents runnerUp = findByKey(lines, Constants.StringKeys.REGION_ASPECT_RUNNER_UP).orElseThrow();
+        assertEquals("aspect.soulhome.library.archive", keyOf(runnerUp.getArgs()[0]));
+
+        TranslatableContents tip = findByKey(lines, Constants.StringKeys.REGION_ASPECT_TIP).orElseThrow();
+        assertEquals(3, tip.getArgs()[0]);
+        assertEquals("aspect.soulhome.library.archive", keyOf(tip.getArgs()[2]));
+    }
+
+    @Test
+    @DisplayName("the report says in as many words that the aspect did not change the room's score")
+    void theReportSaysTheAspectCostNothing()
+    {
+        // not decoration: two aspects listed with a margin between them read, everywhere else in
+        // this mod, as a split that cost the player something. This is the line that denies it
+        assertTrue(findByKey(SoulReport.region(withAspect(selection(false)), 1),
+                Constants.StringKeys.REGION_ASPECT_FREE).isPresent());
+    }
+
+    @Test
+    @DisplayName("an aspect held by the default is reported as such, not as a plain second place")
+    void aDefaultHoldingItsRoomSaysSo()
+    {
+        List<Component> lines = SoulReport.region(withAspect(selection(true)), 1);
+
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_ASPECT_HELD).isPresent());
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_ASPECT_RUNNER_UP).isEmpty());
+    }
+
+    @Test
+    @DisplayName("a room that took no aspect says nothing about them at all - not even that they are off")
+    void noAspectMeansNoAspectLines()
+    {
+        List<Component> lines = SoulReport.region(bonded(List.of(), List.of(), false), 1);
+
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_ASPECT_HEADER).isEmpty());
+        assertTrue(findByKey(lines, Constants.StringKeys.REGION_ASPECT_FREE).isEmpty());
+    }
+
+    /**
+     * @param heldByDefault whether the default kept the room against a challenger that leads it but
+     *                      not by enough - the two produce different sentences on purpose
+     */
+    private static AspectSelection selection(boolean heldByDefault)
+    {
+        final String archive = "aspect.soulhome.library.archive";
+        final String scriptorium = "aspect.soulhome.library.scriptorium";
+
+        List<AspectSelection.Support> supports = List.of(
+                new AspectSelection.Support("scriptorium", scriptorium, false, 9d),
+                new AspectSelection.Support("archive", archive, true, 8d));
+
+        // the tip always names the aspect that did not take the room, as the selector's does
+        return new AspectSelection(
+                heldByDefault ? "archive" : "scriptorium",
+                heldByDefault ? archive : scriptorium,
+                heldByDefault,
+                heldByDefault,
+                1.15d,
+                supports,
+                heldByDefault
+                        ? new AspectSelection.Tip("scriptorium", scriptorium, "minecraft:lectern", 2)
+                        : new AspectSelection.Tip("archive", archive, "#soulhome:bookshelves", 3));
+    }
+
+    private static ClassificationResult withAspect(AspectSelection aspect)
+    {
+        ArchetypeScore best = new ArchetypeScore(
+                "soulhome:library", "archetype.soulhome.library", 30d, 30d, 1d, 1d, 2,
+                OptionalDouble.empty(), List.of(), List.of(), List.of(), null, List.of(), List.of(), false,
+                List.of(), List.of(), false, aspect);
+
+        return new ClassificationResult(plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
+    }
+
+    // endregion
+
     private static String keyOf(Object argument)
     {
         return argument instanceof Component component && component.getContents() instanceof TranslatableContents translatable
                 ? translatable.getKey()
                 : String.valueOf(argument);
     }
-
-    // endregion
 
     private static SoulRegion plainRegion()
     {

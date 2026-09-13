@@ -215,6 +215,7 @@ Shape of one:
   `apex`, `soulhome:irregularity`, `verticality`, `facing`). A datapack can register its own onto
   its own `FormClauseRegistry`.
 - `tiers` and `buffs` - score thresholds and what they pay out
+- `aspects` - optional, and what a room of this kind can be *for* rather than what it is. See below.
 
 Which blocks the scanner even bothers clustering around is derived from the loaded archetypes by
 `ArchetypeSignals`, so a datapack that adds an archetype gets its blocks detected with no Java
@@ -253,6 +254,54 @@ clauses use. Rules that hold, and that the tests pin:
   down. Give every positive bond on a room the same role, or the diversity bump alone trips it.
 - **The book documents bonds from the data** (`PatchouliMultiblocks.bondPages`), and its explainer
   gates on the `two_rooms` advancement, fired when one scan awards two rooms.
+
+### Aspects: what a room is for, as opposed to what it is
+
+`aspects` on an archetype (#171) is the fourth kind of thing an archetype declares, and the only one
+that is not evidence. An archetype says what a room *is*; an aspect says what it is *for* - a library
+of shelves and stores is an `archive` and keeps its XP gain, one of lecterns laid out in rows under
+light is a `scriptorium` and grants enchanting levels. `library`, `hearth` and `mine` ship with two
+each; nothing else has any, and the set is meant to stay small.
+
+Each aspect carries `id`, `display_name`, `leans` (weighted block evidence), optionally its own
+`structures`, and optionally its own `buffs`. Exactly one is marked `"default": true` and pays the
+archetype's own top-level `buffs`. The rules that hold, and that the tests pin:
+
+- **The aspect selects the buff. It never scales it.** This is the one that will be broken by
+  accident, because it runs against how everything else here works. The magnitude is computed exactly
+  as it always was - signals, arrangement, tier, ramp, falloff, rank, ceilings, all untouched - and
+  the aspect decides only which `BuffSpec` that magnitude is paid into. A room whose aspects stand at
+  0.9 and 0.7 pays exactly what a room whose stand at 0.999 and 0.99 pays. Mixed evidence diluting is
+  right for deciding what a room is and would be badly wrong for deciding what it is for: a library
+  with a fine archive *and* a fine scriptorium is a better library, not a worse one. If
+  `ArchetypeCeilingTest` ever moves because of an aspect, this rule has been broken.
+- **`leanSupport` appears in no expression that produces a score.** `AspectSelector` runs after the
+  score is settled, and `AspectSelection` carries no number a magnitude could be derived from.
+- **Every block an aspect reads is a block the room already scores.** Checked at load by
+  `ArchetypeDefinition#validationErrors`, conservatively and without touching a registry: each id or
+  tag a lean (or an aspect form's element) names must be named by one of the archetype's own
+  `signals`. Otherwise a player would be choosing between a better room and the buff they wanted.
+  Widening a room's signals to satisfy this is the intended fix, and is a buff to describe as one.
+- **An aspect may ask for an arrangement its room does not.** A library is expected to hold a lectern;
+  only a scriptorium is expected to hold them in ranked rows. So an aspect's `structures` are graded
+  exactly as the archetype's are, out of `RegionGeometry`, and credited **only** to the aspect - never
+  to the room's arrangement total. `ArchetypeSignals` reads `ArchetypeDefinition#allForms` so their
+  elements are still indexed; `ArchetypeCeiling` deliberately does not, since they score nothing.
+- **The default is the anchor, and nothing is remembered.** A challenger takes a room only by leading
+  the default by `aspectMargin`; ties and near-ties go to the default. That is what makes "a player
+  who updates and changes nothing notices nothing" a property of the mechanism rather than a hope
+  about tuning, and it is why there is no hysteresis and no saved previous aspect - #176 requires
+  selection be derived every scan and never trusted from a save.
+- **Off means off, everywhere.** `aspects.enabled` (default on) is rule 1 of the epic, and "there is a
+  switch" and "the switch restores the old behaviour" are different claims. With it off no aspect is
+  selected at all, so `ArchetypeScore#aspect` and `AwardedRoom#aspectId` are null and every surface
+  that could mention one is silent without checking the config - there is nothing to check. Nothing
+  is written to the save, `identityHash` is untouched, and an archetype declaring aspects still loads
+  and pays its own buffs. `AspectsDisabledTest` pins each of those.
+- **The player is told.** `/soulhome analyse`, the lens and `/soulhome buffs` name the aspect taken,
+  the runner-up and the margin, what would tip it in blocks, and - explicitly - that the split cost
+  the room nothing. That last line is not decoration: two competing numbers mean a dilution
+  everywhere else in this mod, and an unexplained aspect reads as a nerf.
 
 ### Rooms written for mods this one does not depend on
 

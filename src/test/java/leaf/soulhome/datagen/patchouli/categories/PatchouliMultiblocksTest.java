@@ -9,6 +9,7 @@ import leaf.soulhome.datagen.patchouli.categories.data.BookStuff;
 import leaf.soulhome.datagen.patchouli.categories.data.FormDocs;
 import leaf.soulhome.datagen.patchouli.categories.data.TagDocs;
 import leaf.soulhome.structures.core.ArchetypeDefinition;
+import leaf.soulhome.structures.core.Aspect;
 import leaf.soulhome.structures.core.BlockMatcher;
 import leaf.soulhome.structures.core.Bond;
 import leaf.soulhome.structures.core.BondBook;
@@ -171,6 +172,88 @@ class PatchouliMultiblocksTest
 
         assertEquals("soulhome:main/two_rooms", entry.advancement);
         assertTrue(entry.pages.length >= 2);
+    }
+
+    // endregion
+
+    // region aspects (#175)
+
+    @Test
+    @DisplayName("an archetype with aspects documents each of them, and one with none gets no page at all")
+    void aspectsAreDocumentedFromTheData()
+    {
+        for (ArchetypeDefinition archetype : ArchetypeDocs.shipped())
+        {
+            List<BookStuff.Page> pages = PatchouliMultiblocks.aspectPages(archetype);
+
+            if (archetype.aspects().isEmpty())
+            {
+                assertTrue(pages.isEmpty(), archetype.id() + " has no aspects, so should have no aspect page");
+                continue;
+            }
+
+            final String text = pages.stream().map(page -> page.text).collect(Collectors.joining(" "));
+
+            for (Aspect aspect : archetype.aspects())
+            {
+                assertTrue(
+                        text.contains("Leans this way:"),
+                        archetype.id() + " documents an aspect without saying what leans toward it");
+
+                // every block a player could tip the room with has to appear, or the page names a
+                // reading and leaves them to guess how to reach it - the same defect the
+                // arrangement legend exists for
+                for (Aspect.Lean lean : aspect.leans())
+                {
+                    final String readable = PatchouliMultiblocks.readable(lean.match().describe());
+
+                    assertTrue(text.contains(readable),
+                            archetype.id() + " aspect '" + aspect.id() + "' never says " + readable + " counts");
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("an aspect page says what that aspect grants, and the default says it grants the room's own")
+    void aspectPagesNameTheirPayout()
+    {
+        ArchetypeDefinition library = ArchetypeDocs.shipped().stream()
+                .filter(archetype -> archetype.id().equals("soulhome:library")).findFirst().orElseThrow();
+
+        final String text = PatchouliMultiblocks.aspectPages(library).stream()
+                .map(page -> page.text).collect(Collectors.joining(" "));
+
+        assertTrue(text.contains("The usual reading of the room. Grants:"), text);
+        assertTrue(text.contains("Grants instead:"), text);
+
+        // and it says, plainly, that the choice costs the room nothing - the line that keeps this
+        // from reading as a split the player is paying for
+        assertTrue(text.contains("Either way it scores the same"), text);
+    }
+
+    @Test
+    @DisplayName("the aspects explainer is gated behind having built a room that has them")
+    void aspectExplainerIsGated()
+    {
+        BookStuff.Category category = new BookStuff.Category("multiblocks", "", "soulhome:soul_lens");
+        BookStuff.Entry entry = PatchouliMultiblocks.aspectsExplainer(category);
+
+        assertEquals("soulhome:main/aspect_taken", entry.advancement);
+        assertTrue(entry.pages.length >= 2);
+    }
+
+    @Test
+    @DisplayName("an archetype with no aspects gets no aspect page at all")
+    void archetypeWithoutAspectsGetsNoPage()
+    {
+        ArchetypeDefinition plain = new ArchetypeDefinition(
+                "soulhome:test_no_aspects", "archetype.soulhome.test", List.of(), 1,
+                List.of(),
+                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofBlocks("minecraft:torch"), 1.0, "light", 16)),
+                List.of(), List.of(new ArchetypeDefinition.Tier(1d, 1)), List.of(), List.of());
+
+        assertTrue(PatchouliMultiblocks.aspectPages(plain).isEmpty());
     }
 
     // endregion

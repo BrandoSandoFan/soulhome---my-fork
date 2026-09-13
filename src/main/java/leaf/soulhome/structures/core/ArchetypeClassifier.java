@@ -66,6 +66,15 @@ import java.util.Set;
  * share of the room's own signal would mean a bigger room shrugs off a hazard next door. What a
  * discord cannot do is un-award the room: a hearth beside a powder magazine can lose every tier
  * but its first, since what the room is was decided before bonds were looked at.
+ *
+ * <h2>An aspect is chosen, never scored</h2>
+ *
+ * Where a bond adjusts what a room is worth, an aspect (the Aspects epic, #171) adjusts neither
+ * that nor what the room is. It decides only which buff the room's magnitude is paid into - an
+ * archive or a scriptorium, both libraries, both at the same tier and the same score. So the
+ * selection is made once the score is settled, from {@link AspectSelector}, and no value it
+ * computes appears in any expression here that produces a score. If aspect support ever reaches a
+ * magnitude, rule 3 of the epic has been broken and two well-built rooms start paying less than one.
  */
 public final class ArchetypeClassifier
 {
@@ -309,7 +318,11 @@ public final class ArchetypeClassifier
                 before.structuralCapped(),
                 hits,
                 misses,
-                capped);
+                capped,
+                // carried through untouched: a bond says where a room stands, which is no evidence
+                // about what it is for, and re-deciding the aspect here would make a room's buff
+                // depend on the room next door
+                before.aspect());
 
         // the award stands whatever the bonds did - only the winner's entry is replaced. The list
         // is left in its unbonded order so the runner-up is still the room's own runner-up.
@@ -565,6 +578,14 @@ public final class ArchetypeClassifier
         final double density = densityMultiplier(signalBlocks, region.volume());
         final double score = gated ? 0d : Math.max(0d, raw * diversity * density);
 
+        // #171 rule 3, and the line the whole epic turns on: the aspect is chosen after the score
+        // is settled and is never an input to it. Nothing below this point may read `selected`.
+        // A gated region skips it for the same reason it skips forms - there is no point deciding
+        // what a room is for when it is not a room
+        final AspectSelection selected = gated || !this.settings.aspectsEnabled()
+                ? null
+                : AspectSelector.select(region, archetype, this.settings, clauseMemo);
+
         ArchetypeScore result = new ArchetypeScore(
                 archetype.id(),
                 archetype.displayName(),
@@ -580,7 +601,11 @@ public final class ArchetypeClassifier
                 ineligibleReason,
                 structuralHits,
                 structuralMisses,
-                structuralCapped);
+                structuralCapped,
+                List.of(),
+                List.of(),
+                false,
+                selected);
 
         return new Scored(result, signalRaw, structuralCredited, raw, Set.copyOf(rolesPresent), density);
     }

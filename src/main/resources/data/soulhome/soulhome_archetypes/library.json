@@ -51,5 +51,43 @@
   "bonds": [
     { "with": "soulhome:enchanting_room", "relation": "connects", "weight": 4.0, "role": "layout", "max_distance": 12 },
     { "with": "soulhome:arcane_sanctum", "relation": "connects", "weight": 4.0, "role": "layout", "max_distance": 12 }
+  ],
+
+  "aspects": [
+    {
+      "id": "archive",
+      "display_name": "aspect.soulhome.library.archive",
+      "default": true,
+      "leans": [
+        { "match": { "tag": "soulhome:bookshelves" }, "weight": 1.0, "cap": 32 },
+        { "match": { "tag": "soulhome:storage" },     "weight": 2.0, "cap": 8  }
+      ]
+    },
+    {
+      "id": "scriptorium",
+      "display_name": "aspect.soulhome.library.scriptorium",
+      "leans": [
+        { "match": { "block": "minecraft:lectern" },            "weight": 2.5, "cap": 4  },
+        { "match": { "block": "minecraft:cartography_table" },   "weight": 2.0, "cap": 2  },
+        { "match": { "tag": "soulhome:lighting" },              "weight": 0.5, "cap": 16 }
+      ],
+      "structures": [
+        {
+          "name": "writing_desks",
+          "weight": 4.0,
+          "elements": {
+            "lecterns": { "block": "minecraft:lectern" },
+            "light":    { "tag": "soulhome:lighting" }
+          },
+          "all": [
+            { "shape": "soulhome:spacing", "of": "lecterns", "min_count": 3, "group_radius": 1, "weight": 2.0 },
+            { "relation": "at_range", "of": "light", "to": "lecterns", "min_distance": 1, "max_distance": 3, "weight": 1.0 }
+          ]
+        }
+      ],
+      "buffs": [
+        { "type": "soulhome:enchantment_power", "per_tier": 1.0, "max": 3.0 }
+      ]
+    }
   ]
 }

@@ -131,9 +131,17 @@ public class SoulLensBuffsScreen extends Screen
 
             for (LensBuffReport.Source source : buff.sources())
             {
-                out.addAll(wrap(Component.translatable(
-                                Constants.StringKeys.LENS_SCREEN_BUFFS_FROM,
-                                Component.translatable(source.displayName()), source.rooms(), source.bestTier()),
+                // the aspect beside the room that granted it (#175), so this screen and
+                // /soulhome buffs say the same thing. Absent, and the line is what it always was
+                out.addAll(wrap(source.hasAspect()
+                                ? Component.translatable(
+                                        Constants.StringKeys.LENS_SCREEN_BUFFS_FROM_ASPECT,
+                                        Component.translatable(source.displayName()),
+                                        Component.translatable(source.aspectName()),
+                                        source.rooms(), source.bestTier())
+                                : Component.translatable(
+                                        Constants.StringKeys.LENS_SCREEN_BUFFS_FROM,
+                                        Component.translatable(source.displayName()), source.rooms(), source.bestTier()),
                         6, COLOR_TEXT, maxWidth));
             }
 

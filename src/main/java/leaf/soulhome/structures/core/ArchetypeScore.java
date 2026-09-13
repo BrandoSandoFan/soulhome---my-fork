@@ -49,6 +49,13 @@ import java.util.OptionalDouble;
  *                             the near miss is the useful half: "your Enchanting Room is 19 blocks
  *                             away; within 12 would count", or that no such room exists yet
  * @param bondCapped           whether bond credit hit {@code ScoringSettings#bondShareCap}
+ * @param aspect               which aspect this room took of this archetype, and what came second -
+ *                             the Aspects epic (#171). Null for an archetype declaring no aspects,
+ *                             for a gated region, and for every region when {@code aspects.enabled}
+ *                             is off, which is how "off is indistinguishable from before the epic"
+ *                             holds at every surface that reads this record. <b>Nothing on it feeds
+ *                             {@link #score}</b>: the aspect decides which buff the magnitude is
+ *                             paid into and nothing else. See {@link AspectSelector}.
  */
 public record ArchetypeScore(
         String archetypeId,
@@ -68,7 +75,8 @@ public record ArchetypeScore(
         boolean structuralCapped,
         List<BondContribution> bondContributions,
         List<BondContribution> missingBonds,
-        boolean bondCapped)
+        boolean bondCapped,
+        AspectSelection aspect)
 {
     public ArchetypeScore
     {
@@ -101,7 +109,46 @@ public record ArchetypeScore(
     {
         this(archetypeId, displayName, score, rawScore, diversityMultiplier, densityMultiplier, tier,
                 scoreToNextTier, contributions, missingSignals, failedRequirements, ineligibleReason,
-                structuralContributions, missingStructures, structuralCapped, List.of(), List.of(), false);
+                structuralContributions, missingStructures, structuralCapped, List.of(), List.of(), false, null);
+    }
+
+    /** A score with bonds but no aspect - every score before #171, and most fixtures since. */
+    public ArchetypeScore(
+            String archetypeId,
+            String displayName,
+            double score,
+            double rawScore,
+            double diversityMultiplier,
+            double densityMultiplier,
+            int tier,
+            OptionalDouble scoreToNextTier,
+            List<SignalContribution> contributions,
+            List<SignalContribution> missingSignals,
+            List<FailedRequirement> failedRequirements,
+            String ineligibleReason,
+            List<StructureContribution> structuralContributions,
+            List<StructureContribution> missingStructures,
+            boolean structuralCapped,
+            List<BondContribution> bondContributions,
+            List<BondContribution> missingBonds,
+            boolean bondCapped)
+    {
+        this(archetypeId, displayName, score, rawScore, diversityMultiplier, densityMultiplier, tier,
+                scoreToNextTier, contributions, missingSignals, failedRequirements, ineligibleReason,
+                structuralContributions, missingStructures, structuralCapped, bondContributions,
+                missingBonds, bondCapped, null);
+    }
+
+    /** Whether there is an aspect worth naming - see {@link #aspect}. */
+    public boolean hasAspect()
+    {
+        return this.aspect != null;
+    }
+
+    /** The aspect this room took, or null when it took none. Never an id shown in prose (#103). */
+    public String aspectId()
+    {
+        return this.aspect == null ? null : this.aspect.takenId();
     }
 
     /** Whether there is anything to say about bonds at all - a region with none says nothing. */
