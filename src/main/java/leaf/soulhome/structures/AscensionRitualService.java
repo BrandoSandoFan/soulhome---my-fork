@@ -343,6 +343,11 @@ public final class AscensionRitualService
         data.setAscensionRank(state.targetRank());
         StructureScanService.refresh(player);
 
+        // the box just grew; the ground under it has not yet. Queued rather than run here, so the
+        // ritual completes on this tick and the island spreads outward over the next few seconds -
+        // which is both what #161 asks for and the better reward moment (#158).
+        TerrainGrowthService.rankChanged(level);
+
         level.sendParticles(ParticleTypes.END_ROD, state.capPos().getX() + 0.5, state.capPos().getY() + 0.2,
                 state.capPos().getZ() + 0.5, 80, 0.6, 1.2, 0.6, 0.02);
         level.playSound(null, state.capPos(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.0f, 1.0f);

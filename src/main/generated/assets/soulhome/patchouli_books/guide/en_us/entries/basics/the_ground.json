@@ -1,0 +1,28 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:basics",
+  "icon": "minecraft:grass_block",
+  "name": "Ground, And The Verge",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Ascending widens the walls your soul may be built inside of. It also grows the island, so that the room you just earned is somewhere you can stand.$(p)The new ground follows the coast you already have, and is made of your own soul's blocks - a snowy soul grows snow."
+    },
+    {
+      "type": "text",
+      "text": "$(bold)Nothing you built is ever built over.$(0)$(p)Ground only appears where there was nothing at all, and it keeps well clear of anything you placed. A bridge you threw out into the void before you ascended stays exactly where it is, and the island grows around it rather than through it."
+    },
+    {
+      "type": "text",
+      "text": "$(bold)The void at the edge is meant to be there.$(0)$(p)Your walls always reach further than your ground does - at the highest rank they stand 104 blocks out while the ground reaches about 78.$(p)That gap is yours to build into. If you want a floating hall over open sky, the sky is already waiting."
+    },
+    {
+      "type": "text",
+      "text": "Each rank adds roughly 12 blocks of coast, up to that limit. A soul that climbed before any of this existed catches up all at once, the next time you walk into it.$(p)Type $(bold)/soulhome ascent$(0) to see how far your ground reaches, how far your walls do, and what the next rank would add."
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 6
+}

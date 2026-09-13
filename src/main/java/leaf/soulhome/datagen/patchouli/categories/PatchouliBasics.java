@@ -5,6 +5,8 @@
 package leaf.soulhome.datagen.patchouli.categories;
 
 import leaf.soulhome.datagen.patchouli.categories.data.BookStuff;
+import leaf.soulhome.structures.core.SoulBounds;
+import leaf.soulhome.structures.core.TerrainGrowthSettings;
 
 import java.util.List;
 
@@ -68,6 +70,8 @@ public class PatchouliBasics
                 };
         entries.add(personalSoulKey);
 
+        entries.add(theGround(basics));
+
         BookStuff.Entry enteredSoul = new BookStuff.Entry("soul", basics, basics.icon);
         enteredSoul.sortnum = 5;
         enteredSoul.turnin = "soulhome:main/entered_soul_dimension";
@@ -79,5 +83,56 @@ public class PatchouliBasics
         entries.add(enteredSoul);
 
 
+    }
+
+    /**
+     * Terrain growth (#158/#162). Written from the {@code DEFAULT_} constants the config spec reads
+     * its own defaults from, so the book and a fresh install agree by construction rather than by
+     * anyone remembering to update prose.
+     *
+     * <p>The page that has to exist is the third one. A player whose walls are at 104 and whose
+     * ground reaches 78 has open void inside their own box, and unless they have been told that is
+     * deliberate they will report it as a bug - or, worse, conclude their ascension broke something.
+     *
+     * <p>Gated on having entered a soul at all rather than on having ascended: the mod ships no
+     * ascension advancement, and a page about what the climb grants is one a player wants to read
+     * before they climb rather than after.
+     */
+    private static BookStuff.Entry theGround(BookStuff.Category basics)
+    {
+        final int baseVerge = SoulBounds.DEFAULT_BASE_VERGE;
+        final int vergeAtMax = baseVerge + SoulBounds.MAX_RANK * SoulBounds.DEFAULT_VERGE_PER_RANK;
+        final int groundAtMax = TerrainGrowthSettings.DEFAULTS.groundLimit(SoulBounds.MAX_RANK, vergeAtMax);
+        final int groundPerRank = TerrainGrowthSettings.DEFAULT_GROUND_PER_RANK;
+
+        BookStuff.Entry entry = new BookStuff.Entry("the_ground", basics, "minecraft:grass_block");
+        entry.setDisplayTitle("ground, and the verge");
+        entry.sortnum = 6;
+        entry.advancement = "soulhome:main/entered_soul_dimension";
+        entry.pages = new BookStuff.Page[]
+                {
+                        new BookStuff.TextPage(
+                                "Ascending widens the walls your soul may be built inside of. It also grows the island, "
+                                        + "so that the room you just earned is somewhere you can stand.$(p)The new ground follows "
+                                        + "the coast you already have, and is made of your own soul's blocks - a snowy soul grows "
+                                        + "snow."),
+                        new BookStuff.TextPage(
+                                "$(bold)Nothing you built is ever built over.$(0)$(p)Ground only appears where there was "
+                                        + "nothing at all, and it keeps well clear of anything you placed. A bridge you threw out "
+                                        + "into the void before you ascended stays exactly where it is, and the island grows "
+                                        + "around it rather than through it."),
+                        new BookStuff.TextPage(
+                                "$(bold)The void at the edge is meant to be there.$(0)$(p)Your walls always reach further "
+                                        + "than your ground does - at the highest rank they stand " + vergeAtMax
+                                        + " blocks out while the ground reaches about " + groundAtMax + ".$(p)That gap is yours to "
+                                        + "build into. If you want a floating hall over open sky, the sky is already waiting."),
+                        new BookStuff.TextPage(
+                                "Each rank adds roughly " + groundPerRank + " blocks of coast, up to that limit. A soul that "
+                                        + "climbed before any of this existed catches up all at once, the next time you walk into it."
+                                        + "$(p)Type $(bold)/soulhome ascent$(0) to see how far your ground reaches, how far your walls "
+                                        + "do, and what the next rank would add."),
+                };
+
+        return entry;
     }
 }

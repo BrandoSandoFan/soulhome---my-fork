@@ -212,6 +212,14 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ASCENT_DISABLED, "Soulhome bounds are switched off in the server config.");
         add(Constants.StringKeys.ASCENT_NO_SOULHOME, "You have never opened your soul, so there is no box to report on.");
 
+        add(Constants.StringKeys.ASCENT_GROUND, "Ground reaches %s blocks out; the walls are at %s.");
+        add(Constants.StringKeys.ASCENT_GROUND_VERGE,
+                "The %s blocks of open verge past it are deliberate - somewhere to build outward into.");
+        add(Constants.StringKeys.ASCENT_GROUND_NEXT, "Ascending would add about %s blocks of ground, reaching %s.");
+        add(Constants.StringKeys.ASCENT_GROUND_GROWING, "Ground is still arriving - about %s%% of the way.");
+        add(Constants.StringKeys.ASCENT_GROUND_OFF, "Ground does not grow with rank on this server.");
+        add(Constants.StringKeys.GROWTH_COMPLETE, "Your soul has grown: %s new columns of ground, out to %s blocks.");
+
         add(Constants.StringKeys.ASCENT_SET_SUCCESS, "Your soul is now rank %s.");
         add(Constants.StringKeys.ASCENT_SET_OUT_OF_RANGE, "This server's max_rank is %s - you cannot set a rank above it.");
 
@@ -269,6 +277,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_BOX_VERGE, "walls %s blocks out from the centre");
         add(Constants.StringKeys.LENS_SCREEN_BOX_RANK, "Rank %s");
         add(Constants.StringKeys.LENS_SCREEN_BOX_LEGACY, "Your soul predates this limit and also reaches %s");
+        add(Constants.StringKeys.LENS_SCREEN_BOX_GROUND, "ground reaches %s");
+        add(Constants.StringKeys.LENS_SCREEN_BOX_GROWING, "(still growing)");
 
         //Buff types. Named rather than shown as ids, since a player reads these and a log does not.
         //The table is shared with the guide book, so the name a room page promises and the name
