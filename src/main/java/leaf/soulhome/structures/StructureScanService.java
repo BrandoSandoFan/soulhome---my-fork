@@ -226,6 +226,18 @@ public final class StructureScanService
                 continue;
             }
 
+            if (TerrainGrowthService.isGrowing(key))
+            {
+                // ground is still arriving (#158). A scan now would classify a half-grown apron,
+                // and the scan that matters is the one the growth job asks for when it finishes -
+                // so this one is put back rather than run. #161 wondered whether the debouncer's
+                // own quiet period would absorb this; it does for a small band and does not for a
+                // rank V one, so it is held explicitly instead of hoped about.
+                debouncer.release(key);
+                debouncer.requestNow(key, now());
+                continue;
+            }
+
             beginScan(server, level);
         }
     }
@@ -468,9 +480,13 @@ public final class StructureScanService
                 .map(box -> List.of(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()))
                 .orElse(List.of());
 
+        // ground is measured rather than derived: what a player cares about is how far they can
+        // walk, and the limit for their rank says only how far they eventually will (#162)
         Network.sendTo(new SyncSoulBoundsMessage(
                 soulhome.dimension().location().toString(), rank, bounds.floorY(), bounds.ceilingY(),
-                bounds.vergeHalfExtent(), legacyBox), player);
+                bounds.vergeHalfExtent(), legacyBox,
+                TerrainGrowthService.groundReach(soulhome, bounds),
+                TerrainGrowthService.isGrowing(soulhome.dimension())), player);
     }
 
     /** The rooms this player's own soulhome has been awarded, as of its last scan. */

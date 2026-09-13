@@ -1017,3 +1017,37 @@ different way was exactly nothing.
   rows of lecterns are a scriptorium, and a plain library is not expected to have them - but every
   block it reads must be one the room already scores, checked at load, so no block ever counts
   toward a reading without counting toward the room.
+
+The climb grants ground
+
+Ascending widened the walls and moved not one block of earth. The island you were given on the day
+your soul was made was the same size at rank V as it was at rank 0, and every rank handed you a
+larger volume of nothing to bridge out over and haul a floor into before you could use what you had
+just earned. The Watchtower was written as the room rank 0 cannot really build, because a watchtower
+wants height - a much weaker idea when the climb grants the height and not the ground to raise it
+from.
+
+- Buff, and a large one: ascending now grows your island outward. The new ground follows the coast
+  you already have rather than squaring it off, and it is made of your own soul's blocks, sampled
+  from the island itself - a snowy soul grows snow, and a soul from an island added by a datapack
+  later grows correctly with no code written for it.
+- Nothing you built is ever built over. Ground only appears where there was nothing at all, and it
+  keeps a clear margin around anything you placed - so a bridge you threw out into the void before
+  ascending stays exactly where it is, and the island grows around it rather than through it. A
+  soul old enough to have build reaching past its own walls is left alone entirely.
+- Your walls always reach further than your ground does, on purpose. At the highest rank they stand
+  104 blocks out while the ground reaches about 78, and the open verge between them is yours to
+  build into - if you want a floating hall over open sky, the sky is already waiting. `/soulhome
+  ascent` and the Soul Lens now report both numbers, and how much ground the next rank would add.
+- The ground arrives over the few seconds after the ritual rather than being silently already
+  there, which is a better moment for it and keeps the rank-up itself instant. A server that stops
+  halfway through finishes the job the next time you walk in.
+- A soul that climbed before any of this existed is owed every rank's worth of coast and catches up
+  all at once, the next time its owner opens it. Nothing has to be rebuilt and nothing is lost.
+- Config: everything under `ascent.growth`, including an `enabled` switch that leaves every soulhome
+  exactly as it is for a pack that wants bridging out over nothing to be the point. How far ground
+  reaches per rank, how much verge is kept clear of it, how wide a margin is kept around your build,
+  how deep the apron is cut, how ragged its coast is, and how fast it arrives are all knobs.
+- Bare ground, deliberately: no trees, no boulders, no ponds. Terrain that carries signal is exactly
+  the shape of the region-detection fault where a fresh soul reads as one island-sized region, and
+  an apron is by construction a large connected mass of terrain.

@@ -287,6 +287,30 @@ public final class SoulIslandVolume implements BlockVolume
 
     // endregion
 
+    // region the template's own size
+
+    // The template's size, before the padding {@link #bounds} adds. What the game places the
+    // island by - DimensionRegistry centres it on the origin horizontally and anchors it
+    // vertically on the spawn column - so a test that has to reason in world coordinates rather
+    // than template ones needs these rather than the padded bounds.
+
+    public int templateSizeX()
+    {
+        return this.sizeX;
+    }
+
+    public int templateSizeY()
+    {
+        return this.sizeY;
+    }
+
+    public int templateSizeZ()
+    {
+        return this.sizeZ;
+    }
+
+    // endregion
+
     // region BlockVolume
 
     @Override

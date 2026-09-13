@@ -1,9 +1,10 @@
-// 1.20.1	2026-09-12T06:46:01.691616672	SoulHome Advancements
+// 1.20.1	2026-09-13T06:54:58.70584532	SoulHome Advancements
 51c331efe01f43cd03d860bd13b1cf73b09210ec data/soulhome/advancements/main/alchemy_lab.json
 e68da1fc17772ce12cb8d130cc9520ee67200259 data/soulhome/advancements/main/apiary.json
 84ebb8af4df4f0e3c6a54530f886b067b05739c4 data/soulhome/advancements/main/aquarium.json
 73b01f1529668c6992d94aeb25e35eb30a02da1c data/soulhome/advancements/main/arcane_sanctum.json
 9bfe0591c33fe78277d9ce5873f7f7eb9932c1d5 data/soulhome/advancements/main/armoury.json
+8b89e29968db7b9e1d6605a5f23655d44171a5a0 data/soulhome/advancements/main/aspect_taken.json
 48be3e5d5ef692df6771b1093fe78543dd19b898 data/soulhome/advancements/main/bedchamber.json
 ccebc54ebf9129dcefb575c4f57116216bd9d666 data/soulhome/advancements/main/bulwark.json
 4279ebaeba49dc6b813fdc4e6730fcf071aa6bb1 data/soulhome/advancements/main/cold_storage.json
