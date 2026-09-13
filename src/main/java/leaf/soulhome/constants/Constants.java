@@ -107,6 +107,15 @@ public class Constants
         public static final String ASCENT_DISABLED = "message.soulhome.ascent.disabled";
         public static final String ASCENT_NO_SOULHOME = "message.soulhome.ascent.no_soulhome";
 
+        // Terrain growth (#158/#162): what a player actually cares about when they ask how much
+        // room they have is ground, not walls, and the two are deliberately different numbers.
+        public static final String ASCENT_GROUND = "message.soulhome.ascent.ground";
+        public static final String ASCENT_GROUND_NEXT = "message.soulhome.ascent.ground_next";
+        public static final String ASCENT_GROUND_VERGE = "message.soulhome.ascent.ground_verge";
+        public static final String ASCENT_GROUND_GROWING = "message.soulhome.ascent.ground_growing";
+        public static final String ASCENT_GROUND_OFF = "message.soulhome.ascent.ground_off";
+        public static final String GROWTH_COMPLETE = "message.soulhome.growth.complete";
+
         // /soulhome ascent set - the operator-only way to jump straight to a rank (#84)
         public static final String ASCENT_SET_SUCCESS = "message.soulhome.ascent.set_success";
         public static final String ASCENT_SET_OUT_OF_RANGE = "message.soulhome.ascent.set_out_of_range";
@@ -170,6 +179,8 @@ public class Constants
         public static final String LENS_SCREEN_BOX_VERGE = "gui.soulhome.lens.box_verge";
         public static final String LENS_SCREEN_BOX_RANK = "gui.soulhome.lens.box_rank";
         public static final String LENS_SCREEN_BOX_LEGACY = "gui.soulhome.lens.box_legacy";
+        public static final String LENS_SCREEN_BOX_GROUND = "gui.soulhome.lens.box_ground";
+        public static final String LENS_SCREEN_BOX_GROWING = "gui.soulhome.lens.box_growing";
 
         // Active abilities (#87): the two binds, the HUD, and what an ability says when it
         // refuses. A refusal has to name its reason - "nothing happened" is the single most
