@@ -6,6 +6,7 @@ package leaf.soulhome.handlers;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.structures.StructureScanService;
+import leaf.soulhome.structures.TerrainGrowthService;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -49,6 +50,11 @@ public class StructureEvents
         if (event.getEntity() instanceof ServerPlayer player)
         {
             StructureScanService.refresh(player);
+
+            // logging back in inside your own soul is the one way to arrive in it without a
+            // dimension change, and so the one way ground still owed would otherwise sit unbuilt
+            // until the next time you walked out and back (#158)
+            TerrainGrowthService.considerGrowth(player.level());
         }
     }
 
@@ -95,6 +101,12 @@ public class StructureEvents
             if (to != null)
             {
                 StructureScanService.markDirty(to);
+
+                // and the moment a soulhome's chunks are certain to be readable is the moment to
+                // finish any ground it is still owed (#158) - an ascension whose growth the server
+                // stopped halfway through, or a soulhome that was already ranked before growth
+                // existed. A no-op for the overwhelming majority of arrivals.
+                TerrainGrowthService.considerGrowth(to);
             }
         }
 
@@ -141,6 +153,7 @@ public class StructureEvents
         if (event.getLevel() instanceof Level level)
         {
             StructureScanService.forget(level);
+            TerrainGrowthService.forget(level);
         }
     }
 
@@ -152,6 +165,11 @@ public class StructureEvents
         if (server != null)
         {
             StructureScanService.onServerTick(server);
+
+            // every tick, unlike the scan service's own check interval: a growth job's whole
+            // purpose is to spread its work thinly, and running it one tick in twenty would make
+            // each of those ticks twenty times heavier for the same total (#161)
+            TerrainGrowthService.onServerTick(server);
         }
     }
 
