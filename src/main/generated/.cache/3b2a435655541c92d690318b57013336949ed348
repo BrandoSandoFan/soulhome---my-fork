@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-13T21:27:34.254535499	PatchouliGeneration
+// 1.20.1	2026-09-14T03:24:39.320439586	PatchouliGeneration
 55b5193e14f138c8e2468487ae9da7bc7326b1cc assets/soulhome/patchouli_books/guide/en_us/categories/basics.json
 af711e3076ad05e4c6bf846b6186baec8c631781 assets/soulhome/patchouli_books/guide/en_us/categories/multiblocks.json
 4eaf185d12387322f1041a793869ed4f73614854 assets/soulhome/patchouli_books/guide/en_us/entries/basics/guide.json
@@ -26,7 +26,7 @@ c9508fb5ed5f1b6577a6294e7035cd7fbf5dceaf assets/soulhome/patchouli_books/guide/e
 bb4a5d96be7845fd7a3a0487cb35848f5b6e1eb8 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/infected_grotto.json
 2251f5262631e782d6958a39f7f57d79f3d690c7 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/library.json
 4a9783a89818be1c4a1a4f4d76039d74db837a04 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/mead_hall.json
-cf467875a4294585896ef384015cd5be81b5977b assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/mine.json
+4fdee005e3e11bb0abbedd27f1b89dc3ba586906 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/mine.json
 fc4f94b10f00c151ab3c609eaa9d4f66ed9b846a assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/observatory.json
 5905f76a57bc8600151ef990cc46a0e62f26af19 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/ossuary.json
 42b984eb0acbb030678416ea11755dc695d1715b assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/powder_magazine.json
@@ -40,7 +40,7 @@ ca245f56ba55b48d36c6fe6354adc80b0088eda6 assets/soulhome/patchouli_books/guide/e
 e59ef10e79f62d1bdd921152f0c9b1217e6d4808 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/tags.json
 1104b3c6605341d234f1ad7ae30245d0add61ce6 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/track.json
 15cbaa238a5054e6911a004640bc017630a13e76 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/training_yard.json
-b5b452a04751da214b555e689d098b0e5e3cfb42 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/treasury.json
+4f7958ff18abf3bf792bbe5da983d29284a0ca30 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/treasury.json
 f7344a7393a73ac3cdf2677f7be2d417b3b60c2c assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/trophy_room.json
 2ad59dc133959cccb3a3f1e980fd5527b926d3ee assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/watchtower.json
 f50ede97e05f7fef0b5f643142321c2ac5b0a130 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/workshop.json

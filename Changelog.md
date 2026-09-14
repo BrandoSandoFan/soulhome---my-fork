@@ -1100,3 +1100,28 @@ experienced twenty at once.
   it. Rank V carries fewer buffs after this change than it did before it, so rank is not inflating -
   trimming the amplification as well would have made the climb weaker in both breadth and depth,
   which is a straight nerf rather than a mechanic.
+
+Treasury's Fortune was a duplicator
+
+A room granting the Fortune buff rolled a flat chance on every block broken and, on a hit, grew a
+random stack in the loot by one. It never asked what the block was. Place a diamond block, break
+it, and roughly one time in seven you had two; place one of those back down and break it again.
+Stone, logs, wool, sand, shulker boxes - anything that drops itself was a slow, unattended
+duplicator with no cost but time, Silk Touch did nothing to stop it, and it happily doubled drops
+vanilla's own Fortune enchantment has no opinion about at all, such as a spawner or a datapack's
+block loot.
+
+- Bug fix, and a nerf to anyone who was living off the duplication: the buff is now effective
+  Fortune levels rather than a chance of a free copy. A treasury's chance is rolled once per block
+  broken, and a hit adds +1 Fortune to the tool actually breaking the block for that roll only -
+  stacking on top of whatever level the tool already has, never replacing it.
+- A block that drops itself carries no bonus-count function at all in its own loot table, so
+  Fortune - the vanilla enchantment or this buff's added levels - does nothing to it and the dupe
+  is gone as a consequence of the design, not as a special case bolted on afterwards.
+- Silk Touch is unaffected, exactly as it is against a levelled-up tool: a silk-touched ore still
+  yields the ore block, once.
+- A Fortune III pick with a tier 3 treasury now reads as Fortune IV on the rolls where the level
+  lands, rather than a flat chance layered on top of whatever the enchantment already did.
+- `mine`'s `vein` aspect pays into the same buff type and comes out right for the same reason - the
+  aspect chooses which buff a room's score pays into and never scales the number itself, so nothing
+  about this fix touches how much Fortune a room grants.
