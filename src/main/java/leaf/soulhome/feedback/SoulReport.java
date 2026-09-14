@@ -8,8 +8,11 @@ import leaf.soulhome.constants.Constants;
 import leaf.soulhome.structures.SoulAnalysis;
 import leaf.soulhome.structures.core.ArchetypeScore;
 import leaf.soulhome.structures.core.AspectSelection;
+import leaf.soulhome.structures.core.AttunementSettings;
+import leaf.soulhome.structures.core.AwardedRoom;
 import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.ClassificationResult;
+import leaf.soulhome.structures.core.RoomPool;
 import leaf.soulhome.structures.core.SoulBuffSet;
 import leaf.soulhome.structures.core.SoulRegion;
 import net.minecraft.ChatFormatting;
@@ -21,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.OptionalDouble;
+import java.util.Set;
 
 /**
  * Puts what the classifier saw into words.
@@ -58,6 +62,25 @@ public final class SoulReport
     /** The whole soulhome: a header, then one block per region found. */
     public static List<Component> analysis(SoulAnalysis analysis)
     {
+        return analysis(analysis, List.of(), Set.of(), false);
+    }
+
+    /**
+     * As {@link #analysis(SoulAnalysis)}, saying of each classified room whether the soulhome is
+     * actually carrying it (#153).
+     *
+     * <p>{@code awarded} is the saved room list the same scan produced, in the same order, so the
+     * n-th classified region here is the n-th awarded room there - which is exactly how
+     * {@link AwardedRoom#from} builds it. A mismatch in length can only mean the two came from
+     * different scans, and is treated as "say nothing about attunement" rather than as a reason to
+     * guess.
+     *
+     * @param attuned the bound room ids; ignored entirely when {@code enabled} is false, which is
+     *                what makes the switch being off indistinguishable from before the epic
+     */
+    public static List<Component> analysis(
+            SoulAnalysis analysis, List<AwardedRoom> awarded, Set<Integer> attuned, boolean enabled)
+    {
         List<Component> lines = new ArrayList<>();
 
         if (analysis.isEmpty())
@@ -72,11 +95,26 @@ public final class SoulReport
                 analysis.classifiedCount())
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
 
+        final boolean aligned = enabled && awarded.size() == analysis.classifiedCount();
+
         int index = 1;
+        int awardedIndex = 0;
 
         for (ClassificationResult result : analysis.results())
         {
-            lines.addAll(region(result, index++));
+            Boolean carrying = null;
+
+            if (result.awarded().isPresent())
+            {
+                if (aligned)
+                {
+                    carrying = attuned.contains(awarded.get(awardedIndex).roomId());
+                }
+
+                awardedIndex++;
+            }
+
+            lines.addAll(region(result, index++, carrying));
         }
 
         return lines;
@@ -84,6 +122,18 @@ public final class SoulReport
 
     /** One region, with the reasoning behind whatever it was decided to be. */
     public static List<Component> region(ClassificationResult result, int index)
+    {
+        return region(result, index, null);
+    }
+
+    /**
+     * As {@link #region(ClassificationResult, int)}, with one line on whether the soulhome is
+     * carrying this room.
+     *
+     * @param carrying null when there is nothing to say - attunement is off, or this region is not
+     *                 a classified room at all
+     */
+    public static List<Component> region(ClassificationResult result, int index, Boolean carrying)
     {
         List<Component> lines = new ArrayList<>();
 
@@ -106,6 +156,14 @@ public final class SoulReport
             case CLASSIFIED -> lines.addAll(explainSuccess(best, result.region()));
             case AMBIGUOUS -> lines.addAll(explainAmbiguity(best, result.runnerUp()));
             case UNCLASSIFIED -> lines.addAll(explainFailure(best, result.region()));
+        }
+
+        if (carrying != null)
+        {
+            lines.add(indent(translated(carrying
+                    ? Constants.StringKeys.REGION_ATTUNED
+                    : Constants.StringKeys.REGION_NOT_ATTUNED))
+                    .withStyle(carrying ? ChatFormatting.GREEN : ChatFormatting.GRAY));
         }
 
         return lines;
@@ -142,11 +200,37 @@ public final class SoulReport
     /** What a player has, and which rooms it came from. */
     public static List<Component> buffs(BuffBreakdown breakdown)
     {
+        return buffs(breakdown, AttunementReport.EMPTY);
+    }
+
+    /**
+     * As {@link #buffs(BuffBreakdown)}, followed by what this soulhome is carrying it instead of
+     * (#153/#157).
+     *
+     * <p>Three things have to appear here and nowhere else will do, because this is the command a
+     * player types when their buffs look wrong: how many slots are spoken for, what each room they
+     * are not carrying would grant them, and - in as many words - that those rooms are not lost and
+     * still count toward the climb. The last of those is the assumption a player will otherwise get
+     * wrong, and getting it wrong makes them play badly: attuning nothing while grinding for rank
+     * would be the correct play if it were true, and it is not.
+     *
+     * <p>{@link AttunementReport#EMPTY} - which is what a server with the switch off produces -
+     * adds nothing at all, so the output is what it always was.
+     */
+    public static List<Component> buffs(BuffBreakdown breakdown, AttunementReport attunement)
+    {
         List<Component> lines = new ArrayList<>();
+
+        if (breakdown.totals().isEmpty() && attunement.isEmpty())
+        {
+            lines.add(translated(Constants.StringKeys.BUFFS_NONE).withStyle(ChatFormatting.GRAY));
+            return lines;
+        }
 
         if (breakdown.totals().isEmpty())
         {
             lines.add(translated(Constants.StringKeys.BUFFS_NONE).withStyle(ChatFormatting.GRAY));
+            lines.addAll(attunementLines(attunement));
             return lines;
         }
 
@@ -205,7 +289,87 @@ public final class SoulReport
             }
         }
 
+        lines.addAll(attunementLines(attunement));
+
         return lines;
+    }
+
+    /**
+     * The slot count, the rooms not being carried and what each would grant. Empty for a server
+     * with attunement off, which is how {@code /soulhome buffs} stays exactly what it was.
+     */
+    private static List<Component> attunementLines(AttunementReport attunement)
+    {
+        List<Component> lines = new ArrayList<>();
+
+        if (attunement.isEmpty())
+        {
+            return lines;
+        }
+
+        lines.add(translated(
+                Constants.StringKeys.BUFFS_SLOTS,
+                attunement.passiveUsed(), attunement.passiveSlots(),
+                attunement.activeUsed(), attunement.activeSlots())
+                .withStyle(ChatFormatting.LIGHT_PURPLE));
+
+        final List<AttunementReport.Room> dormant = attunement.dormant();
+
+        if (!dormant.isEmpty())
+        {
+            lines.add(translated(Constants.StringKeys.BUFFS_DORMANT_HEADER).withStyle(ChatFormatting.GRAY));
+
+            for (AttunementReport.Room room : dormant)
+            {
+                lines.add(indent(room.hasAspect()
+                        ? translated(
+                                Constants.StringKeys.BUFFS_DORMANT_ROOM_ASPECT,
+                                Component.translatable(room.displayName()),
+                                Component.translatable(room.aspectName()),
+                                room.tier())
+                        : translated(
+                                Constants.StringKeys.BUFFS_DORMANT_ROOM,
+                                Component.translatable(room.displayName()),
+                                room.tier()))
+                        .withStyle(ChatFormatting.GRAY));
+
+                for (AttunementReport.Grant grant : room.grants())
+                {
+                    lines.add(indent(translated(
+                            Constants.StringKeys.BUFFS_DORMANT_GRANT,
+                            BuffNames.name(grant.buffType()),
+                            BuffNames.magnitude(grant.buffType(), grant.magnitude())), 2)
+                            .withStyle(ChatFormatting.DARK_GRAY));
+                }
+            }
+        }
+
+        lines.add(translated(Constants.StringKeys.BUFFS_NOT_LOST).withStyle(ChatFormatting.GRAY));
+
+        return lines;
+    }
+
+    /**
+     * The one message a player gets, once, the first time their soul holds more rooms than it can
+     * carry (#157).
+     *
+     * <p>Deliberately four short lines rather than a paragraph, and deliberately not repeated: a nag
+     * is how a player learns to scroll past the thing that was going to explain the mechanic. It
+     * says what happened, how many slots there are, where to change it, and that nothing was lost -
+     * in that order, because a player who stops reading after the first line has still been told the
+     * thing they would otherwise file a bug about.
+     */
+    public static List<Component> slotsExceeded(AttunementSettings settings, int rank)
+    {
+        return List.of(
+                translated(Constants.StringKeys.ATTUNE_EXCEEDED_HEADER).withStyle(ChatFormatting.LIGHT_PURPLE),
+                translated(
+                        Constants.StringKeys.ATTUNE_EXCEEDED_SLOTS,
+                        settings.slotsFor(RoomPool.PASSIVE, rank),
+                        settings.slotsFor(RoomPool.ACTIVE, rank))
+                        .withStyle(ChatFormatting.AQUA),
+                translated(Constants.StringKeys.ATTUNE_EXCEEDED_WHERE).withStyle(ChatFormatting.GRAY),
+                translated(Constants.StringKeys.ATTUNE_EXCEEDED_KEPT).withStyle(ChatFormatting.GRAY));
     }
 
     /**

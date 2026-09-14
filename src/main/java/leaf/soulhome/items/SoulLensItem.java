@@ -159,7 +159,9 @@ public class SoulLensItem extends BaseItem
     private static void showBuffs(ServerPlayer player)
     {
         Network.sendTo(
-                new SyncSoulLensBuffsMessage(LensBuffReport.of(StructureScanService.explainBuffs(player))),
+                new SyncSoulLensBuffsMessage(
+                        LensBuffReport.of(StructureScanService.explainBuffs(player)),
+                        StructureScanService.attunementOf(player, true)),
                 player);
     }
 }

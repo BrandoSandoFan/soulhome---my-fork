@@ -12,7 +12,9 @@ import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.feedback.SoulReport;
 import leaf.soulhome.structures.SoulAnalysis;
+import leaf.soulhome.structures.SoulHomeBuffData;
 import leaf.soulhome.structures.StructureScanService;
+import leaf.soulhome.structures.core.AttunementBook;
 import leaf.soulhome.structures.core.ClassificationResult;
 import leaf.soulhome.utils.DimensionHelper;
 import net.minecraft.ChatFormatting;
@@ -86,19 +88,30 @@ public class AnalyseCommand
         // should still be told about the room they were standing in when they asked
         final BlockPos asked = player.blockPosition();
 
-        StructureScanService.analyse(target, analysis -> report(player, analysis, hereOnly, asked));
+        StructureScanService.analyse(target, analysis -> report(player, target, analysis, hereOnly, asked));
 
         return Command.SINGLE_SUCCESS;
     }
 
-    private static void report(ServerPlayer player, SoulAnalysis analysis, boolean hereOnly, BlockPos asked)
+    private static void report(
+            ServerPlayer player, ServerLevel target, SoulAnalysis analysis, boolean hereOnly, BlockPos asked)
     {
         if (!player.isAlive() || player.hasDisconnected())
         {
             return;
         }
 
-        for (Component line : hereOnly ? here(analysis, asked) : SoulReport.analysis(analysis))
+        // whose attunement, is the soul being analysed - a player standing in a friend's library
+        // wants to know whether their friend is carrying it, not what they themselves have bound
+        final SoulHomeBuffData data = SoulHomeBuffData.get(target);
+        final boolean attunement = SoulHomeConfig.attunementEnabled();
+
+        final List<Component> lines = hereOnly
+                ? here(analysis, asked)
+                : SoulReport.analysis(
+                        analysis, data.awardedRooms(), AttunementBook.boundIds(data.attunements()), attunement);
+
+        for (Component line : lines)
         {
             player.sendSystemMessage(line);
         }

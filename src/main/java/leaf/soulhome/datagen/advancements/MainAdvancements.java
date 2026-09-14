@@ -176,6 +176,31 @@ public class MainAdvancements implements AdvancementProvider.AdvancementGenerato
                 .rewards(new AdvancementRewards(10, List.of(), List.of(), Optional.empty()))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, aspectTaken));
 
+        // More rooms than a soul can carry at once (#151), and what the guide book's page on
+        // attunement is gated behind - a player with three rooms should not be taught about a
+        // constraint they have not met.
+        //
+        // Eight because that is one past what a rank 0 soulhome carries under the shipped defaults
+        // (five rooms and two abilities). Generated data cannot read a server's config, so a pack
+        // that has tuned the slots up will show this page a little early or a little late; being
+        // told about a mechanic slightly off-cue is a far smaller problem than a page nobody who
+        // needs it can reach.
+        final String crowdedSoul = "crowded_soul";
+        Advancement.Builder.advancement()
+                .parent(roomAdvancement)
+                .display(
+                        Items.CHAIN,
+                        Component.translatable(String.format(titleFormat, crowdedSoul)),
+                        Component.translatable(String.format(descriptionFormat, crowdedSoul)),
+                        (ResourceLocation) null,
+                        AdvancementType.TASK,
+                        true, //showToast
+                        true, //announce
+                        false)//hidden
+                .addCriterion("classified_rooms", ClassifiedRoomTrigger.Instance.atLeastRooms(8))
+                .rewards(new AdvancementRewards(10, List.of(), List.of(), Optional.empty()))
+                .save(advancementConsumer, String.format(achievementPathFormat, tabName, crowdedSoul));
+
         // One per shipped archetype. Named after the archetype id so that the advancement, the
         // book entry and the datapack file all agree without anything mapping between them.
         archetypeAdvancement(advancementConsumer, roomAdvancement, "farm", Items.WHEAT);

@@ -189,6 +189,9 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.REGION_ASPECT_TIP, "%1$s more %2$s would make it %3$s instead.");
         add(Constants.StringKeys.REGION_ASPECT_FREE, "Either way the room scores the same - what it is for changes which buff it gives, never how much.");
 
+        add(Constants.StringKeys.REGION_ATTUNED, "You are carrying this room.");
+        add(Constants.StringKeys.REGION_NOT_ATTUNED, "Not attuned - it grants nothing until you bind it at the Soul Anchor.");
+
         add(Constants.StringKeys.BUFFS_HEADER, "What your soul is giving you:");
         add(Constants.StringKeys.BUFFS_NONE, "Your soul is giving you nothing yet. Build a room in it.");
         add(Constants.StringKeys.BUFFS_ENTRY, "%s %s");
@@ -198,6 +201,27 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.BUFFS_RANK_BONUS, "of which %s is from your soul's rank");
         add(Constants.StringKeys.BUFFS_SOFT_CEILING_CONVERTED, "%s past its useful ceiling became %s");
         add(Constants.StringKeys.BUFFS_SOFT_CEILING_DROPPED, "%s past its useful ceiling, dropped");
+
+        // Attunement (#151/#157). "Nothing is lost" is the line that has to survive being skimmed,
+        // so it is said on its own rather than folded into a longer sentence.
+        add(Constants.StringKeys.BUFFS_SLOTS, "Attuned: %1$s of %2$s rooms, %3$s of %4$s abilities.");
+        add(Constants.StringKeys.BUFFS_DORMANT_HEADER, "Built, but not attuned:");
+        add(Constants.StringKeys.BUFFS_DORMANT_ROOM, "%s (tier %s)");
+        add(Constants.StringKeys.BUFFS_DORMANT_ROOM_ASPECT, "%1$s as %2$s (tier %3$s)");
+        add(Constants.StringKeys.BUFFS_DORMANT_GRANT, "would grant %s %s");
+        add(Constants.StringKeys.BUFFS_NOT_LOST,
+                "Rooms you have not attuned are not lost - they still count toward residue and toward the climb.");
+
+        add(Constants.StringKeys.ATTUNE_EXCEEDED_HEADER,
+                "Your soul holds more rooms than you can carry at once. Your best are attuned already.");
+        add(Constants.StringKeys.ATTUNE_EXCEEDED_SLOTS, "You can attune %s rooms and %s abilities at your soul's rank.");
+        add(Constants.StringKeys.ATTUNE_EXCEEDED_WHERE, "Choose which at your Soul Anchor. Changing your mind is free.");
+        add(Constants.StringKeys.ATTUNE_EXCEEDED_KEPT,
+                "Nothing has been lost. Every room still counts toward residue and toward your next ascension.");
+        add(Constants.StringKeys.ATTUNE_BOUND, "Attuned.");
+        add(Constants.StringKeys.ATTUNE_UNBOUND, "Released. The room is still there, and still counts toward the climb.");
+        add(Constants.StringKeys.ATTUNE_NO_SLOTS, "No slot free for that. Release something else first.");
+        add(Constants.StringKeys.ATTUNE_NOT_YOURS, "This is not your soul. You can see what it carries, but not change it.");
 
         add(Constants.StringKeys.TRAVEL_BLOCKED, "Only a soul key crosses into a soul, and only a soul key leads back out.");
 
@@ -271,6 +295,24 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_FROM_ASPECT, "%1$s as %2$s (%3$s room(s), best tier %4$s)");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_RANK_BONUS, "of which %s is from your soul's rank");
         add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
+
+        // The Soul Anchor's loadout screen (#154)
+        add(Constants.StringKeys.ANCHOR_SCREEN_TITLE, "What Your Soul Carries");
+        add(Constants.StringKeys.ANCHOR_SCREEN_SLOTS, "Rooms: %1$s / %2$s      Abilities: %3$s / %4$s");
+        add(Constants.StringKeys.ANCHOR_SCREEN_PASSIVE, "(room)");
+        add(Constants.StringKeys.ANCHOR_SCREEN_ACTIVE, "(ability)");
+        add(Constants.StringKeys.ANCHOR_SCREEN_ATTUNED, "Attuned");
+        add(Constants.StringKeys.ANCHOR_SCREEN_DORMANT, "Built, but not attuned");
+        add(Constants.StringKeys.ANCHOR_SCREEN_ROOM, "%s (tier %s)");
+        add(Constants.StringKeys.ANCHOR_SCREEN_ROOM_ASPECT, "%1$s as %2$s (tier %3$s)");
+        add(Constants.StringKeys.ANCHOR_SCREEN_GRANT, "grants %s %s");
+        add(Constants.StringKeys.ANCHOR_SCREEN_WOULD_GRANT, "would grant %s %s");
+        add(Constants.StringKeys.ANCHOR_SCREEN_GONE, "this room is no longer standing - release it to free the slot");
+        add(Constants.StringKeys.ANCHOR_SCREEN_NO_ROOMS, "Nothing in this soul has been classified yet.");
+        add(Constants.StringKeys.ANCHOR_SCREEN_HINT, "Click a room to attune or release it. It is free, and takes effect at once.");
+        add(Constants.StringKeys.ANCHOR_SCREEN_VISITOR, "Someone else's soul - you can look, but not change it.");
+        add(Constants.StringKeys.ANCHOR_SCREEN_NOT_LOST,
+                "Rooms you have not attuned still count toward residue and toward the climb.");
 
         add(Constants.StringKeys.LENS_SCREEN_BOX_HEADER, "Your soul's reach");
         add(Constants.StringKeys.LENS_SCREEN_BOX_LAYERS, "%s build layers (floor y=%s to ceiling y=%s)");
@@ -400,6 +442,9 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.two_rooms.description", "Have two rooms in your soul at once. Where you put them relative to each other now matters.");
         add("advancements.soulhome.aspect_taken.title", "What It Is For");
         add("advancements.soulhome.aspect_taken.description", "Build a room of a kind that can be more than one thing. What you put in it decides which, and what it gives you.");
+
+        add("advancements.soulhome.crowded_soul.title", "More Than You Can Carry");
+        add("advancements.soulhome.crowded_soul.description", "Have eight rooms in your soul at once. You cannot carry all of them - choose at the Soul Anchor.");
 
         add("advancements.soulhome.farm.title", "Soul Food");
         add("advancements.soulhome.farm.description", "Grow enough in your soul that it counts as a farm.");

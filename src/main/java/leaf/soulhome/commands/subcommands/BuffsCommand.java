@@ -56,7 +56,10 @@ public class BuffsCommand
         // gets them back by asking about them. No scan: this touches no blocks.
         StructureScanService.refresh(player);
 
-        for (Component line : SoulReport.buffs(StructureScanService.explainBuffs(player)))
+        // the attunement half comes off the same soulhome read the breakdown above does, so the
+        // slot count a player is shown and the buffs they were just handed cannot disagree (#157)
+        for (Component line : SoulReport.buffs(
+                StructureScanService.explainBuffs(player), StructureScanService.attunementOf(player, true)))
         {
             player.sendSystemMessage(line);
         }
