@@ -25,7 +25,7 @@
     },
     {
       "type": "text",
-      "text": "Grants instead:$(li)Bonus drops, growing with the tier, up to +12%%.$(p)Leans this way:$(li)any storage blocks$(li)any ores",
+      "text": "Grants instead:$(li)Fortune, growing with the tier, up to +12%%. A per-block chance of +1 effective Fortune level, stacking on top of whatever your tool already has - never on a block that only ever drops itself, and never past what Silk Touch already gives you.$(p)Leans this way:$(li)any storage blocks$(li)any ores",
       "title": "Vein"
     },
     {
