@@ -837,9 +837,17 @@ public class PatchouliMultiblocks
      */
     private static String caveat(String buffType)
     {
-        return SoulBuffTypes.POTION_DURATION.equals(buffType)
-                ? " Only what you drink, splash on yourself or stand in the lingering cloud of - never a potion thrown at someone else. A beneficial effect runs that much longer; a harmful one runs that much shorter; a neutral effect is untouched."
-                : "";
+        if (SoulBuffTypes.POTION_DURATION.equals(buffType))
+        {
+            return " Only what you drink, splash on yourself or stand in the lingering cloud of - never a potion thrown at someone else. A beneficial effect runs that much longer; a harmful one runs that much shorter; a neutral effect is untouched.";
+        }
+
+        if (SoulBuffTypes.FORTUNE.equals(buffType))
+        {
+            return " A per-block chance of +1 effective Fortune level, stacking on top of whatever your tool already has - never on a block that only ever drops itself, and never past what Silk Touch already gives you.";
+        }
+
+        return "";
     }
 
     /**
