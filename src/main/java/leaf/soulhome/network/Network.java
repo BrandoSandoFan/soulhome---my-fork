@@ -44,10 +44,12 @@ public class Network
         toClient(registrar, SyncSoulBoundsMessage.TYPE, SyncSoulBoundsMessage.CODEC, SyncSoulBoundsMessage.INVALID);
         toClient(registrar, SyncSoulAbilitiesMessage.TYPE, SyncSoulAbilitiesMessage.CODEC, SyncSoulAbilitiesMessage.INVALID);
         toClient(registrar, SyncSurveyedBlocksMessage.TYPE, SyncSurveyedBlocksMessage.CODEC, SyncSurveyedBlocksMessage.INVALID);
+        toClient(registrar, SyncAttunementMessage.TYPE, SyncAttunementMessage.CODEC, SyncAttunementMessage.INVALID);
 
-        //the only two that travel client to server - see UseSoulAbilityMessage on why that matters
+        //the only three that travel client to server - see UseSoulAbilityMessage on why that matters
         toServer(registrar, UseSoulAbilityMessage.TYPE, UseSoulAbilityMessage.CODEC, UseSoulAbilityMessage.INVALID);
         toServer(registrar, CycleSoulAbilityMessage.TYPE, CycleSoulAbilityMessage.CODEC, CycleSoulAbilityMessage.INVALID);
+        toServer(registrar, SetAttunementMessage.TYPE, SetAttunementMessage.CODEC, SetAttunementMessage.INVALID);
     }
 
     private static <P extends SoulPayload> void toClient(

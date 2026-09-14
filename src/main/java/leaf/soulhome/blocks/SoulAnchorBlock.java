@@ -7,6 +7,7 @@ package leaf.soulhome.blocks;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.structures.AscensionRitualService;
+import leaf.soulhome.structures.AttunementService;
 import leaf.soulhome.structures.SoulHomeBuffData;
 import leaf.soulhome.utils.DimensionHelper;
 import net.minecraft.ChatFormatting;
@@ -69,7 +70,13 @@ public class SoulAnchorBlock extends Block
             return InteractionResult.CONSUME;
         }
 
+        // the chat report is unchanged, deliberately. #154 asks for the anchor to grow an
+        // attunement screen without losing the ascension summary or the residue conversion, and the
+        // cheapest way to lose neither is to keep printing exactly what it always printed and open
+        // the screen alongside it - the chat is still there to read once the screen is closed.
         AscensionRitualService.reportStatus(serverLevel, serverPlayer);
+        AttunementService.open(serverLevel, serverPlayer);
+
         return InteractionResult.CONSUME;
     }
 

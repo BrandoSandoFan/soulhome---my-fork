@@ -1,4 +1,4 @@
-// 1.21.1	2026-09-13T09:22:24.236508046	Advancements
+// 1.21.1	2026-09-14T04:29:16.21076981	Advancements
 977a16e801fccfa717848ecb3c6809227ad1e344 data/soulhome/advancement/main/alchemy_lab.json
 b7d6f6f9fdb4bfc606694da9df4301cb91c857db data/soulhome/advancement/main/apiary.json
 d102e63791bd4286704c4b71892871ed4b872010 data/soulhome/advancement/main/aquarium.json
@@ -8,6 +8,7 @@ c5daea73e741b1e2e3c4a0e10398fdee70d6ec09 data/soulhome/advancement/main/armoury.
 c71d70b452f92663eaec67f19f62a1170bed3155 data/soulhome/advancement/main/bedchamber.json
 6938a3708fdeb8159857b2e5ded8def6d29936de data/soulhome/advancement/main/bulwark.json
 8788d9d8cd221350109c2f1ddae29c05a292c380 data/soulhome/advancement/main/cold_storage.json
+ef29613166db2dd196e8c9cdccc8edf8a004d10a data/soulhome/advancement/main/crowded_soul.json
 0d1699ea94fb7064193cb188ce615ca45f4ecf11 data/soulhome/advancement/main/enchanting_room.json
 875c39a22c6f71dd6d217fdb1645b2cb70b33e3b data/soulhome/advancement/main/entered_soul_dimension.json
 d49df340fbb07458897046eec8144a3d77329079 data/soulhome/advancement/main/farm.json

@@ -78,6 +78,12 @@ public class Constants
         public static final String REGION_ASPECT_TIP = "message.soulhome.region.aspect_tip";
         public static final String REGION_ASPECT_FREE = "message.soulhome.region.aspect_free";
 
+        // Attunement (#153): an unattuned room reports in full, exactly as it always did, with one
+        // line saying it is not being carried. Omitting the room, or showing it as worth zero,
+        // would turn a choice the player made into a room that looks broken.
+        public static final String REGION_ATTUNED = "message.soulhome.region.attuned";
+        public static final String REGION_NOT_ATTUNED = "message.soulhome.region.not_attuned";
+
         public static final String BUFFS_HEADER = "message.soulhome.buffs.header";
         public static final String BUFFS_NONE = "message.soulhome.buffs.none";
         public static final String BUFFS_ENTRY = "message.soulhome.buffs.entry";
@@ -85,6 +91,26 @@ public class Constants
         public static final String BUFFS_SOURCE_ASPECT = "message.soulhome.buffs.source_aspect";
         public static final String BUFFS_CAPPED = "message.soulhome.buffs.capped";
         public static final String BUFFS_RANK_BONUS = "message.soulhome.buffs.rank_bonus";
+
+        // Attunement (#151): what you are carrying, what you are carrying it instead of, and - the
+        // line that matters most - that an unattuned room is not a room you have lost. The mod has
+        // never before taken something away from a save that already exists, and a player who finds
+        // fewer buffs than they went to bed with and is told nothing concludes it is broken.
+        public static final String BUFFS_SLOTS = "message.soulhome.buffs.slots";
+        public static final String BUFFS_DORMANT_HEADER = "message.soulhome.buffs.dormant_header";
+        public static final String BUFFS_DORMANT_ROOM = "message.soulhome.buffs.dormant_room";
+        public static final String BUFFS_DORMANT_ROOM_ASPECT = "message.soulhome.buffs.dormant_room_aspect";
+        public static final String BUFFS_DORMANT_GRANT = "message.soulhome.buffs.dormant_grant";
+        public static final String BUFFS_NOT_LOST = "message.soulhome.buffs.not_lost";
+
+        public static final String ATTUNE_EXCEEDED_HEADER = "message.soulhome.attune.exceeded_header";
+        public static final String ATTUNE_EXCEEDED_SLOTS = "message.soulhome.attune.exceeded_slots";
+        public static final String ATTUNE_EXCEEDED_WHERE = "message.soulhome.attune.exceeded_where";
+        public static final String ATTUNE_EXCEEDED_KEPT = "message.soulhome.attune.exceeded_kept";
+        public static final String ATTUNE_BOUND = "message.soulhome.attune.bound";
+        public static final String ATTUNE_UNBOUND = "message.soulhome.attune.unbound";
+        public static final String ATTUNE_NO_SLOTS = "message.soulhome.attune.no_slots";
+        public static final String ATTUNE_NOT_YOURS = "message.soulhome.attune.not_yours";
 
         // The four buffs a soft ceiling stops before they overshoot themselves (#86): what a
         // player is told once the ceiling holds part of what they built back.
@@ -171,6 +197,26 @@ public class Constants
         public static final String LENS_SCREEN_BUFFS_FROM_ASPECT = "gui.soulhome.lens.buffs_from_aspect";
         public static final String LENS_SCREEN_BUFFS_RANK_BONUS = "gui.soulhome.lens.buffs_rank_bonus";
         public static final String LENS_SCREEN_CLOSE = "gui.soulhome.lens.close";
+
+        // The Soul Anchor's attunement screen (#154). Binding lives here rather than on the lens
+        // because the anchor is already the one place in a soulhome you go to find out where you
+        // stand, and because a loadout is a thing to plan before setting out rather than to change
+        // halfway down a ravine.
+        public static final String ANCHOR_SCREEN_TITLE = "gui.soulhome.anchor.title";
+        public static final String ANCHOR_SCREEN_SLOTS = "gui.soulhome.anchor.slots";
+        public static final String ANCHOR_SCREEN_PASSIVE = "gui.soulhome.anchor.passive";
+        public static final String ANCHOR_SCREEN_ACTIVE = "gui.soulhome.anchor.active";
+        public static final String ANCHOR_SCREEN_ATTUNED = "gui.soulhome.anchor.attuned";
+        public static final String ANCHOR_SCREEN_DORMANT = "gui.soulhome.anchor.dormant";
+        public static final String ANCHOR_SCREEN_ROOM = "gui.soulhome.anchor.room";
+        public static final String ANCHOR_SCREEN_ROOM_ASPECT = "gui.soulhome.anchor.room_aspect";
+        public static final String ANCHOR_SCREEN_GRANT = "gui.soulhome.anchor.grant";
+        public static final String ANCHOR_SCREEN_WOULD_GRANT = "gui.soulhome.anchor.would_grant";
+        public static final String ANCHOR_SCREEN_GONE = "gui.soulhome.anchor.gone";
+        public static final String ANCHOR_SCREEN_NO_ROOMS = "gui.soulhome.anchor.no_rooms";
+        public static final String ANCHOR_SCREEN_HINT = "gui.soulhome.anchor.hint";
+        public static final String ANCHOR_SCREEN_VISITOR = "gui.soulhome.anchor.visitor";
+        public static final String ANCHOR_SCREEN_NOT_LOST = "gui.soulhome.anchor.not_lost";
 
         // The box (#78/#79/#81): scarcity has to be legible, so the lens says what it is as
         // plainly as it says what a room scored.

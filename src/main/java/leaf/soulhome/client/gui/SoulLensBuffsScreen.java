@@ -5,6 +5,7 @@
 package leaf.soulhome.client.gui;
 
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.feedback.AttunementReport;
 import leaf.soulhome.feedback.BuffNames;
 import leaf.soulhome.feedback.LensBuffReport;
 import net.minecraft.client.gui.GuiGraphics;
@@ -47,12 +48,19 @@ public class SoulLensBuffsScreen extends Screen
     private static final int COLOR_BAR_FILL = 0xFF55AAFF;
 
     private final List<LensBuffReport> buffs;
+    private final AttunementReport attunement;
     private final ScrollableDetailPanel panel = new ScrollableDetailPanel();
 
     public SoulLensBuffsScreen(List<LensBuffReport> buffs)
     {
+        this(buffs, AttunementReport.EMPTY);
+    }
+
+    public SoulLensBuffsScreen(List<LensBuffReport> buffs, AttunementReport attunement)
+    {
         super(Component.translatable(Constants.StringKeys.LENS_SCREEN_BUFFS_TITLE));
         this.buffs = buffs;
+        this.attunement = attunement;
     }
 
     @Override
@@ -71,7 +79,7 @@ public class SoulLensBuffsScreen extends Screen
 
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 10, COLOR_TITLE);
 
-        if (this.buffs.isEmpty())
+        if (this.buffs.isEmpty() && this.attunement.isEmpty())
         {
             graphics.drawString(this.font, Component.translatable(Constants.StringKeys.BUFFS_NONE), LEFT, TOP, COLOR_MUTED);
             return;
@@ -147,8 +155,70 @@ public class SoulLensBuffsScreen extends Screen
             out.add(ScrollableDetailPanel.VisualLine.spacer(3));
         }
 
+        out.addAll(attunementLines(maxWidth));
+
         return out;
     }
+    /**
+     * What this soul is carrying its buffs instead of (#153). Read-only: the lens is where a player
+     * out in the world realises they would rather have the aquarium attuned, and telling them costs
+     * nothing - but binding stays at the anchor, because a loadout you can re-spec halfway down a
+     * ravine is a different game from one you plan before setting out. Empty on a server with
+     * attunement off, so this screen is then exactly the screen it always was.
+     */
+    private List<ScrollableDetailPanel.VisualLine> attunementLines(int maxWidth)
+    {
+        final List<ScrollableDetailPanel.VisualLine> out = new ArrayList<>();
+
+        if (this.attunement.isEmpty())
+        {
+            return out;
+        }
+
+        out.addAll(wrap(Component.translatable(
+                        Constants.StringKeys.ANCHOR_SCREEN_SLOTS,
+                        this.attunement.passiveUsed(), this.attunement.passiveSlots(),
+                        this.attunement.activeUsed(), this.attunement.activeSlots()),
+                0, COLOR_HEADER, maxWidth));
+
+        final List<AttunementReport.Room> dormant = this.attunement.dormant();
+
+        if (!dormant.isEmpty())
+        {
+            out.addAll(wrap(Component.translatable(Constants.StringKeys.ANCHOR_SCREEN_DORMANT),
+                    0, COLOR_MUTED, maxWidth));
+
+            for (AttunementReport.Room room : dormant)
+            {
+                out.addAll(wrap(room.hasAspect()
+                                ? Component.translatable(
+                                        Constants.StringKeys.ANCHOR_SCREEN_ROOM_ASPECT,
+                                        Component.translatable(room.displayName()),
+                                        Component.translatable(room.aspectName()),
+                                        room.tier())
+                                : Component.translatable(
+                                        Constants.StringKeys.ANCHOR_SCREEN_ROOM,
+                                        Component.translatable(room.displayName()),
+                                        room.tier()),
+                        6, COLOR_MUTED, maxWidth));
+
+                for (AttunementReport.Grant grant : room.grants())
+                {
+                    out.addAll(wrap(Component.translatable(
+                                    Constants.StringKeys.ANCHOR_SCREEN_WOULD_GRANT,
+                                    BuffNames.name(grant.buffType()),
+                                    BuffNames.magnitude(grant.buffType(), grant.magnitude())),
+                            12, COLOR_TEXT, maxWidth));
+                }
+            }
+        }
+
+        out.addAll(wrap(Component.translatable(Constants.StringKeys.ANCHOR_SCREEN_NOT_LOST),
+                0, COLOR_MUTED, maxWidth));
+
+        return out;
+    }
+
 
     private List<ScrollableDetailPanel.VisualLine> wrap(Component text, int indent, int color, int maxWidth)
     {
