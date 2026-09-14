@@ -43,12 +43,13 @@ public class Network
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulBoundsMessage.CODEC, SyncSoulBoundsMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAbilitiesMessage.CODEC, SyncSoulAbilitiesMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSurveyedBlocksMessage.CODEC, SyncSurveyedBlocksMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncAttunementMessage.CODEC, SyncAttunementMessage.INVALID);
+        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAnchorMessage.CODEC, SyncSoulAnchorMessage.INVALID);
 
-        //the only three that travel client to server - see UseSoulAbilityMessage on why that matters
+        //the only four that travel client to server - see UseSoulAbilityMessage on why that matters
         registerCodecPacket(id++, NETWORK_CHANNEL, UseSoulAbilityMessage.CODEC, UseSoulAbilityMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, CycleSoulAbilityMessage.CODEC, CycleSoulAbilityMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SetAttunementMessage.CODEC, SetAttunementMessage.INVALID);
+        registerCodecPacket(id++, NETWORK_CHANNEL, CollectResidueMessage.CODEC, CollectResidueMessage.INVALID);
     }
 
     public static <PACKET extends Consumer<NetworkEvent.Context>> void registerCodecPacket(int id, SimpleChannel channel, Codec<PACKET> codec, PACKET defaultPacket)

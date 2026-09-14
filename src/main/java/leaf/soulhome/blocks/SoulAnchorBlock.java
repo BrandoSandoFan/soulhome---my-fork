@@ -4,10 +4,9 @@
 
 package leaf.soulhome.blocks;
 
-import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.structures.AscensionRitualService;
-import leaf.soulhome.structures.AttunementService;
+import leaf.soulhome.structures.SoulAnchorService;
 import leaf.soulhome.structures.SoulHomeBuffData;
 import leaf.soulhome.utils.DimensionHelper;
 import net.minecraft.ChatFormatting;
@@ -31,12 +30,16 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
- * The interaction point for the ascension ritual (#83): right-click to hear what a soulhome still
- * needs, one per soulhome, and unopinionated about the pillar it stands beside - {@code use} only
- * ever reports and converts residue, it never itself judges the pillar or spends anything. That
- * happens in {@link AscensionRitualService}, driven by the player physically standing on the
- * pillar's cap, not by clicking this block - see #83's own "you push upward", not "you press a
- * button".
+ * The interaction point for the ascension ritual (#83): right-click to see what a soulhome still
+ * needs and what it is carrying, one per soulhome, and unopinionated about the pillar it stands
+ * beside - {@code use} only ever opens a screen, it never itself judges the pillar or spends
+ * anything. That happens in {@link AscensionRitualService}, driven by the player physically standing
+ * on the pillar's cap, not by clicking this block - see #83's own "you push upward", not "you press
+ * a button".
+ *
+ * <p>Both the summary and the residue conversion live on that screen (see {@link SoulAnchorService})
+ * rather than in chat, and the conversion is a button on it rather than something a right-click does
+ * on its way past: a look at the anchor has never been meant to cost anything.
  *
  * <p>Rank lives in {@code SoulHomeBuffData}, not here - breaking this block with a stray pickaxe
  * swing must not cost a single rank of progress. {@link #setPlacedBy} only enforces that a
@@ -58,24 +61,18 @@ public class SoulAnchorBlock extends Block
             return InteractionResult.SUCCESS;
         }
 
-        if (!SoulHomeConfig.enforceBounds())
-        {
-            serverPlayer.sendSystemMessage(Component.translatable(Constants.StringKeys.ASCENT_DISABLED).withStyle(ChatFormatting.RED));
-            return InteractionResult.CONSUME;
-        }
-
         if (!DimensionHelper.isInSoulDimension(player))
         {
             serverPlayer.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_NOT_HERE).withStyle(ChatFormatting.RED));
             return InteractionResult.CONSUME;
         }
 
-        // the chat report is unchanged, deliberately. #154 asks for the anchor to grow an
-        // attunement screen without losing the ascension summary or the residue conversion, and the
-        // cheapest way to lose neither is to keep printing exactly what it always printed and open
-        // the screen alongside it - the chat is still there to read once the screen is closed.
-        AscensionRitualService.reportStatus(serverLevel, serverPlayer);
-        AttunementService.open(serverLevel, serverPlayer);
+        // one click, one screen, and nothing spent by looking. The summary used to be printed to
+        // chat and the residue converted on the way past, which is a poor pair of things to do to a
+        // player who only wanted to know how close they were - and chat is not drawn at all while
+        // the screen that same click opens is in front of them. Ascension switched off is reported
+        // on the screen too rather than refused here, so the loadout stays reachable either way.
+        SoulAnchorService.open(serverLevel, serverPlayer);
 
         return InteractionResult.CONSUME;
     }
