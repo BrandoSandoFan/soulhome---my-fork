@@ -75,7 +75,7 @@ public final class BuffDisplayNames
         names.put(SoulBuffTypes.FIRE_RESISTANCE, "Fire damage reduction");
         names.put(SoulBuffTypes.SOUL_EMBER, "Experience kept on death");
         names.put(SoulBuffTypes.NOURISHED, "Slower hunger");
-        names.put(SoulBuffTypes.FORTUNE, "Bonus drops");
+        names.put(SoulBuffTypes.FORTUNE, "Fortune");
         names.put(SoulBuffTypes.KNOCKBACK_RESISTANCE, "Knockback resistance");
         names.put(SoulBuffTypes.SWIM_SPEED, "Swim speed");
 

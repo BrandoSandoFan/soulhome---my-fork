@@ -82,7 +82,7 @@ public final class SoulBuffTypes
     /** Greenhouse: hunger builds up slower, as a fraction of the exhaustion it would otherwise cost. */
     public static final String NOURISHED = "soulhome:nourished";
 
-    /** Treasury: a chance of an extra drop when breaking a block, as a fraction chance. */
+    /** Treasury: a chance per block broken of +1 effective Fortune level, as a fraction chance. */
     public static final String FORTUNE = "soulhome:fortune";
 
     /** Trophy room: harder to knock back, as a fraction added to the player's own resistance. */
