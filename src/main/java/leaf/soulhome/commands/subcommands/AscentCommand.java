@@ -5,6 +5,7 @@
 package leaf.soulhome.commands.subcommands;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -24,12 +25,19 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.Locale;
+
 /**
  * {@code /soulhome ascent} - the box a soulhome is bounded by (#78/#79), and what a legacy
  * soulhome (#80) keeps on top of it. {@code /soulhome ascent set} is the operator escape hatch
  * from #84: the actual climb - essence, willpower, the pillar (#82/#83) - is a later stage of the
  * same epic, and debugging a five-rank progression without a way to jump straight to a rank means
  * five real ascensions per test run once that mechanism exists.
+ *
+ * <p>{@code /soulhome ascent willpower} is #192's other half of that same escape hatch: rank is a
+ * field {@code set} can just write, but willpower is computed off whatever rooms are currently
+ * awarded, so there is nothing to write to directly. It parks an override on the soulhome's saved
+ * data instead - see {@link SoulHomeBuffData#setWillpowerOverride} - and {@code reset} drops it.
  *
  * <p>Rule 5 of the Ascent epic: scarcity must be legible.
  */
@@ -46,7 +54,13 @@ public class AscentCommand
                 .then(Commands.literal("set")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("rank", IntegerArgumentType.integer(0))
-                                .executes(AscentCommand::set)));
+                                .executes(AscentCommand::set)))
+                .then(Commands.literal("willpower")
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.argument("value", DoubleArgumentType.doubleArg(0))
+                                .executes(AscentCommand::setWillpower))
+                        .then(Commands.literal("reset")
+                                .executes(AscentCommand::resetWillpower)));
     }
 
     private static int show(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
@@ -140,6 +154,62 @@ public class AscentCommand
         reply(player, Constants.StringKeys.ASCENT_SET_SUCCESS, ChatFormatting.AQUA, SoulBounds.rankLabel(requested));
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    /**
+     * {@code /soulhome ascent willpower <value>} - operator-only, per #192. Rank has a field
+     * {@link #set} can just overwrite; willpower does not, since it is
+     * {@link SoulHomeBuffData#totalScore()} read fresh off whatever rooms are currently awarded -
+     * so this parks an override on the soul's saved data instead, letting the ascension ritual and
+     * the residue tap be tested at a chosen figure without building the rooms to earn it for real.
+     */
+    private static int setWillpower(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
+    {
+        final ServerPlayer player = context.getSource().getPlayerOrException();
+        final double requested = DoubleArgumentType.getDouble(context, "value");
+
+        final ServerLevel soulhome = StructureScanService.soulhomeOf(player);
+
+        if (soulhome == null)
+        {
+            reply(player, Constants.StringKeys.ASCENT_NO_SOULHOME, ChatFormatting.RED);
+            return 0;
+        }
+
+        SoulHomeBuffData.get(soulhome).setWillpowerOverride(requested);
+
+        reply(player, Constants.StringKeys.ASCENT_WILLPOWER_SET_SUCCESS, ChatFormatting.AQUA, formatScore(requested));
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /**
+     * {@code /soulhome ascent willpower reset} - drops the override {@link #setWillpower} left
+     * behind. Nothing about the soul's rooms ever moved; this only decides which number
+     * {@link SoulHomeBuffData#totalScore()} reports.
+     */
+    private static int resetWillpower(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
+    {
+        final ServerPlayer player = context.getSource().getPlayerOrException();
+        final ServerLevel soulhome = StructureScanService.soulhomeOf(player);
+
+        if (soulhome == null)
+        {
+            reply(player, Constants.StringKeys.ASCENT_NO_SOULHOME, ChatFormatting.RED);
+            return 0;
+        }
+
+        final SoulHomeBuffData data = SoulHomeBuffData.get(soulhome);
+        data.clearWillpowerOverride();
+
+        reply(player, Constants.StringKeys.ASCENT_WILLPOWER_RESET_SUCCESS, ChatFormatting.AQUA, formatScore(data.totalScore()));
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static String formatScore(double value)
+    {
+        return String.format(Locale.ROOT, "%.1f", value);
     }
 
     /**

@@ -146,6 +146,11 @@ public class Constants
         public static final String ASCENT_SET_SUCCESS = "message.soulhome.ascent.set_success";
         public static final String ASCENT_SET_OUT_OF_RANGE = "message.soulhome.ascent.set_out_of_range";
 
+        // /soulhome ascent willpower - the operator-only way to test the ritual or the residue tap
+        // against a chosen figure without building the rooms to earn it (#192)
+        public static final String ASCENT_WILLPOWER_SET_SUCCESS = "message.soulhome.ascent.willpower_set_success";
+        public static final String ASCENT_WILLPOWER_RESET_SUCCESS = "message.soulhome.ascent.willpower_reset_success";
+
         // The Soul Anchor and the ascension ritual (#83): the climb itself, rather than merely the
         // box it climbs against.
         public static final String ANCHOR_NOT_HERE = "message.soulhome.anchor.not_here";
