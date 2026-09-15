@@ -51,7 +51,7 @@ maths). What it does **not** cover, and what CI is therefore the first real comp
 
 | Not covered offline | Why |
 | --- | --- |
-| `config/SoulHomeConfig` | ForgeConfigSpec |
+| `config/SoulHomeConfig`, `config/SoulHomeClientConfig` | ForgeConfigSpec |
 | `structures/SnapshotBlockVolume`, `ArchetypeManager`, `StructureScanService` | `ServerLevel`, datapack reload |
 | `feedback/RegionHighlight`, all `network/*` | Mojang `Codec` (DataFixerUpper) |
 | `datagen/**` and its tests | `DataGenerator`, `Codec` |
