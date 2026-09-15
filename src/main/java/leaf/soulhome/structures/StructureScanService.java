@@ -436,6 +436,10 @@ public final class StructureScanService
         // feature cannot explain to them, since /soulhome buffs reads the saved side. Costs
         // nothing to rule out - SoulBuffs.set is already a no-op when nothing is different.
         DimensionHelper.soulOwner(level).ifPresent(owner -> pushBuffs(server, owner, data));
+
+        // and the place itself answers what is in it (#163). Everyone standing in the soul, not
+        // only its owner: the sky belongs to the soulhome rather than to whoever is looking at it.
+        SoulAmbienceService.broadcast(level);
     }
 
     private static void pushBuffs(MinecraftServer server, UUID owner, SoulHomeBuffData data)
@@ -535,6 +539,12 @@ public final class StructureScanService
         explainSlotsIfExceeded(player, data);
 
         sendBounds(player, soulhome);
+
+        // and the sky over that soulhome, for whoever is in it (#163/#164). This is the path every
+        // rank change already comes through - the ascension ritual and /soulhome ascent set both
+        // call refresh afterwards - which is what makes the firmament lifting the last beat of the
+        // ritual rather than something a player notices on their next visit.
+        SoulAmbienceService.broadcast(soulhome);
     }
 
     /**

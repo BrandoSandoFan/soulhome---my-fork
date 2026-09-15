@@ -6,6 +6,7 @@ package leaf.soulhome.handlers;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.SoulBuffsProvider;
+import leaf.soulhome.structures.SoulAmbienceService;
 import leaf.soulhome.structures.StructureScanService;
 import leaf.soulhome.structures.TerrainGrowthService;
 import leaf.soulhome.utils.ResourceLocationHelper;
@@ -85,6 +86,10 @@ public class StructureEvents
             // dimension change, and so the one way ground still owed would otherwise sit unbuilt
             // until the next time you walked out and back (#158)
             TerrainGrowthService.considerGrowth(player.level());
+
+            // the same goes for the sky over it (#163): a login inside a soul fires no dimension
+            // change, so nothing else would tell this client what it is standing in
+            SoulAmbienceService.sendTo(player);
         }
     }
 
@@ -137,6 +142,10 @@ public class StructureEvents
                 // stopped halfway through, or a soulhome that was already ranked before growth
                 // existed. A no-op for the overwhelming majority of arrivals.
                 TerrainGrowthService.considerGrowth(to);
+
+                // arriving is also the moment to say what the place is like (#163), rather than
+                // leaving a player looking at last dimension's sky until the debounced scan runs
+                SoulAmbienceService.sendTo(player, to);
             }
         }
 

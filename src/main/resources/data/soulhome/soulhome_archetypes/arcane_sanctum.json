@@ -1,5 +1,6 @@
 {
   "display_name": "archetype.soulhome.arcane_sanctum",
+  "character": { "arcane": 1.5 },
   "region_types": ["enclosed"],
   "min_volume": 27,
 

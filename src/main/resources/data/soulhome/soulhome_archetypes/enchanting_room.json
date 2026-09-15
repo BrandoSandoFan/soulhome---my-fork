@@ -1,5 +1,6 @@
 {
   "display_name": "archetype.soulhome.enchanting_room",
+  "character": { "arcane": 1.2 },
   "region_types": ["enclosed"],
   "min_volume": 27,
 

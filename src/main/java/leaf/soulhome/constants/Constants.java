@@ -217,6 +217,18 @@ public class Constants
         public static final String ANCHOR_SCREEN_VISITOR = "gui.soulhome.anchor.visitor";
         public static final String ANCHOR_SCREEN_NOT_LOST = "gui.soulhome.anchor.not_lost";
 
+        // The ambience options screen (#163/#167). Client-side settings rather than server ones, and
+        // so the only screen in the mod that changes nothing about anybody's game but the looker's.
+        public static final String AMBIENCE_SCREEN_TITLE = "gui.soulhome.ambience.title";
+        public static final String AMBIENCE_SCREEN_ENABLED = "gui.soulhome.ambience.enabled";
+        public static final String AMBIENCE_SCREEN_RANK = "gui.soulhome.ambience.rank_visuals";
+        public static final String AMBIENCE_SCREEN_CHARACTER = "gui.soulhome.ambience.character_colour";
+        public static final String AMBIENCE_SCREEN_SOUND = "gui.soulhome.ambience.ambient_sound";
+        public static final String AMBIENCE_SCREEN_INTENSITY = "gui.soulhome.ambience.intensity";
+        public static final String AMBIENCE_SCREEN_VOLUME = "gui.soulhome.ambience.sound_volume";
+        public static final String AMBIENCE_SCREEN_OFF = "gui.soulhome.ambience.off";
+        public static final String AMBIENCE_SCREEN_COSMETIC = "gui.soulhome.ambience.cosmetic";
+
         // The climb, on the same screen as the loadout (#83): the requirement lines themselves are
         // the message.soulhome.anchor.* ones the summary was printed with, reused rather than
         // rewritten, so a screen and a chat line can never end up describing the same pillar

@@ -143,7 +143,26 @@ public final class ArchetypeJsonReader
                 readBuffs(json),
                 readStructures(json, registry),
                 readBonds(json, bondRegistry),
-                readAspects(json, registry));
+                readAspects(json, registry),
+                readCharacter(json));
+    }
+
+    /** What this room says about the soul it stands in (#165), mirroring {@code ArchetypeCodecs.CHARACTER}. */
+    private static Map<String, Double> readCharacter(JsonObject json)
+    {
+        if (!json.has("character"))
+        {
+            return Map.of();
+        }
+
+        Map<String, Double> character = new LinkedHashMap<>();
+
+        for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("character").entrySet())
+        {
+            character.put(entry.getKey(), entry.getValue().getAsDouble());
+        }
+
+        return character;
     }
 
     /**

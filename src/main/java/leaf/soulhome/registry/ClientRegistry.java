@@ -6,13 +6,16 @@ package leaf.soulhome.registry;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.client.SoulKeybinds;
+import leaf.soulhome.client.gui.SoulAmbienceOptionsScreen;
 import leaf.soulhome.dimensions.SoulDimensionRenderInfo;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
@@ -25,6 +28,14 @@ public class ClientRegistry
     public static void register(FMLClientSetupEvent event)
     {
         DimensionSpecialEffects.EFFECTS.put(SOUL_SKY_PROPERTY_LOC, new SoulDimensionRenderInfo());
+
+        // the ambience switches, under Mods -> SoulHome -> Config (#167). Client-side only, which
+        // is why this is here rather than beside SoulHomeClientConfig.register - a dedicated
+        // server must never load ConfigScreenHandler at all.
+        ModLoadingContext.get().registerExtensionPoint(
+                ConfigScreenHandler.ConfigScreenFactory.class,
+                () -> new ConfigScreenHandler.ConfigScreenFactory(
+                        (minecraft, parent) -> new SoulAmbienceOptionsScreen(parent)));
     }
 
     /**
