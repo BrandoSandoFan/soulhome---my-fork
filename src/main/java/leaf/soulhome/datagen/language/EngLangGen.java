@@ -299,6 +299,17 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
 
         // The Soul Anchor's loadout screen (#154)
+        add(Constants.StringKeys.AMBIENCE_SCREEN_TITLE, "How Your Soul Looks");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_ENABLED, "Soul ambience");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_RANK, "Answer your rank");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER, "Answer what you built");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SOUND, "Ambient sound");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY, "Intensity: %s");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_VOLUME, "Ambient volume: %s");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_OFF, "Off");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_COSMETIC,
+                "All of this is only how the place looks and sounds. Nothing here changes a room, a buff or a cost.");
+
         add(Constants.StringKeys.ANCHOR_SCREEN_TITLE, "What Your Soul Carries");
         add(Constants.StringKeys.ANCHOR_SCREEN_SLOTS, "Rooms: %1$s / %2$s      Abilities: %3$s / %4$s");
         add(Constants.StringKeys.ANCHOR_SCREEN_PASSIVE, "(room)");

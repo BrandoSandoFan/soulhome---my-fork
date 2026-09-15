@@ -18,6 +18,7 @@ import leaf.soulhome.structures.core.FormClauseRegistry;
 import leaf.soulhome.structures.core.RegionType;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Deserialisation for {@link ArchetypeDefinition} and friends.
@@ -181,6 +182,15 @@ public final class ArchetypeCodecs
                     .apply(instance, Aspect::new));
 
     /**
+     * An archetype's pull on the soul it is built in (#163/#165): trait id to weight. Unbounded
+     * because the vocabulary is {@link leaf.soulhome.structures.core.SoulTrait}'s job to police -
+     * a codec that rejected an unknown id here would take the whole archetype down with it, and a
+     * pack written against a later version of the mod should lose its colouring, not its rooms.
+     */
+    public static final Codec<Map<String, Double>> CHARACTER =
+            Codec.unboundedMap(Codec.STRING, Codec.DOUBLE);
+
+    /**
      * The datapack file format. There is no {@code id} field: an archetype is named by its file
      * path, so a file cannot claim to be something it is not. {@link ArchetypeManager} supplies the
      * real id via {@link ArchetypeDefinition#withId}.
@@ -209,11 +219,17 @@ public final class ArchetypeCodecs
                             BONDS.optionalFieldOf("bonds", List.of())
                                     .forGetter(ArchetypeDefinition::bonds),
                             ASPECT.listOf().optionalFieldOf("aspects", List.of())
-                                    .forGetter(ArchetypeDefinition::aspects))
-                    .apply(instance, (displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures, bonds, aspects) ->
+                                    .forGetter(ArchetypeDefinition::aspects),
+                            // what a room of this kind says about the soul it stands in (#165). A
+                            // plain id-to-weight map rather than a list of records: there is one
+                            // number per trait and nothing else to say about it.
+                            CHARACTER.optionalFieldOf("character", Map.of())
+                                    .forGetter(ArchetypeDefinition::character))
+                    .apply(instance, (displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs, structures, bonds, aspects, character) ->
                             new ArchetypeDefinition(
                                     ArchetypeDefinition.PLACEHOLDER_ID, displayName, regionTypes, minVolume,
-                                    requirements, signals, detractors, tiers, buffs, structures, bonds, aspects)));
+                                    requirements, signals, detractors, tiers, buffs, structures, bonds, aspects,
+                                    character)));
 
     /**
      * The over-the-wire format, which does carry the id - the client has no file paths to derive

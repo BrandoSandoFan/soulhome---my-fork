@@ -6,6 +6,7 @@ package leaf.soulhome.registry;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.client.SoulKeybinds;
+import leaf.soulhome.client.gui.SoulAmbienceOptionsScreen;
 import leaf.soulhome.dimensions.SoulDimensionRenderInfo;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -13,7 +14,10 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class ClientRegistry
@@ -32,6 +36,22 @@ public class ClientRegistry
     public static void registerDimensionEffects(RegisterDimensionSpecialEffectsEvent event)
     {
         event.register(SOUL_SKY_PROPERTY_LOC, new SoulDimensionRenderInfo());
+    }
+
+    /**
+     * The ambience switches, under Mods -> SoulHome -> Config (#167).
+     *
+     * <p>NeoForge would generate a screen from the spec on its own, and it would be a perfectly
+     * good one. This is a hand-written screen instead for one reason: it says on the screen itself
+     * that all of this is cosmetic, which is the single thing a player needs to know before
+     * deciding, and a generated screen has nowhere to put it.
+     */
+    @SubscribeEvent
+    public static void registerConfigScreen(FMLClientSetupEvent event)
+    {
+        ModLoadingContext.get().getActiveContainer().registerExtensionPoint(
+                IConfigScreenFactory.class,
+                (container, parent) -> new SoulAmbienceOptionsScreen(parent));
     }
 
     /**

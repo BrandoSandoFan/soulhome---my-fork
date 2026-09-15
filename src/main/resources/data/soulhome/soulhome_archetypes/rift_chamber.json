@@ -1,5 +1,6 @@
 {
   "display_name": "archetype.soulhome.rift_chamber",
+  "character": { "arcane": 1.4, "hollow": 0.5 },
   "region_types": ["enclosed"],
   "min_volume": 27,
 
