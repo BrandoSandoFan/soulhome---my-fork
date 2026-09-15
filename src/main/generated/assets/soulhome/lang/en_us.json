@@ -293,6 +293,8 @@
   "message.soulhome.ascent.rank": "Rank: %s",
   "message.soulhome.ascent.set_out_of_range": "This server's max_rank is %s - you cannot set a rank above it.",
   "message.soulhome.ascent.set_success": "Your soul is now rank %s.",
+  "message.soulhome.ascent.willpower_reset_success": "Your soul's willpower is its own again: %s.",
+  "message.soulhome.ascent.willpower_set_success": "Your soul's willpower now reads %s, until reset.",
   "message.soulhome.attune.bound": "Attuned.",
   "message.soulhome.attune.exceeded_header": "Your soul holds more rooms than you can carry at once. Your best are attuned already.",
   "message.soulhome.attune.exceeded_kept": "Nothing has been lost. Every room still counts toward residue and toward your next ascension.",

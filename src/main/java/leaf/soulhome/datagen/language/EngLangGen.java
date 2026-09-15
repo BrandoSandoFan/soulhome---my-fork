@@ -247,6 +247,9 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ASCENT_SET_SUCCESS, "Your soul is now rank %s.");
         add(Constants.StringKeys.ASCENT_SET_OUT_OF_RANGE, "This server's max_rank is %s - you cannot set a rank above it.");
 
+        add(Constants.StringKeys.ASCENT_WILLPOWER_SET_SUCCESS, "Your soul's willpower now reads %s, until reset.");
+        add(Constants.StringKeys.ASCENT_WILLPOWER_RESET_SUCCESS, "Your soul's willpower is its own again: %s.");
+
         // The Soul Anchor and the ascension ritual (#83)
         add(Constants.StringKeys.ANCHOR_NOT_HERE, "The Soul Anchor only answers inside a soulhome.");
         add(Constants.StringKeys.ANCHOR_ALREADY_EXISTS, "This soulhome already has a Soul Anchor. Break it first if you want to move it.");

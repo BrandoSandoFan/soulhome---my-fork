@@ -116,6 +116,14 @@ public class SoulHomeBuffData extends SavedData
     // of the whole dimension to relocate a missing anchor is a cost this saves entirely.
     private static final String KEY_ANCHOR_POS = "AnchorPos";
 
+    // /soulhome ascent willpower (#192): the operator escape hatch for the other half of what
+    // ascent set jumps past. Rank is a stored field the command can just write; willpower is not -
+    // it is totalScore(), read fresh off whatever rooms are currently awarded - so testing the
+    // ritual or the residue tap at a chosen figure needs somewhere to park an override rather than
+    // a field to overwrite. Absent on every soulhome that has never used it, which is every
+    // soulhome this lands on.
+    private static final String KEY_WILLPOWER_OVERRIDE = "WillpowerOverride";
+
     /**
      * Bumped once, for the legacy grant. A save written before this field existed reads back as
      * version 0 - {@code CompoundTag.getInt} on a missing key is 0 - and is exactly the set of
@@ -136,6 +144,7 @@ public class SoulHomeBuffData extends SavedData
     private double residue;
     private long lastResidueAccrualMillis;
     private BlockPos anchorPos;
+    private Double willpowerOverride;
 
     public SoulHomeBuffData()
     {
@@ -213,6 +222,11 @@ public class SoulHomeBuffData extends SavedData
         // reads back as 0, which accrueResidue treats as "start the clock now" rather than as an
         // actual instant in 1970 to bill for
         data.lastResidueAccrualMillis = tag.getLong(KEY_LAST_RESIDUE_ACCRUAL_MILLIS);
+
+        if (tag.contains(KEY_WILLPOWER_OVERRIDE))
+        {
+            data.willpowerOverride = tag.getDouble(KEY_WILLPOWER_OVERRIDE);
+        }
 
         if (tag.contains(KEY_ANCHOR_POS))
         {
@@ -322,6 +336,11 @@ public class SoulHomeBuffData extends SavedData
         tag.putInt(KEY_GROWN_RANK, this.grownRank);
         tag.putDouble(KEY_RESIDUE, this.residue);
         tag.putLong(KEY_LAST_RESIDUE_ACCRUAL_MILLIS, this.lastResidueAccrualMillis);
+
+        if (this.willpowerOverride != null)
+        {
+            tag.putDouble(KEY_WILLPOWER_OVERRIDE, this.willpowerOverride);
+        }
 
         if (this.anchorPos != null)
         {
@@ -518,9 +537,20 @@ public class SoulHomeBuffData extends SavedData
      * ritual (#83) checks and the residue tap (#82) already rates its accrual by. A tall empty
      * pillar is not an ascension; this is the number that says whether a soul actually has the
      * substance to push back against the sky.
+     *
+     * <p>Reads {@link #willpowerOverride} first, if {@code /soulhome ascent willpower} (#192) has
+     * set one - the operator escape hatch from testing the ritual or the residue tap against a
+     * chosen figure without building a soul's worth of rooms to earn it. The override changes only
+     * what this method reports; {@link #awardedRooms} and every room's own score are untouched, so
+     * a rescan or a reset hands both callers straight back to the true total.
      */
     public double totalScore()
     {
+        if (this.willpowerOverride != null)
+        {
+            return this.willpowerOverride;
+        }
+
         double total = 0;
 
         for (AwardedRoom room : this.awardedRooms)
@@ -529,6 +559,50 @@ public class SoulHomeBuffData extends SavedData
         }
 
         return total;
+    }
+
+    /** The value {@code /soulhome ascent willpower} last set, or empty if {@link #totalScore()} is its own. */
+    public Optional<Double> willpowerOverride()
+    {
+        return Optional.ofNullable(this.willpowerOverride);
+    }
+
+    /**
+     * Force {@link #totalScore()} to report {@code value} until {@link #clearWillpowerOverride()}
+     * is called. Clamped to non-negative for the same reason {@link #setAscensionRank} is - a
+     * negative willpower is not a state the ritual or the residue tap have any answer for.
+     *
+     * @return whether this actually changed anything, and so whether it needs writing to disk
+     */
+    public boolean setWillpowerOverride(double value)
+    {
+        final double clamped = Math.max(0, value);
+
+        if (this.willpowerOverride != null && this.willpowerOverride == clamped)
+        {
+            return false;
+        }
+
+        this.willpowerOverride = clamped;
+        setDirty();
+        return true;
+    }
+
+    /**
+     * Drop the override and return {@link #totalScore()} to the soul's own, scanned total.
+     *
+     * @return whether there was an override to clear, and so whether this needs writing to disk
+     */
+    public boolean clearWillpowerOverride()
+    {
+        if (this.willpowerOverride == null)
+        {
+            return false;
+        }
+
+        this.willpowerOverride = null;
+        setDirty();
+        return true;
     }
 
     /** Where this soulhome's Soul Anchor sits, or empty if none has been placed yet. */

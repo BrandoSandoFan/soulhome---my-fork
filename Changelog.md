@@ -1195,3 +1195,18 @@ were to the next rank was to spend the thing you were saving for it.
   and the screen says the climb is switched off rather than the anchor going silent.
 - A visitor to someone else's soul can read that soul's climb and cannot convert its residue. They
   never could have meant to: the old right-click handed a visitor the owner's banked essence.
+
+Two operator commands for testing the climb
+
+`/soulhome ascent set <rank>` already let an operator jump a soulhome straight to a rank without
+five real ascensions. Willpower had no equivalent - it is read fresh off whatever rooms are
+currently awarded rather than kept in a field, so there was nothing to set directly, and testing the
+ascension ritual or the residue tap at a chosen figure meant actually building the rooms to earn it.
+
+- `/soulhome ascent willpower <value>` forces the willpower the ascension ritual checks and the
+  residue tap accrues by to a chosen number, until reset. Every room, its score, and what it grants
+  in `/soulhome buffs` are all completely unaffected - only that one figure changes.
+- `/soulhome ascent willpower reset` drops the override and hands both callers straight back to the
+  soul's own scanned total.
+- Operator-only, like `ascent set`, and saved with the rest of a soulhome's data so it survives a
+  restart; a soulhome that has never used it saves exactly as it always did.
