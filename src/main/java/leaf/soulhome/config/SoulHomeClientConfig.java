@@ -60,6 +60,15 @@ public final class SoulHomeClientConfig
      */
     public static AmbienceSettings ambience()
     {
+        if (!SPEC.isLoaded())
+        {
+            // asked for before the file has been read - a tick that lands during loading, or a
+            // dedicated server where this config is never read at all. Nothing rather than the
+            // defaults: a player who has this switched off should not see a frame of it while
+            // their own setting is still on its way in.
+            return AmbienceSettings.OFF;
+        }
+
         return new AmbienceSettings(
                 CLIENT.ambienceEnabled.get(),
                 CLIENT.rankVisuals.get(),
