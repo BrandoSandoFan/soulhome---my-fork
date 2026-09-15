@@ -7,12 +7,9 @@ package leaf.soulhome.structures;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.feedback.AttunementReport;
-import leaf.soulhome.network.Network;
-import leaf.soulhome.network.SyncAttunementMessage;
 import leaf.soulhome.structures.core.AttunementBook;
 import leaf.soulhome.structures.core.AttunementSettings;
 import leaf.soulhome.structures.core.RoomBinding;
-import leaf.soulhome.utils.DimensionHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -22,8 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The server's side of attunement (#154): the one place a binding is decided, and the one place it
- * is pushed back out.
+ * The server's side of attunement (#154): the one place a binding is decided.
+ *
+ * <p>What it decided is pushed back out through {@link SoulAnchorService}, which owns the whole of
+ * the anchor screen's payload - a loadout is only half of what that screen shows, and a redraw that
+ * carried only this half would leave the climb beside it saying whatever it said last time.
  *
  * <p><b>Nothing here trusts the client.</b> A binding arrives as "I would like room 7 bound"; this
  * decides whether room 7 is in the sender's own soulhome, whether that soulhome has a free slot of
@@ -41,34 +41,6 @@ public final class AttunementService
 {
     private AttunementService()
     {
-    }
-
-    /**
-     * Open the anchor's screen for this player, on the soulhome they are standing in.
-     *
-     * <p>A visitor gets the report and cannot change it: it is somebody else's soul, and the
-     * binding they would want to change is the one on their own. Their own buffs and their own
-     * attunement are untouched by standing here - see {@code StructureScanService#refresh}, which
-     * always reads the player's own soulhome rather than the level they happen to be in.
-     */
-    public static void open(ServerLevel soulhome, ServerPlayer player)
-    {
-        if (!SoulHomeConfig.attunementEnabled())
-        {
-            return;
-        }
-
-        final boolean owner = DimensionHelper.soulOwner(soulhome)
-                .map(player.getUUID()::equals)
-                .orElse(false);
-
-        Network.sendTo(new SyncAttunementMessage(reportOf(soulhome, owner)), player);
-
-        if (!owner)
-        {
-            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ATTUNE_NOT_YOURS)
-                    .withStyle(ChatFormatting.GRAY));
-        }
     }
 
     /**
@@ -123,10 +95,18 @@ public final class AttunementService
         // the player something that was not yet true
         StructureScanService.refresh(player);
 
-        Network.sendTo(new SyncAttunementMessage(reportOf(soulhome, true)), player);
+        SoulAnchorService.refresh(soulhome, player);
     }
 
-    private static AttunementReport reportOf(ServerLevel soulhome, boolean owner)
+    /**
+     * This soulhome's loadout as the anchor's screen draws it - built here rather than in
+     * {@link SoulAnchorService} so the one place that decides what a binding does is also the one
+     * place that says what the bindings are.
+     *
+     * @param owner whether the player being told is the soul's own owner, and so may change any of
+     *              this. A visitor may look (#154)
+     */
+    public static AttunementReport reportFor(ServerLevel soulhome, boolean owner)
     {
         final SoulHomeBuffData data = SoulHomeBuffData.get(soulhome);
 

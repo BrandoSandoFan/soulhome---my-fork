@@ -7,6 +7,7 @@ package leaf.soulhome.structures;
 import leaf.soulhome.advancements.SoulAdvancements;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.feedback.AscensionReport;
 import leaf.soulhome.registry.ItemsRegistry;
 import leaf.soulhome.structures.core.AscensionSettings;
 import leaf.soulhome.structures.core.PillarInspector;
@@ -213,75 +214,80 @@ public final class AscensionRitualService
         return units;
     }
 
-    /** The same status a right-click on the Soul Anchor reports, sent as chat to {@code player}. */
-    public static void reportStatus(ServerLevel level, ServerPlayer player)
+    /**
+     * Everything the Soul Anchor's screen says about the climb (#83), for the soulhome the player
+     * is standing in. The summary used to be printed to chat on every right-click; it is the same
+     * summary, read off the same {@link Readiness} the ritual itself is judged against, and the
+     * only thing that changed is where a player reads it.
+     *
+     * @param owner whether the player is this soul's own owner - a visitor may read the climb and
+     *              may not convert a residue they did not earn
+     */
+    public static AscensionReport statusFor(ServerLevel level, ServerPlayer player, boolean owner)
     {
-        final int convertedEssence = convertResidue(level, player);
+        final SoulHomeBuffData data = SoulHomeBuffData.get(level);
+        final int rank = data.ascensionRank();
+        final AscensionReport.Residue residue = residueOf(data);
 
-        if (convertedEssence > 0)
+        if (!SoulHomeConfig.enforceBounds())
         {
-            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RESIDUE_CONVERTED, convertedEssence)
-                    .withStyle(ChatFormatting.AQUA));
+            // no climb to report on, and residue is not part of the climb - it keeps accruing and
+            // keeps converting, so the screen still has that half to offer
+            return new AscensionReport(
+                    false, owner, rank, rank, false, false, false, false, 0, 0, 0, 0, 0, residue);
         }
 
         final Readiness readiness = checkReadiness(level, player);
-        final int rank = SoulHomeBuffData.get(level).ascensionRank();
 
-        player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_HEADER).withStyle(ChatFormatting.LIGHT_PURPLE));
-        player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RANK, SoulBounds.rankLabel(rank))
-                .withStyle(ChatFormatting.WHITE));
-
-        if (readiness.maxed())
-        {
-            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_MAXED).withStyle(ChatFormatting.DARK_GRAY));
-            return;
-        }
-
-        if (ACTIVE.containsKey(level.dimension()) && !ACTIVE.get(level.dimension()).playerId().equals(player.getUUID()))
-        {
-            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RITUAL_IN_PROGRESS).withStyle(ChatFormatting.YELLOW));
-            return;
-        }
-
-        reportPillar(player, readiness.pillar(), level);
-
-        report(player, Constants.StringKeys.ANCHOR_WILLPOWER_OK, Constants.StringKeys.ANCHOR_WILLPOWER_MISSING,
-                readiness.willpowerMet(), (int) Math.ceil(readiness.willpowerHave()), (int) Math.ceil(readiness.willpowerRequired()));
-
-        report(player, Constants.StringKeys.ANCHOR_ESSENCE_OK, Constants.StringKeys.ANCHOR_ESSENCE_MISSING,
-                readiness.essenceMet(), readiness.essenceHave(), readiness.essenceRequired(),
-                SoulBounds.rankLabel(readiness.targetRank()));
-
-        if (readiness.allMet())
-        {
-            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_READY).withStyle(ChatFormatting.GREEN));
-        }
+        return new AscensionReport(
+                true,
+                owner,
+                rank,
+                readiness.targetRank(),
+                readiness.maxed(),
+                ritualHeldByAnother(level, player),
+                readiness.pillarValid(),
+                readiness.pillar().hasBase(),
+                pillarGap(level, readiness.pillar()),
+                (int) Math.ceil(readiness.willpowerHave()),
+                (int) Math.ceil(readiness.willpowerRequired()),
+                readiness.essenceHave(),
+                readiness.essenceRequired(),
+                residue);
     }
 
-    private static void report(ServerPlayer player, String okKey, String missingKey, boolean met, Object... args)
+    /** Whether this soulhome's one ritual slot is currently held by somebody other than {@code player}. */
+    public static boolean ritualHeldByAnother(ServerLevel level, ServerPlayer player)
     {
-        final ChatFormatting style = met ? ChatFormatting.GREEN : ChatFormatting.RED;
-        player.sendSystemMessage(Component.translatable(met ? okKey : missingKey, args).withStyle(style));
+        final RitualState state = ACTIVE.get(level.dimension());
+
+        return state != null && !state.playerId().equals(player.getUUID());
     }
 
-    private static void reportPillar(ServerPlayer player, PillarInspector.Result pillar, ServerLevel level)
+    private static AscensionReport.Residue residueOf(SoulHomeBuffData data)
     {
-        if (pillar.valid())
-        {
-            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_PILLAR_OK).withStyle(ChatFormatting.GREEN));
-            return;
-        }
+        final double rate = SoulHomeConfig.essenceSettings().residueToEssenceRate();
+        final double banked = data.residue();
 
-        if (!pillar.hasBase())
+        return new AscensionReport.Residue(
+                SoulHomeConfig.residueTapEnabled(), banked, (int) (banked / rate), 0);
+    }
+
+    /**
+     * How far short of the firmament a pillar that has a base stops. Meaningless without a base -
+     * {@code topY} is {@code Integer.MIN_VALUE} there - so it is reported as zero and the screen
+     * says "no base" instead.
+     */
+    private static int pillarGap(ServerLevel level, PillarInspector.Result pillar)
+    {
+        if (pillar.valid() || !pillar.hasBase())
         {
-            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_PILLAR_NO_BASE).withStyle(ChatFormatting.RED));
-            return;
+            return 0;
         }
 
         final SoulBounds bounds = SoulHomeConfig.soulBounds(SoulHomeBuffData.get(level).ascensionRank());
-        final int gap = (bounds.ceilingY() - 1) - pillar.topY();
 
-        player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_PILLAR_GAP, gap).withStyle(ChatFormatting.RED));
+        return (bounds.ceilingY() - 1) - pillar.topY();
     }
 
     private static void startRitual(

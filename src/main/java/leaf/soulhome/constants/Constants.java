@@ -150,7 +150,6 @@ public class Constants
         // box it climbs against.
         public static final String ANCHOR_NOT_HERE = "message.soulhome.anchor.not_here";
         public static final String ANCHOR_ALREADY_EXISTS = "message.soulhome.anchor.already_exists";
-        public static final String ANCHOR_HEADER = "message.soulhome.anchor.header";
         public static final String ANCHOR_RANK = "message.soulhome.anchor.rank";
         public static final String ANCHOR_MAXED = "message.soulhome.anchor.maxed";
         public static final String ANCHOR_READY = "message.soulhome.anchor.ready";
@@ -217,6 +216,16 @@ public class Constants
         public static final String ANCHOR_SCREEN_HINT = "gui.soulhome.anchor.hint";
         public static final String ANCHOR_SCREEN_VISITOR = "gui.soulhome.anchor.visitor";
         public static final String ANCHOR_SCREEN_NOT_LOST = "gui.soulhome.anchor.not_lost";
+
+        // The climb, on the same screen as the loadout (#83): the requirement lines themselves are
+        // the message.soulhome.anchor.* ones the summary was printed with, reused rather than
+        // rewritten, so a screen and a chat line can never end up describing the same pillar
+        // differently.
+        public static final String ANCHOR_SCREEN_ASCENSION = "gui.soulhome.anchor.ascension";
+        public static final String ANCHOR_SCREEN_RESIDUE = "gui.soulhome.anchor.residue";
+        public static final String ANCHOR_SCREEN_RESIDUE_SHORT = "gui.soulhome.anchor.residue_short";
+        public static final String ANCHOR_SCREEN_COLLECT = "gui.soulhome.anchor.collect";
+        public static final String ANCHOR_SCREEN_COLLECT_NONE = "gui.soulhome.anchor.collect_none";
 
         // The box (#78/#79/#81): scarcity has to be legible, so the lens says what it is as
         // plainly as it says what a room scored.
