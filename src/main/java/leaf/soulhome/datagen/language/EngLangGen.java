@@ -76,7 +76,7 @@ public class EngLangGen extends LanguageProvider
                         tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
                         break;
                     case "Soul Anchor":
-                        tooltipString = "Right-click to hear what your soulhome's next ascension still needs.";
+                        tooltipString = "Right-click to see what your soulhome's next ascension needs, what it is carrying, and to take the essence its residue has earned.";
                         break;
                 }
 
@@ -250,7 +250,6 @@ public class EngLangGen extends LanguageProvider
         // The Soul Anchor and the ascension ritual (#83)
         add(Constants.StringKeys.ANCHOR_NOT_HERE, "The Soul Anchor only answers inside a soulhome.");
         add(Constants.StringKeys.ANCHOR_ALREADY_EXISTS, "This soulhome already has a Soul Anchor. Break it first if you want to move it.");
-        add(Constants.StringKeys.ANCHOR_HEADER, "The Soul Anchor stirs:");
         add(Constants.StringKeys.ANCHOR_RANK, "Rank: %s");
         add(Constants.StringKeys.ANCHOR_MAXED, "This soul has reached the highest rank this server allows.");
         add(Constants.StringKeys.ANCHOR_READY, "Everything is in place. Stand on the pillar's cap and hold.");
@@ -313,6 +312,11 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ANCHOR_SCREEN_VISITOR, "Someone else's soul - you can look, but not change it.");
         add(Constants.StringKeys.ANCHOR_SCREEN_NOT_LOST,
                 "Rooms you have not attuned still count toward residue and toward the climb.");
+        add(Constants.StringKeys.ANCHOR_SCREEN_ASCENSION, "The climb");
+        add(Constants.StringKeys.ANCHOR_SCREEN_RESIDUE, "Residue: %1$s banked - enough for %2$s Essence I.");
+        add(Constants.StringKeys.ANCHOR_SCREEN_RESIDUE_SHORT, "Residue: %s banked - not yet a whole Essence I.");
+        add(Constants.StringKeys.ANCHOR_SCREEN_COLLECT, "Take %s Essence");
+        add(Constants.StringKeys.ANCHOR_SCREEN_COLLECT_NONE, "Nothing to take");
 
         add(Constants.StringKeys.LENS_SCREEN_BOX_HEADER, "Your soul's reach");
         add(Constants.StringKeys.LENS_SCREEN_BOX_LAYERS, "%s build layers (floor y=%s to ceiling y=%s)");

@@ -1173,3 +1173,25 @@ experienced twenty at once.
   it. Rank V carries fewer buffs after this change than it did before it, so rank is not inflating -
   trimming the amplification as well would have made the climb weaker in both breadth and depth,
   which is a straight nerf rather than a mechanic.
+
+The Soul Anchor tells you about the climb without spending anything
+
+Right-clicking the anchor printed your ascension summary to chat and, on the way past, silently
+converted every scrap of soul residue you had banked into Essence I. Since the same click also
+opened the attunement screen, and the chat overlay is not drawn at all while a screen is open, the
+summary you asked for scrolled past unseen behind it - and the only way to find out how close you
+were to the next rank was to spend the thing you were saving for it.
+
+- The ascension summary is on the anchor's screen now, above your rooms: your rank, whether the
+  pillar stands, how much willpower and essence the next rank wants against what you have, and the
+  line saying everything is in place. Same words, same numbers, read at the moment you asked for
+  them.
+- Residue is a button rather than a side effect. The screen says how much your soul has banked and
+  what it is worth in Essence I, and takes it only when you press it. Looking costs nothing.
+- A buff, in the small way that matters: you can now check on the climb as often as you like and
+  bank residue past the point where it would have been converted out from under you.
+- The anchor opens its screen even with `ascent.enforce_bounds` off, where it used to refuse the
+  click outright and say so in chat. A server that does not use the climb still has rooms to attune,
+  and the screen says the climb is switched off rather than the anchor going silent.
+- A visitor to someone else's soul can read that soul's climb and cannot convert its residue. They
+  never could have meant to: the old right-click handed a visitor the owner's banked essence.
