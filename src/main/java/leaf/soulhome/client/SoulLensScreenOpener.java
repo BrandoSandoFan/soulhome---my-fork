@@ -8,10 +8,9 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.client.gui.SoulAnchorScreen;
 import leaf.soulhome.client.gui.SoulLensBuffsScreen;
 import leaf.soulhome.client.gui.SoulLensScreen;
-import leaf.soulhome.feedback.AttunementReport;
 import leaf.soulhome.feedback.LensBuffReport;
 import leaf.soulhome.feedback.LensRegionReport;
-import leaf.soulhome.network.SyncAttunementMessage;
+import leaf.soulhome.network.SyncSoulAnchorMessage;
 import leaf.soulhome.network.SyncSoulLensBuffsMessage;
 import leaf.soulhome.network.SyncSoulLensReportMessage;
 import net.minecraft.client.Minecraft;
@@ -60,14 +59,16 @@ public final class SoulLensScreenOpener
                     buffs, SyncSoulLensBuffsMessage.ClientLensBuffs.attunement()));
         }
 
-        // the Soul Anchor's loadout screen (#154) arrives the same way, with one difference: a
-        // report that lands while the screen is already open is the server's answer to a binding
-        // made in it, and SoulAnchorScreen picks that up itself rather than being reopened over
-        final AttunementReport attunement = SyncAttunementMessage.ClientAttunement.consumeIfNew();
+        // the Soul Anchor's screen arrives the same way, with one difference: a report that lands
+        // while it is already open is the server's answer to a click made in it, and SoulAnchorScreen
+        // picks that up itself rather than being reopened over. Opened on every anchor that arrives,
+        // with no "is there anything in it" test - the anchor sends one only when its block was
+        // clicked, and a soul with no rooms yet still has a climb and a residue to report (#83)
+        final SyncSoulAnchorMessage.Anchor anchor = SyncSoulAnchorMessage.ClientAnchor.consumeIfNew();
 
-        if (attunement != null && minecraft.screen == null && !attunement.isEmpty())
+        if (anchor != null && minecraft.screen == null)
         {
-            minecraft.setScreen(new SoulAnchorScreen(attunement));
+            minecraft.setScreen(new SoulAnchorScreen(anchor.ascension(), anchor.attunement()));
         }
     }
 }
