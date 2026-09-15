@@ -8,6 +8,7 @@ import leaf.soulhome.advancements.SoulAdvancements;
 import leaf.soulhome.buffs.PlayerSoulBuffs;
 import leaf.soulhome.buffs.SoulBuffEffects;
 import leaf.soulhome.compat.patchouli.PatchouliCompat;
+import leaf.soulhome.config.SoulHomeClientConfig;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.registry.*;
@@ -67,6 +68,11 @@ public class SoulHome
         // every number the structure buffs are tuned by; registered here so the file exists before
         // a world is loaded
         SoulHomeConfig.register();
+
+        // and the one file that is the player's rather than the server's: how their own soul looks
+        // and sounds (#163/#167). Registered unconditionally - Forge only reads a client config on
+        // a client, and a dedicated server writes nothing for it.
+        SoulHomeClientConfig.register();
 
         // init cross mod compatibility stuff, if relevant
         PatchouliCompat.init();

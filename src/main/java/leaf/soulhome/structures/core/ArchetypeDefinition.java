@@ -7,7 +7,9 @@ package leaf.soulhome.structures.core;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Set;
 
@@ -49,6 +51,12 @@ import java.util.Set;
  *                      that must stay the zero-cost path. An aspect is not evidence and is not
  *                      scored: it selects which buff the room's magnitude is paid into and changes
  *                      nothing else. See {@link Aspect}.
+ * @param character    what a room of this kind says about the soul it stands in, as trait id to
+ *                      weight - the Ambience epic (#163/#165). Not evidence either, and read by
+ *                      nothing that produces a score: it colours the sky and nothing else, which is
+ *                      why an archetype declaring none is neither penalised nor defaulted to
+ *                      anything. A trait this version does not know is dropped with a warning
+ *                      rather than taking the archetype down with it. See {@link SoulTrait}.
  */
 public record ArchetypeDefinition(
         String id,
@@ -62,7 +70,8 @@ public record ArchetypeDefinition(
         List<BuffSpec> buffs,
         List<Form> structures,
         List<Bond> bonds,
-        List<Aspect> aspects)
+        List<Aspect> aspects,
+        Map<String, Double> character)
 {
     /**
      * Default per-signal ceiling. Caps are the hard backstop against volume-stuffing; the
@@ -88,6 +97,7 @@ public record ArchetypeDefinition(
         structures = structures == null ? List.of() : List.copyOf(structures);
         bonds = bonds == null ? List.of() : List.copyOf(bonds);
         aspects = aspects == null ? List.of() : List.copyOf(aspects);
+        character = character == null ? Map.of() : Map.copyOf(character);
 
         // ascending, so tierFor can walk them and take the last one cleared
         List<Tier> sortedTiers = new ArrayList<>(tiers == null ? List.of() : tiers);
@@ -129,13 +139,32 @@ public record ArchetypeDefinition(
                 structures, bonds, List.of());
     }
 
+    /** An archetype declaring no character - every archetype before #163, and most fixtures since. */
+    public ArchetypeDefinition(
+            String id,
+            String displayName,
+            List<RegionType> regionTypes,
+            int minVolume,
+            List<Requirement> requirements,
+            List<Signal> signals,
+            List<Signal> detractors,
+            List<Tier> tiers,
+            List<BuffSpec> buffs,
+            List<Form> structures,
+            List<Bond> bonds,
+            List<Aspect> aspects)
+    {
+        this(id, displayName, regionTypes, minVolume, requirements, signals, detractors, tiers, buffs,
+                structures, bonds, aspects, Map.of());
+    }
+
     /** The loader supplies the id from the file path; the file body does not get to name itself. */
     public ArchetypeDefinition withId(String newId)
     {
         return new ArchetypeDefinition(
                 newId, this.displayName, this.regionTypes, this.minVolume,
                 this.requirements, this.signals, this.detractors, this.tiers, this.buffs,
-                this.structures, this.bonds, this.aspects);
+                this.structures, this.bonds, this.aspects, this.character);
     }
 
     /**
@@ -158,6 +187,38 @@ public record ArchetypeDefinition(
         }
 
         return null;
+    }
+
+    /**
+     * This archetype's character pulls, resolved against the trait vocabulary this version knows.
+     *
+     * <p>An id that is not a {@link SoulTrait} is dropped here and reported by
+     * {@link #validationWarnings} at load - a pack written against a later version of the mod
+     * should lose its colouring, not its rooms, and #165 already says an archetype that declares
+     * nothing contributes nothing, so a dropped trait lands on a path that is known to be safe.
+     */
+    public Map<SoulTrait, Double> characterPulls()
+    {
+        if (this.character.isEmpty())
+        {
+            return Map.of();
+        }
+
+        Map<SoulTrait, Double> pulls = new LinkedHashMap<>();
+
+        for (Map.Entry<String, Double> entry : this.character.entrySet())
+        {
+            final SoulTrait trait = SoulTrait.byId(entry.getKey());
+
+            if (trait == null || entry.getValue() == null || entry.getValue() <= 0d)
+            {
+                continue;
+            }
+
+            pulls.merge(trait, entry.getValue(), Double::sum);
+        }
+
+        return Map.copyOf(pulls);
     }
 
     /** The aspect that pays this archetype's own {@link #buffs}, or null when none is declared. */
@@ -347,6 +408,16 @@ public record ArchetypeDefinition(
             }
         }
 
+        for (Map.Entry<String, Double> pull : this.character.entrySet())
+        {
+            // a trait this version has never heard of is a warning; a weight that is not a weight
+            // is a typo, and one that would quietly pull a soul the wrong way
+            if (pull.getValue() == null || !Double.isFinite(pull.getValue()) || pull.getValue() <= 0d)
+            {
+                errors.add("character: '" + pull.getKey() + "' must be a positive weight");
+            }
+        }
+
         collectAspectErrors(errors);
 
         return errors;
@@ -436,6 +507,15 @@ public record ArchetypeDefinition(
             for (String warning : this.aspects.get(i).validationWarnings())
             {
                 warnings.add("aspects[" + i + "]: " + warning);
+            }
+        }
+
+        for (String trait : this.character.keySet())
+        {
+            if (SoulTrait.byId(trait) == null)
+            {
+                warnings.add("character: unknown trait \"" + trait
+                        + "\", which contributes nothing to this soul's ambience");
             }
         }
 

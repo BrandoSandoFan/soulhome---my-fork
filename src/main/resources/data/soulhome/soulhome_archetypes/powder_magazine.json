@@ -1,5 +1,6 @@
 {
   "display_name": "archetype.soulhome.powder_magazine",
+  "character": { "warm": 0.9, "wrought": 0.6 },
   "region_types": ["enclosed"],
   "min_volume": 27,
 

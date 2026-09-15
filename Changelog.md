@@ -1162,3 +1162,55 @@ ascension ritual or the residue tap at a chosen figure meant actually building t
   soul's own scanned total.
 - Operator-only, like `ascent set`, and saved with the rest of a soulhome's data so it survives a
   restart; a soulhome that has never used it saves exactly as it always did.
+
+A soul that looks like somewhere
+
+The dimension is meant to be the inside of your own soul, and it looked identical whatever you did
+to it: the same flat sky over the same island, on your first day and at rank V, with one room in it
+or with twenty. Everything else in the mod reads what you built and answers it. The place itself was
+the one thing that stayed silent, and it is the thing you spend the most time looking at.
+
+- Cosmetic, all of it. Nothing here changes what a room is worth, what a buff does, what anything
+  costs, or what is written to your soul's save. Turn every part of it off and you lose the look and
+  nothing else.
+- The sky answers your rank. A rank 0 soul is a close, low-ceilinged place and the void stands not
+  far past your own walls; each rank opens it further, until a rank V soul reads as somewhere you
+  could lose a shout in. It never comes closer than the far corner of the box you may build in, at
+  any rank, at any setting - there is no way to make the haze stand between you and something you
+  were allowed to place.
+- Finishing an ascension opens it. The rank arrives the instant the ritual completes and the sky
+  takes about ten seconds to lift, so the thirty seconds in the pillar now end on something you can
+  see from where you are standing.
+- The firmament and the verge drift. A thin scatter of motes hangs under the ceiling and along the
+  walls, thickening as the box grows, so from the middle of your island you have some sense of how
+  much room is around you - which the existing shimmer, by design, only tells you once you are near
+  a wall. A grandfathered soul (the ones that kept their old build after the Ascent landed) reads
+  out to its old edges rather than to today's, so nothing you already built looks out of bounds.
+- The colour answers what you built. Hearths, mead halls and powder magazines read warm; aquariums,
+  cold storage and gale roosts read cold; sanctums, rift chambers and shrines read otherwise again,
+  and workshops, mines and armouries otherwise again. It is a blend, weighted by what each room
+  scored - an empty soul is neutral, a soul somebody has lived in is strongly coloured, and there is
+  no point at which one more room finishes the job.
+- A soul that has built both halves of something gets a third thing rather than the average of the
+  two. Forges and freezers together read as steam, not as lukewarm. Worked metal and the arcane
+  together read as the air between them. Growing things in an emptied place read as overgrowth. This
+  is the part worth knowing, because "you have built a great deal of two opposite things" and "you
+  have built nothing in particular" are not the same answer and the obvious arithmetic gives you the
+  second one.
+- Your soul is never told it is a kind of soul. There is no label, no threshold, no name, and
+  nothing anywhere in the mod will say what colour you have earned. If you want to know, look at it.
+- A room says what it pulls toward in its own JSON (`"character": {"warm": 1.0}`), so a datapack's
+  room colours the soul it is built in with no Java change. A room that declares nothing contributes
+  nothing - the library ships that way, because a library says nothing about what kind of place a
+  soul is.
+- Sound, sparingly. Single distant sounds a minute or more apart, chosen by what your soul is made
+  of and pitched lower as it grows. There is no loop and no ambient bed, so there is no cycle to
+  notice; they play in the Ambient/Environment category, under your own slider and this mod's.
+- Switches: this is the first thing in the mod that is yours rather than the server's, so it lives
+  in a second config file, `config/soulhome-client.toml`, and there is a screen for it under
+  Mods -> SoulHome -> Config. A master switch, one switch each for the rank sky, the colouring and
+  the sound, and an intensity slider that reaches zero - which is the one control that turns off
+  everything, for anyone who would rather not hunt for four of them.
+- Nothing flashes or strobes, at any rank, during an ascension included: every part of this eases
+  toward where it is going over seconds and cannot move faster. The light you build by is untouched
+  - what changes is the colour of the distance, never how bright the floor is.

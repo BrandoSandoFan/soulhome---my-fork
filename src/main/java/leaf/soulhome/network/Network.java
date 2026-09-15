@@ -44,6 +44,7 @@ public class Network
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAbilitiesMessage.CODEC, SyncSoulAbilitiesMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSurveyedBlocksMessage.CODEC, SyncSurveyedBlocksMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAnchorMessage.CODEC, SyncSoulAnchorMessage.INVALID);
+        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAmbienceMessage.CODEC, SyncSoulAmbienceMessage.INVALID);
 
         //the only four that travel client to server - see UseSoulAbilityMessage on why that matters
         registerCodecPacket(id++, NETWORK_CHANNEL, UseSoulAbilityMessage.CODEC, UseSoulAbilityMessage.INVALID);
