@@ -1,5 +1,6 @@
 {
   "display_name": "archetype.soulhome.storm_spire",
+  "character": { "cold": 0.5, "wrought": 0.5 },
   "region_types": ["open"],
   "min_volume": 27,
 

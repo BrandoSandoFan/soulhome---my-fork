@@ -51,7 +51,7 @@ maths). What it does **not** cover, and what CI is therefore the first real comp
 
 | Not covered offline | Why |
 | --- | --- |
-| `config/SoulHomeConfig` | `ModConfigSpec` |
+| `config/SoulHomeConfig`, `config/SoulHomeClientConfig` | `ModConfigSpec` |
 | `structures/SnapshotBlockVolume`, `ArchetypeManager`, `StructureScanService` | `ServerLevel`, datapack reload |
 | `feedback/RegionHighlight`, all `network/*` | Mojang `Codec` (DataFixerUpper) |
 | `datagen/**` and its tests | `DataGenerator`, `Codec` |
@@ -130,11 +130,11 @@ The bridge is three small interfaces/records:
 | --- | --- |
 | `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. |
 | `structures` | the game-facing half: snapshot, datapack loading, scan scheduling, saved data, codecs (`ArchetypeCodecs`, `FormCodecs`, `BondCodecs`) |
-| `config` | one `ModConfigSpec`; every knob is server-side and read through an immutable `Snapshot` |
+| `config` | two `ModConfigSpec`s: the server's, read through an immutable `Snapshot`, and the client's, which holds only the cosmetic ambience knobs |
 | `buffs`, `buffs/effects` | the capability holding a player's magnitudes, and one class per buff type |
 | `feedback` | `SoulReport` (chat text for `/soulhome analyse`) and `RegionHighlight` (lens boxes) |
-| `network` | sync messages: buffs, regions, archetypes, dimension list |
-| `client` | Soul Lens rendering, client-side buff hooks |
+| `network` | sync messages: buffs, regions, archetypes, dimension list, a soul's ambience |
+| `client` | Soul Lens rendering, client-side buff hooks, the soul's ambience (sky, fog, motes, sound) |
 | `commands` | `/soulhome analyse`, `/soulhome buffs` |
 | `compat` | other mods' attributes, resolved by name so none of them is a hard dependency |
 | `datagen` | the Patchouli guide book, lang, recipes, advancements. Output is committed under `src/main/generated`. |
@@ -328,6 +328,45 @@ archetype's own top-level `buffs`. The rules that hold, and that the tests pin:
   the room nothing. That last line is not decoration: two competing numbers mean a dilution
   everywhere else in this mod, and an unexplained aspect reads as a nerf.
 
+### Ambience: what the place looks and sounds like
+
+The soul dimension answers two things and nothing else (#163): how far it has climbed, and what is
+built in it. All of it is cosmetic - `SoulAmbienceService` writes nothing, schedules nothing and
+consumes a classification that already existed. The rules, and what breaks if one is missed:
+
+- **A soul is never assigned a kind.** `SoulCharacter` sums each room's declared pulls, weighted by
+  what that room scored, and hands back leanings rather than a verdict. There is no threshold, no
+  label, and nothing in `feedback`, the lens, the book or a command names a trait, an axis or a
+  blend. The mod judges fuzzily everywhere else; an ambience announcing "your soul is a fire soul"
+  would be the first thing in it to sort a player into a box.
+- **Both poles at once is a third thing, not the average.** This is the one that will be
+  reimplemented wrongly by someone doing the obvious thing. Warm and cold built in equal measure is
+  *steam* - see `SoulAxis` and `SoulAmbience.axisColour`, where `tension` carries the blend toward
+  the contested reading. Averaging them would tell a player who has built a great deal of two
+  opposite things that they have built nothing in particular.
+- **Fog is placed off the far corner of the box**, derived from the soulhome's own verge (or its
+  legacy reach, where that is further), so no rank, blend or intensity can put haze between a player
+  and something they were allowed to place. `SoulAmbienceTest` sweeps every rank and intensity for
+  this. The lightmap is never touched: the light you build by is the same at rank 0 and rank V.
+- **Everything is a target, and the client eases toward it.** `ClientAmbience` moves by a fixed
+  share per tick, which is both the "interpolate over seconds" of #165 and the whole of #167's
+  no-flashing rule - nothing can move faster than the easing allows, whatever arrives on the wire.
+- **Which traits a room pulls toward is data; what a trait looks like is not.** An archetype's
+  `character` block names ids from `SoulTrait`; the colours and sounds live in
+  `SoulAmbience.Palette`. A colour in a datapack is a datapack that can make a soul unreadably dark,
+  and #167 rules that out at the level of the mechanism. An unknown trait id is dropped with a load
+  warning, never an error - a pack written against a later version should lose its colouring, not
+  its rooms.
+- **The ambience belongs to the place, not the looker.** `SyncSoulAmbienceMessage` is the only sync
+  in the mod sent to a dimension rather than to an owner, so a visitor sees the soul they are
+  standing in. Their buffs, rank and attunement stay their own.
+- **Read from every classified room, not the attuned ones.** Attunement is about what a player
+  carries out; a library they are not carrying today is still standing there. A loadout change
+  repainting the sky would read as a bug.
+- **Off means off, and it is the player's switch.** `AmbienceSettings.active()` is false at
+  `intensity` 0 as well as with the master switch off, and `SoulAmbience.of` then returns `NONE`,
+  which every surface treats as "change nothing" rather than "set it to the same value".
+
 ### Attunement: which rooms a soul is actually carrying
 
 A soulhome grants only the rooms bound into its attunement slots (#151). Everything lives in
@@ -402,13 +441,26 @@ must not become one:
 
 ## Config
 
-One file: `config/SoulHomeConfig`, all server-side, read through an immutable `Snapshot` so a reload
-cannot land halfway through a scan. Values that fail a settings record's validation fall back to the
-defaults with a log line rather than refusing to start - keep that property when adding a knob.
+Two files, and the split is the whole of the rule: **a knob that changes an outcome is the server's;
+a knob that changes only what one person sees is that person's.**
+
+`config/SoulHomeConfig` is the server one, and is where everything belongs unless it is purely
+cosmetic. All server-side, read through an immutable `Snapshot` so a reload cannot land halfway
+through a scan. Values that fail a settings record's validation fall back to the defaults with a log
+line rather than refusing to start - keep that property when adding a knob.
 
 `ScanSettings`, `ScoringSettings` and `BuffSettings` are records in `structures/core` and are the
 single source of truth for defaults; the config spec should reference their `DEFAULT_*` constants
 rather than repeating a number.
+
+`config/SoulHomeClientConfig` (`soulhome-client.toml`) is the client one, added by the Ambience epic
+(#163/#167), and holds exactly one section: whether and how strongly a soul answers its rank and its
+rooms. It exists because a server has no business deciding whether one player sees fog. Registered
+off the mod's own `ModContainer` beside the server spec, read straight rather than through a
+snapshot - nothing is being computed against it, so a value that changes between two frames is just
+a value that changed between two frames - and its defaults live on `AmbienceSettings` in
+`structures/core` like every other settings record. Nothing on the server reads it, and nothing that
+decides an outcome may be put in it.
 
 ---
 

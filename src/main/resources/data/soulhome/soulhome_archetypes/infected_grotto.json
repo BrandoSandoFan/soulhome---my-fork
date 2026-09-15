@@ -1,5 +1,6 @@
 {
   "display_name": "archetype.soulhome.infected_grotto",
+  "character": { "hollow": 1, "verdant": 0.8 },
   "region_types": ["enclosed"],
   "min_volume": 64,
 
