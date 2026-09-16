@@ -51,9 +51,6 @@ public final class SoulAmbienceSounds
     /** Longest, at three and a half minutes. Drawn uniformly, so nothing about it is periodic. */
     private static final int MAX_GAP = 4_200;
 
-    /** How far off a sound is placed. Distant, so it reads as the place rather than as an event. */
-    private static final double DISTANCE = 16d;
-
     private static int ticksUntilNext = MIN_GAP;
 
     private SoulAmbienceSounds()
@@ -102,10 +99,15 @@ public final class SoulAmbienceSounds
         final SoulVoice voice = SoulAmbience.voiceFor(soul.character(), random.nextDouble());
         final SoundEvent sound = soundFor(voice, random);
 
+        // placed relative to the listener - the player's ear, not their feet (#208) - and kept
+        // well inside vanilla's audible radius; see SoulAmbience.oneShotPlacement's javadoc
+        final SoulAmbience.OneShotPlacement placement =
+                SoulAmbience.oneShotPlacement(random.nextDouble(), random.nextDouble());
+
         final double angle = random.nextDouble() * Math.PI * 2d;
-        final double x = minecraft.player.getX() + Math.cos(angle) * DISTANCE;
-        final double z = minecraft.player.getZ() + Math.sin(angle) * DISTANCE;
-        final double y = minecraft.player.getY() + (random.nextDouble() * 2d - 1d) * 4d;
+        final double x = minecraft.player.getX() + Math.cos(angle) * placement.horizontalDistance();
+        final double z = minecraft.player.getZ() + Math.sin(angle) * placement.horizontalDistance();
+        final double y = minecraft.player.getEyeY() + placement.verticalOffset();
 
         // pitched down as a soul grows, so a rank V soul sounds like a larger room than a rank 0
         // one - the same cue the fog distance gives, in the one sense the fog cannot reach
