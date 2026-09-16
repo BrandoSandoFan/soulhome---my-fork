@@ -12,6 +12,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.common.util.FakePlayer;
 
+import java.util.Map;
+import java.util.UUID;
+
 /**
  * The one way an effect asks "what is this player's magnitude for buff X".
  *
@@ -119,6 +122,33 @@ public final class SoulBuffs
         {
             sync(player);
         }
+    }
+
+    /**
+     * Replace a player's trophy-room grudges (#196) - who they take less knockback from, and by
+     * how much. Never synced to the client: the targeted half is graded entirely server-side, off
+     * the attacker recorded in {@code LivingHurtEvent}, so there is nothing a client ever needs to
+     * predict from it.
+     */
+    public static void setGrudges(ServerPlayer player, Map<UUID, Double> grudges)
+    {
+        if (player == null || player instanceof FakePlayer)
+        {
+            return;
+        }
+
+        player.getData(SoulBuffsAttachment.BUFFS).setGrudges(grudges);
+    }
+
+    /** This player's targeted knockback grudge against {@code attacker} - zero for none. */
+    public static double grudgeAgainst(ServerPlayer player, UUID attacker)
+    {
+        if (!SoulHomeConfig.enabled() || player == null || player instanceof FakePlayer || attacker == null)
+        {
+            return 0d;
+        }
+
+        return player.getData(SoulBuffsAttachment.BUFFS).grudgeAgainst(attacker);
     }
 
     /** Push the player's current buffs to their client unconditionally. */

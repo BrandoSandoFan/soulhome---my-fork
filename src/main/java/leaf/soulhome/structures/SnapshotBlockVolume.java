@@ -9,6 +9,7 @@ import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.structures.core.BlockSignature;
 import leaf.soulhome.structures.core.BlockVolume;
 import leaf.soulhome.structures.core.Facing;
+import leaf.soulhome.structures.core.HeadOwner;
 import leaf.soulhome.structures.core.Passability;
 import leaf.soulhome.structures.core.RegionBounds;
 import leaf.soulhome.structures.core.RegionScanner;
@@ -21,13 +22,17 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * A copy of a slice of a {@link ServerLevel}, taken once so that region detection can then run
@@ -60,6 +65,15 @@ public final class SnapshotBlockVolume implements BlockVolume
     private final BlockSignature[] signatures;
     private final Facing[] facings;
 
+    /**
+     * Position to whoever's head stands there - the trophy room's targeted knockback side channel
+     * (#196). Collected here, alongside everything else this sweep already reads, rather than by a
+     * second pass over the level; empty and untouched whenever
+     * {@code SoulHomeConfig.trackTrophyHeads()} is off, which is what keeps the switch's cost at
+     * exactly zero rather than merely at "computed and then discarded".
+     */
+    private final Map<BlockPos, HeadOwner> headOwners = new HashMap<>();
+
     private SnapshotBlockVolume(RegionBounds bounds)
     {
         this.bounds = bounds;
@@ -89,6 +103,7 @@ public final class SnapshotBlockVolume implements BlockVolume
     public static SnapshotBlockVolume capture(ServerLevel level, RegionBounds bounds)
     {
         SnapshotBlockVolume snapshot = new SnapshotBlockVolume(bounds);
+        final boolean trackHeads = SoulHomeConfig.trackTrophyHeads();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
 
         final int minChunkX = bounds.minX() >> 4;
@@ -153,6 +168,12 @@ public final class SnapshotBlockVolume implements BlockVolume
                                 {
                                     snapshot.signatures[index] = signatureOf(chunk, cursor, state);
                                     snapshot.facings[index] = facingOf(state);
+
+                                    if (trackHeads)
+                                    {
+                                        headOwnerOf(chunk, cursor, state).ifPresent(owner ->
+                                                snapshot.headOwners.put(cursor.immutable(), owner));
+                                    }
                                 }
                             }
                         }
@@ -192,6 +213,38 @@ public final class SnapshotBlockVolume implements BlockVolume
         }
 
         return StateSignature.of(state);
+    }
+
+    /**
+     * Whoever's head this is, if it names a player at all - a mob head's block entity carries no
+     * {@code GameProfile}. Only ever consulted for {@code minecraft:player_head}, the one head
+     * variant the trophy room's own form asks about (#196) - a wall-mounted head is a different
+     * block and out of scope for the same reason it is out of scope for the room's arrangement
+     * check.
+     */
+    private static Optional<HeadOwner> headOwnerOf(LevelChunk chunk, BlockPos pos, BlockState state)
+    {
+        if (!(state.getBlock() instanceof net.minecraft.world.level.block.SkullBlock)
+                || state.getBlock() != net.minecraft.world.level.block.Blocks.PLAYER_HEAD)
+        {
+            return Optional.empty();
+        }
+
+        final BlockEntity blockEntity = chunk.getBlockEntity(pos);
+
+        if (!(blockEntity instanceof SkullBlockEntity skull))
+        {
+            return Optional.empty();
+        }
+
+        final net.minecraft.world.item.component.ResolvableProfile profile = skull.getOwnerProfile();
+
+        if (profile == null || profile.id().isEmpty())
+        {
+            return Optional.empty();
+        }
+
+        return Optional.of(new HeadOwner(profile.id().get(), profile.name().orElse(null)));
     }
 
     /**
@@ -536,6 +589,16 @@ public final class SnapshotBlockVolume implements BlockVolume
     public RegionBounds bounds()
     {
         return this.bounds;
+    }
+
+    /**
+     * Position to whoever's head stands there, gathered at capture time - see
+     * {@link #headOwners}. Empty whenever {@code SoulHomeConfig.trackTrophyHeads()} was off for
+     * this capture.
+     */
+    public Map<BlockPos, HeadOwner> headOwners()
+    {
+        return Map.copyOf(this.headOwners);
     }
 
     @Override

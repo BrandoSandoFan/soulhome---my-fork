@@ -212,6 +212,9 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.BUFFS_NOT_LOST,
                 "Rooms you have not attuned are not lost - they still count toward residue and toward the climb.");
 
+        add(Constants.StringKeys.BUFFS_TROPHY_GRUDGE_HEADER, "Mounted in your trophy room:");
+        add(Constants.StringKeys.BUFFS_TROPHY_GRUDGE, "%1$s - you take %2$s less knockback from them");
+
         add(Constants.StringKeys.ATTUNE_EXCEEDED_HEADER,
                 "Your soul holds more rooms than you can carry at once. Your best are attuned already.");
         add(Constants.StringKeys.ATTUNE_EXCEEDED_SLOTS, "You can attune %s rooms and %s abilities at your soul's rank.");

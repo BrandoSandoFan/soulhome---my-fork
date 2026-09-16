@@ -350,6 +350,43 @@ public final class SoulReport
     }
 
     /**
+     * Whose heads are mounted in this player's carried trophy rooms, and how much less knockback
+     * they take from each - the trophy room's targeted resistance (#196). Empty when the player
+     * carries no trophy room with a head mounted, which includes every server with the room's own
+     * tracking knob off: nothing here to say plainly when there is nothing collected to say.
+     */
+    public static List<Component> trophyGrudgeLines(List<AwardedRoom> carried)
+    {
+        List<Component> lines = new ArrayList<>();
+
+        for (AwardedRoom room : carried)
+        {
+            if (!room.hasMountedHeads())
+            {
+                continue;
+            }
+
+            final double fraction = leaf.soulhome.structures.core.TrophyGrudges.fractionFor(room.tier());
+
+            for (leaf.soulhome.structures.core.HeadOwner owner : room.mountedHeads())
+            {
+                lines.add(translated(
+                        Constants.StringKeys.BUFFS_TROPHY_GRUDGE,
+                        Component.literal(owner.lastKnownName()),
+                        String.format(Locale.ROOT, "%.0f%%", fraction * 100d))
+                        .withStyle(ChatFormatting.LIGHT_PURPLE));
+            }
+        }
+
+        if (!lines.isEmpty())
+        {
+            lines.add(0, translated(Constants.StringKeys.BUFFS_TROPHY_GRUDGE_HEADER).withStyle(ChatFormatting.GRAY));
+        }
+
+        return lines;
+    }
+
+    /**
      * The one message a player gets, once, the first time their soul holds more rooms than it can
      * carry (#157).
      *

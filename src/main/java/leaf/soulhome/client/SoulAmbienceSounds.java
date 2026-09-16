@@ -38,10 +38,21 @@ import net.minecraft.util.RandomSource;
  * <h2>Category and volume</h2>
  *
  * <p>Everything plays under {@link SoundSource#AMBIENT}, the Ambient/Environment slider, so a
- * player can turn this down without touching blocks, mobs or music. That is the closest thing to
- * "its own category" that exists: {@code SoundSource} is a vanilla enum and a mod cannot add to it
- * without doing something to the enum that nobody should do to an enum. On top of it sits this
- * mod's own volume knob, defaulting well under a block being placed.
+ * player can turn this down without touching blocks, mobs or music - though that slider also
+ * carries cave sounds, weather and every other environmental cue, so it is not the same as turning
+ * only the soul down (#211).
+ *
+ * <p><b>Finding, #211:</b> checked directly against the mapped {@code 1.21.1}/NeoForge 21.1.250
+ * jar rather than assumed to match the {@code 1.20.1} finding - the two lines patch different
+ * enums extensible, so this had to be re-derived rather than copied. {@code SoundSource} is not
+ * one of them here either: it remains a plain {@code final class extends Enum<SoundSource>}, with
+ * no {@code create} factory and no NeoForge extensible-enum support (see {@code
+ * net.neoforged.neoforge.network.configuration.CheckExtensibleEnums}, which knows nothing about
+ * this enum). The answer is the same as on {@code 1.20.1} for an independently-confirmed reason:
+ * a dedicated vanilla sound category for this mod is only reachable through a mixin against the
+ * enum's own constant pool, and that was judged not worth it for one options-screen slider.
+ * {@code AMBIENT} plus this mod's own {@code sound_volume} knob is the real ceiling here, not a
+ * placeholder for something better - see the config comment on that knob.
  */
 public final class SoulAmbienceSounds
 {

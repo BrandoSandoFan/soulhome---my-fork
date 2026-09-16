@@ -13,6 +13,7 @@ import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * The buffs one player is currently carrying, and the state of the ones they press (#87).
@@ -42,6 +43,15 @@ public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
     private SoulBuffSet buffs = SoulBuffSet.empty();
     private final Map<String, AbilityCharges> abilities = new LinkedHashMap<>();
     private String selectedAbility = "";
+
+    /**
+     * The trophy room's targeted knockback resistance (#196): who this player takes less
+     * knockback from, and by how much. Recomputed alongside {@link #buffs} on every scan and every
+     * login, never persisted - the mounted heads it is derived from already are, in
+     * {@code SoulHomeBuffData}, and re-deriving it there is what keeps "the head comes down, the
+     * grudge goes with it on the next scan" true without a save format of its own.
+     */
+    private Map<UUID, Double> knockbackGrudges = Map.of();
 
     // The ascension rank (#84) these buffs were computed at, cached here rather than looked up
     // fresh: SoulBuffs.magnitude() re-clamps every read against the buff type's cap (#85 raises
@@ -90,6 +100,17 @@ public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
         }
 
         return true;
+    }
+
+    /** How much less knockback this player takes from {@code attacker}, zero for no grudge. */
+    public double grudgeAgainst(UUID attacker)
+    {
+        return this.knockbackGrudges.getOrDefault(attacker, 0d);
+    }
+
+    public void setGrudges(Map<UUID, Double> grudges)
+    {
+        this.knockbackGrudges = grudges == null || grudges.isEmpty() ? Map.of() : Map.copyOf(grudges);
     }
 
     /** This ability's charges and clock, or an empty bank if it has never been granted. */
