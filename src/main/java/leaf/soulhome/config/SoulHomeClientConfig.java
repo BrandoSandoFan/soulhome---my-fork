@@ -128,7 +128,11 @@ public final class SoulHomeClientConfig
             this.soundVolume = builder
                     .comment(
                             "Volume of the ambient one-shots, 0 to 1, on top of your own Ambient/Environment",
-                            "slider. The default sits under a block being placed on purpose.")
+                            "slider. The default sits under a block being placed on purpose.",
+                            "This is the real mix control, not a stand-in for a dedicated options-screen slider:",
+                            "SoundSource has no extensible-enum support on NeoForge either (#211), so there is no",
+                            "vanilla category of this mod's own to put a slider under. Turning the soul down",
+                            "without also turning down cave sounds and weather means this knob.")
                     .defineInRange("sound_volume", AmbienceSettings.DEFAULT_SOUND_VOLUME, 0d, 1d);
 
             builder.pop();

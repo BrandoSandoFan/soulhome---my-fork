@@ -57,7 +57,7 @@ public class SoulHome
         SoulAdvancements.TRIGGERS.register(modBus);
         DataSerializersRegistry.DATA_SERIALIZERS.register(modBus);
         //AttributesRegistry.ATTRIBUTES.register(modBus);
-        //EntityRegistry.ENTITIES.register(modBus);
+        EntityRegistry.ENTITIES.register(modBus);
 
         //FeatureRegistry.FEATURES.register(modBus);
         //RecipeRegistry.SPECIAL_RECIPES.register(modBus);

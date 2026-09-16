@@ -1276,3 +1276,46 @@ actually a soul with none.
 - The placement maths moved into `structures/core` (`SoulAmbience.oneShotPlacement`), pinned by a
   test that checks every possible roll stays clear of the cutoff - the same shape as the fog sweep
   above it, and for the same reason: a future tuning pass could easily push it back out unnoticed.
+
+Barrage fires real shells now, not an instant cone
+
+Barrage used to be a hitscan: every burst in the fan landed the moment you pressed the key, at a
+fixed range, with nothing to see coming and nothing a target could step out of. It read as an
+explosion happening near you rather than one you caused at a distance.
+
+- Each shot is now a real, visible projectile that flies from where you are aiming and detonates on
+  whatever it hits first - a block or an entity - a few ticks after you press the key, not
+  instantly. A moving target can see it coming and step aside.
+- The explosion it lands with still breaks no blocks, sets nothing on fire, and primes no TNT - the
+  powder magazine's own TNT is exactly as safe as it always was. Damage is still the same flat,
+  capped amount per shot, and a target standing where two shells land still takes one roll rather
+  than two - this is a buff to how the ability reads, not to how hard it hits.
+
+A trophy room remembers whose head is on the wall
+
+The room already scored a player head as one signal among seven and paid an undirected knockback
+resistance for it. Whose head it was changed nothing - the hardest-won trophy in the game was
+scored as decoration.
+
+- Mount a specific player's head in a tier-carrying trophy room and you take noticeably less
+  knockback from that player specifically, on top of whatever the room already paid in general -
+  25% at tier 1, rising to 50% at tier 3. Mob heads are unaffected and behave exactly as before.
+- The grudge is tied to the head, not the room's score: take the head down and rescan, and the
+  grudge goes with it. Renaming does not save you - the identity behind it is the player's own
+  account, not their current name.
+- A server-side switch, `structure_buffs.trophy_room.track_player_heads`, defaults on. Off collects
+  nothing at capture time, saves nothing, and registers no listener - a save written with it off is
+  byte-for-byte one written before this landed.
+- `/soulhome buffs` now names whose heads are mounted and what each is worth against them - a buff
+  nobody can see is a buff nobody builds for.
+
+SoundSource has no extensible-enum support here either - the finding, not a workaround
+
+#166 asked whether the soul's ambience could get its own vanilla sound category, with its own
+slider in Options -> Music & Sounds, instead of sharing Ambient/Environment with cave sounds and
+weather. Checked directly against the mapped NeoForge 21.1.250 jar rather than assumed to match the
+`1.20.1` finding, since the two lines patch different enums extensible: `SoundSource` is a plain
+`final class` here too, and NeoForge's own extensible-enum machinery knows nothing about it.
+Recorded in the class javadoc and the `sound_volume` config comment rather than left as an open
+question - the mod's own volume knob under `AMBIENT` is the real, permanent mix control on this
+line as well, not a placeholder for something better.

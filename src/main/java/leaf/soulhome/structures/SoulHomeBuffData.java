@@ -62,6 +62,16 @@ public class SoulHomeBuffData extends SavedData
     private static final String KEY_FOOTPRINT = "Footprint";
 
     /**
+     * Whose heads a trophy room holds (#196). Written only when the room actually has one, so a
+     * save from a server with {@code trophy_room_track_player_heads} off - or from before the
+     * feature - is byte-for-byte what it always was. Recomputed from the world on every scan,
+     * never trusted as truth in its own right - see {@link AwardedRoom#mountedHeads}.
+     */
+    private static final String KEY_MOUNTED_HEADS = "MountedHeads";
+    private static final String KEY_HEAD_ID = "Id";
+    private static final String KEY_HEAD_NAME = "Name";
+
+    /**
      * Which rooms this soulhome is carrying (#152), and the serial the next new room gets. Both
      * absent on a soulhome that has never attuned anything, which is every soulhome the update lands
      * on: nothing is bound, so the player's first scan hands them every buff they had, and the first
@@ -196,7 +206,8 @@ public class SoulHomeBuffData extends SavedData
 
             rooms.add(new AwardedRoom(
                     archetype, tier, room.getDouble(KEY_SCORE), room.getString(KEY_ASPECT),
-                    room.getInt(KEY_ROOM_ID), readBounds(room, KEY_FOOTPRINT)));
+                    room.getInt(KEY_ROOM_ID), readBounds(room, KEY_FOOTPRINT),
+                    readMountedHeads(room)));
         }
 
         data.awardedRooms = List.copyOf(rooms);
@@ -289,6 +300,21 @@ public class SoulHomeBuffData extends SavedData
             if (room.footprint() != null)
             {
                 entry.putIntArray(KEY_FOOTPRINT, bounds(room.footprint()));
+            }
+
+            if (room.hasMountedHeads())
+            {
+                ListTag heads = new ListTag();
+
+                for (leaf.soulhome.structures.core.HeadOwner owner : room.mountedHeads())
+                {
+                    CompoundTag head = new CompoundTag();
+                    head.putUUID(KEY_HEAD_ID, owner.id());
+                    head.putString(KEY_HEAD_NAME, owner.lastKnownName());
+                    heads.add(head);
+                }
+
+                entry.put(KEY_MOUNTED_HEADS, heads);
             }
 
             list.add(entry);
@@ -805,6 +831,33 @@ public class SoulHomeBuffData extends SavedData
             LogHelper.warn("Discarding an invalid saved room footprint: " + e);
             return null;
         }
+    }
+
+    /** The inverse of the {@code MountedHeads} write above - empty for a room with none saved. */
+    private static List<leaf.soulhome.structures.core.HeadOwner> readMountedHeads(CompoundTag room)
+    {
+        if (!room.contains(KEY_MOUNTED_HEADS))
+        {
+            return List.of();
+        }
+
+        ListTag heads = room.getList(KEY_MOUNTED_HEADS, Tag.TAG_COMPOUND);
+        List<leaf.soulhome.structures.core.HeadOwner> owners = new ArrayList<>();
+
+        for (int index = 0; index < heads.size(); index++)
+        {
+            CompoundTag head = heads.getCompound(index);
+
+            if (!head.hasUUID(KEY_HEAD_ID))
+            {
+                continue;
+            }
+
+            owners.add(new leaf.soulhome.structures.core.HeadOwner(
+                    head.getUUID(KEY_HEAD_ID), head.getString(KEY_HEAD_NAME)));
+        }
+
+        return owners;
     }
 
     /**
