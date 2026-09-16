@@ -1214,3 +1214,17 @@ the one thing that stayed silent, and it is the thing you spend the most time lo
 - Nothing flashes or strobes, at any rank, during an ascension included: every part of this eases
   toward where it is going over seconds and cannot move faster. The light you build by is untouched
   - what changes is the colour of the distance, never how bright the floor is.
+
+The soul's sounds were there, but could not be heard
+
+The ambient one-shots added above were placed 16 blocks out and up to 4 blocks above or below your
+feet - which put every one of them either past the game's own cutoff for that kind of sound, or
+right on top of it, where it plays at no volume at all. A soul that had "sound, sparingly" was
+actually a soul with none.
+
+- One-shots now land 6 to 10 blocks out, measured from your ear rather than your feet, well inside
+  the range the game will actually play them at. This is a buff: the sound this mod already added is
+  now the sound you hear.
+- The placement maths moved into `structures/core` (`SoulAmbience.oneShotPlacement`), pinned by a
+  test that checks every possible roll stays clear of the cutoff - the same shape as the fog sweep
+  above it, and for the same reason: a future tuning pass could easily push it back out unnoticed.

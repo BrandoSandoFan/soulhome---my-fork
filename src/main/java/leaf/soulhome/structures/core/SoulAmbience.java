@@ -148,6 +148,57 @@ public record SoulAmbience(
     }
 
     /**
+     * Where the next ambient one-shot (#166) lands relative to the listener - not the player's
+     * feet, the position {@link OneShotPlacement#distanceFromListener()} is measured against.
+     *
+     * <p>Vanilla's linear-attenuation model skips a source past {@link OneShotPlacement#AUDIBLE_RADIUS}
+     * outright and fades everything else to nothing at that same edge (#208). Placing a "distant"
+     * sound exactly at 16 blocks horizontal, with a vertical spread measured from the player's feet
+     * rather than their ear, put every draw either past the cliff or on it. This keeps every roll
+     * {@link OneShotPlacement#SAFETY_MARGIN} blocks short of the radius, so "far" has to come from the
+     * asset - a distant-sounding recording, or a lowpass - rather than from a curve that cannot
+     * deliver it.
+     *
+     * @param horizontalRoll a fresh random number in {@code [0, 1)}
+     * @param verticalRoll   a second, independent one - the caller owns the randomness so this stays
+     *                       a function and can be tested
+     */
+    public static OneShotPlacement oneShotPlacement(double horizontalRoll, double verticalRoll)
+    {
+        final double horizontal = OneShotPlacement.MIN_HORIZONTAL
+                + Math.max(0d, Math.min(1d, horizontalRoll))
+                        * (OneShotPlacement.MAX_HORIZONTAL - OneShotPlacement.MIN_HORIZONTAL);
+        final double vertical = (Math.max(0d, Math.min(1d, verticalRoll)) * 2d - 1d) * OneShotPlacement.MAX_VERTICAL;
+
+        return new OneShotPlacement(horizontal, vertical);
+    }
+
+    /**
+     * @param horizontalDistance blocks from the listener on the XZ plane
+     * @param verticalOffset     blocks above (positive) or below the listener's own ear height
+     */
+    public record OneShotPlacement(double horizontalDistance, double verticalOffset)
+    {
+        /** Vanilla's own linear-attenuation radius for every event {@code SoulAmbienceSounds} draws from. */
+        public static final double AUDIBLE_RADIUS = 16d;
+
+        /** Kept this many blocks short of the radius, so a slow client tick or float drift can't tip a draw over it. */
+        public static final double SAFETY_MARGIN = 4d;
+
+        static final double MIN_HORIZONTAL = 6d;
+
+        static final double MAX_HORIZONTAL = 10d;
+
+        static final double MAX_VERTICAL = 3d;
+
+        /** 3D distance from the listener - what vanilla's attenuation actually reads, not the horizontal leg alone. */
+        public double distanceFromListener()
+        {
+            return Math.sqrt(this.horizontalDistance * this.horizontalDistance + this.verticalOffset * this.verticalOffset);
+        }
+    }
+
+    /**
      * The colour a soul's own rooms pull it to, before depth and intensity are applied.
      *
      * <p>Each axis contributes its own reading, weighted by its share of the whole soul, so an axis
