@@ -58,7 +58,7 @@ public class SoulHome
         //EffectsRegistry.EFFECTS.register(modBus);
         LootModifierRegistry.LOOT_MODIFIERS.register(modBus);
         //AttributesRegistry.ATTRIBUTES.register(modBus);
-        //EntityRegistry.ENTITIES.register(modBus);
+        EntityRegistry.ENTITIES.register(modBus);
 
         //FeatureRegistry.FEATURES.register(modBus);
         //RecipeRegistry.SPECIAL_RECIPES.register(modBus);

@@ -15,19 +15,24 @@ import leaf.soulhome.structures.core.AttunementBook;
 import leaf.soulhome.structures.core.AttunementSettings;
 import leaf.soulhome.structures.core.AwardedRoom;
 import leaf.soulhome.structures.core.RoomBinding;
+import leaf.soulhome.structures.core.BlockMatcher;
 import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.BuffCalculator;
 import leaf.soulhome.structures.core.ClassificationResult;
+import leaf.soulhome.structures.core.HeadOwner;
+import leaf.soulhome.structures.core.RegionGeometry;
 import leaf.soulhome.structures.core.RegionScanner;
 import leaf.soulhome.structures.core.ScanDebouncer;
 import leaf.soulhome.structures.core.ScanSettings;
 import leaf.soulhome.structures.core.SoulBounds;
 import leaf.soulhome.structures.core.SoulBuffSet;
 import leaf.soulhome.structures.core.SoulRegion;
+import leaf.soulhome.structures.core.TrophyGrudges;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -342,11 +347,18 @@ public final class StructureScanService
             final List<ClassificationResult> found = results;
             final long hash = contentHash;
 
+            // gathered here rather than in captureBox: only worth the map at all when there is a
+            // trophy room to attribute it to, and every trophy room in "found" is already known by
+            // the time this runs
+            final Map<BlockPos, HeadOwner> headOwners = SoulHomeConfig.trackTrophyHeads()
+                    ? volume.headOwners()
+                    : Map.of();
+
             server.execute(() ->
             {
                 try
                 {
-                    finishScan(server, key, found, hash);
+                    finishScan(server, key, found, hash, headOwners);
                 }
                 finally
                 {
@@ -357,7 +369,9 @@ public final class StructureScanService
         });
     }
 
-    private static void finishScan(MinecraftServer server, ResourceKey<Level> key, List<ClassificationResult> results, long contentHash)
+    private static void finishScan(
+            MinecraftServer server, ResourceKey<Level> key, List<ClassificationResult> results,
+            long contentHash, Map<BlockPos, HeadOwner> headOwners)
     {
         final SoulAnalysis analysis = new SoulAnalysis(key, results, now());
 
@@ -369,7 +383,7 @@ public final class StructureScanService
                 // for good, and caching its analysis here is exactly what forget() was supposed to
                 // have cleared - an entry that lives for the rest of the server's uptime otherwise
                 ANALYSES.put(key, analysis);
-                applyResults(server, key, AwardedRoom.from(results), contentHash);
+                applyResults(server, key, buildAwardedRooms(results, headOwners), contentHash);
             }
         }
         finally
@@ -379,6 +393,55 @@ public final class StructureScanService
             // resolving early with an empty one
             deliver(key, analysis);
         }
+    }
+
+    /**
+     * As {@link AwardedRoom#from}, and also attributes each trophy room its mounted heads (#196) -
+     * every {@code minecraft:player_head} cell its region took in, resolved against the owner map
+     * {@code SnapshotBlockVolume} gathered at capture. The classifier itself never sees any of
+     * this: {@code ClassificationResult} is built and scored before this method ever runs, exactly
+     * as the aspect epic keeps aspect selection out of scoring.
+     */
+    private static List<AwardedRoom> buildAwardedRooms(
+            List<ClassificationResult> results, Map<BlockPos, HeadOwner> headOwners)
+    {
+        List<AwardedRoom> awarded = new ArrayList<>();
+        BlockMatcher headMatcher = headOwners.isEmpty() ? null : BlockMatcher.ofBlocks("minecraft:player_head");
+
+        for (ClassificationResult result : results)
+        {
+            result.awarded().ifPresent(score ->
+            {
+                final List<HeadOwner> mounted = headMatcher != null
+                        && TrophyGrudges.TROPHY_ROOM_ARCHETYPE.equals(score.archetypeId())
+                        ? mountedHeadsFor(result.region(), headMatcher, headOwners)
+                        : List.of();
+
+                awarded.add(new AwardedRoom(
+                        score.archetypeId(), score.tier(), score.score(), score.aspectId(),
+                        0, result.region().bounds(), mounted));
+            });
+        }
+
+        return awarded;
+    }
+
+    private static List<HeadOwner> mountedHeadsFor(
+            SoulRegion region, BlockMatcher headMatcher, Map<BlockPos, HeadOwner> headOwners)
+    {
+        List<HeadOwner> owners = new ArrayList<>();
+
+        for (RegionGeometry.Cell cell : region.geometry().cellsMatching(headMatcher))
+        {
+            HeadOwner owner = headOwners.get(new BlockPos(cell.x(), cell.y(), cell.z()));
+
+            if (owner != null)
+            {
+                owners.add(owner);
+            }
+        }
+
+        return owners;
     }
 
     private static void applyResults(MinecraftServer server, ResourceKey<Level> key, List<AwardedRoom> awarded, long contentHash)
@@ -454,8 +517,10 @@ public final class StructureScanService
 
         final List<AwardedRoom> awarded = data.awardedRooms();
         final int rank = data.ascensionRank();
+        final List<AwardedRoom> carried = carriedRooms(data);
 
-        SoulBuffs.set(player, buffsFrom(carriedRooms(data), rank), rank);
+        SoulBuffs.set(player, buffsFrom(carried, rank), rank);
+        SoulBuffs.setGrudges(player, TrophyGrudges.compute(carried));
 
         // fired for every awarded room, attuned or not: an unattuned room is built, and an
         // advancement for having built it is not a buff a player is being handed twice
@@ -528,8 +593,10 @@ public final class StructureScanService
         final SoulHomeBuffData data = SoulHomeBuffData.get(soulhome);
         final List<AwardedRoom> awarded = data.awardedRooms();
         final int rank = data.ascensionRank();
+        final List<AwardedRoom> carried = carriedRooms(data);
 
-        SoulBuffs.set(player, buffsFrom(carriedRooms(data), rank), rank);
+        SoulBuffs.set(player, buffsFrom(carried, rank), rank);
+        SoulBuffs.setGrudges(player, TrophyGrudges.compute(carried));
         SoulBuffs.sync(player);
 
         // a room earned while the owner was offline should still produce its toast when they
@@ -601,6 +668,14 @@ public final class StructureScanService
         final SoulHomeBuffData data = dataOf(player);
 
         return data == null ? List.of() : data.awardedRooms();
+    }
+
+    /** As {@link #awardedRoomsOf}, filtered to the rooms this player's buffs actually come from. */
+    public static List<AwardedRoom> carriedRoomsOf(ServerPlayer player)
+    {
+        final SoulHomeBuffData data = dataOf(player);
+
+        return data == null ? List.of() : carriedRooms(data);
     }
 
     /**

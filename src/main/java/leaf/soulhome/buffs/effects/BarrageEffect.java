@@ -4,44 +4,42 @@
 
 package leaf.soulhome.buffs.effects;
 
-import leaf.soulhome.buffs.AbilityDamage;
 import leaf.soulhome.buffs.SoulActiveEffect;
+import leaf.soulhome.entity.SoulBarrageShotEntity;
 import leaf.soulhome.structures.core.SoulBuffTypes;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Powder magazine: a spread of bursts down the line you are looking (#95).
+ * Powder magazine: a spread of real, flying shells down the line you are looking (#95, #194).
  *
  * <p>Scaling is <b>shot count and cooldown</b> - the latter floored, per #85's rule that rank must
  * never multiply a cooldown toward zero. Never per-shot damage past a cap.
  *
- * <p><b>Nothing here is a real explosion, and nothing here is a real projectile.</b> Both were
- * considered and both are worse than they look:
+ * <p><b>Each shot is a real projectile, {@link SoulBarrageShotEntity}, that explodes on impact
+ * without touching a single block.</b> An earlier version of this class argued that neither a real
+ * explosion nor a real projectile could be made safe on 1.20.1; both objections turn out to be
+ * answerable rather than fundamental:
  *
  * <ul>
- *   <li>An {@code Explosion} craters terrain even with a small radius, and would make this the
- *       first thing in SoulHome capable of wrecking a world. #90 went to some trouble to make sure
- *       a blink could not land a player somewhere they could grief from; a room that comes with a
- *       world-editing key would undo that on its own.</li>
- *   <li>A vanilla fireball entity sets its target alight on hit and its block on fire on miss, so
- *       "no block damage" would have to be enforced by cancelling the thing the entity exists to
- *       do.</li>
+ *   <li>{@code Level.explode(Entity, double, double, double, float, Level.ExplosionInteraction.NONE)}
+ *       resolves to {@code Explosion.BlockInteraction.KEEP}, which leaves nothing to blow up and
+ *       primes no TNT - #90's rule that nothing here can grief a world holds regardless.</li>
+ *   <li>Setting a target or a block alight on hit is a property of vanilla's own fireball
+ *       subclasses, not of projectiles in general - a mod-owned entity decides its own
+ *       {@code onHit} and simply never sets anything on fire (see
+ *       {@link SoulBarrageShotEntity#shouldBurn}).</li>
  * </ul>
  *
- * <p>So each shot is a point along the look ray that deals splash damage to what is near it and
- * draws an explosion particle. It reads as a barrage, it breaks nothing, it primes no TNT, and it
- * consumes no items - the TNT in the room is scenery and stays scenery, because a room that eats
- * your building materials when you press a key is a room people learn to stop building.
+ * <p>The shell still deals its splash damage the old hitscan burst's own way - a flat, capped
+ * amount over a fixed radius, deduplicated across an activation - rather than through a vanilla
+ * explosion's own falloff-and-armour damage model, which is not "capped and flat" in the sense
+ * #95 asks for. See {@link SoulBarrageShotEntity} for the rest.
  */
 public class BarrageEffect implements SoulActiveEffect
 {
@@ -51,19 +49,12 @@ public class BarrageEffect implements SoulActiveEffect
     private static final int BASE_RECHARGE_TICKS = 700;
     private static final int RECHARGE_SAVED_PER_MAGNITUDE = 50;
 
-    /** How far down the look ray the shots land. */
-    private static final double RANGE = 12d;
-
-    /** How far the spread opens either side of the aim, in blocks at full range. */
+    /** How far the spread opens either side of the aim, in blocks at the shell's own range. */
     private static final double SPREAD = 2.5d;
+    private static final double SPREAD_RANGE = 12d;
 
-    /** Splash radius of one shot. */
-    private static final double SPLASH = 2.5d;
-
-    /** Capped and flat, so nothing about rank makes a single shot hit harder. */
-    private static final float DAMAGE_PER_SHOT = 4.0f;
-
-    private static final double STEP = 0.5d;
+    /** Clear of the caster's own bounding box, so a shell never detonates on its own shooter. */
+    private static final double SPAWN_OFFSET = 0.5d;
 
     @Override
     public String type()
@@ -105,60 +96,20 @@ public class BarrageEffect implements SoulActiveEffect
                 ? new Vec3(1d, 0d, 0d)
                 : sideways.normalize();
 
-        // one damage roll per victim per activation, however many shots land near them - the
-        // alternative multiplies the "capped" per-shot damage by the shot count for anything
-        // standing in the middle of the fan, which is exactly the growth #95 rules out
-        Set<LivingEntity> hit = new HashSet<>();
+        // one damage roll per victim per activation, however many shells land near them - shared
+        // by every shell this press fires, since they now arrive over several ticks rather than
+        // all resolving inside this one method call
+        final Set<LivingEntity> activationHits = new HashSet<>();
+        final Vec3 spawnPoint = origin.add(look.scale(SPAWN_OFFSET));
 
         for (int shot = 0; shot < shots; shot++)
         {
             final double offset = shots == 1 ? 0d : ((double) shot / (shots - 1) - 0.5d) * 2d;
-            final Vec3 aim = look.add(spreadAxis.scale(offset * SPREAD / RANGE)).normalize();
+            final Vec3 aim = look.add(spreadAxis.scale(offset * SPREAD / SPREAD_RANGE)).normalize();
 
-            burst(level, player, origin, aim, hit);
+            level.addFreshEntity(new SoulBarrageShotEntity(level, player, spawnPoint, aim, activationHits));
         }
-
-        level.playSound(
-                null, player.blockPosition(), SoundEvents.GENERIC_EXPLODE, SoundSource.PLAYERS, 0.6f, 1.5f);
 
         return true;
-    }
-
-    /** Walks one shot out until it meets something solid, then splashes where it stopped. */
-    private void burst(ServerLevel level, ServerPlayer caster, Vec3 origin, Vec3 aim, Set<LivingEntity> hit)
-    {
-        Vec3 impact = origin.add(aim.scale(RANGE));
-
-        for (double travelled = STEP; travelled <= RANGE; travelled += STEP)
-        {
-            final Vec3 point = origin.add(aim.scale(travelled));
-            final net.minecraft.core.BlockPos position = net.minecraft.core.BlockPos.containing(point);
-
-            if (!level.isLoaded(position))
-            {
-                impact = point;
-                break;
-            }
-
-            if (!level.getBlockState(position).getCollisionShape(level, position).isEmpty())
-            {
-                impact = point;
-                break;
-            }
-        }
-
-        level.sendParticles(ParticleTypes.EXPLOSION, impact.x, impact.y, impact.z, 1, 0d, 0d, 0d, 0d);
-
-        final AABB splash = new AABB(impact, impact).inflate(SPLASH);
-
-        for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, splash))
-        {
-            if (target == caster || !target.isAlive() || !hit.add(target))
-            {
-                continue;
-            }
-
-            AbilityDamage.hit(target, level.damageSources().explosion(caster, caster), DAMAGE_PER_SHOT);
-        }
     }
 }

@@ -64,6 +64,13 @@ public class BuffsCommand
             player.sendSystemMessage(line);
         }
 
+        // the trophy room's targeted knockback resistance (#196) - a buff nobody can see is a buff
+        // nobody builds for
+        for (Component line : SoulReport.trophyGrudgeLines(StructureScanService.carriedRoomsOf(player)))
+        {
+            player.sendSystemMessage(line);
+        }
+
         return Command.SINGLE_SUCCESS;
     }
 }
