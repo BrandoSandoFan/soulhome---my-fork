@@ -173,6 +173,16 @@ public final class SoulHomeConfig
         return snapshot.residueTapEnabled();
     }
 
+    /**
+     * Whether a trophy room's mounted heads are worth tracking at all (#196). Off means nothing is
+     * collected at capture time, nothing is saved, and no targeted-knockback listener fires - see
+     * {@code KnockbackResistanceEffect} and {@code SnapshotBlockVolume}.
+     */
+    public static boolean trackTrophyHeads()
+    {
+        return snapshot.trophyRoomTrackPlayerHeads();
+    }
+
     /** The soul-residue accrual curve and its conversion rate into Essence I. See {@link EssenceSettings}. */
     public static EssenceSettings essenceSettings()
     {
@@ -273,6 +283,7 @@ public final class SoulHomeConfig
             int vergePerRank,
             int maxRank,
             int startingRank,
+            boolean trophyRoomTrackPlayerHeads,
             boolean residueTapEnabled,
             EssenceSettings essence,
             AscensionSettings ascension,
@@ -298,6 +309,7 @@ public final class SoulHomeConfig
                 SoulBounds.DEFAULT_VERGE_PER_RANK,
                 SoulBounds.MAX_RANK,
                 0,
+                true,
                 true,
                 EssenceSettings.DEFAULTS,
                 AscensionSettings.DEFAULTS,
@@ -358,6 +370,7 @@ public final class SoulHomeConfig
                         SERVER.vergePerRank.get(),
                         SERVER.maxRank.get(),
                         SERVER.startingRank.get(),
+                        SERVER.trophyRoomTrackPlayerHeads.get(),
                         SERVER.residueTapEnabled.get(),
                         new EssenceSettings(
                                 SERVER.residueRateMultiplier.get(),
@@ -564,6 +577,8 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.DoubleValue baseWillpowerThreshold;
         public final ForgeConfigSpec.DoubleValue willpowerPerRank;
         public final ForgeConfigSpec.IntValue pillarSearchRadius;
+
+        public final ForgeConfigSpec.BooleanValue trophyRoomTrackPlayerHeads;
 
         public final ForgeConfigSpec.BooleanValue growthEnabled;
         public final ForgeConfigSpec.IntValue baseGround;
@@ -1082,6 +1097,19 @@ public final class SoulHomeConfig
                             "immediately and the ground arrives over the following seconds; this is the dial between",
                             "how fast it arrives and how much of a tick it costs while it does.")
                     .defineInRange("chunks_per_tick", TerrainGrowthSettings.DEFAULT_CHUNKS_PER_TICK, 1, 64);
+
+            builder.pop();
+
+            builder.comment("The trophy room (#196): what a mounted player head does beyond decoration.")
+                    .push("trophy_room");
+
+            this.trophyRoomTrackPlayerHeads = builder
+                    .comment(
+                            "Whether a player head mounted in a trophy room blunts that specific player's knockback,",
+                            "on top of the room's own general resistance. Off collects nothing at scan time, saves",
+                            "nothing, and registers no listener - a save written with this off is byte-for-byte one",
+                            "written before the feature existed.")
+                    .define("track_player_heads", true);
 
             builder.pop();
 

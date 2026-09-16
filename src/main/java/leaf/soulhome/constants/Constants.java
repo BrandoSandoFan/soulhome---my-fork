@@ -103,6 +103,10 @@ public class Constants
         public static final String BUFFS_DORMANT_GRANT = "message.soulhome.buffs.dormant_grant";
         public static final String BUFFS_NOT_LOST = "message.soulhome.buffs.not_lost";
 
+        /** The trophy room's targeted knockback resistance (#196) - whose head, and against them by how much. */
+        public static final String BUFFS_TROPHY_GRUDGE_HEADER = "message.soulhome.buffs.trophy_grudge_header";
+        public static final String BUFFS_TROPHY_GRUDGE = "message.soulhome.buffs.trophy_grudge";
+
         public static final String ATTUNE_EXCEEDED_HEADER = "message.soulhome.attune.exceeded_header";
         public static final String ATTUNE_EXCEEDED_SLOTS = "message.soulhome.attune.exceeded_slots";
         public static final String ATTUNE_EXCEEDED_WHERE = "message.soulhome.attune.exceeded_where";

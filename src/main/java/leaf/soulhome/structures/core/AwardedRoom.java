@@ -5,6 +5,7 @@
 package leaf.soulhome.structures.core;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -29,9 +30,16 @@ import java.util.List;
  * @param footprint where the room stood at this scan, or null when unknown. Kept for exactly one
  *                 purpose: it is what the <i>next</i> scan matches against to decide that a room
  *                 which has grown a wing is still the same room.
+ * @param mountedHeads whose heads this room holds - the trophy room's targeted knockback
+ *                 resistance (#196). Sorted by uuid wherever it is built, for the same reason
+ *                 {@code identityHash} sorts everything else it folds in: two scans of an
+ *                 unchanged wall of heads must agree. Empty for every archetype but the trophy
+ *                 room, and empty for the trophy room too while its own tracking knob is off - see
+ *                 {@code SoulHomeConfig#trackTrophyHeads}.
  */
 public record AwardedRoom(
-        String archetypeId, int tier, double score, String aspectId, int roomId, RegionBounds footprint)
+        String archetypeId, int tier, double score, String aspectId, int roomId, RegionBounds footprint,
+        List<HeadOwner> mountedHeads)
 {
     public AwardedRoom
     {
@@ -51,6 +59,9 @@ public record AwardedRoom(
         }
 
         aspectId = aspectId == null || aspectId.isBlank() ? null : aspectId;
+        mountedHeads = mountedHeads == null || mountedHeads.isEmpty()
+                ? List.of()
+                : mountedHeads.stream().sorted(Comparator.comparing(HeadOwner::id)).toList();
     }
 
     /** A room that took no aspect - every awarded room before #171, and most fixtures since. */
@@ -62,7 +73,14 @@ public record AwardedRoom(
     /** A room with no identity of its own - what the classifier produces, before #152 reconciles it. */
     public AwardedRoom(String archetypeId, int tier, double score, String aspectId)
     {
-        this(archetypeId, tier, score, aspectId, 0, null);
+        this(archetypeId, tier, score, aspectId, 0, null, List.of());
+    }
+
+    /** A room with no mounted heads of its own - every awarded room before #196. */
+    public AwardedRoom(
+            String archetypeId, int tier, double score, String aspectId, int roomId, RegionBounds footprint)
+    {
+        this(archetypeId, tier, score, aspectId, roomId, footprint, List.of());
     }
 
     public boolean hasAspect()
@@ -79,7 +97,9 @@ public record AwardedRoom(
     /** This room, carrying {@code roomId} as its identity. */
     public AwardedRoom withRoomId(int roomId)
     {
-        return new AwardedRoom(this.archetypeId, this.tier, this.score, this.aspectId, roomId, this.footprint);
+        return new AwardedRoom(
+                this.archetypeId, this.tier, this.score, this.aspectId, roomId, this.footprint,
+                this.mountedHeads);
     }
 
     /**
@@ -90,7 +110,22 @@ public record AwardedRoom(
      */
     public AwardedRoom anonymised()
     {
-        return new AwardedRoom(this.archetypeId, this.tier, this.score, this.aspectId, 0, null);
+        return new AwardedRoom(
+                this.archetypeId, this.tier, this.score, this.aspectId, 0, null, this.mountedHeads);
+    }
+
+    /** This room, carrying whose heads it holds - see {@link #mountedHeads}. */
+    public AwardedRoom withMountedHeads(List<HeadOwner> mountedHeads)
+    {
+        return new AwardedRoom(
+                this.archetypeId, this.tier, this.score, this.aspectId, this.roomId, this.footprint,
+                mountedHeads);
+    }
+
+    /** Whether this room has one grudge or more - see {@link #mountedHeads}. */
+    public boolean hasMountedHeads()
+    {
+        return !this.mountedHeads.isEmpty();
     }
 
     /** Reduce a full classification pass to just the rooms that earned something. */
@@ -102,7 +137,7 @@ public record AwardedRoom(
         {
             result.awarded().ifPresent(score -> awarded.add(new AwardedRoom(
                     score.archetypeId(), score.tier(), score.score(), score.aspectId(),
-                    0, result.region().bounds())));
+                    0, result.region().bounds(), List.of())));
         }
 
         return awarded;

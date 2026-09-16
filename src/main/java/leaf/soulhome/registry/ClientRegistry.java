@@ -7,12 +7,14 @@ package leaf.soulhome.registry;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.client.SoulKeybinds;
 import leaf.soulhome.client.gui.SoulAmbienceOptionsScreen;
+import leaf.soulhome.client.render.SoulBarrageShotRenderer;
 import leaf.soulhome.dimensions.SoulDimensionRenderInfo;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -49,5 +51,12 @@ public class ClientRegistry
     {
         event.register(SoulKeybinds.USE_ABILITY);
         event.register(SoulKeybinds.CYCLE_ABILITY);
+    }
+
+    /** Barrage's shell (#194) - see {@link SoulBarrageShotRenderer} for why it draws nothing. */
+    @SubscribeEvent
+    public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event)
+    {
+        event.registerEntityRenderer(EntityRegistry.SOUL_BARRAGE_SHOT.get(), SoulBarrageShotRenderer::new);
     }
 }
