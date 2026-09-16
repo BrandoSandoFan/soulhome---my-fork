@@ -108,6 +108,40 @@ class SoulAmbienceTest
         }
     }
 
+    /**
+     * #208: every draw has to land short of vanilla's own attenuation cliff, or the "distant" sound
+     * plays at a gain of nothing (or is skipped outright as too far from the listener).
+     */
+    @Test
+    void oneShotPlacementNeverReachesTheAttenuationCliff()
+    {
+        final double limit = SoulAmbience.OneShotPlacement.AUDIBLE_RADIUS - SoulAmbience.OneShotPlacement.SAFETY_MARGIN;
+
+        for (double horizontalRoll = 0d; horizontalRoll <= 1d; horizontalRoll += 0.05d)
+        {
+            for (double verticalRoll = 0d; verticalRoll <= 1d; verticalRoll += 0.05d)
+            {
+                final SoulAmbience.OneShotPlacement placement =
+                        SoulAmbience.oneShotPlacement(horizontalRoll, verticalRoll);
+
+                assertTrue(placement.distanceFromListener() <= limit,
+                        "roll (" + horizontalRoll + ", " + verticalRoll + ") placed a one-shot "
+                                + placement.distanceFromListener() + " blocks from the listener, "
+                                + "past the safe limit of " + limit);
+            }
+        }
+    }
+
+    @Test
+    void oneShotPlacementStaysWithinTheDistanceTheIssueAskedFor()
+    {
+        final SoulAmbience.OneShotPlacement nearest = SoulAmbience.oneShotPlacement(0d, 0.5d);
+        final SoulAmbience.OneShotPlacement farthest = SoulAmbience.oneShotPlacement(1d, 0.5d);
+
+        assertEquals(6d, nearest.horizontalDistance(), 1e-9d);
+        assertEquals(10d, farthest.horizontalDistance(), 1e-9d);
+    }
+
     @Test
     void theSkyOpensWithRankAndNeverCloses()
     {
