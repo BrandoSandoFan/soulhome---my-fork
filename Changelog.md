@@ -1319,3 +1319,60 @@ weather. Checked directly against the mapped NeoForge 21.1.250 jar rather than a
 Recorded in the class javadoc and the `sound_volume` config comment rather than left as an open
 question - the mod's own volume knob under `AMBIENT` is the real, permanent mix control on this
 line as well, not a placeholder for something better.
+
+A one-shot now comes from the room that earned it
+
+A warm crackle in a soul with a hearth in it used to come from wherever the dice said, which might
+be the aquarium. The sky can only shift as a whole; sound has a direction, and the game plays a
+positioned sound in stereo - so a crackle from the direction of your hearth is your soul telling you
+where your hearth is, and you learn your own layout by ear without a line of text.
+
+- A one-shot drawn from a trait now originates from a room that actually pulls that way, picked
+  among them by how strongly each does. A sound for two traits at once may come from either side's
+  rooms, because that reading is what both of them together made.
+- The direction is kept; the distance is not. A hearth forty blocks off is heard from that direction
+  at the edge of hearing rather than from forty blocks away at no volume at all - the same cliff
+  that made the one-shots inaudible before. A room three blocks away is heard three blocks away.
+- The soul's own voice keeps the random angle it always had. It is the place, not a room in it. So
+  does any voice whose rooms are not classified this scan: the blend is still right, only the
+  direction is unknown.
+- Nothing about this is named to you, drawn, or marked on the lens.
+- Ported to `1.21.1`.
+
+A soul that has climbed sounds like a bigger place, not a louder one
+
+A rank V soul was supposed to sound larger than a rank 0 one. What it actually did was drop the
+pitch a little, which says lower - a pitched-down chime is a bigger bell, not a bigger room - and
+even that had never been heard, because until recently the one-shots were placed past the range the
+game will play them at.
+
+- Distance now answers rank. A rank 0 soul's sounds come from close in; a rank V soul's come from
+  out toward the verge, as far as they can go and still be heard. The same sense the fog gives the
+  eye, in the ear.
+- A tail arrives behind each one: two or three quieter, lower repeats over about a second and a
+  half, each a little further round the compass, so it moves the way a reflection off something
+  distant would. None at rank 0 - a small room has no tail.
+- The first sound is made quieter to pay for the repeats, so a one-shot and its whole tail add up to
+  exactly what a single sound used to be worth. This is a bigger place, never a louder one.
+- Ascending is answered once: a few seconds after the sky opens, the soul's own voice from the new
+  verge distance.
+- Pitch is still one of the cues, and now the smallest of the three.
+- Ported to `1.21.1`.
+
+The ambience gets out of the way of the game
+
+The rule was always that nothing ambient may make it harder to hear the ascension hum, an ability
+firing, or a soul key. Nothing enforced it. It held only because the one-shots were quiet, and
+before they were placed properly, inaudible - which is the rule not being tested rather than the
+rule being kept.
+
+- No ambient sound starts while the ascension ritual is running, in the seconds after an ability
+  fires, or while a key is carrying you. A tail already in flight is cut rather than allowed to
+  talk over what it landed on.
+- A held sound is skipped, not banked: the gap to the next one is drawn as usual, so a ritual does
+  not leave a queue of ambience waiting behind it.
+- Walking, placing blocks and breaking blocks hold nothing, and cannot. What counts as this mod's
+  own audio is marked where the mod plays it, so a sound the mod did not play is not something the
+  mod can mistake for its own - which also means an actual beacon, an actual anvil and everybody
+  else's noise are left entirely alone.
+- Ported to `1.21.1`.

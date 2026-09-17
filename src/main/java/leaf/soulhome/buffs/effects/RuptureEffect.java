@@ -6,7 +6,9 @@ package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.AbilityDamage;
 import leaf.soulhome.buffs.SoulActiveEffect;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -130,8 +132,9 @@ public class RuptureEffect implements SoulActiveEffect
 
         drawWave(level, origin, look, range);
 
-        level.playSound(
-                null, player.blockPosition(), SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.PLAYERS, 0.8f, 0.8f);
+        SoulSounds.playFeedback(
+                level, player.blockPosition(), SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.PLAYERS,
+                0.8f, 0.8f, SoulFeedback.ABILITY);
 
         // fires whether or not it caught anything - unlike a summon or a blink, an empty Rupture is
         // a miss rather than an ability that could not run, and a miss costs a charge

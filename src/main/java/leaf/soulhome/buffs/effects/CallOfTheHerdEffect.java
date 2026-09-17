@@ -7,9 +7,11 @@ package leaf.soulhome.buffs.effects;
 import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.SnapshotBlockVolume;
 import leaf.soulhome.structures.core.RegionBounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import leaf.soulhome.utils.DimensionHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -182,7 +184,9 @@ public class CallOfTheHerdEffect implements SoulActiveEffect
             living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, HASTE_DURATION_TICKS, 0, false, true, true));
         }
 
-        level.playSound(null, player.blockPosition(), SoundEvents.HORSE_AMBIENT, SoundSource.NEUTRAL, 0.6f, 1.0f);
+        SoulSounds.playFeedback(
+                level, player.blockPosition(), SoundEvents.HORSE_AMBIENT, SoundSource.NEUTRAL,
+                0.6f, 1.0f, SoulFeedback.ABILITY);
 
         player.displayClientMessage(
                 Component.translatable(Constants.StringKeys.ABILITY_HERD_SUMMONED, mount.getDisplayName()), true);

@@ -7,9 +7,11 @@ package leaf.soulhome.buffs.effects;
 import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.SnapshotBlockVolume;
 import leaf.soulhome.structures.core.RegionBounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import leaf.soulhome.utils.DimensionHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -140,15 +142,17 @@ public class SoulStepEffect implements SoulActiveEffect
         // both ends get a sound, so someone watching sees where the blink went as well as that it
         // happened - the departure has to be played before the move, while the player is still there
         final BlockPos from = player.blockPosition();
-        level.playSound(null, from, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 1.4f);
+        SoulSounds.playFeedback(
+                level, from, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 1.4f, SoulFeedback.ABILITY);
 
         // teleportTo on the player's own level, never the overload that takes one - this must not
         // be able to become a dimension change
         player.teleportTo(landing.x, landing.y, landing.z);
         player.resetFallDistance();
 
-        level.playSound(
-                null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 1.4f);
+        SoulSounds.playFeedback(
+                level, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS,
+                0.5f, 1.4f, SoulFeedback.ABILITY);
 
         return true;
     }

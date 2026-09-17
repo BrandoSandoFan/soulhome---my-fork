@@ -8,7 +8,9 @@ import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncSurveyedBlocksMessage;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -120,8 +122,9 @@ public class SurveyorsEyeEffect implements SoulActiveEffect
 
         Network.sendTo(new SyncSurveyedBlocksMessage(ore, duration), player);
 
-        level.playSound(
-                null, player.blockPosition(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.4f, 1.8f);
+        SoulSounds.playFeedback(
+                level, player.blockPosition(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS,
+                0.4f, 1.8f, SoulFeedback.ABILITY);
 
         return true;
     }
