@@ -15,6 +15,8 @@ What comes out, under ``src/main/resources/assets/soulhome/sounds/ambience``:
   between two vanilla events (#209).
 * ``bed_close.ogg`` and ``bed_open.ogg`` - the two rank layers of the ambient bed (#210), each a
   seamless minute-and-a-bit loop.
+* ``character_<voice>.ogg`` - the nine character layers of the bed (#214), one per non-``base``
+  voice, mixed continuously under the rank layers rather than rolled for one at a time.
 * ``SOURCES.md`` - what every file is, what made it, and the checksum of the samples that went into
   the encoder. That is this repo's answer to #209's licence question: nothing was downloaded, so
   there is no third-party licence to honour, and the provenance is a script in the tree.
@@ -190,6 +192,16 @@ def render(output: Path, seed: int, sample_rate: int) -> list[dict]:
                                        BED_SECONDS, BED_OVERLAP)
         rendered.append(_emit(output, name, samples, sample_rate,
                               f"ambient bed, {kind} rank layer, seamless loop"))
+
+    for voice in voice_lib.VOICES:
+        if voice == "base":
+            continue
+
+        name = f"character_{voice}"
+        samples = voice_lib.render_character_bed(voice, asset_rng(seed, name), sample_rate,
+                                                  BED_SECONDS, BED_OVERLAP)
+        rendered.append(_emit(output, name, samples, sample_rate,
+                              f"ambient bed, {voice} character layer, seamless loop"))
 
     return rendered
 

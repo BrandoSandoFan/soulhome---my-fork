@@ -6,6 +6,7 @@ package leaf.soulhome.client;
 
 import leaf.soulhome.registry.SoundsRegistry;
 import leaf.soulhome.structures.core.SoulAmbience;
+import leaf.soulhome.structures.core.SoulVoice;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
@@ -13,12 +14,17 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 /**
  * The bed under the one-shots (#210): what a soulhome sounds like when nothing is happening in it.
  *
- * <p>Two looping layers, mixed against each other by how far the soul has climbed - {@code
+ * <p>Two looping layers for rank, mixed against each other by how far the soul has climbed - {@code
  * SoulAmbience.bedMix} decides the levels and this only applies them, which is why the interesting
- * half of this feature is tested without a sound engine anywhere near it.
+ * half of this feature is tested without a sound engine anywhere near it. Nine more, quieter still,
+ * carry the character half (#214): one per axis pole plus one per contested reading, decided by
+ * {@code SoulAmbience.characterBedMix} the same way.
  *
  * <h2>Why a loop after all</h2>
  *
@@ -58,6 +64,9 @@ public final class SoulAmbienceBed
     private static Layer close;
     private static Layer open;
 
+    /** The character half of the bed (#214), one layer per non-{@link SoulVoice#BASE} voice. */
+    private static final Map<SoulVoice, Layer> character = new EnumMap<>(SoulVoice.class);
+
     private SoulAmbienceBed()
     {
     }
@@ -84,13 +93,33 @@ public final class SoulAmbienceBed
 
         close = tickLayer(manager, close, SoundsRegistry.BED_CLOSE.get(), ClientAmbience.bedClose());
         open = tickLayer(manager, open, SoundsRegistry.BED_OPEN.get(), ClientAmbience.bedOpen());
+
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice == SoulVoice.BASE)
+            {
+                continue;
+            }
+
+            character.put(voice, tickLayer(
+                    manager, character.get(voice), SoundsRegistry.characterBed(voice),
+                    ClientAmbience.characterBed(voice)));
+        }
     }
 
-    /** Drop both layers immediately - a disconnect, or the game's own sound switched off. */
+    /** Drop every layer immediately - a disconnect, or the game's own sound switched off. */
     public static void stopAll(Minecraft minecraft)
     {
         close = stopLayer(minecraft.getSoundManager(), close);
         open = stopLayer(minecraft.getSoundManager(), open);
+
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice != SoulVoice.BASE)
+            {
+                character.put(voice, stopLayer(minecraft.getSoundManager(), character.get(voice)));
+            }
+        }
     }
 
     private static Layer tickLayer(SoundManager manager, Layer layer, SoundEvent event, float level)

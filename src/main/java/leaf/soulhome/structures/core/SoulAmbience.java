@@ -4,6 +4,7 @@
 
 package leaf.soulhome.structures.core;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -310,6 +311,118 @@ public record SoulAmbience(
         public boolean audible()
         {
             return this.close > BED_SILENCE || this.open > BED_SILENCE;
+        }
+    }
+
+    /**
+     * The character half of the bed (#214): one quiet layer per axis pole plus one per contested
+     * reading, mixed continuously rather than rolled for one at a time.
+     *
+     * <p>{@link #voiceFor} is right for the one-shots, which have to be one thing at a time, and
+     * wrong for this: a player would need to hear ten or more of them, minutes apart, before the
+     * *proportions* of the draw read as a blend, and what they would experience in the meantime is a
+     * soul that cannot make up its mind - which is exactly the reading {@link SoulAxis} exists to
+     * rule out. The bed does not have that problem, because it is never not playing.
+     *
+     * <p>Per axis: a pole's level is how far the axis leans toward it, scaled by {@link
+     * SoulCharacter#depth()} so an empty soul carries no character layers at all. The contested
+     * layer <b>replaces</b> rather than joins the two pole layers as {@link SoulCharacter#tension}
+     * rises - the same rule {@link #axisColour} holds, for the same reason: warm and cold at once is
+     * steam, not both crackle and chime at full volume.
+     *
+     * <p>Normalised so the nine layers together are never louder than {@code ceiling} - the rank
+     * bed's own {@link BedMix#total()} - added in power, as {@link BedMix#total()} is. A soul that
+     * has gone all-in on nine kinds of room at once would otherwise be louder than a soul that has
+     * gone all-in on one, and the bed is not supposed to say that.
+     *
+     * @param character the blend over every classified room
+     * @param ceiling   what the whole of this may add up to - the rank bed's own total, so the
+     *                  character half is never the louder half
+     * @param settings  the viewer's own switches; under the sound switch, not the rank-visuals one -
+     *                  see {@link #bedMix}
+     */
+    public static CharacterBedMix characterBedMix(SoulCharacter character, float ceiling, AmbienceSettings settings)
+    {
+        if (settings == null || !settings.soundActive() || !settings.characterActive()
+                || character == null || character.isEmpty() || ceiling <= BED_SILENCE)
+        {
+            return CharacterBedMix.SILENT;
+        }
+
+        final float depth = (float) character.depth();
+        final Map<SoulVoice, Float> raw = new EnumMap<>(SoulVoice.class);
+
+        for (SoulAxis axis : SoulAxis.values())
+        {
+            final float lean = (float) character.lean(axis);
+            final float contested = (float) smoothstep(TENSION_FLOOR, TENSION_FULL, character.tension(axis));
+
+            raw.put(Palette.voice(axis.positive()), Math.max(0f, lean) * (1f - contested) * depth);
+            raw.put(Palette.voice(axis.negative()), Math.max(0f, -lean) * (1f - contested) * depth);
+            raw.put(Palette.contestedVoice(axis), contested * depth);
+        }
+
+        double sumSquares = 0d;
+
+        for (float level : raw.values())
+        {
+            sumSquares += (double) level * level;
+        }
+
+        final double power = Math.sqrt(sumSquares);
+        final float scale = (float) (power > 1d ? 1d / power : 1d) * ceiling;
+        final Map<SoulVoice, Float> scaled = new EnumMap<>(SoulVoice.class);
+
+        for (Map.Entry<SoulVoice, Float> entry : raw.entrySet())
+        {
+            scaled.put(entry.getKey(), entry.getValue() * scale);
+        }
+
+        return new CharacterBedMix(scaled);
+    }
+
+    /**
+     * What the character half of the bed (#214) is worth right now, one level per non-{@link
+     * SoulVoice#BASE} voice - see {@link #characterBedMix}.
+     */
+    public record CharacterBedMix(Map<SoulVoice, Float> levels)
+    {
+        public static final CharacterBedMix SILENT = new CharacterBedMix(Map.of());
+
+        public CharacterBedMix
+        {
+            levels = Map.copyOf(levels == null ? Map.of() : levels);
+        }
+
+        public float level(SoulVoice voice)
+        {
+            return this.levels.getOrDefault(voice, 0f);
+        }
+
+        /** All nine layers added in power, the same way {@link BedMix#total()} bounds the rank half. */
+        public float total()
+        {
+            double sumSquares = 0d;
+
+            for (float level : this.levels.values())
+            {
+                sumSquares += (double) level * level;
+            }
+
+            return (float) Math.sqrt(sumSquares);
+        }
+
+        public boolean audible()
+        {
+            for (float level : this.levels.values())
+            {
+                if (level > BED_SILENCE)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 

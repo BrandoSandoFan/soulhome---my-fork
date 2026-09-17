@@ -68,6 +68,12 @@ public final class SoundsRegistry
 
     public static final RegistryObject<SoundEvent> BED_OPEN = register("ambience.bed.open");
 
+    /**
+     * The character half of the bed (#214): one loop per non-{@link SoulVoice#BASE} voice, mixed
+     * continuously against the two rank layers above rather than rolled for like the one-shots.
+     */
+    private static final Map<SoulVoice, RegistryObject<SoundEvent>> CHARACTER_BEDS = registerCharacterBeds();
+
     private SoundsRegistry()
     {
     }
@@ -84,6 +90,18 @@ public final class SoundsRegistry
         return "ambience.voice." + voice.name().toLowerCase(Locale.ROOT);
     }
 
+    /** The loop a voice's character layer plays (#214). Never called for {@link SoulVoice#BASE}. */
+    public static SoundEvent characterBed(SoulVoice voice)
+    {
+        return CHARACTER_BEDS.get(voice).get();
+    }
+
+    /** The registry name a voice's character layer has, which is also how {@code sounds.json} is keyed. */
+    public static String characterBedKey(SoulVoice voice)
+    {
+        return "ambience.bed.character." + voice.name().toLowerCase(Locale.ROOT);
+    }
+
     private static Map<SoulVoice, RegistryObject<SoundEvent>> registerVoices()
     {
         final Map<SoulVoice, RegistryObject<SoundEvent>> events = new EnumMap<>(SoulVoice.class);
@@ -91,6 +109,21 @@ public final class SoundsRegistry
         for (SoulVoice voice : SoulVoice.values())
         {
             events.put(voice, register(voiceKey(voice)));
+        }
+
+        return Map.copyOf(events);
+    }
+
+    private static Map<SoulVoice, RegistryObject<SoundEvent>> registerCharacterBeds()
+    {
+        final Map<SoulVoice, RegistryObject<SoundEvent>> events = new EnumMap<>(SoulVoice.class);
+
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice != SoulVoice.BASE)
+            {
+                events.put(voice, register(characterBedKey(voice)));
+            }
         }
 
         return Map.copyOf(events);

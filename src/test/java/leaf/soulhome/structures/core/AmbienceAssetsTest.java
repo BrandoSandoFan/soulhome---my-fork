@@ -50,6 +50,12 @@ class AmbienceAssetsTest
         return "ambience.voice." + voice.name().toLowerCase(Locale.ROOT);
     }
 
+    /** Mirrors {@code SoundsRegistry.characterBedKey}, for the same reason. */
+    private static String characterBedKey(SoulVoice voice)
+    {
+        return "ambience.bed.character." + voice.name().toLowerCase(Locale.ROOT);
+    }
+
     @Test
     @DisplayName("every SoulVoice has an entry in sounds.json")
     void everyVoiceIsRegistered()
@@ -79,6 +85,34 @@ class AmbienceAssetsTest
             assertTrue(entries.get(0).getAsJsonObject().get("stream").getAsBoolean(),
                     key + " is over a minute long and has to be streamed rather than held in memory");
         }
+    }
+
+    @Test
+    @DisplayName("every non-base voice has a character layer of the bed, and it streams (#214)")
+    void theCharacterBedIsRegistered()
+    {
+        final JsonObject sounds = readSounds();
+
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice == SoulVoice.BASE)
+            {
+                continue;
+            }
+
+            final String key = characterBedKey(voice);
+
+            assertTrue(sounds.has(key), "no sound event for " + voice + "'s character layer");
+
+            final JsonArray entries = sounds.getAsJsonObject(key).getAsJsonArray("sounds");
+
+            assertEquals(1, entries.size(), key + " is one long loop, not a set of variants");
+            assertTrue(entries.get(0).getAsJsonObject().get("stream").getAsBoolean(),
+                    key + " is over a minute long and has to be streamed rather than held in memory");
+        }
+
+        assertFalse(sounds.has(characterBedKey(SoulVoice.BASE)),
+                "the base voice is the place rather than a room in it - it has no character layer");
     }
 
     @Test
