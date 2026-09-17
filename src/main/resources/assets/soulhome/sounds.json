@@ -19,6 +19,96 @@
       }
     ]
   },
+  "ambience.bed.character.warm": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/character_warm",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.bed.character.cold": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/character_cold",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.bed.character.steam": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/character_steam",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.bed.character.arcane": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/character_arcane",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.bed.character.wrought": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/character_wrought",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.bed.character.quickened": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/character_quickened",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.bed.character.verdant": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/character_verdant",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.bed.character.hollow": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/character_hollow",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.bed.character.overgrown": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/character_overgrown",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
   "ambience.voice.base": {
     "category": "ambient",
     "sounds": [

@@ -51,5 +51,14 @@ the generator's own docstring for why that is the guarantee worth making.
 | `overgrown_3.ogg` | one-shot, overgrown voice, variant 3 | 4.00s | `4ecd6be42752aea5…` |
 | `bed_close.ogg` | ambient bed, close rank layer, seamless loop | 68.00s | `2e84af681e4f8583…` |
 | `bed_open.ogg` | ambient bed, open rank layer, seamless loop | 68.00s | `1a849a9f4cd7754a…` |
+| `character_warm.ogg` | ambient bed, warm character layer, seamless loop | 68.00s | `018e80256b3e1370…` |
+| `character_cold.ogg` | ambient bed, cold character layer, seamless loop | 68.00s | `0859762a7b644b22…` |
+| `character_steam.ogg` | ambient bed, steam character layer, seamless loop | 68.00s | `ed3c1ecc9bf1f763…` |
+| `character_arcane.ogg` | ambient bed, arcane character layer, seamless loop | 68.00s | `f05b638eef2d4ca4…` |
+| `character_wrought.ogg` | ambient bed, wrought character layer, seamless loop | 68.00s | `fe5e25ecefed7585…` |
+| `character_quickened.ogg` | ambient bed, quickened character layer, seamless loop | 68.00s | `1aaa0abfa7810253…` |
+| `character_verdant.ogg` | ambient bed, verdant character layer, seamless loop | 68.00s | `0e8e2edbe2e2099a…` |
+| `character_hollow.ogg` | ambient bed, hollow character layer, seamless loop | 68.00s | `a7d51d09e16e300d…` |
+| `character_overgrown.ogg` | ambient bed, overgrown character layer, seamless loop | 68.00s | `dac760152b54d62b…` |
 
 _Last rendered 2026-09-17._
