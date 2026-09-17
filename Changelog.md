@@ -1376,3 +1376,22 @@ conclusion was not, because a loop nobody can notice is a solved problem.
 - Off through the same switch and the same intensity setting as the rest of the ambience, and off
   means silent immediately rather than fading.
 - Ported to `1.21.1`.
+
+A soul that sounds like what you built in it, not just how far you have climbed
+
+The bed answered rank and nothing else - a warm soul and a cold one, at the same rank, sounded
+identical. The sky already blends continuously with what is built; the sound used to only speak
+one voice at a time, minutes apart, which reads as a soul that cannot make up its mind rather than
+as a soul that is a little of both.
+
+- Nine more quiet layers under the bed, one per pole (warm, cold, arcane, wrought, verdant,
+  hollow) and one per contested reading (steam, quickened, overgrown), mixed continuously by how
+  much of each you have built rather than rolled for one at a time.
+- Built on both poles of an axis at once, the contested layer takes over rather than the two poles
+  simply adding together - a soul of forges and freezers sits under steam, not under a crackle and
+  a chime played at once.
+- An unbuilt soul carries none of this; it fades in as you build, over the same seconds as the
+  colour does.
+- Bounded so the nine of them together can never be louder than the rank layers underneath - a
+  soul built nine ways at once does not get louder for it, only more itself.
+- Ported to `1.21.1`.

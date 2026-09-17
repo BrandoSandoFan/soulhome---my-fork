@@ -10,7 +10,11 @@ import leaf.soulhome.structures.core.AmbienceSettings;
 import leaf.soulhome.structures.core.SoulAmbience;
 import leaf.soulhome.structures.core.SoulCharacter;
 import leaf.soulhome.structures.core.SoulFeedback;
+import leaf.soulhome.structures.core.SoulVoice;
 import net.minecraft.client.Minecraft;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * The client's own copy of what the soul around it looks like, eased rather than applied (#163).
@@ -87,6 +91,8 @@ public final class ClientAmbience
     private static float bedClose;
     private static float bedOpen;
 
+    private static final Map<SoulVoice, Float> characterBed = zeroedCharacterBed();
+
     private static SoulCharacter character = SoulCharacter.EMPTY;
 
     private ClientAmbience()
@@ -102,6 +108,7 @@ public final class ClientAmbience
             // no level means no sound engine to fade anything out of, so the bed goes with it
             bedClose = 0f;
             bedOpen = 0f;
+            zeroCharacterBed();
             return;
         }
 
@@ -118,6 +125,7 @@ public final class ClientAmbience
             // and a fade needs the level to survive the moment the dimension stops being a soul.
             bedClose = fadeOut(bedClose);
             bedOpen = fadeOut(bedOpen);
+            fadeOutCharacterBed();
             return;
         }
 
@@ -134,7 +142,11 @@ public final class ClientAmbience
         tinted = target.tinted();
 
         tickDuck();
-        tickBed(SoulAmbience.bedMix(soul.getRank(), soul.getMaxRank(), settings), settings);
+
+        final SoulAmbience.BedMix rankBed = SoulAmbience.bedMix(soul.getRank(), soul.getMaxRank(), settings);
+
+        tickBed(rankBed, settings);
+        tickCharacterBed(SoulAmbience.characterBedMix(blend, rankBed.total(), settings), settings);
 
         if (arrived)
         {
@@ -216,6 +228,15 @@ public final class ClientAmbience
     public static float bedOpen()
     {
         return bedOpen * duckLevel;
+    }
+
+    /**
+     * One character layer of the bed (#214), eased and already ducked - the same contract as
+     * {@link #bedClose()} and {@link #bedOpen()}, one voice at a time.
+     */
+    public static float characterBed(SoulVoice voice)
+    {
+        return characterBed.getOrDefault(voice, 0f) * duckLevel;
     }
 
     /** Whether anything at all should be drawn or played right now. */
@@ -307,6 +328,65 @@ public final class ClientAmbience
 
         bedClose = ease(bedClose, target.close(), BED_EASE);
         bedOpen = ease(bedOpen, target.open(), BED_EASE);
+    }
+
+    /** The character half of the bed (#214), eased the same way and on the same switch as the rest. */
+    private static void tickCharacterBed(SoulAmbience.CharacterBedMix target, AmbienceSettings settings)
+    {
+        if (!settings.soundActive())
+        {
+            zeroCharacterBed();
+            return;
+        }
+
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice == SoulVoice.BASE)
+            {
+                continue;
+            }
+
+            characterBed.put(voice, ease(characterBed.get(voice), target.level(voice), BED_EASE));
+        }
+    }
+
+    private static void fadeOutCharacterBed()
+    {
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice == SoulVoice.BASE)
+            {
+                continue;
+            }
+
+            characterBed.put(voice, fadeOut(characterBed.get(voice)));
+        }
+    }
+
+    private static void zeroCharacterBed()
+    {
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice != SoulVoice.BASE)
+            {
+                characterBed.put(voice, 0f);
+            }
+        }
+    }
+
+    private static Map<SoulVoice, Float> zeroedCharacterBed()
+    {
+        final Map<SoulVoice, Float> levels = new EnumMap<>(SoulVoice.class);
+
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice != SoulVoice.BASE)
+            {
+                levels.put(voice, 0f);
+            }
+        }
+
+        return levels;
     }
 
     /**
