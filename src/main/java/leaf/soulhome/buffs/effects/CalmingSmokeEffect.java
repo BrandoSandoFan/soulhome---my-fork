@@ -6,7 +6,9 @@ package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -118,8 +120,9 @@ public class CalmingSmokeEffect implements SoulActiveEffect
             CALMED.put(mob.getUUID(), new Calmed(level, expiry));
         }
 
-        level.playSound(
-                null, player.blockPosition(), SoundEvents.BEEHIVE_WORK, SoundSource.PLAYERS, 0.6f, 1.0f);
+        SoulSounds.playFeedback(
+                level, player.blockPosition(), SoundEvents.BEEHIVE_WORK, SoundSource.PLAYERS,
+                0.6f, 1.0f, SoulFeedback.ABILITY);
 
         return true;
     }

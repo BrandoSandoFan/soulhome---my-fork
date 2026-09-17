@@ -6,6 +6,7 @@ package leaf.soulhome.client;
 
 import leaf.soulhome.config.SoulHomeClientConfig;
 import leaf.soulhome.network.SyncSoulAmbienceMessage;
+import leaf.soulhome.structures.ArchetypeManager;
 import leaf.soulhome.structures.core.AmbienceSettings;
 import leaf.soulhome.structures.core.SoulAmbience;
 import leaf.soulhome.structures.core.SoulVoice;
@@ -14,6 +15,11 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 
 /**
  * What a soul sounds like (#166), which is: almost nothing, most of the time.
@@ -24,7 +30,7 @@ import net.minecraft.util.RandomSource;
  * silence in a space people spend hours building in is defensible, and bad ambient audio is worse
  * than none. The thing that makes ambient audio unbearable is repetition, so the design here
  * removes the possibility rather than managing it - there is no bed and no loop, only single
- * sounds a minute or more apart, placed off at a distance and pitched by what the soul is made of.
+ * sounds a minute or more apart, placed off at a distance and shaped by what the soul is made of.
  * There is no cycle to hum along with because there is no cycle.
  *
  * <h2>Why these are vanilla sounds</h2>
@@ -34,6 +40,32 @@ import net.minecraft.util.RandomSource;
  * mostly it is that the vanilla palette is already tuned to be heard for hours without grating,
  * and a distant campfire crackle says "somewhere warm" more plainly than anything written for the
  * purpose would. A pack that wants its own is a resource pack away from replacing them.
+ *
+ * <h2>Where a one-shot comes from, and how big the place it comes from is</h2>
+ *
+ * <p>Three things decide a one-shot, and all three of them are arithmetic in {@code structures.core}
+ * rather than anything here:
+ *
+ * <ul>
+ *   <li><b>Which voice speaks</b> - {@code SoulAmbience.voiceFor}, off the soul's own blend.</li>
+ *   <li><b>Which direction it speaks from</b> (#215) - {@code SoulAmbience.oneShotOrigin} picks a
+ *       room that actually pulls toward that voice, weighted by pull, so a warm crackle comes from
+ *       the direction of the hearth rather than from the aquarium. A voice with no room behind it
+ *       falls back to a random compass angle: the blend is still right, only the direction is
+ *       unknown. The base voice is always random, because it is the place rather than a room.</li>
+ *   <li><b>How large the place sounds</b> (#216) - {@code SoulAmbience.oneShotProfile} moves the
+ *       distance band outward with rank and gives the sound a built tail, since Minecraft has no
+ *       reverb: two or three quieter, lower repeats, each a little further round the compass, so
+ *       the tail moves the way a reflection would. The first sound is scaled down to pay for them,
+ *       which is the difference between a larger soul and a louder one.</li>
+ * </ul>
+ *
+ * <h2>Getting out of the way</h2>
+ *
+ * <p>No one-shot starts while something of this mod's own is playing, and a tail already in flight
+ * is silenced rather than allowed to talk over it (#212). What counts as "ours" is decided at the
+ * call sites that play those sounds - see {@code SoulSounds} - so footsteps and block-placing can
+ * never hold anything, which is the one thing the owner of #212 asked for by name.
  *
  * <h2>Category and volume</h2>
  *
@@ -62,7 +94,26 @@ public final class SoulAmbienceSounds
     /** Longest, at three and a half minutes. Drawn uniformly, so nothing about it is periodic. */
     private static final int MAX_GAP = 4_200;
 
+    /** Shared ceiling on the whole thing, so the ambience sits well under a block being placed. */
+    private static final float BASE_VOLUME = 0.6f;
+
+    /** How much further round the compass each repeat of a tail arrives from. */
+    private static final double ECHO_SWING = 0.4d;
+
+    /** And how much further out, so a reflection reads as coming off something further away. */
+    private static final double ECHO_SPREAD = 1.12d;
+
+    /** Each repeat is a little lower than the one before, as a real tail loses its top end. */
+    private static final float ECHO_PITCH_STEP = 0.94f;
+
+    private static final Deque<PendingEcho> ECHOES = new ArrayDeque<>();
+
     private static int ticksUntilNext = MIN_GAP;
+
+    /** The rank this client last saw, so an ascension can be answered once (#216). */
+    private static int lastRank = -1;
+
+    private static int ascensionBeatTicks;
 
     private SoulAmbienceSounds()
     {
@@ -79,8 +130,13 @@ public final class SoulAmbienceSounds
 
         if (!settings.soundActive() || !ClientAmbience.active())
         {
-            // held at the full gap while off, so switching it back on is not answered instantly
+            // held at the full gap while off, so switching it back on is not answered instantly -
+            // and the rank is forgotten with it, so a rank that changed while this was switched off
+            // is not mistaken for an ascension the moment it comes back on
             ticksUntilNext = Math.max(ticksUntilNext, MIN_GAP);
+            ECHOES.clear();
+            ascensionBeatTicks = 0;
+            lastRank = -1;
             return;
         }
 
@@ -89,44 +145,202 @@ public final class SoulAmbienceSounds
 
         if (!SyncSoulAmbienceMessage.ClientSoulAmbience.isKnown(soul))
         {
+            lastRank = -1;
+            ECHOES.clear();
+            ascensionBeatTicks = 0;
             return;
         }
+
+        final RandomSource random = minecraft.level.random;
+
+        if (ClientAmbience.held())
+        {
+            // a tail already in flight is part of the ambience like any other one-shot, and #212 is
+            // explicit that a ritual starting mid-tail silences it rather than waiting it out
+            ECHOES.clear();
+        }
+        else
+        {
+            playDueEchoes(minecraft);
+        }
+
+        tickAscensionBeat(minecraft, soul, settings, random);
 
         if (--ticksUntilNext > 0)
         {
             return;
         }
 
-        final RandomSource random = minecraft.level.random;
-
         ticksUntilNext = MIN_GAP + random.nextInt(MAX_GAP - MIN_GAP);
 
-        play(minecraft, soul, settings, random);
+        // the timer is redrawn either way, so a hold skips one sound rather than banking it and
+        // bunching the next few up behind whatever was playing
+        if (!ClientAmbience.held())
+        {
+            play(minecraft, soul, settings, random, SoulAmbience.voiceFor(soul.character(), random.nextDouble()));
+        }
+    }
+
+    /**
+     * The moment of ascending is worth one extra one-shot (#216): the base voice, once, from the new
+     * verge distance, a few seconds after the rank arrives. #164's "and then the sky changed" beat,
+     * in sound - and deliberately not on the same tick as the sky, nor while the ritual's own audio
+     * is still finishing.
+     */
+    private static void tickAscensionBeat(
+            Minecraft minecraft, SyncSoulAmbienceMessage soul, AmbienceSettings settings, RandomSource random)
+    {
+        final int rank = soul.getRank();
+
+        if (lastRank < 0)
+        {
+            // first sight of this soul: arriving in a rank V soulhome is not an ascension
+            lastRank = rank;
+            return;
+        }
+
+        if (rank > lastRank)
+        {
+            ascensionBeatTicks = SoulAmbience.ASCENSION_BEAT_DELAY_TICKS;
+        }
+
+        lastRank = rank;
+
+        if (ascensionBeatTicks <= 0)
+        {
+            return;
+        }
+
+        if (ClientAmbience.held())
+        {
+            // the ritual's own hold is still running, so the beat waits for it rather than being
+            // lost - this is the one one-shot that is about something that just happened
+            return;
+        }
+
+        if (--ascensionBeatTicks <= 0)
+        {
+            play(minecraft, soul, settings, random, SoulVoice.BASE);
+        }
     }
 
     private static void play(
-            Minecraft minecraft, SyncSoulAmbienceMessage soul, AmbienceSettings settings, RandomSource random)
+            Minecraft minecraft, SyncSoulAmbienceMessage soul, AmbienceSettings settings,
+            RandomSource random, SoulVoice voice)
     {
-        final SoulVoice voice = SoulAmbience.voiceFor(soul.character(), random.nextDouble());
+        final SoulAmbience.OneShotProfile profile = SoulAmbience.oneShotProfile(
+                soul.getRank(), soul.getMaxRank(), soul.getVergeHalfExtentOrLegacy(), settings);
+
         final SoundEvent sound = soundFor(voice, random);
 
+        final double listenerX = minecraft.player.getX();
+        final double listenerY = minecraft.player.getEyeY();
+        final double listenerZ = minecraft.player.getZ();
+
+        // a room that pulls toward this voice, if the soul has one; otherwise the honest random
+        // angle the one-shots have always used - see SoulAmbience.oneShotOrigin
+        SoulAmbience.OneShotPlacement placement = SoulAmbience.oneShotOrigin(
+                voice, soul.voiceRooms(), ArchetypeManager.byId(),
+                listenerX, listenerY, listenerZ, random.nextDouble(), random.nextDouble(), profile);
+
+        double directionX;
+        double directionZ;
+
+        if (placement != null && placement.hasDirection())
+        {
+            directionX = placement.directionX();
+            directionZ = placement.directionZ();
+        }
+        else
+        {
+            placement = SoulAmbience.oneShotPlacement(profile, random.nextDouble(), random.nextDouble());
+
+            final double angle = random.nextDouble() * Math.PI * 2d;
+
+            directionX = Math.cos(angle);
+            directionZ = Math.sin(angle);
+        }
+
+        final float pitch = profile.pitch() + random.nextFloat() * 0.06f;
+        final float volume = (float) settings.soundVolume() * (float) settings.intensity() * BASE_VOLUME;
+
+        emit(minecraft, sound, placement, directionX, directionZ, volume * profile.leadVolume(), pitch);
+
+        queueEchoes(minecraft, sound, placement, directionX, directionZ, volume, pitch, profile, random);
+    }
+
+    /**
+     * The built tail (#216). Each repeat is quieter, lower, a little further round the compass and a
+     * little further out, so what a player hears is a reflection arriving from somewhere else rather
+     * than the same sound played twice.
+     */
+    private static void queueEchoes(
+            Minecraft minecraft, SoundEvent sound, SoulAmbience.OneShotPlacement placement,
+            double directionX, double directionZ, float volume, float pitch,
+            SoulAmbience.OneShotProfile profile, RandomSource random)
+    {
+        double horizontal = placement.horizontalDistance();
+        double angle = Math.atan2(directionZ, directionX);
+        float echoPitch = pitch;
+        final double swing = random.nextBoolean() ? ECHO_SWING : -ECHO_SWING;
+
+        for (int repeat = 1; repeat <= profile.echoes(); repeat++)
+        {
+            horizontal *= ECHO_SPREAD;
+            angle += swing;
+            echoPitch *= ECHO_PITCH_STEP;
+
+            final SoulAmbience.OneShotPlacement echo = SoulAmbience.OneShotPlacement.fitted(
+                    horizontal, placement.verticalOffset(), Math.cos(angle), Math.sin(angle));
+
+            ECHOES.add(new PendingEcho(
+                    repeat * profile.echoDelayTicks(),
+                    sound,
+                    minecraft.player.getX() + echo.directionX() * echo.horizontalDistance(),
+                    minecraft.player.getEyeY() + echo.verticalOffset(),
+                    minecraft.player.getZ() + echo.directionZ() * echo.horizontalDistance(),
+                    volume * profile.volumeOf(repeat),
+                    echoPitch));
+        }
+    }
+
+    private static void playDueEchoes(Minecraft minecraft)
+    {
+        if (ECHOES.isEmpty())
+        {
+            return;
+        }
+
+        final List<PendingEcho> remaining = new ArrayList<>(ECHOES.size());
+
+        for (PendingEcho echo : ECHOES)
+        {
+            final PendingEcho advanced = echo.tick();
+
+            if (advanced.ticksUntil() > 0)
+            {
+                remaining.add(advanced);
+                continue;
+            }
+
+            minecraft.level.playLocalSound(
+                    advanced.x(), advanced.y(), advanced.z(), advanced.sound(),
+                    SoundSource.AMBIENT, advanced.volume(), advanced.pitch(), false);
+        }
+
+        ECHOES.clear();
+        ECHOES.addAll(remaining);
+    }
+
+    private static void emit(
+            Minecraft minecraft, SoundEvent sound, SoulAmbience.OneShotPlacement placement,
+            double directionX, double directionZ, float volume, float pitch)
+    {
         // placed relative to the listener - the player's ear, not their feet (#208) - and kept
         // well inside vanilla's audible radius; see SoulAmbience.oneShotPlacement's javadoc
-        final SoulAmbience.OneShotPlacement placement =
-                SoulAmbience.oneShotPlacement(random.nextDouble(), random.nextDouble());
-
-        final double angle = random.nextDouble() * Math.PI * 2d;
-        final double x = minecraft.player.getX() + Math.cos(angle) * placement.horizontalDistance();
-        final double z = minecraft.player.getZ() + Math.sin(angle) * placement.horizontalDistance();
+        final double x = minecraft.player.getX() + directionX * placement.horizontalDistance();
+        final double z = minecraft.player.getZ() + directionZ * placement.horizontalDistance();
         final double y = minecraft.player.getEyeY() + placement.verticalOffset();
-
-        // pitched down as a soul grows, so a rank V soul sounds like a larger room than a rank 0
-        // one - the same cue the fog distance gives, in the one sense the fog cannot reach
-        final float rankFraction = soul.getMaxRank() <= 0
-                ? 1f
-                : Math.min(1f, (float) soul.getRank() / (float) soul.getMaxRank());
-        final float pitch = 0.9f - 0.25f * rankFraction + random.nextFloat() * 0.1f;
-        final float volume = (float) settings.soundVolume() * (float) settings.intensity() * 0.6f;
 
         minecraft.level.playLocalSound(x, y, z, sound, SoundSource.AMBIENT, volume, pitch, false);
     }
@@ -152,5 +366,22 @@ public final class SoulAmbienceSounds
             case OVERGROWN -> first ? SoundEvents.SCULK_CATALYST_BLOOM : SoundEvents.SCULK_BLOCK_SPREAD;
             case BASE -> first ? SoundEvents.AMETHYST_BLOCK_CHIME : SoundEvents.BEACON_AMBIENT;
         };
+    }
+
+    /**
+     * One repeat of a tail, waiting its turn.
+     *
+     * <p>Fixed in the world at the moment the one-shot was thrown rather than followed round the
+     * player, because a reflection comes from where the wall was, not from where the listener has
+     * since walked to.
+     */
+    private record PendingEcho(
+            int ticksUntil, SoundEvent sound, double x, double y, double z, float volume, float pitch)
+    {
+        PendingEcho tick()
+        {
+            return new PendingEcho(
+                    this.ticksUntil - 1, this.sound, this.x, this.y, this.z, this.volume, this.pitch);
+        }
     }
 }

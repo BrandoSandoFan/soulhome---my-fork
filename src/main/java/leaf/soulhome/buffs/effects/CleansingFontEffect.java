@@ -6,7 +6,9 @@ package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -97,8 +99,9 @@ public class CleansingFontEffect implements SoulActiveEffect
             return false;
         }
 
-        level.playSound(
-                null, player.blockPosition(), SoundEvents.CONDUIT_ACTIVATE, SoundSource.PLAYERS, 0.7f, 1.2f);
+        SoulSounds.playFeedback(
+                level, player.blockPosition(), SoundEvents.CONDUIT_ACTIVATE, SoundSource.PLAYERS,
+                0.7f, 1.2f, SoulFeedback.ABILITY);
 
         player.displayClientMessage(
                 Component.translatable(Constants.StringKeys.ABILITY_CLEANSING_FONT_CLEANSED, cleansed), true);

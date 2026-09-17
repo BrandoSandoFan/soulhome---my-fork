@@ -9,6 +9,7 @@ import leaf.soulhome.network.SyncSoulAmbienceMessage;
 import leaf.soulhome.structures.core.AmbienceSettings;
 import leaf.soulhome.structures.core.SoulAmbience;
 import leaf.soulhome.structures.core.SoulCharacter;
+import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.client.Minecraft;
 
 /**
@@ -24,6 +25,19 @@ import net.minecraft.client.Minecraft;
  * <p>The one place it does jump is a change of dimension, where there is no motion to be smooth
  * about - a player stepping out of their soul and into the overworld should not watch their soul's
  * colour drain out of the overworld's sky.
+ *
+ * <h2>The duck</h2>
+ *
+ * <p>This also holds the ambience off this mod's own audio (#212): {@link #held()} is what stops a
+ * one-shot landing on top of the ascension hum, and {@link #duckLevel()} is what the ambient bed
+ * will be multiplied by once there is one to duck (#210). Until then the level is computed and
+ * eased and nothing reads it - which is worth carrying rather than deferring, because the half of
+ * #212 that can be got wrong silently is the hold, and the hold and the duck have to share one
+ * notion of when something of ours is playing.
+ *
+ * <p>Both halves ease. {@code SoulAmbience.duckLevel} steps down the moment a hold begins and ramps
+ * back over two seconds; the easing here is what turns that step into a movement, so a duck is
+ * never a click.
  */
 public final class ClientAmbience
 {
@@ -40,9 +54,21 @@ public final class ClientAmbience
      */
     private static final float FOG_EASE = 0.008f;
 
+    /**
+     * The same for the duck (#212), and the fastest of the three. A duck has to be out of the way
+     * before the sound it is making room for is over, but a duck that snaps is a click - so it is
+     * quick rather than instant, and it is the reason {@code SoulAmbience.duckLevel}'s own step is
+     * safe to be a step.
+     */
+    private static final float DUCK_EASE = 0.2f;
+
     private static String dimension = "";
     private static boolean active;
     private static boolean tinted;
+
+    private static int holdTicksRemaining;
+    private static int ticksSinceHoldEnded = SoulAmbience.DUCK_RECOVERY_TICKS;
+    private static float duckLevel = 1f;
 
     private static float red = SoulAmbience.NEUTRAL[0];
     private static float green = SoulAmbience.NEUTRAL[1];
@@ -88,6 +114,8 @@ public final class ClientAmbience
         active = settings.active();
         tinted = target.tinted();
 
+        tickDuck();
+
         if (arrived)
         {
             red = target.red();
@@ -116,6 +144,40 @@ public final class ClientAmbience
             fogNear = target.fogNear();
             fogFar = target.fogFar();
         }
+    }
+
+    /**
+     * Something of this mod's own is playing (#212): hold the one-shots and duck the bed for this
+     * long. Called off {@code AmbienceHoldMessage}, which is sent from this mod's own sound call
+     * sites - see {@code SoulSounds} for why it is not sniffed off the sound engine instead.
+     *
+     * <p>Holds extend rather than replace: a ritual's own long hold is not cut short by an ability
+     * fired during it.
+     */
+    public static void hold(SoulFeedback kind, int ticks)
+    {
+        if (kind == null || ticks <= 0)
+        {
+            return;
+        }
+
+        holdTicksRemaining = Math.max(holdTicksRemaining, ticks);
+        ticksSinceHoldEnded = 0;
+    }
+
+    /** Whether a one-shot would land on top of something a player needs to hear. */
+    public static boolean held()
+    {
+        return holdTicksRemaining > 0;
+    }
+
+    /**
+     * What the ambient bed may be worth right now, 1 for undisturbed. Eased, so the entry into a
+     * duck and the recovery out of it are both movements rather than jumps.
+     */
+    public static float duckLevel()
+    {
+        return duckLevel;
     }
 
     /** Whether anything at all should be drawn or played right now. */
@@ -172,11 +234,29 @@ public final class ClientAmbience
         return character;
     }
 
+    private static void tickDuck()
+    {
+        if (holdTicksRemaining > 0)
+        {
+            holdTicksRemaining--;
+            ticksSinceHoldEnded = 0;
+        }
+        else if (ticksSinceHoldEnded < SoulAmbience.DUCK_RECOVERY_TICKS)
+        {
+            ticksSinceHoldEnded++;
+        }
+
+        duckLevel = ease(duckLevel, SoulAmbience.duckLevel(holdTicksRemaining, ticksSinceHoldEnded), DUCK_EASE);
+    }
+
     private static void clear()
     {
         dimension = "";
         active = false;
         tinted = false;
+        holdTicksRemaining = 0;
+        ticksSinceHoldEnded = SoulAmbience.DUCK_RECOVERY_TICKS;
+        duckLevel = 1f;
         moteRate = 0f;
         fogNear = SoulAmbience.NO_FOG_OVERRIDE;
         fogFar = SoulAmbience.NO_FOG_OVERRIDE;
