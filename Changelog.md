@@ -1394,4 +1394,4 @@ as a soul that is a little of both.
   colour does.
 - Bounded so the nine of them together can never be louder than the rank layers underneath - a
   soul built nine ways at once does not get louder for it, only more itself.
-- Not yet ported to `1.21.1`; tracked as follow-up work.
+- Ported to `1.21.1`.
