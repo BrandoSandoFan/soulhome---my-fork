@@ -6,13 +6,13 @@ package leaf.soulhome.client;
 
 import leaf.soulhome.config.SoulHomeClientConfig;
 import leaf.soulhome.network.SyncSoulAmbienceMessage;
+import leaf.soulhome.registry.SoundsRegistry;
 import leaf.soulhome.structures.ArchetypeManager;
 import leaf.soulhome.structures.core.AmbienceSettings;
 import leaf.soulhome.structures.core.SoulAmbience;
 import leaf.soulhome.structures.core.SoulVoice;
 import net.minecraft.client.Minecraft;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
@@ -24,22 +24,27 @@ import java.util.List;
 /**
  * What a soul sounds like (#166), which is: almost nothing, most of the time.
  *
- * <h2>Why there is no loop</h2>
+ * <h2>What is here, and what is under it</h2>
  *
- * <p>The issue leaves open whether this should ship at all, and the argument against it is good:
- * silence in a space people spend hours building in is defensible, and bad ambient audio is worse
- * than none. The thing that makes ambient audio unbearable is repetition, so the design here
- * removes the possibility rather than managing it - there is no bed and no loop, only single
- * sounds a minute or more apart, placed off at a distance and shaped by what the soul is made of.
- * There is no cycle to hum along with because there is no cycle.
+ * <p>This class is the one-shots: single sounds a minute or more apart, placed off at a distance
+ * and shaped by what the soul is made of. Under them, and separate from them, is the ambient bed -
+ * see {@code SoulAmbienceBed}, which is a loop, and {@code SoulAmbience.bedMix}, which decides what
+ * it is worth.
  *
- * <h2>Why these are vanilla sounds</h2>
+ * <p>There was no bed for a while, on the argument that repetition is what makes ambient audio
+ * unbearable and the surest way not to write a loop a player can hum along with is not to have one.
+ * The danger was real and the conclusion was not: #166 asked for both halves, and a loop nobody can
+ * notice is a solved problem rather than an open one (#210). The two halves stay apart because they
+ * answer different questions - the bed is the place, and a one-shot is the place saying something.
  *
- * <p>No new audio ships with this. Partly that is honest about what can be judged here - an
- * ambient bed nobody has listened to for an hour is exactly what the issue warns against - but
- * mostly it is that the vanilla palette is already tuned to be heard for hours without grating,
- * and a distant campfire crackle says "somewhere warm" more plainly than anything written for the
- * purpose would. A pack that wants its own is a resource pack away from replacing them.
+ * <h2>The palette is this mod's own</h2>
+ *
+ * <p>It was vanilla's, and that was wrong twice (#209). Half the table was the sound of a block
+ * being placed or broken, in a dimension whose entire purpose is placing blocks; the other half
+ * were cues with meanings of their own, so the base voice played the ascension ritual's own hum at
+ * random. Every voice now has its own event, rendered by the generator in {@code tools/ambience} -
+ * which also means a resource pack can replace the soul's warm sound without replacing every
+ * campfire in the game. See {@code SoundsRegistry}.
  *
  * <h2>Where a one-shot comes from, and how big the place it comes from is</h2>
  *
@@ -231,7 +236,7 @@ public final class SoulAmbienceSounds
         final SoulAmbience.OneShotProfile profile = SoulAmbience.oneShotProfile(
                 soul.getRank(), soul.getMaxRank(), soul.getVergeHalfExtentOrLegacy(), settings);
 
-        final SoundEvent sound = soundFor(voice, random);
+        final SoundEvent sound = soundFor(voice);
 
         final double listenerX = minecraft.player.getX();
         final double listenerY = minecraft.player.getEyeY();
@@ -346,26 +351,15 @@ public final class SoulAmbienceSounds
     }
 
     /**
-     * Which vanilla sound a voice speaks with. Two per voice, chosen at random, which is enough
-     * variety at this spacing that no two in an evening are alike.
+     * Which sound event a voice speaks with (#209).
+     *
+     * <p>A lookup now, where it used to be a coin flip between two vanilla events. The variety it
+     * used to get from that flip comes from {@code sounds.json}, which names three files per voice
+     * and lets the game pick between them - which is both less code here and more variety there.
      */
-    private static SoundEvent soundFor(SoulVoice voice, RandomSource random)
+    private static SoundEvent soundFor(SoulVoice voice)
     {
-        final boolean first = random.nextBoolean();
-
-        return switch (voice)
-        {
-            case WARM -> first ? SoundEvents.CAMPFIRE_CRACKLE : SoundEvents.LAVA_POP;
-            case COLD -> first ? SoundEvents.POWDER_SNOW_BREAK : SoundEvents.AMETHYST_BLOCK_CHIME;
-            case STEAM -> first ? SoundEvents.LAVA_EXTINGUISH : SoundEvents.FIRE_EXTINGUISH;
-            case ARCANE -> first ? SoundEvents.PORTAL_AMBIENT : SoundEvents.SOUL_ESCAPE;
-            case WROUGHT -> first ? SoundEvents.CHAIN_PLACE : SoundEvents.ANVIL_LAND;
-            case QUICKENED -> first ? SoundEvents.CONDUIT_AMBIENT : SoundEvents.ENCHANTMENT_TABLE_USE;
-            case VERDANT -> first ? SoundEvents.CAVE_VINES_PICK_BERRIES : SoundEvents.MOSS_PLACE;
-            case HOLLOW -> first ? SoundEvents.BONE_BLOCK_PLACE : SoundEvents.DEEPSLATE_PLACE;
-            case OVERGROWN -> first ? SoundEvents.SCULK_CATALYST_BLOOM : SoundEvents.SCULK_BLOCK_SPREAD;
-            case BASE -> first ? SoundEvents.AMETHYST_BLOCK_CHIME : SoundEvents.BEACON_AMBIENT;
-        };
+        return SoundsRegistry.voice(voice);
     }
 
     /**

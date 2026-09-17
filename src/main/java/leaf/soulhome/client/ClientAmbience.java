@@ -29,11 +29,10 @@ import net.minecraft.client.Minecraft;
  * <h2>The duck</h2>
  *
  * <p>This also holds the ambience off this mod's own audio (#212): {@link #held()} is what stops a
- * one-shot landing on top of the ascension hum, and {@link #duckLevel()} is what the ambient bed
- * will be multiplied by once there is one to duck (#210). Until then the level is computed and
- * eased and nothing reads it - which is worth carrying rather than deferring, because the half of
- * #212 that can be got wrong silently is the hold, and the hold and the duck have to share one
- * notion of when something of ours is playing.
+ * one-shot landing on top of the ascension hum, and {@link #duckLevel()} is what the ambient bed is
+ * multiplied by, which is why {@link #bedClose()} and {@link #bedOpen()} hand back a ducked level
+ * rather than a raw one. The hold and the duck share one notion of when something of ours is
+ * playing, deliberately: that is the half of #212 that goes wrong silently if they ever drift.
  *
  * <p>Both halves ease. {@code SoulAmbience.duckLevel} steps down the moment a hold begins and ramps
  * back over two seconds; the easing here is what turns that step into a movement, so a duck is
@@ -62,6 +61,14 @@ public final class ClientAmbience
      */
     private static final float DUCK_EASE = 0.2f;
 
+    /**
+     * And the bed (#210), slowest of all: about five seconds to settle. Arriving in a soul fades it
+     * up rather than starting it at level, and walking out fades it away. A rank that lands mid-
+     * build slides the mix from the close layer to the open one over long enough that what a player
+     * notices is the room having grown, not the sound having changed.
+     */
+    private static final float BED_EASE = 0.006f;
+
     private static String dimension = "";
     private static boolean active;
     private static boolean tinted;
@@ -77,6 +84,9 @@ public final class ClientAmbience
     private static float fogFar = SoulAmbience.NO_FOG_OVERRIDE;
     private static float moteRate;
 
+    private static float bedClose;
+    private static float bedOpen;
+
     private static SoulCharacter character = SoulCharacter.EMPTY;
 
     private ClientAmbience()
@@ -89,6 +99,9 @@ public final class ClientAmbience
         if (minecraft.level == null || minecraft.player == null)
         {
             clear();
+            // no level means no sound engine to fade anything out of, so the bed goes with it
+            bedClose = 0f;
+            bedOpen = 0f;
             return;
         }
 
@@ -99,6 +112,12 @@ public final class ClientAmbience
         {
             // not a soul, or one this client has not been told about: leave the world's own sky be
             clear();
+
+            // the bed is the one thing that does not simply stop here. Walking out of a soulhome
+            // should fade it away over a couple of seconds rather than cutting it off at the door,
+            // and a fade needs the level to survive the moment the dimension stops being a soul.
+            bedClose = fadeOut(bedClose);
+            bedOpen = fadeOut(bedOpen);
             return;
         }
 
@@ -115,6 +134,7 @@ public final class ClientAmbience
         tinted = target.tinted();
 
         tickDuck();
+        tickBed(SoulAmbience.bedMix(soul.getRank(), soul.getMaxRank(), settings), settings);
 
         if (arrived)
         {
@@ -178,6 +198,24 @@ public final class ClientAmbience
     public static float duckLevel()
     {
         return duckLevel;
+    }
+
+    /**
+     * The ambient bed's close layer, eased and already ducked (#210/#212).
+     *
+     * <p>The duck is applied here rather than at the sound instance so that there is one answer to
+     * "how loud is the bed" and the hold and the duck cannot drift apart - which is the half of
+     * #212 that goes wrong silently.
+     */
+    public static float bedClose()
+    {
+        return bedClose * duckLevel;
+    }
+
+    /** The open layer, the same way. */
+    public static float bedOpen()
+    {
+        return bedOpen * duckLevel;
     }
 
     /** Whether anything at all should be drawn or played right now. */
@@ -247,6 +285,41 @@ public final class ClientAmbience
         }
 
         duckLevel = ease(duckLevel, SoulAmbience.duckLevel(holdTicksRemaining, ticksSinceHoldEnded), DUCK_EASE);
+    }
+
+    /**
+     * Move the bed toward what this soul is worth - or cut it, if the reason it is worth nothing is
+     * that somebody switched it off.
+     *
+     * <p>The same split {@code tick} makes for fog, and for the same reason: a switch being turned
+     * off is a config change rather than something happening in the world, and easing it would
+     * leave a player who asked for silence listening to a bed fade out over five seconds. Everything
+     * that <i>is</i> something happening in the world - an ascension, arriving, leaving - eases.
+     */
+    private static void tickBed(SoulAmbience.BedMix target, AmbienceSettings settings)
+    {
+        if (!settings.soundActive())
+        {
+            bedClose = 0f;
+            bedOpen = 0f;
+            return;
+        }
+
+        bedClose = ease(bedClose, target.close(), BED_EASE);
+        bedOpen = ease(bedOpen, target.open(), BED_EASE);
+    }
+
+    /**
+     * A layer on its way out, snapped once it is inaudible.
+     *
+     * <p>Easing alone only ever approaches zero, and a bed that never quite reaches it would hold a
+     * streaming sound channel open for the rest of the session over a level nobody can hear.
+     */
+    private static float fadeOut(float level)
+    {
+        final float faded = ease(level, 0f, BED_EASE * 4f);
+
+        return faded <= SoulAmbience.BED_SILENCE ? 0f : faded;
     }
 
     private static void clear()

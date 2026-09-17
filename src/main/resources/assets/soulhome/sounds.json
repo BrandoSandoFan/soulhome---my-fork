@@ -1,0 +1,192 @@
+{
+  "ambience.bed.close": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/bed_close",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.bed.open": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/bed_open",
+        "stream": true,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.voice.base": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/base_1",
+        "attenuation_distance": 32
+      },
+      {
+        "name": "soulhome:ambience/base_2",
+        "attenuation_distance": 32
+      },
+      {
+        "name": "soulhome:ambience/base_3",
+        "attenuation_distance": 32
+      }
+    ]
+  },
+  "ambience.voice.warm": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/warm_1",
+        "attenuation_distance": 16
+      },
+      {
+        "name": "soulhome:ambience/warm_2",
+        "attenuation_distance": 16
+      },
+      {
+        "name": "soulhome:ambience/warm_3",
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.voice.cold": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/cold_1",
+        "attenuation_distance": 20
+      },
+      {
+        "name": "soulhome:ambience/cold_2",
+        "attenuation_distance": 20
+      },
+      {
+        "name": "soulhome:ambience/cold_3",
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "ambience.voice.steam": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/steam_1",
+        "attenuation_distance": 18
+      },
+      {
+        "name": "soulhome:ambience/steam_2",
+        "attenuation_distance": 18
+      },
+      {
+        "name": "soulhome:ambience/steam_3",
+        "attenuation_distance": 18
+      }
+    ]
+  },
+  "ambience.voice.arcane": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/arcane_1",
+        "attenuation_distance": 24
+      },
+      {
+        "name": "soulhome:ambience/arcane_2",
+        "attenuation_distance": 24
+      },
+      {
+        "name": "soulhome:ambience/arcane_3",
+        "attenuation_distance": 24
+      }
+    ]
+  },
+  "ambience.voice.wrought": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/wrought_1",
+        "attenuation_distance": 18
+      },
+      {
+        "name": "soulhome:ambience/wrought_2",
+        "attenuation_distance": 18
+      },
+      {
+        "name": "soulhome:ambience/wrought_3",
+        "attenuation_distance": 18
+      }
+    ]
+  },
+  "ambience.voice.quickened": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/quickened_1",
+        "attenuation_distance": 20
+      },
+      {
+        "name": "soulhome:ambience/quickened_2",
+        "attenuation_distance": 20
+      },
+      {
+        "name": "soulhome:ambience/quickened_3",
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "ambience.voice.verdant": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/verdant_1",
+        "attenuation_distance": 16
+      },
+      {
+        "name": "soulhome:ambience/verdant_2",
+        "attenuation_distance": 16
+      },
+      {
+        "name": "soulhome:ambience/verdant_3",
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "ambience.voice.hollow": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/hollow_1",
+        "attenuation_distance": 28
+      },
+      {
+        "name": "soulhome:ambience/hollow_2",
+        "attenuation_distance": 28
+      },
+      {
+        "name": "soulhome:ambience/hollow_3",
+        "attenuation_distance": 28
+      }
+    ]
+  },
+  "ambience.voice.overgrown": {
+    "category": "ambient",
+    "sounds": [
+      {
+        "name": "soulhome:ambience/overgrown_1",
+        "attenuation_distance": 22
+      },
+      {
+        "name": "soulhome:ambience/overgrown_2",
+        "attenuation_distance": 22
+      },
+      {
+        "name": "soulhome:ambience/overgrown_3",
+        "attenuation_distance": 22
+      }
+    ]
+  }
+}

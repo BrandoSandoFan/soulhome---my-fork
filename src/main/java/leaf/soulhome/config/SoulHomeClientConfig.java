@@ -114,11 +114,14 @@ public final class SoulHomeClientConfig
 
             this.ambientSound = builder
                     .comment(
-                            "Occasional distant sounds, minutes apart, in the Ambient/Environment sound category.",
-                            "There is no loop: every sound is a single one-shot, so there is no cycle to notice.",
-                            "A sound comes from the direction of the room that earned it, and a soul that has",
+                            "A quiet ambient bed, and occasional distant sounds minutes apart over it, both in",
+                            "the Ambient/Environment sound category.",
+                            "The bed is two long drifting loops with no seam and nothing in them to hum along to;",
+                            "how far your soul has climbed mixes it from a small dry room toward a large airy one.",
+                            "A one-shot comes from the direction of the room that earned it, and a soul that has",
                             "climbed throws them further out with a short tail behind them - larger, not louder.",
-                            "None of them ever starts on top of the ascension hum, an ability or a soul key.")
+                            "Nothing here ever starts on top of the ascension hum, an ability or a soul key, and",
+                            "the bed steps aside for all three.")
                     .define("ambient_sound", true);
 
             this.intensity = builder
