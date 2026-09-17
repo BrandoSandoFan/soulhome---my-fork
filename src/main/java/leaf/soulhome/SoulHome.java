@@ -59,6 +59,10 @@ public class SoulHome
         //AttributesRegistry.ATTRIBUTES.register(modBus);
         EntityRegistry.ENTITIES.register(modBus);
 
+        // the soul's own ambience events (#209), so a resource pack can replace the soul's warm
+        // sound without replacing every campfire in the game
+        SoundsRegistry.SOUNDS.register(modBus);
+
         //FeatureRegistry.FEATURES.register(modBus);
         //RecipeRegistry.SPECIAL_RECIPES.register(modBus);
 
