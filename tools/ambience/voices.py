@@ -48,6 +48,11 @@ ONE_SHOT_RMS_DB = -29.0
 #: And the beds lower still, because they are never not playing.
 BED_RMS_DB = -38.0
 
+#: The character layers (#214) lower again: nine of them can be live at once, under the rank bed
+#: rather than beside it, and ``SoulAmbience.characterBedMix`` bounds their combined power to what
+#: the rank bed is worth - this mastering level is the floor that bound is measured down from.
+CHARACTER_BED_RMS_DB = -46.0
+
 
 # --------------------------------------------------------------------------------------------
 # The poles
@@ -400,6 +405,66 @@ _BED_BANDS = (
 
 #: Drift rates in Hz, one per band, sharing no small whole-number ratio - see ``dsp.lfo``.
 _BED_DRIFTS = (0.0131, 0.0189, 0.0233, 0.0307, 0.0419)
+
+
+#: Weight on each of ``_BED_BANDS``, one tuple per non-``base`` voice (#214). Not the poles'
+#: generators re-run as loops - a grain envelope has no meaning stretched over a minute - but the
+#: same seamless drifting-band construction as ``render_bed``, tilted toward the part of the
+#: spectrum each voice's own one-shot lives in, so a warm soul and a cold one differ in colour and
+#: not only in which layer happens to be turned up.
+_CHARACTER_BED_TILT = {
+    "warm": (1.15, 1.05, 0.80, 0.45, 0.20),
+    "cold": (0.40, 0.55, 0.80, 1.10, 1.35),
+    "steam": (0.35, 0.50, 0.85, 1.20, 1.40),
+    "arcane": (0.70, 0.90, 1.10, 1.05, 0.80),
+    "wrought": (0.60, 0.85, 1.20, 1.05, 0.65),
+    "quickened": (0.55, 0.80, 1.10, 1.15, 0.85),
+    "verdant": (0.55, 0.70, 0.95, 1.20, 1.20),
+    "hollow": (1.30, 1.15, 0.75, 0.40, 0.20),
+    "overgrown": (0.95, 0.90, 0.90, 1.00, 1.05),
+}
+
+
+def render_character_bed(voice: str, rng: np.random.Generator, sample_rate: int, seconds: float,
+                          overlap: float) -> np.ndarray:
+    """
+    One character layer of the bed (#214) - the quiet, continuous half of what a voice sounds like.
+
+    Built exactly like ``render_bed``: five noise bands drifting on their own incommensurate LFOs,
+    crossfaded back over the loop's own head. What differs is which bands carry the weight -
+    ``_CHARACTER_BED_TILT`` leans each voice toward the register its one-shot lives in, low and
+    dry for ``hollow``, high and airy for ``cold`` and ``steam`` - so the nine layers are
+    distinguishable by ear at a glance even mixed far below the rank bed, the way #214 asks for.
+    """
+    from dsp import seamless
+
+    count = int(seconds * sample_rate)
+    tail = int(overlap * sample_rate)
+    total = count + tail
+
+    source = spectral_shape(white(rng, total), sample_rate, tilt(0.9))
+    mixed = np.zeros(total)
+    tilt_weights = _CHARACTER_BED_TILT[voice]
+
+    for index, (low, high, level) in enumerate(_BED_BANDS):
+        layer = spectral_shape(source, sample_rate, band(low, high, edge=0.45))
+
+        depth = 0.45 + 0.2 * rng.random()
+        rate = _BED_DRIFTS[index] * (0.85 + 0.3 * rng.random())
+        drift = lfo(total, sample_rate, rate=rate, phase=rng.random() * 6.283,
+                    low=1.0 - depth, high=1.0)
+
+        mixed += layer * drift * level * tilt_weights[index]
+
+    mixed *= lfo(total, sample_rate, rate=0.0071 + 0.002 * rng.random(),
+                 phase=rng.random() * 6.283, low=0.72, high=1.0)
+
+    wet = reverb(mixed, sample_rate, size=0.8, decay=0.7, damping_hz=2_600.0, combs=4)
+    mixed = mixed * 0.7 + wet * 0.35
+
+    mixed = spectral_shape(mixed, sample_rate, highpass(45.0, order=3.0))
+
+    return normalise(seamless(mixed, count, tail), CHARACTER_BED_RMS_DB, peak_ceiling_db=-9.0)
 
 
 def render_bed(kind: str, rng: np.random.Generator, sample_rate: int, seconds: float,
