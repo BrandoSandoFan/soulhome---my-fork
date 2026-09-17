@@ -147,6 +147,20 @@ public record SoulAmbience(
      */
     public static final int ASCENSION_BEAT_DELAY_TICKS = 100;
 
+    /**
+     * The ambient bed's own ceiling, on top of {@code soundVolume * intensity} (#210).
+     *
+     * <p>Under the one-shots, which are already under a block being placed. The bed has an unfair
+     * advantage over every other sound this mod plays: it is never not playing, and it arrives at
+     * the ear undistanced, where a one-shot has four to eleven blocks of attenuation taken off it
+     * first. The two land at about the same level with this ceiling in place and nowhere near it
+     * without. #210's own instruction, and the right one: if in doubt, quieter.
+     */
+    public static final float BED_CEILING = 0.45f;
+
+    /** Below this a layer is not worth a sound instance, and the bed stops rather than idling. */
+    public static final float BED_SILENCE = 0.001f;
+
     /** Below this an axis is simply leaning; above it, it is contested and reads as its third thing. */
     public static final double TENSION_FLOOR = 0.35d;
 
@@ -215,6 +229,88 @@ public record SoulAmbience(
     public boolean hasFog()
     {
         return this.fogFar > 0f;
+    }
+
+    /**
+     * How loud each of the ambient bed's two rank layers should be (#210).
+     *
+     * <p>#166 asked for a bed and for one-shots; what shipped was the one-shots, on the argument
+     * that the thing which makes ambient audio unbearable is repetition and the surest way not to
+     * write a loop a player can hum along with is not to have one. Repetition is the danger, but
+     * the fix for a noticeable loop is a loop nobody can notice - long, featureless, drifting and
+     * crossfaded over its own head - and that is a solved problem rather than an open one. It is
+     * solved in {@code tools/ambience}, offline, where the result can be listened to before it
+     * ships.
+     *
+     * <p><b>Rank is the mix, not the volume.</b> Two layers: a small dry room and a large airy one
+     * with its tail baked in. A rank 0 soul is all of the first and a soul at its ceiling is all of
+     * the second, and the crossfade between them is constant-power - {@code cos}/{@code sin} rather
+     * than a straight line - because the two are decorrelated noise and a linear crossfade of
+     * decorrelated noise dips by 3 dB in the middle. A dip halfway up the ladder would be the one
+     * rank that sounds like a mistake.
+     *
+     * <p>This is the cue the fog cannot reach: a player standing in a rank V soul hears the space
+     * around them whether or not they are looking at the sky, and it costs nothing in a dimension
+     * where the lightmap is never touched.
+     *
+     * <p>Under the ambient-sound switch rather than the rank-visuals one. Rank shapes it, but a
+     * knob named {@code rank_visuals} has no business silencing audio, and a player who turned the
+     * sky's answer to rank off did not ask for the room to stop sounding like a room.
+     *
+     * @param rank     this soul's ascension rank
+     * @param maxRank  the configured ceiling, so a pack with a three-rung ladder still reaches the
+     *                 fully-opened bed at the top of it
+     * @param settings the viewer's own switches
+     */
+    public static BedMix bedMix(int rank, int maxRank, AmbienceSettings settings)
+    {
+        if (settings == null || !settings.soundActive())
+        {
+            return BedMix.SILENT;
+        }
+
+        final float level = (float) (settings.soundVolume() * settings.intensity()) * BED_CEILING;
+
+        if (level <= BED_SILENCE)
+        {
+            return BedMix.SILENT;
+        }
+
+        final double openShare = rankFraction(rank, maxRank) * Math.PI / 2d;
+
+        return new BedMix(level * (float) Math.cos(openShare), level * (float) Math.sin(openShare));
+    }
+
+    /**
+     * What the two rank layers of the ambient bed are worth right now (#210).
+     *
+     * <p>A target, like everything else here: {@code ClientAmbience} eases toward it a fixed share
+     * per tick, so a rescan or an ascension arriving in one packet moves the sound over seconds.
+     * That is the audio half of #167's no-flashing rule, and it is why nothing on this record is
+     * ever applied straight to a sound instance.
+     *
+     * @param close the small, dry layer - all of the bed at rank 0
+     * @param open  the large, airy one - all of it at the last rank
+     */
+    public record BedMix(float close, float open)
+    {
+        public static final BedMix SILENT = new BedMix(0f, 0f);
+
+        /**
+         * What the pair is worth together. Added in power rather than in amplitude, because two
+         * decorrelated beds played at once are louder than either by {@code sqrt(2)} and not by 2 -
+         * so this is the number a test should bound, and the sum of the two fields is not.
+         */
+        public float total()
+        {
+            return (float) Math.sqrt(this.close * this.close + this.open * this.open);
+        }
+
+        /** Whether either layer is worth a sound instance at all. */
+        public boolean audible()
+        {
+            return this.close > BED_SILENCE || this.open > BED_SILENCE;
+        }
     }
 
     /**

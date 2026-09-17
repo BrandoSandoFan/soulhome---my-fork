@@ -27,3 +27,6 @@ logs
 
 # Files from Forge MDK
 forge*changelog.txt
+
+# The ambience generator is run by hand, not by the build
+tools/ambience/__pycache__
