@@ -367,6 +367,27 @@ consumes a classification that already existed. The rules, and what breaks if on
   `intensity` 0 as well as with the master switch off, and `SoulAmbience.of` then returns `NONE`,
   which every surface treats as "change nothing" rather than "set it to the same value".
 
+- **A one-shot comes from the room that earned it** (#215). `SoulAmbience.oneShotOrigin` picks among
+  the soul's classified rooms, weighted by the `character` pull their archetype declares for that
+  voice's traits, and a room with no pull toward a voice is never a candidate for it. The direction
+  is kept and the distance is not: a hearth forty blocks off is heard *from that direction* at the
+  edge of hearing, and a hearth three blocks off is heard three blocks off. A voice with no room
+  behind it, and `BASE` always, falls back to the random compass angle - the blend is still right,
+  only the direction is unknown. The boxes ride along on `SyncSoulAmbienceMessage`, trimmed
+  server-side to rooms whose archetype declares a character at all.
+- **Larger, never louder** (#216). `SoulAmbience.oneShotProfile` moves the distance band outward
+  with rank and builds a tail (Minecraft has no reverb, so it is repeats of the same event, quieter
+  and lower and further round the compass). The first sound is scaled by `leadVolume` so the whole
+  tail sums to exactly one unechoed one-shot, and `SoulAmbienceTest` pins that at every rank. A
+  bigger soul that is also a noisier one is the failure mode this rule exists to prevent.
+- **Nothing the ambience does may cover the game** (#212), and what counts as "the game" is decided
+  at this mod's own call sites rather than sniffed off the sound engine. `SoulSounds#playFeedback`
+  plays the sound and sends the hold; a sound nobody routed through it holds nothing, which is what
+  makes footsteps and block-placing correct by construction. Matching on the sound event instead
+  would duck for somebody else's beacon or anvil, and matching on `SoundSource.PLAYERS` inside a
+  soul would duck for every block placed - in a dimension whose whole purpose is placing blocks.
+  A tail in flight is silenced by a hold rather than allowed to finish.
+
 ### Attunement: which rooms a soul is actually carrying
 
 A soulhome grants only the rooms bound into its attunement slots (#151). Everything lives in

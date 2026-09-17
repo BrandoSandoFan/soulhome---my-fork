@@ -6,6 +6,8 @@ package leaf.soulhome.items;
 
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.properties.PropTypes;
+import leaf.soulhome.sound.SoulSounds;
+import leaf.soulhome.structures.core.SoulFeedback;
 import leaf.soulhome.utils.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -68,6 +70,14 @@ public class SoulKeyItem extends BaseItem
     {
         if (!livingEntity.level().isClientSide && livingEntity instanceof Player player)
         {
+            //the key's own moment, so the soul on the far side of it does not answer the arrival
+            //with an ambient one-shot on top of it (#212). Sent to the player rather than to a
+            //place, because the place is about to change
+            if (player instanceof ServerPlayer serverPlayer)
+            {
+                SoulSounds.hold(serverPlayer, SoulFeedback.KEY, SoulFeedback.KEY.defaultHoldTicks());
+            }
+
             //find all creatures in range
             DimensionHelper.FlipDimension(
                     player,

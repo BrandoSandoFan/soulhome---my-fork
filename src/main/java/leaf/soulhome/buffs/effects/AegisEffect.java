@@ -5,7 +5,9 @@
 package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulActiveEffect;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -77,8 +79,9 @@ public class AegisEffect implements SoulActiveEffect
 
         player.setAbsorptionAmount(Math.max(player.getAbsorptionAmount(), banked));
 
-        player.serverLevel().playSound(
-                null, player.blockPosition(), SoundEvents.ANVIL_LAND, SoundSource.PLAYERS, 0.35f, 1.6f);
+        SoulSounds.playFeedback(
+                player.serverLevel(), player.blockPosition(), SoundEvents.ANVIL_LAND, SoundSource.PLAYERS,
+                0.35f, 1.6f, SoulFeedback.ABILITY);
 
         return true;
     }

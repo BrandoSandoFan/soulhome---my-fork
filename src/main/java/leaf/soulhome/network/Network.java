@@ -46,6 +46,7 @@ public class Network
         toClient(registrar, SyncSurveyedBlocksMessage.TYPE, SyncSurveyedBlocksMessage.CODEC, SyncSurveyedBlocksMessage.INVALID);
         toClient(registrar, SyncSoulAnchorMessage.TYPE, SyncSoulAnchorMessage.CODEC, SyncSoulAnchorMessage.INVALID);
         toClient(registrar, SyncSoulAmbienceMessage.TYPE, SyncSoulAmbienceMessage.CODEC, SyncSoulAmbienceMessage.INVALID);
+        toClient(registrar, AmbienceHoldMessage.TYPE, AmbienceHoldMessage.CODEC, AmbienceHoldMessage.INVALID);
 
         //the only four that travel client to server - see UseSoulAbilityMessage on why that matters
         toServer(registrar, UseSoulAbilityMessage.TYPE, UseSoulAbilityMessage.CODEC, UseSoulAbilityMessage.INVALID);

@@ -4,6 +4,10 @@
 
 package leaf.soulhome.structures.core;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * What a soul looks and sounds like right now - the Ambience epic (#163), reduced to numbers a
  * renderer can use and a test can read.
@@ -28,6 +32,13 @@ package leaf.soulhome.structures.core;
  *       {@code ClientAmbience}.</li>
  *   <li><b>Zero means off.</b> At {@code intensity} 0 the colour is the untouched one, the fog
  *       distance is {@link #NO_FOG_OVERRIDE}, and the mote rate is 0.</li>
+ *   <li><b>Larger, never louder.</b> Rank moves a one-shot further out and gives it a tail (#216),
+ *       and {@link #oneShotProfile} scales the first sound down so the tail sums to exactly one
+ *       unechoed one-shot. A rank V soul is a bigger place, not a noisier one.</li>
+ *   <li><b>Never in the way of the game.</b> Every sound this mod plays for its own sake holds the
+ *       ambience off (#212), and the hold is marked at this mod's own call sites rather than
+ *       sniffed off the sound engine - so footsteps and block-placing can never trigger it. See
+ *       {@link SoulFeedback}.</li>
  * </ul>
  *
  * @param red        fog and void colour, 0 to 1
@@ -76,6 +87,65 @@ public record SoulAmbience(
 
     /** Firmament motes per tick at full intensity and the last rank. Sparse: this is a drift, not weather. */
     public static final float MAX_MOTE_RATE = 0.85f;
+
+    /**
+     * The one-shot distance band at rank 0 and at the last rank, in blocks (#216).
+     *
+     * <p>A small soul's sounds are close in, a large one's come from out toward the verge - the
+     * sense of the box moving outward, in the ear, at the rate the fog moves outward in the eye.
+     * The far end stops short of {@link OneShotPlacement#AUDIBLE_RADIUS} less its safety margin,
+     * because past that vanilla plays the sound at nothing (#208) and "distant" becomes "silent".
+     */
+    public static final double RANK_0_NEAR = 4d;
+
+    public static final double RANK_0_FAR = 7d;
+
+    public static final double RANK_MAX_NEAR = 8d;
+
+    public static final double RANK_MAX_FAR = 11d;
+
+    /** Vertical spread, which grows with rank for the same reason the horizontal band does. */
+    public static final double RANK_0_VERTICAL = 2d;
+
+    public static final double RANK_MAX_VERTICAL = 3d;
+
+    /** Repeats at the last rank: a second and a half of tail, which is a hall rather than a canyon. */
+    public static final int MAX_ECHOES = 3;
+
+    public static final int MIN_ECHO_DELAY_TICKS = 6;
+
+    public static final int MAX_ECHO_DELAY_TICKS = 10;
+
+    /** What each repeat keeps of the one before it. Steep, because a tail that lingers is a loop. */
+    public static final float ECHO_FALLOFF = 0.5f;
+
+    /**
+     * Pitch across the ranks. Shallower than it was: with distance and a tail carrying "larger",
+     * pitch is the smallest of the three cues rather than the only one, and the old 0.9-to-0.65
+     * sweep had never actually been heard (#208) when it was chosen.
+     */
+    public static final float RANK_0_PITCH = 0.95f;
+
+    public static final float RANK_MAX_PITCH = 0.8f;
+
+    /** No room-directed one-shot lands closer in than this, however close the room's own wall is. */
+    public static final double MIN_ROOM_HORIZONTAL = 2d;
+
+    /**
+     * How far the ambient bed falls while this mod's own audio is playing (#212), and how long it
+     * takes to come back. Two seconds of recovery: fast enough not to leave a hole after an ability,
+     * slow enough that the return is not itself an event.
+     */
+    public static final float DUCK_LEVEL = 0.3f;
+
+    public static final int DUCK_RECOVERY_TICKS = 40;
+
+    /**
+     * How long after a rank arrives the soul answers it with one extra one-shot (#216) - five
+     * seconds, which is past the ritual's own completion note and its hold. The "and then the sky
+     * changed" beat of #164, in sound, and deliberately not on the same tick as the sky.
+     */
+    public static final int ASCENSION_BEAT_DELAY_TICKS = 100;
 
     /** Below this an axis is simply leaning; above it, it is contested and reads as its third thing. */
     public static final double TENSION_FLOOR = 0.35d;
@@ -148,36 +218,330 @@ public record SoulAmbience(
     }
 
     /**
+     * How a soul of this rank throws a one-shot: how far out it lands, how many times it comes
+     * back, and at what pitch (#216).
+     *
+     * <p>#166 asks that a rank V soul "sound larger than a rank 0 one - more space, longer reverb
+     * tail, further-off sounds". What shipped was pitch alone, and pitch alone says <i>lower</i>: a
+     * pitched-down chime is a bigger bell, not a bigger room. Three cues now carry it, and the
+     * ordering between them is deliberate - distance and the tail do the work, pitch is the garnish.
+     *
+     * <p>The tail is built rather than rendered, because Minecraft has no reverb: a one-shot is
+     * followed by {@link OneShotProfile#echoes()} quieter, lower, further-round-the-compass repeats
+     * of the same event. That reads unmistakably as a larger space and costs no new asset.
+     *
+     * <p><b>Larger, never louder.</b> {@link OneShotProfile#leadVolume()} is set so that the first
+     * sound plus every one of its echoes sums to exactly what a single unechoed one-shot was worth.
+     * A rank V soul is a bigger place, not a noisier one, and {@code SoulAmbienceTest} pins that
+     * across every rank and intensity.
+     *
+     * @param rank            this soul's ascension rank
+     * @param maxRank         the configured ceiling, so a pack with a three-rung ladder still
+     *                        reaches the fully-opened sound at the top of it
+     * @param vergeHalfExtent half the width of the box - nothing is ever thrown past the verge
+     * @param settings        the viewer's own switches; intensity thins the tail rather than the
+     *                        distance, since distance is what "large" is made of and volume is not
+     */
+    public static OneShotProfile oneShotProfile(
+            int rank, int maxRank, int vergeHalfExtent, AmbienceSettings settings)
+    {
+        final float fraction = rankFraction(rank, maxRank);
+        final double intensity = settings == null ? 1d : settings.intensity();
+
+        final double ceiling = Math.min(
+                OneShotPlacement.AUDIBLE_RADIUS - OneShotPlacement.SAFETY_MARGIN,
+                Math.max(1d, vergeHalfExtent));
+
+        double near = Math.min(ceiling, lerp(RANK_0_NEAR, RANK_MAX_NEAR, fraction));
+        double far = Math.min(ceiling, lerp(RANK_0_FAR, RANK_MAX_FAR, fraction));
+
+        far = Math.max(near, far);
+
+        final int echoes = (int) Math.round(MAX_ECHOES * fraction * intensity);
+        final int delay = (int) Math.round(lerp(MIN_ECHO_DELAY_TICKS, MAX_ECHO_DELAY_TICKS, fraction));
+
+        double tail = 0d;
+
+        for (int i = 1; i <= echoes; i++)
+        {
+            tail += Math.pow(ECHO_FALLOFF, i);
+        }
+
+        return new OneShotProfile(
+                near,
+                far,
+                lerp(RANK_0_VERTICAL, RANK_MAX_VERTICAL, fraction),
+                echoes,
+                delay,
+                (float) (1d / (1d + tail)),
+                ECHO_FALLOFF,
+                RANK_0_PITCH - (RANK_0_PITCH - RANK_MAX_PITCH) * fraction);
+    }
+
+    /**
      * Where the next ambient one-shot (#166) lands relative to the listener - not the player's
      * feet, the position {@link OneShotPlacement#distanceFromListener()} is measured against.
      *
      * <p>Vanilla's linear-attenuation model skips a source past {@link OneShotPlacement#AUDIBLE_RADIUS}
      * outright and fades everything else to nothing at that same edge (#208). Placing a "distant"
      * sound exactly at 16 blocks horizontal, with a vertical spread measured from the player's feet
-     * rather than their ear, put every draw either past the cliff or on it. This keeps every roll
-     * {@link OneShotPlacement#SAFETY_MARGIN} blocks short of the radius, so "far" has to come from the
-     * asset - a distant-sounding recording, or a lowpass - rather than from a curve that cannot
-     * deliver it.
+     * rather than their ear, put every draw either past the cliff or on it. Every roll here stays
+     * {@link OneShotPlacement#SAFETY_MARGIN} blocks short of the radius, so "far" is expressed by
+     * the band the profile hands back rather than by a curve that cannot deliver it.
      *
+     * <p>Comes back with no direction, which the caller reads as "any compass angle will do". That
+     * is right for the base voice, which is the place rather than a room in it, and it is the
+     * fallback for a trait voice whose room could not be found - see {@link #oneShotOrigin}.
+     *
+     * @param profile        this soul's rank band - see {@link #oneShotProfile}
      * @param horizontalRoll a fresh random number in {@code [0, 1)}
      * @param verticalRoll   a second, independent one - the caller owns the randomness so this stays
      *                       a function and can be tested
      */
-    public static OneShotPlacement oneShotPlacement(double horizontalRoll, double verticalRoll)
+    public static OneShotPlacement oneShotPlacement(
+            OneShotProfile profile, double horizontalRoll, double verticalRoll)
     {
-        final double horizontal = OneShotPlacement.MIN_HORIZONTAL
-                + Math.max(0d, Math.min(1d, horizontalRoll))
-                        * (OneShotPlacement.MAX_HORIZONTAL - OneShotPlacement.MIN_HORIZONTAL);
-        final double vertical = (Math.max(0d, Math.min(1d, verticalRoll)) * 2d - 1d) * OneShotPlacement.MAX_VERTICAL;
+        final double horizontal = profile.near()
+                + Math.max(0d, Math.min(1d, horizontalRoll)) * (profile.far() - profile.near());
+        final double vertical = (Math.max(0d, Math.min(1d, verticalRoll)) * 2d - 1d) * profile.maxVertical();
 
-        return new OneShotPlacement(horizontal, vertical);
+        return OneShotPlacement.fitted(horizontal, vertical, 0d, 0d);
+    }
+
+    /**
+     * Where a one-shot with a room behind it comes from (#215).
+     *
+     * <p>A warm crackle in a soul with a hearth in it used to come from wherever the dice said,
+     * which might be the aquarium. The sky can only shift as a whole; sound has a direction, and
+     * Minecraft plays a positioned sound in stereo, so a crackle from the direction of the hearth is
+     * the soul telling a player where their hearth is without a line of text.
+     *
+     * <p>The archetype definitions this reads are already on every client. The boxes ride along on
+     * {@code SyncSoulAmbienceMessage} rather than being taken from the lens's own copy of them,
+     * which looks like the cheaper answer and is not: the lens copy is sent only when the lens is
+     * used and expires thirty seconds later, and one-shots are minutes apart, so a player who had
+     * not just used their lens would have got the fallback every time. The ambience message is
+     * already sent on exactly the events that can change a room - a scan, an arrival, a rank - and
+     * only rooms whose archetype declares a character are put in it, which is a handful of boxes.
+     *
+     * <p>Two rules hold, and the tests pin both. A voice is <b>never</b> placed at a room that does
+     * not pull toward it: the weight is the room's own {@code character} pull for the voice's traits,
+     * and a room with no pull is not a candidate at all. And the direction is kept while the
+     * distance is not - a hearth forty blocks off is heard <i>from that direction</i> at the edge of
+     * hearing, not from forty blocks away at a gain of nothing. A room nearer than the band is heard
+     * where it actually is, because pushing it outward would be as wrong as the fault this fixes.
+     *
+     * @return where to put it, or null when nothing pulls toward this voice, when the voice is
+     *         {@link SoulVoice#BASE}, or when the listener is standing inside the only candidate and
+     *         so there is no direction to give. The caller falls back to {@link #oneShotPlacement}:
+     *         the blend is still right, only the direction is unknown.
+     */
+    public static OneShotPlacement oneShotOrigin(
+            SoulVoice voice,
+            List<VoiceRoom> rooms,
+            Map<String, ArchetypeDefinition> archetypes,
+            double listenerX,
+            double listenerY,
+            double listenerZ,
+            double pickRoll,
+            double horizontalRoll,
+            OneShotProfile profile)
+    {
+        final Set<SoulTrait> traits = traitsOf(voice);
+
+        if (traits.isEmpty() || rooms == null || rooms.isEmpty() || archetypes == null)
+        {
+            return null;
+        }
+
+        double total = 0d;
+
+        for (VoiceRoom room : rooms)
+        {
+            total += pullOf(room, traits, archetypes);
+        }
+
+        if (total <= 0d)
+        {
+            return null;
+        }
+
+        double target = Math.max(0d, Math.min(0.999999d, pickRoll)) * total;
+        VoiceRoom chosen = null;
+
+        for (VoiceRoom room : rooms)
+        {
+            final double weight = pullOf(room, traits, archetypes);
+
+            if (weight <= 0d)
+            {
+                continue;
+            }
+
+            if (target < weight)
+            {
+                chosen = room;
+                break;
+            }
+
+            target -= weight;
+            chosen = room;
+        }
+
+        if (chosen == null)
+        {
+            return null;
+        }
+
+        final RoomBox box = chosen.box();
+        final double dx = box.nearestX(listenerX) - listenerX;
+        final double dy = box.nearestY(listenerY) - listenerY;
+        final double dz = box.nearestZ(listenerZ) - listenerZ;
+        final double reach = Math.sqrt(dx * dx + dz * dz);
+
+        if (reach < 1e-4d)
+        {
+            // standing in it, or directly under it: there is no compass direction to point at, and
+            // inventing one would be worse than the honest random placement
+            return null;
+        }
+
+        final double band = profile.near()
+                + Math.max(0d, Math.min(1d, horizontalRoll)) * (profile.far() - profile.near());
+        final double horizontal = Math.max(MIN_ROOM_HORIZONTAL, Math.min(band, reach));
+        final double vertical = Math.max(-profile.maxVertical(), Math.min(profile.maxVertical(), dy));
+
+        return OneShotPlacement.fitted(horizontal, vertical, dx / reach, dz / reach);
+    }
+
+    /**
+     * Which traits a voice speaks for - one for a pole, both for a contested reading, none for
+     * {@link SoulVoice#BASE}, which is the place rather than anything built in it.
+     */
+    public static Set<SoulTrait> traitsOf(SoulVoice voice)
+    {
+        for (SoulAxis axis : SoulAxis.values())
+        {
+            if (Palette.contestedVoice(axis) == voice)
+            {
+                return Set.of(axis.positive(), axis.negative());
+            }
+        }
+
+        for (SoulTrait trait : SoulTrait.values())
+        {
+            if (Palette.voice(trait) == voice)
+            {
+                return Set.of(trait);
+            }
+        }
+
+        return Set.of();
+    }
+
+    private static double pullOf(
+            VoiceRoom room, Set<SoulTrait> traits, Map<String, ArchetypeDefinition> archetypes)
+    {
+        final ArchetypeDefinition archetype = room == null ? null : archetypes.get(room.archetypeId());
+
+        if (archetype == null)
+        {
+            return 0d;
+        }
+
+        double pull = 0d;
+
+        for (SoulTrait trait : traits)
+        {
+            pull += archetype.characterPulls().getOrDefault(trait, 0d);
+        }
+
+        return pull;
+    }
+
+    /**
+     * How loud the ambient bed may be while this mod's own audio is playing, and how it comes back
+     * afterwards (#212).
+     *
+     * <p>The step down is here and the smoothing is not: this hands back a target, and
+     * {@code ClientAmbience} eases toward it a fixed share per tick like everything else in the
+     * epic. A duck that snaps is a click, and a duck that recovers in one frame is a swell.
+     *
+     * @param holdTicksRemaining how much of a hold is still running, 0 for none
+     * @param ticksSinceRelease  ticks since the last hold ended
+     * @return 1 for undisturbed, {@link #DUCK_LEVEL} while held, rising between the two
+     */
+    public static float duckLevel(int holdTicksRemaining, int ticksSinceRelease)
+    {
+        if (holdTicksRemaining > 0)
+        {
+            return DUCK_LEVEL;
+        }
+
+        if (ticksSinceRelease >= DUCK_RECOVERY_TICKS)
+        {
+            return 1f;
+        }
+
+        final float recovered = Math.max(0, ticksSinceRelease) / (float) DUCK_RECOVERY_TICKS;
+
+        return DUCK_LEVEL + (1f - DUCK_LEVEL) * recovered;
+    }
+
+    /**
+     * One rank's worth of one-shot behaviour - see {@link #oneShotProfile}.
+     *
+     * @param near        nearest the band throws a one-shot, in blocks on the XZ plane
+     * @param far         furthest it does
+     * @param maxVertical how far above or below the listener's ear one may land
+     * @param echoes      repeats after the first sound, none at rank 0
+     * @param echoDelayTicks gap between one repeat and the next, which also grows with rank
+     * @param leadVolume  the share of a one-shot's nominal volume the first sound gets, chosen so
+     *                    the whole tail sums to exactly one of them
+     * @param echoFalloff the share of the previous sound each repeat keeps
+     * @param pitch       the base pitch, before the caller's own jitter
+     */
+    public record OneShotProfile(
+            double near,
+            double far,
+            double maxVertical,
+            int echoes,
+            int echoDelayTicks,
+            float leadVolume,
+            float echoFalloff,
+            float pitch)
+    {
+        /** What the first sound and every echo add up to, as a share of one unechoed one-shot. */
+        public float totalEnergy()
+        {
+            float total = this.leadVolume;
+            float echo = this.leadVolume;
+
+            for (int i = 0; i < this.echoes; i++)
+            {
+                echo *= this.echoFalloff;
+                total += echo;
+            }
+
+            return total;
+        }
+
+        /** The volume of the {@code index}-th repeat, counting the first sound as 0. */
+        public float volumeOf(int index)
+        {
+            return this.leadVolume * (float) Math.pow(this.echoFalloff, Math.max(0, index));
+        }
     }
 
     /**
      * @param horizontalDistance blocks from the listener on the XZ plane
      * @param verticalOffset     blocks above (positive) or below the listener's own ear height
+     * @param directionX         unit vector toward the room this came from, or 0 with {@code
+     *                           directionZ} for "the caller picks a compass angle"
+     * @param directionZ         as above
      */
-    public record OneShotPlacement(double horizontalDistance, double verticalOffset)
+    public record OneShotPlacement(
+            double horizontalDistance, double verticalOffset, double directionX, double directionZ)
     {
         /** Vanilla's own linear-attenuation radius for every event {@code SoulAmbienceSounds} draws from. */
         public static final double AUDIBLE_RADIUS = 16d;
@@ -185,17 +549,70 @@ public record SoulAmbience(
         /** Kept this many blocks short of the radius, so a slow client tick or float drift can't tip a draw over it. */
         public static final double SAFETY_MARGIN = 4d;
 
-        static final double MIN_HORIZONTAL = 6d;
+        /**
+         * The same placement, shrunk if it would otherwise reach the attenuation cliff.
+         *
+         * <p>Belt and braces: the rank bands are chosen so this never has to do anything, and it is
+         * here so that a later tuning pass, or a verge small enough to squeeze the band, cannot
+         * reintroduce #208 by arithmetic nobody re-checked.
+         */
+        public static OneShotPlacement fitted(
+                double horizontal, double vertical, double directionX, double directionZ)
+        {
+            final double limit = AUDIBLE_RADIUS - SAFETY_MARGIN;
+            final double distance = Math.sqrt(horizontal * horizontal + vertical * vertical);
 
-        static final double MAX_HORIZONTAL = 10d;
+            if (distance <= limit || distance <= 0d)
+            {
+                return new OneShotPlacement(horizontal, vertical, directionX, directionZ);
+            }
 
-        static final double MAX_VERTICAL = 3d;
+            final double scale = limit / distance;
+
+            return new OneShotPlacement(horizontal * scale, vertical * scale, directionX, directionZ);
+        }
+
+        /** Whether this carries a direction of its own, or the caller should roll a compass angle. */
+        public boolean hasDirection()
+        {
+            return this.directionX != 0d || this.directionZ != 0d;
+        }
 
         /** 3D distance from the listener - what vanilla's attenuation actually reads, not the horizontal leg alone. */
         public double distanceFromListener()
         {
             return Math.sqrt(this.horizontalDistance * this.horizontalDistance + this.verticalOffset * this.verticalOffset);
         }
+    }
+
+    /**
+     * A classified room's box, in world coordinates, as the one-shot placement reads it.
+     *
+     * <p>Maxima are inclusive block coordinates, as {@code RegionBounds} gives them, so the far face
+     * of the box is one block further out than {@code max} - which is what {@code nearest} accounts
+     * for. A room is a solid the sound comes from, not a plane.
+     */
+    public record RoomBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
+    {
+        public double nearestX(double x)
+        {
+            return Math.max(this.minX, Math.min(this.maxX + 1d, x));
+        }
+
+        public double nearestY(double y)
+        {
+            return Math.max(this.minY, Math.min(this.maxY + 1d, y));
+        }
+
+        public double nearestZ(double z)
+        {
+            return Math.max(this.minZ, Math.min(this.maxZ + 1d, z));
+        }
+    }
+
+    /** One classified room as a candidate for a voice: what it was awarded, and where it stands. */
+    public record VoiceRoom(String archetypeId, RoomBox box)
+    {
     }
 
     /**
@@ -344,6 +761,11 @@ public record SoulAmbience(
     }
 
     private static float lerp(float from, float to, float amount)
+    {
+        return from + (to - from) * amount;
+    }
+
+    private static double lerp(double from, double to, double amount)
     {
         return from + (to - from) * amount;
     }

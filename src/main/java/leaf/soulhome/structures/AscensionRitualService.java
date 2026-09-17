@@ -9,9 +9,11 @@ import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.feedback.AscensionReport;
 import leaf.soulhome.registry.ItemsRegistry;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.core.AscensionSettings;
 import leaf.soulhome.structures.core.PillarInspector;
 import leaf.soulhome.structures.core.SoulBounds;
+import leaf.soulhome.structures.core.SoulFeedback;
 import leaf.soulhome.utils.DimensionHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -303,6 +305,12 @@ public final class AscensionRitualService
                 player.getUUID(), readiness.targetRank(), capPos.immutable(), columnBaseY(level, capPos, floorY),
                 totalTicks, essenceItem, readiness.essenceRequired(), totalTicks));
 
+        // the whole ritual is one moment as far as the ambience is concerned (#212): the hum steps
+        // up four times across thirty seconds and the gaps between them are as much a part of it as
+        // the notes, so the hold is placed once, for the length the ritual is actually going to be,
+        // rather than re-sent at each milestone and leaving the quiet stretches unprotected
+        SoulSounds.hold(level, capPos, SoulFeedback.RITUAL, totalTicks);
+
         player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RITUAL_STARTED).withStyle(ChatFormatting.LIGHT_PURPLE));
     }
 
@@ -356,7 +364,9 @@ public final class AscensionRitualService
 
         level.sendParticles(ParticleTypes.END_ROD, state.capPos().getX() + 0.5, state.capPos().getY() + 0.2,
                 state.capPos().getZ() + 0.5, 80, 0.6, 1.2, 0.6, 0.02);
-        level.playSound(null, state.capPos(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.0f, 1.0f);
+        SoulSounds.playFeedback(
+                level, state.capPos(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 1.0f, 1.0f,
+                SoulFeedback.RITUAL);
 
         SoulAdvancements.onAscended(player, state.targetRank());
 
@@ -409,7 +419,9 @@ public final class AscensionRitualService
             {
                 final float pitch = 0.8f + i * 0.2f;
                 final float volume = (float) (0.6 + (state.targetRank() - 1) * 0.1);
-                level.playSound(null, state.capPos(), SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, volume, pitch);
+                SoulSounds.playFeedback(
+                        level, state.capPos(), SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, volume, pitch,
+                        SoulFeedback.RITUAL, state.ticksRemaining());
                 break;
             }
         }
