@@ -13,6 +13,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 import java.util.EnumMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -80,7 +81,7 @@ public final class SoundsRegistry
     /** The registry name a voice's event has, which is also how {@code sounds.json} is keyed. */
     public static String voiceKey(SoulVoice voice)
     {
-        return "ambience.voice." + voice.name().toLowerCase(java.util.Locale.ROOT);
+        return "ambience.voice." + voice.name().toLowerCase(Locale.ROOT);
     }
 
     private static Map<SoulVoice, RegistryObject<SoundEvent>> registerVoices()
