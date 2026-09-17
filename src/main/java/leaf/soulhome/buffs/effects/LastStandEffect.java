@@ -6,7 +6,9 @@ package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -128,8 +130,9 @@ public class LastStandEffect implements SoulActiveEffect
         final int duration = BASE_DURATION_TICKS + (int) Math.round(magnitude * DURATION_PER_MAGNITUDE);
         ACTIVE.put(player.getUUID(), new Expiry(level, level.getGameTime() + duration));
 
-        level.playSound(
-                null, player.blockPosition(), SoundEvents.BONE_BLOCK_BREAK, SoundSource.PLAYERS, 0.5f, 0.7f);
+        SoulSounds.playFeedback(
+                level, player.blockPosition(), SoundEvents.BONE_BLOCK_BREAK, SoundSource.PLAYERS,
+                0.5f, 0.7f, SoulFeedback.ABILITY);
 
         return true;
     }

@@ -5,7 +5,9 @@
 package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulActiveEffect;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -97,9 +99,9 @@ public class UpdraftEffect implements SoulActiveEffect
 
         // a wing-flap whoosh reads as something taking flight from its roost; the bubble column's
         // own ambient sound left an aquatic accent behind after the room stopped using one
-        player.serverLevel().playSound(
-                null, player.blockPosition(), SoundEvents.PHANTOM_FLAP, SoundSource.PLAYERS,
-                1.0f, 0.8f);
+        SoulSounds.playFeedback(
+                player.serverLevel(), player.blockPosition(), SoundEvents.PHANTOM_FLAP, SoundSource.PLAYERS,
+                1.0f, 0.8f, SoulFeedback.ABILITY);
 
         return true;
     }

@@ -14,6 +14,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.List;
+
 /**
  * The server's half of the Ambience epic (#163): work out what a soul is like, and tell the people
  * standing in it.
@@ -95,9 +97,13 @@ public final class SoulAmbienceService
                 ? SoulCharacter.of(data.awardedRooms(), ArchetypeManager.byId())
                 : SoulCharacter.EMPTY;
 
+        // the same rooms the blend was summed from, carried so a one-shot can come from the
+        // direction of the room that earned it (#215). Trimmed to what can matter inside the
+        // message itself - see SyncSoulAmbienceMessage.of
         return SyncSoulAmbienceMessage.of(
                 level.dimension().location().toString(), rank, SoulHomeConfig.maxRank(),
-                reach(data, bounds), bounds.ceilingY(), character);
+                reach(data, bounds), bounds.ceilingY(), character,
+                SoulHomeConfig.enabled() ? data.awardedRooms() : List.of(), ArchetypeManager.byId());
     }
 
     /**

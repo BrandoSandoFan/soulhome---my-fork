@@ -6,7 +6,9 @@ package leaf.soulhome.buffs.effects;
 
 import leaf.soulhome.buffs.SoulActiveEffect;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.sound.SoulSounds;
 import leaf.soulhome.structures.core.SoulBuffTypes;
+import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -103,8 +105,9 @@ public class RallyEffect implements SoulActiveEffect
 
         // RAID_HORN is one of the handful of SoundEvents fields held as a Holder.Reference rather
         // than a bare SoundEvent, so it needs unwrapping where the others do not
-        level.playSound(
-                null, player.blockPosition(), SoundEvents.RAID_HORN.value(), SoundSource.PLAYERS, 0.7f, 1.0f);
+        SoulSounds.playFeedback(
+                level, player.blockPosition(), SoundEvents.RAID_HORN.value(), SoundSource.PLAYERS,
+                0.7f, 1.0f, SoulFeedback.ABILITY);
 
         player.displayClientMessage(
                 rallied == 0
