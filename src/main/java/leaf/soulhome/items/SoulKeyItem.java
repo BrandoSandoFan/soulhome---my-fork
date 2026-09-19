@@ -7,6 +7,7 @@ package leaf.soulhome.items;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.properties.PropTypes;
 import leaf.soulhome.sound.SoulSounds;
+import leaf.soulhome.structures.VesselLifecycleService;
 import leaf.soulhome.structures.core.SoulFeedback;
 import leaf.soulhome.utils.*;
 import net.minecraft.core.particles.ParticleTypes;
@@ -75,6 +76,10 @@ public class SoulKeyItem extends BaseItem
             if (player instanceof ServerPlayer serverPlayer)
             {
                 SoulSounds.hold(serverPlayer, SoulFeedback.KEY, SoulFeedback.KEY.defaultHoldTicks());
+
+                // the vessel this key leaves behind, or removes - #182/#184. Before the teleport,
+                // since an entry needs the vessel to exist at the position the player is about to leave
+                VesselLifecycleService.onKeyUse(serverPlayer, VesselLifecycleService.defaultKeyFragility());
             }
 
             //find all creatures in range

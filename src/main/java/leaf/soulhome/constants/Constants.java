@@ -13,6 +13,9 @@ public class Constants
 
         public static final String PATCHOULI_NOT_INSTALLED = "tooltip.soulhome.patchouli.not_installed";
 
+        //Soul Vessel (#182) - the body a player leaves behind when they enter their soul
+        public static final String VESSEL_DISTURBED = "message.soulhome.vessel.disturbed";
+
         public static final String SOULHOME_ITEM_TOOLTIP = "tooltip.item.soulhome.%s";
 
         public static final String SHIFT_ITEM_TOOLTIP = "tooltip.item.info.shift";

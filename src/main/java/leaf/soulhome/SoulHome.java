@@ -14,11 +14,13 @@ import leaf.soulhome.network.Network;
 import leaf.soulhome.registry.*;
 import leaf.soulhome.structures.BuiltinBondRelations;
 import leaf.soulhome.structures.BuiltinFormClauses;
+import leaf.soulhome.structures.VesselLifecycleService;
 import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.common.world.ForgeChunkManager;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -80,6 +82,10 @@ public class SoulHome
 
         // init cross mod compatibility stuff, if relevant
         PatchouliCompat.init();
+
+        // cleans up a soul vessel's forced-chunk ticket left behind by a server crash (#182) - has
+        // to be registered before any level loads, so it is here rather than in commonSetup
+        ForgeChunkManager.setForcedChunkLoadingCallback(SoulHome.MODID, VesselLifecycleService::validateTickets);
     }
 
     private void commonSetup(FMLCommonSetupEvent event)

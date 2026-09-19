@@ -1413,3 +1413,24 @@ shards, most of them a single flat colour apiece, easy to misread at a glance.
   capstone reads as one rather than just another step.
 - The scan's own search radius and cell budget grow to match a rank IX soul's larger box, so the
   top of the ladder is a soul the mod can actually see all of.
+- Ported to `1.21.1`.
+
+Your body stays behind when you enter your soul
+
+Entering your soul used to leave nothing. You held a Soul Key for a few seconds and vanished, with
+no body left anywhere for anyone else to find, and nothing at risk in leaving the world for a
+while. That is the first piece of changing it.
+
+- A Soul Vessel - your own skin and armour, seated and breathing - appears where you stood the
+  moment a Soul Key finishes, and is removed the moment you come back through it. It is not a
+  decoration: it forces its own chunk to stay loaded and ticking, the same way a player would, so
+  it is somewhere mobs can actually find and path to rather than a name in a save file nobody is
+  ever near.
+- A hit still lands on it for now - it plays the hurt sound and gets shoved like anything else
+  does - but does not yet hurt you. Making a hit on your vessel a hit on you is its own change,
+  coming next.
+- Killed, `/kill`'d, or a leftover ticket cleaned up after a crash all draw you straight back out
+  of your soul at once, with a message saying your body was disturbed. Returning through the
+  vessel yourself, or logging out while it is out there, does not - that is the trip simply
+  ending.
+- Ported to `1.21.1`.

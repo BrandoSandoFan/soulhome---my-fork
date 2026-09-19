@@ -1,0 +1,169 @@
+/*
+ * File created ~ 19 - 9 - 2026
+ */
+
+package leaf.soulhome.structures;
+
+import leaf.soulhome.constants.Constants;
+import leaf.soulhome.entity.SoulVesselEntity;
+import leaf.soulhome.structures.core.VesselSettings;
+import leaf.soulhome.utils.DimensionHelper;
+import leaf.soulhome.utils.LogHelper;
+import leaf.soulhome.utils.TextHelper;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.common.world.ForgeChunkManager;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * The Soul Vessel's whole lifecycle (#182): spawning one where the Soul Key finds a player, and
+ * everything that can end one afterwards. {@code SoulKeyItem}/{@code BoundSoulkey} are the only
+ * callers of {@link #onKeyUse} today - a cushion (#183) and Soulgaze (#187) are expected to call
+ * their own way in through here too, rather than touching {@link SoulVesselEntity} directly.
+ *
+ * <p>{@link #ACTIVE} exists purely as a fast owner-to-vessel lookup; {@link SoulVesselEntity}
+ * itself is what actually persists (it is a normal saved entity), so a server restart rebuilds this
+ * map for free as each vessel's {@code onAddedToWorld} re-registers it.
+ */
+public final class VesselLifecycleService
+{
+    private static final Map<UUID, SoulVesselEntity> ACTIVE = new ConcurrentHashMap<>();
+
+    private VesselLifecycleService()
+    {
+    }
+
+    /**
+     * Called by both Soul Key items, before {@code DimensionHelper.FlipDimension} - see #184.
+     * Whichever direction the key is about to travel, a vessel is either about to be needed or
+     * about to have done its job; nothing here decides that direction itself, since
+     * {@code isInSoulDimension} is exactly the same test {@code FlipDimension} makes a moment later.
+     */
+    public static void onKeyUse(ServerPlayer player, float fragility)
+    {
+        if (DimensionHelper.isInSoulDimension(player))
+        {
+            removeForReturn(player.getUUID());
+        }
+        else
+        {
+            spawn(player, fragility);
+        }
+    }
+
+    private static void spawn(ServerPlayer player, float fragility)
+    {
+        if (ACTIVE.containsKey(player.getUUID()) || !(player.level() instanceof ServerLevel level))
+        {
+            // a player cannot already have a live vessel and still be outside their soul - this is
+            // a safety net against double-spawning, not a path anything is expected to take
+            return;
+        }
+
+        SoulVesselEntity.spawn(level, player, fragility);
+    }
+
+    /** The owner's own return through the key - no message, no ejection, the trip simply ends. */
+    private static void removeForReturn(UUID ownerId)
+    {
+        final SoulVesselEntity vessel = ACTIVE.get(ownerId);
+
+        if (vessel != null)
+        {
+            vessel.markReturningPeacefully();
+            vessel.discard();
+        }
+    }
+
+    /**
+     * The owner logging out while their vessel sits in the overworld. Reuses the peaceful path
+     * rather than {@link #disturb}: nobody is currently exposed by the vessel disappearing, since
+     * the player they would otherwise eject is not connected to eject.
+     */
+    public static void onOwnerLoggedOut(ServerPlayer player)
+    {
+        removeForReturn(player.getUUID());
+    }
+
+    /** Called by {@link SoulVesselEntity#onAddedToWorld} - including every reload, not just a fresh spawn. */
+    public static void onVesselAdded(SoulVesselEntity vessel)
+    {
+        vessel.getOwnerId().ifPresent(id -> ACTIVE.put(id, vessel));
+    }
+
+    /**
+     * Called by {@link SoulVesselEntity#onRemovedFromWorld}. A peaceful return has already been
+     * marked by {@link #removeForReturn}; anything else reaching here - killed, {@code /kill}'d, a
+     * ticket an operator cleared - is a disturbance and ejects the owner per rule 3 of #181.
+     */
+    public static void onVesselRemoved(SoulVesselEntity vessel)
+    {
+        vessel.getOwnerId().ifPresent(id -> ACTIVE.remove(id, vessel));
+
+        if (!vessel.isReturningPeacefully())
+        {
+            disturb(vessel);
+        }
+    }
+
+    private static void disturb(SoulVesselEntity vessel)
+    {
+        final UUID ownerId = vessel.getOwnerId().orElse(null);
+
+        if (ownerId == null || !(vessel.level() instanceof ServerLevel level))
+        {
+            return;
+        }
+
+        final MinecraftServer server = level.getServer();
+        final ServerPlayer owner = server.getPlayerList().getPlayer(ownerId);
+
+        // not currently exposed by this vessel disappearing: offline, or already back out under
+        // their own steam a tick earlier than this event landed
+        if (owner == null || !DimensionHelper.isInSoulDimension(owner))
+        {
+            return;
+        }
+
+        owner.sendSystemMessage(TextHelper.createTranslatedText(Constants.StringKeys.VESSEL_DISTURBED));
+
+        // the same fallback position FlipDimension's own voluntary exit reads - a disturbed vessel
+        // is not a different kind of leaving, just an uninvited one
+        DimensionHelper.FlipDimension(owner, server, List.of(owner), ownerId);
+    }
+
+    /**
+     * Registered once, from the mod constructor, against every forced-chunk ticket this mod owns.
+     * Forge persists a ticket across a restart even if the vessel that requested it never got the
+     * chance to release it - a crash mid-meditation is the ordinary way that happens - so a ticket
+     * whose owner is not a live {@link SoulVesselEntity} is dropped here rather than being held
+     * forever. {@code level.getEntity(UUID)} only finds an already-loaded entity; if the vessel's
+     * own chunk has not finished loading by the time this runs, that is indistinguishable from a
+     * genuine orphan and the ticket is dropped early. That has not been exercised against a live
+     * server in this change - if it turns out to fire before the vessel deserialises, this needs a
+     * delayed second look rather than a same-tick verdict.
+     */
+    public static void validateTickets(ServerLevel level, ForgeChunkManager.TicketHelper helper)
+    {
+        for (UUID ticketOwner : new ArrayList<>(helper.getEntityTickets().keySet()))
+        {
+            if (!(level.getEntity(ticketOwner) instanceof SoulVesselEntity))
+            {
+                LogHelper.warn("Releasing a stale soul vessel chunk ticket with no vessel behind it: " + ticketOwner);
+                helper.removeAllTickets(ticketOwner);
+            }
+        }
+    }
+
+    /** {@code VesselSettings.DEFAULTS} today - a config knob is #185's to add once fragility does anything. */
+    public static float defaultKeyFragility()
+    {
+        return VesselSettings.DEFAULTS.keyFragility();
+    }
+}
