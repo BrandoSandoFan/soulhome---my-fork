@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "You can build every room there is. You cannot carry them all at once.$(p)A soul has a number of slots, and only the rooms attuned into them grant anything. A new soul has 5 for rooms and 2 for abilities; each rank of the Ascent adds one of each, reaching 10 and 7.$(p)A new room takes an empty slot by itself, so until you have more than you can carry there is nothing here to do.",
+      "text": "You can build every room there is. You cannot carry them all at once.$(p)A soul has a number of slots, and only the rooms attuned into them grant anything. A new soul has 5 for rooms and 2 for abilities; each rank of the Ascent adds one of each, reaching 14 and 11.$(p)A new room takes an empty slot by itself, so until you have more than you can carry there is nothing here to do.",
       "title": "What you can carry"
     },
     {
