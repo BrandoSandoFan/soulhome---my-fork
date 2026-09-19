@@ -1414,3 +1414,4 @@ while. That is the first piece of changing it.
   of your soul at once, with a message saying your body was disturbed. Returning through the
   vessel yourself, or logging out while it is out there, does not - that is the trip simply
   ending.
+- Ported to `1.21.1`.
