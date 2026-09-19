@@ -75,6 +75,22 @@ public class EngLangGen extends LanguageProvider
                         localisedString = "Sublime Essence V";
                         tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
                         break;
+                    case "Sublime Essence 6":
+                        localisedString = "Sublime Essence VI";
+                        tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
+                        break;
+                    case "Sublime Essence 7":
+                        localisedString = "Sublime Essence VII";
+                        tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
+                        break;
+                    case "Sublime Essence 8":
+                        localisedString = "Sublime Essence VIII";
+                        tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
+                        break;
+                    case "Sublime Essence 9":
+                        localisedString = "Sublime Essence IX";
+                        tooltipString = "Spent on the ascension ritual that raises your soulhome's rank.";
+                        break;
                     case "Soul Anchor":
                         tooltipString = "Right-click to see what your soulhome's next ascension needs, what it is carrying, and to take the essence its residue has earned.";
                         break;

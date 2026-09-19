@@ -36,8 +36,8 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
 
     public static final int DEFAULT_VERGE_PER_RANK = 16;
 
-    /** Ranks run 0 (unascended) to 5 (V). */
-    public static final int MAX_RANK = 5;
+    /** Ranks run 0 (unascended) to 9 (IX). */
+    public static final int MAX_RANK = 9;
 
     public SoulBounds
     {

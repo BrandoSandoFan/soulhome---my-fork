@@ -36,8 +36,8 @@ public class ItemsRegistry
     public static final DeferredHolder<Item, Item> SOUL_LENS = ITEMS.register("soul_lens", () -> createItem(new SoulLensItem()));
 
     /**
-     * Sublime Essence I through V (#82), indexed by rank - {@code SUBLIME_ESSENCE.get(0)} is
-     * Essence I. Registered as a list rather than five named fields so the recipes for the
+     * Sublime Essence I through IX (#82), indexed by rank - {@code SUBLIME_ESSENCE.get(0)} is
+     * Essence I. Registered as a list rather than nine named fields so the recipes for the
      * crafting ladder and the nine-into-one consolidation can both be written as a loop.
      */
     public static final List<DeferredHolder<Item, Item>> SUBLIME_ESSENCE = List.of(
@@ -45,7 +45,11 @@ public class ItemsRegistry
             ITEMS.register("sublime_essence_2", () -> createItem(new SublimeEssenceItem(2))),
             ITEMS.register("sublime_essence_3", () -> createItem(new SublimeEssenceItem(3))),
             ITEMS.register("sublime_essence_4", () -> createItem(new SublimeEssenceItem(4))),
-            ITEMS.register("sublime_essence_5", () -> createItem(new SublimeEssenceItem(5))));
+            ITEMS.register("sublime_essence_5", () -> createItem(new SublimeEssenceItem(5))),
+            ITEMS.register("sublime_essence_6", () -> createItem(new SublimeEssenceItem(6))),
+            ITEMS.register("sublime_essence_7", () -> createItem(new SublimeEssenceItem(7))),
+            ITEMS.register("sublime_essence_8", () -> createItem(new SublimeEssenceItem(8))),
+            ITEMS.register("sublime_essence_9", () -> createItem(new SublimeEssenceItem(9))));
 
     /** The Soul Anchor's own {@link BlockItem} (#83) - registered here so it shares the creative tab every other item does. */
     public static final DeferredHolder<Item, Item> SOUL_ANCHOR =

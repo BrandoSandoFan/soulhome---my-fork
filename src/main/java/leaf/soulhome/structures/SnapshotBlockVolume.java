@@ -55,8 +55,13 @@ public final class SnapshotBlockVolume implements BlockVolume
     /** Cached: {@code values()} allocates, and this is read once per block position per scan. */
     private static final Passability[] PASSABILITY_VALUES = Passability.values();
 
-    /** How far out from the origin to look for chunks. Soulhomes are a single small island. */
-    private static final int SEARCH_CHUNK_RADIUS = 8;
+    /**
+     * How far out from the origin to look for chunks. Soulhomes are a single small island, but the
+     * island's own verge grows with {@link leaf.soulhome.structures.core.SoulBounds#MAX_RANK} - this
+     * has to cover the highest rank's {@code vergeHalfExtent} with room to spare, or a soul built out
+     * to its own wall at the top rank would scan as empty past the edge of this square.
+     */
+    private static final int SEARCH_CHUNK_RADIUS = 12;
 
     private final RegionBounds bounds;
     private final int sizeY;

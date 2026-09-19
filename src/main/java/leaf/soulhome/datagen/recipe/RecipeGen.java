@@ -5,6 +5,7 @@
 package leaf.soulhome.datagen.recipe;
 
 import leaf.soulhome.registry.ItemsRegistry;
+import leaf.soulhome.structures.core.SoulBounds;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.data.*;
 import net.minecraft.data.recipes.*;
@@ -93,11 +94,12 @@ public class RecipeGen extends RecipeProvider implements IConditionBuilder
     private void buildEssenceRecipes(RecipeOutput consumer)
     {
         final Item[] keyedMaterials = {
-                Items.AMETHYST_SHARD, Items.ECHO_SHARD, Items.HEART_OF_THE_SEA, Items.NETHERITE_SCRAP, Items.NETHER_STAR
+                Items.AMETHYST_SHARD, Items.ECHO_SHARD, Items.HEART_OF_THE_SEA, Items.NETHERITE_SCRAP,
+                Items.NETHER_STAR, Items.TOTEM_OF_UNDYING, Items.SHULKER_SHELL, Items.ELYTRA, Items.DRAGON_EGG
         };
-        final int[] counts = {4, 3, 2, 1, 1};
+        final int[] counts = {4, 3, 2, 1, 1, 1, 1, 1, 1};
 
-        for (int rank = 1; rank <= 5; rank++)
+        for (int rank = 1; rank <= SoulBounds.MAX_RANK; rank++)
         {
             final Item essence = ItemsRegistry.SUBLIME_ESSENCE.get(rank - 1).get();
             final Item material = keyedMaterials[rank - 1];
@@ -108,7 +110,7 @@ public class RecipeGen extends RecipeProvider implements IConditionBuilder
                     .unlockedBy("has_material", has(material))
                     .save(consumer, ResourceLocationHelper.prefix("sublime_essence_" + rank + "_from_crafting"));
 
-            if (rank < 5)
+            if (rank < SoulBounds.MAX_RANK)
             {
                 final Item nextEssence = ItemsRegistry.SUBLIME_ESSENCE.get(rank).get();
 
