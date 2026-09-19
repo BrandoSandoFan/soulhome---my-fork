@@ -31,8 +31,8 @@ import java.util.Locale;
  * {@code /soulhome ascent} - the box a soulhome is bounded by (#78/#79), and what a legacy
  * soulhome (#80) keeps on top of it. {@code /soulhome ascent set} is the operator escape hatch
  * from #84: the actual climb - essence, willpower, the pillar (#82/#83) - is a later stage of the
- * same epic, and debugging a five-rank progression without a way to jump straight to a rank means
- * five real ascensions per test run once that mechanism exists.
+ * same epic, and debugging a nine-rank progression without a way to jump straight to a rank means
+ * nine real ascensions per test run once that mechanism exists.
  *
  * <p>{@code /soulhome ascent willpower} is #192's other half of that same escape hatch: rank is a
  * field {@code set} can just write, but willpower is computed off whatever rooms are currently

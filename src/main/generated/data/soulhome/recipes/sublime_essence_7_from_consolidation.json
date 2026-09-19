@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "soulhome:sublime_essence_6"
+    },
+    {
+      "item": "soulhome:sublime_essence_6"
+    },
+    {
+      "item": "soulhome:sublime_essence_6"
+    },
+    {
+      "item": "soulhome:sublime_essence_6"
+    },
+    {
+      "item": "soulhome:sublime_essence_6"
+    },
+    {
+      "item": "soulhome:sublime_essence_6"
+    },
+    {
+      "item": "soulhome:sublime_essence_6"
+    },
+    {
+      "item": "soulhome:sublime_essence_6"
+    },
+    {
+      "item": "soulhome:sublime_essence_6"
+    }
+  ],
+  "result": {
+    "item": "soulhome:sublime_essence_7"
+  }
+}

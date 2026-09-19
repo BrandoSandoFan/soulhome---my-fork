@@ -86,25 +86,25 @@ class SoulBoundsTest
     }
 
     @Test
-    @DisplayName("rank V's box fits under maxScannedCells and inside the search square's +-128 reach")
-    void rankVFitsWithinScanLimits()
+    @DisplayName("the top rank's box fits under maxScannedCells and inside the search square's reach")
+    void topRankFitsWithinScanLimits()
     {
-        SoulBounds rankV = SoulBounds.forRank(SoulBounds.MAX_RANK);
+        SoulBounds topRank = SoulBounds.forRank(SoulBounds.MAX_RANK);
 
-        // SnapshotBlockVolume.SEARCH_CHUNK_RADIUS = 8 covers chunk-aligned X/Z from -128 to 143;
+        // SnapshotBlockVolume.SEARCH_CHUNK_RADIUS = 12 covers chunk-aligned X/Z out to 12 * 16 = 192;
         // this mirrors that number rather than importing it, since structures/core stays
         // Minecraft-free and SnapshotBlockVolume is on the other side of that line. A future
         // rebalance of either constant has to keep this passing, not just compiling.
-        final int searchSquareReach = 128;
+        final int searchSquareReach = 192;
 
-        assertTrue(rankV.vergeHalfExtent() <= searchSquareReach,
-                "verge half-extent " + rankV.vergeHalfExtent() + " exceeds the +-" + searchSquareReach + " search square");
+        assertTrue(topRank.vergeHalfExtent() <= searchSquareReach,
+                "verge half-extent " + topRank.vergeHalfExtent() + " exceeds the +-" + searchSquareReach + " search square");
 
-        long footprint = (long) (2 * rankV.vergeHalfExtent() + 1) * (2 * rankV.vergeHalfExtent() + 1);
-        long cells = footprint * rankV.buildLayers();
+        long footprint = (long) (2 * topRank.vergeHalfExtent() + 1) * (2 * topRank.vergeHalfExtent() + 1);
+        long cells = footprint * topRank.buildLayers();
 
         assertTrue(cells <= ScanSettings.DEFAULTS.maxScannedCells(),
-                "rank V's box is " + cells + " cells, above maxScannedCells " + ScanSettings.DEFAULTS.maxScannedCells());
+                "the top rank's box is " + cells + " cells, above maxScannedCells " + ScanSettings.DEFAULTS.maxScannedCells());
     }
 
     @Test
@@ -142,7 +142,7 @@ class SoulBoundsTest
             previous = current;
         }
 
-        // a rank past the configured max is clamped to it, not to the shipped MAX_RANK of 5
+        // a rank past the configured max is clamped to it, not to the shipped MAX_RANK of 9
         SoulBounds atMax = SoulBounds.forRank(maxRank, maxRank, SoulBounds.DEFAULT_FLOOR_Y,
                 SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
                 SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK);
@@ -152,7 +152,7 @@ class SoulBoundsTest
 
         assertEquals(atMax, pastMax);
         assertTrue(atMax.ceilingY() < SoulBounds.forRank(SoulBounds.MAX_RANK).ceilingY(),
-                "a three-rung ladder should not reach as high as the shipped five-rung one");
+                "a three-rung ladder should not reach as high as the shipped nine-rung one");
     }
 
     @Test
