@@ -5,11 +5,13 @@
 package leaf.soulhome.items;
 
 import leaf.soulhome.registry.DataComponentsRegistry;
+import leaf.soulhome.structures.VesselLifecycleService;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.EntityHelper;
 import leaf.soulhome.utils.TextHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -69,6 +71,12 @@ public class BoundSoulkey extends SoulKeyItem
 			}
 
 			final SoulBinding binding = stack.get(DataComponentsRegistry.SOUL_BINDING);
+
+			// the vessel this key leaves behind, or removes - #182/#184
+			if (player instanceof ServerPlayer serverPlayer)
+			{
+				VesselLifecycleService.onKeyUse(serverPlayer, VesselLifecycleService.defaultKeyFragility());
+			}
 
 			//find all creatures in range
 			DimensionHelper.FlipDimension(
