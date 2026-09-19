@@ -1441,3 +1441,22 @@ as a soul that is a little of both.
 - Bounded so the nine of them together can never be louder than the rank layers underneath - a
   soul built nine ways at once does not get louder for it, only more itself.
 - Ported to `1.21.1`.
+
+A longer climb, and Sublime Essence you can actually tell apart
+
+The ladder topped out at rank V, which was a short climb for a mod whose whole point is what you
+carry out of your soul over time. And every step of it looked nearly the same in your hand - five
+shards, most of them a single flat colour apiece, easy to misread at a glance.
+
+- Ascension now runs to rank IX, not V. The wall, the verge, the ground apron, willpower and the
+  book's own numbers all follow the same formula they always did - there was no second table to
+  extend, on purpose.
+- Four more essence taps: Totem of Undying, Shulker Shell, Elytra and Dragon Egg, each harder to
+  come by than the one before it, the same way the first five already were. The nine-into-one
+  consolidation ladder now runs the same distance.
+- All nine Sublime Essence textures redrawn with proper facet shading and a specular highlight
+  instead of flat colour blocks, and Essence IX gets a second, cooler glint of its own - the
+  capstone reads as one rather than just another step.
+- The scan's own search radius and cell budget grow to match a rank IX soul's larger box, so the
+  top of the ladder is a soul the mod can actually see all of.
+- Ported to `1.21.1`.

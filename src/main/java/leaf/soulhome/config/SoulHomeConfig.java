@@ -873,7 +873,7 @@ public final class SoulHomeConfig
 
             this.maxScannedCells = builder
                     .comment("Refuse to scan a soulhome whose populated area is larger than this many block positions.")
-                    .defineInRange("max_scanned_cells", 4_000_000L, 4096L, 512_000_000L);
+                    .defineInRange("max_scanned_cells", 8_000_000L, 4096L, 512_000_000L);
 
             this.maxGeometryCells = builder
                     .comment(
@@ -945,7 +945,7 @@ public final class SoulHomeConfig
             this.maxRank = builder
                     .comment(
                             "Highest ascension rank a soulhome can reach. The shipped ladder runs 0 (unascended) to",
-                            "5 (V); shortening or lengthening it changes how far base_ceiling_height/base_verge and",
+                            "9 (IX); shortening or lengthening it changes how far base_ceiling_height/base_verge and",
                             "their per-rank steps above are ever multiplied out to - there is no separate table to",
                             "edit alongside it.")
                     .defineInRange("max_rank", SoulBounds.MAX_RANK, 0, 20);
