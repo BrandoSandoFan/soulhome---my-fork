@@ -241,6 +241,10 @@
   "item.soulhome.sublime_essence_3": "Sublime Essence III",
   "item.soulhome.sublime_essence_4": "Sublime Essence IV",
   "item.soulhome.sublime_essence_5": "Sublime Essence V",
+  "item.soulhome.sublime_essence_6": "Sublime Essence VI",
+  "item.soulhome.sublime_essence_7": "Sublime Essence VII",
+  "item.soulhome.sublime_essence_8": "Sublime Essence VIII",
+  "item.soulhome.sublime_essence_9": "Sublime Essence IX",
   "key.soulhome.ability.cycle": "Next Soul Ability",
   "key.soulhome.ability.use": "Use Soul Ability",
   "key.soulhome.soul.charge": "Charge Key To Transport",
@@ -385,5 +389,9 @@
   "tooltip.item.soulhome.sublime_essence_3": "Spent on the ascension ritual that raises your soulhome's rank.",
   "tooltip.item.soulhome.sublime_essence_4": "Spent on the ascension ritual that raises your soulhome's rank.",
   "tooltip.item.soulhome.sublime_essence_5": "Spent on the ascension ritual that raises your soulhome's rank.",
+  "tooltip.item.soulhome.sublime_essence_6": "Spent on the ascension ritual that raises your soulhome's rank.",
+  "tooltip.item.soulhome.sublime_essence_7": "Spent on the ascension ritual that raises your soulhome's rank.",
+  "tooltip.item.soulhome.sublime_essence_8": "Spent on the ascension ritual that raises your soulhome's rank.",
+  "tooltip.item.soulhome.sublime_essence_9": "Spent on the ascension ritual that raises your soulhome's rank.",
   "tooltip.soulhome.patchouli.not_installed": "Patchouli is not installed"
 }
