@@ -68,8 +68,11 @@ public record ScanSettings(
      */
     public static final int DEFAULT_SHELL_DEPTH = 1;
 
+    // 8_000_000L, not 4_000_000L: rank IX's box (SoulBounds.MAX_RANK = 9, at the shipped defaults)
+    // is itself already past 6.8 million cells, and a cap that rejects the top rank's own soulhome
+    // outright is not a cap, it is a ceiling nobody can build up to.
     public static final ScanSettings DEFAULTS = new ScanSettings(
-            4096, 3, 4, 64, 4_000_000L, DEFAULT_MAX_GEOMETRY_CELLS,
+            4096, 3, 4, 64, 8_000_000L, DEFAULT_MAX_GEOMETRY_CELLS,
             DEFAULT_MIN_ROOM_VOLUME, DEFAULT_SHELL_DEPTH);
 
     /** The common case: no geometry indexing limit beyond the suggested default. */
