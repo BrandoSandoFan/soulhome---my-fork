@@ -4,6 +4,7 @@
 
 package leaf.soulhome.items;
 
+import leaf.soulhome.structures.VesselLifecycleService;
 import leaf.soulhome.utils.CompoundNBTHelper;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.EntityHelper;
@@ -11,6 +12,7 @@ import leaf.soulhome.utils.TextHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -70,6 +72,12 @@ public class BoundSoulkey extends SoulKeyItem
 			if (!tag.hasUUID("soul_uuid"))
 			{
 				bindKeyToDimension(stack, player);
+			}
+
+			// the vessel this key leaves behind, or removes - #182/#184
+			if (player instanceof ServerPlayer serverPlayer)
+			{
+				VesselLifecycleService.onKeyUse(serverPlayer, VesselLifecycleService.defaultKeyFragility());
 			}
 
 			//find all creatures in range

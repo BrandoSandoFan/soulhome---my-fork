@@ -127,6 +127,9 @@ public class EngLangGen extends LanguageProvider
 
         add(Constants.StringKeys.PATCHOULI_NOT_INSTALLED, "Patchouli is not installed");
 
+        //Soul Vessel (#182) - its entity name is covered by the generic entity loop above
+        add(Constants.StringKeys.VESSEL_DISTURBED, "Your body was disturbed. You have been drawn back.");
+
         //Structure analysis
         //A fuzzy classifier that cannot say what it saw is indistinguishable from a broken one,
         //so these strings are load-bearing rather than decoration. Two rules they follow: never
