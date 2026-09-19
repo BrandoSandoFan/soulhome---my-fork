@@ -8,6 +8,7 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.client.SoulKeybinds;
 import leaf.soulhome.client.gui.SoulAmbienceOptionsScreen;
 import leaf.soulhome.client.render.SoulBarrageShotRenderer;
+import leaf.soulhome.client.render.SoulVesselRenderer;
 import leaf.soulhome.dimensions.SoulDimensionRenderInfo;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -74,5 +75,8 @@ public class ClientRegistry
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event)
     {
         event.registerEntityRenderer(EntityRegistry.SOUL_BARRAGE_SHOT.get(), SoulBarrageShotRenderer::new);
+
+        // the body a player leaves behind when they enter their soul (#182)
+        event.registerEntityRenderer(EntityRegistry.SOUL_VESSEL.get(), SoulVesselRenderer::new);
     }
 }
