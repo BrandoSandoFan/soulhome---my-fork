@@ -7,6 +7,7 @@ package leaf.soulhome.registry;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.client.SoulKeybinds;
 import leaf.soulhome.client.gui.SoulAmbienceOptionsScreen;
+import leaf.soulhome.client.render.SoulBarrageShotModel;
 import leaf.soulhome.client.render.SoulBarrageShotRenderer;
 import leaf.soulhome.client.render.SoulVesselRenderer;
 import leaf.soulhome.dimensions.SoulDimensionRenderInfo;
@@ -54,7 +55,7 @@ public class ClientRegistry
         event.register(SoulKeybinds.CYCLE_ABILITY);
     }
 
-    /** Barrage's shell (#194) - see {@link SoulBarrageShotRenderer} for why it draws nothing. */
+    /** Barrage's shell (#194) - see {@link SoulBarrageShotRenderer}. */
     @SubscribeEvent
     public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event)
     {
@@ -62,5 +63,12 @@ public class ClientRegistry
 
         // the body a player leaves behind when they enter their soul (#182)
         event.registerEntityRenderer(EntityRegistry.SOUL_VESSEL.get(), SoulVesselRenderer::new);
+    }
+
+    /** {@link SoulBarrageShotModel}'s single cube. */
+    @SubscribeEvent
+    public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event)
+    {
+        event.registerLayerDefinition(SoulBarrageShotModel.LAYER_LOCATION, SoulBarrageShotModel::createBodyLayer);
     }
 }
