@@ -53,6 +53,13 @@ public class BarrageEffect implements SoulActiveEffect
     private static final double SPREAD = 2.5d;
     private static final double SPREAD_RANGE = 12d;
 
+    /**
+     * Shots fan out in rows at most this wide, stacking a new row above or below rather than
+     * widening a single line without bound - a wide magnitude reads as a volley with some depth to
+     * it, not a single implausibly broad wall of shells.
+     */
+    private static final int ROW_WIDTH = 3;
+
     /** Clear of the caster's own bounding box, so a shell never detonates on its own shooter. */
     private static final double SPAWN_OFFSET = 0.5d;
 
@@ -96,16 +103,35 @@ public class BarrageEffect implements SoulActiveEffect
                 ? new Vec3(1d, 0d, 0d)
                 : sideways.normalize();
 
+        // the true "up" for this look direction (not world up), so a row stacked above another
+        // still reads as above when the player is aiming steeply up or down
+        final Vec3 rise = spreadAxis.cross(look);
+        final Vec3 verticalAxis = rise.lengthSqr() < 1.0e-4d ? new Vec3(0d, 1d, 0d) : rise.normalize();
+
         // one damage roll per victim per activation, however many shells land near them - shared
         // by every shell this press fires, since they now arrive over several ticks rather than
         // all resolving inside this one method call
         final Set<LivingEntity> activationHits = new HashSet<>();
         final Vec3 spawnPoint = origin.add(look.scale(SPAWN_OFFSET));
 
+        // rows of at most ROW_WIDTH shots each, stacked above and below the aim rather than one
+        // row widened without bound - see the field javadoc
+        final int rows = (shots + ROW_WIDTH - 1) / ROW_WIDTH;
+
         for (int shot = 0; shot < shots; shot++)
         {
-            final double offset = shots == 1 ? 0d : ((double) shot / (shots - 1) - 0.5d) * 2d;
-            final Vec3 aim = look.add(spreadAxis.scale(offset * SPREAD / SPREAD_RANGE)).normalize();
+            final int row = shot / ROW_WIDTH;
+            final int rowStart = row * ROW_WIDTH;
+            final int rowSize = Math.min(ROW_WIDTH, shots - rowStart);
+            final int col = shot - rowStart;
+
+            final double horizontalOffset = rowSize == 1 ? 0d : ((double) col / (rowSize - 1) - 0.5d) * 2d;
+            final double verticalOffset = rows == 1 ? 0d : ((double) row / (rows - 1) - 0.5d) * 2d;
+
+            final Vec3 aim = look
+                    .add(spreadAxis.scale(horizontalOffset * SPREAD / SPREAD_RANGE))
+                    .add(verticalAxis.scale(verticalOffset * SPREAD / SPREAD_RANGE))
+                    .normalize();
 
             level.addFreshEntity(new SoulBarrageShotEntity(level, player, spawnPoint, aim, activationHits));
         }
