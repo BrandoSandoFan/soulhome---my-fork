@@ -1,0 +1,3 @@
+# generate_barrage_shot.py's whole dependency list (#194). Nothing here is needed to build or run
+# the mod - the committed PNG is the runtime artifact.
+Pillow>=10.0

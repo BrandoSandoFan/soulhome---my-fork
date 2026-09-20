@@ -1479,3 +1479,15 @@ while. That is the first piece of changing it.
   of your soul at once, with a message saying your body was disturbed. Returning through the
   vessel yourself, or logging out while it is out there, does not - that is the trip simply
   ending.
+
+Barrage's shell looks like one now, and stops widening without bound
+
+The real projectile #194 added still flew invisibly, riding on nothing but its own soul-fire trail,
+and a wide burst fanned every shot into one ever-widening line.
+
+- Each shot is now a small, plain cannon shell rather than an unseen streak - the powder magazine is
+  one of the least magical rooms in the mod, and its ability should look the part rather than like a
+  spell.
+- A burst now fans out in rows of at most three shots, stacking a new row above or below the last
+  rather than spreading a single row arbitrarily wide as magnitude climbs. A big volley reads as a
+  volley with some depth to it, not a wall.
