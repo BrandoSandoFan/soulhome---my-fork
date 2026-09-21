@@ -21,11 +21,14 @@ import java.util.Set;
  * <h2>The rules this arithmetic exists to keep</h2>
  *
  * <ul>
- *   <li><b>Never obscures the build.</b> {@link #fogFar} is derived from the soulhome's own verge
- *       and is always past the far corner of it, so no fog ever stands between a player and
- *       anything they may legally have placed. Rank pushes it further out, never closer in: the lid
- *       comes off as you climb, and at rank 0 the void closes in <i>outside</i> the box rather than
- *       inside it.</li>
+ *   <li><b>Never obscures the build.</b> {@link #fogNear} and {@link #fogFar} are derived from the
+ *       soulhome's own verge and always clear the box's own worst case - one corner to the
+ *       <i>opposite</i> one, not the middle to a corner (#235). A player can legally stand at their
+ *       own wall and look clear across the box at something they built well away from it; sizing the
+ *       clearance off the centre alone left exactly that build sitting inside the fade, which read as
+ *       the haze reaching in and smearing builds nobody would call "near the edge". Rank pushes both
+ *       distances further out, never closer in: the lid comes off as you climb, and at rank 0 the
+ *       void closes in <i>outside</i> the box rather than inside it.</li>
  *   <li><b>Never darkens the place.</b> The tint is a hue shift with a luminance floor, and the
  *       lightmap is not touched at all. A player at ground level sees exactly the light they saw
  *       before this epic, at every rank and every blend.</li>
@@ -70,10 +73,32 @@ public record SoulAmbience(
     /** No blend may end up darker than this, whatever it is made of - see the class javadoc. */
     public static final float LUMINANCE_FLOOR = 0.45f;
 
-    /** Multiplied by the verge to clear the box's own far corner, which sits at {@code sqrt(2)}. */
-    public static final float VERGE_CLEARANCE = 1.5f;
+    /**
+     * A corner-to-opposite-corner span, in half-extents - the box's actual worst case, not the
+     * {@code sqrt(2)} from the middle to one corner it is easy to reach for instead. A player is
+     * never pinned to the centre: they can stand at their own wall and look clear across the box,
+     * and that view has to stay clear too (#235).
+     */
+    public static final float DIAGONAL_FACTOR = (float) (2d * Math.sqrt(2d));
 
-    /** Blocks of slack past that corner at rank 0, so the wall itself is never in the haze. */
+    /**
+     * Safety margin on top of {@link #DIAGONAL_FACTOR}, multiplied together with {@link
+     * #NEAR_FAR_RATIO} below so the product always exceeds 1 - so {@link #fogNear}, not just {@link
+     * #fogFar}, clears the box's true diagonal on its own, before {@link #RANK_0_MARGIN} or any
+     * other additive slack is even counted. A pack that raises the verge per rank well past the
+     * shipped defaults must not be able to erode that guarantee down to nothing.
+     */
+    public static final float VERGE_CLEARANCE = 1.3f;
+
+    /**
+     * What share of {@link #fogFar} {@link #fogNear} sits at - how wide the actual fade band is.
+     * Kept tight rather than the roomy 0.55 this used to be: a wide near/far gap is a wide smear,
+     * and #235 was exactly that - a build clear of the edge caught inside a fade zone that started
+     * well short of where the fog was meant to finish.
+     */
+    public static final float NEAR_FAR_RATIO = 0.85f;
+
+    /** Blocks of slack past the box's true diagonal at rank 0, so the wall itself is never in the haze. */
     public static final float RANK_0_MARGIN = 16f;
 
     /** How much further out the fog is pushed by the time a soul is at its last rank. */
@@ -213,11 +238,13 @@ public record SoulAmbience(
         if (settings.rankVisualsActive())
         {
             final float rankFraction = rankFraction(rank, maxRank);
-            final float clear = Math.max(16f, vergeHalfExtent) * VERGE_CLEARANCE;
+            // the box's own worst case, corner to opposite corner (#235) - see DIAGONAL_FACTOR
+            final float diagonal = DIAGONAL_FACTOR * Math.max(16f, vergeHalfExtent);
+            final float clear = diagonal * VERGE_CLEARANCE;
             // intensity slides the whole thing outward rather than thinning it, so a player who
             // wants a hint of this gets a wider soul and not a murkier one
             fogFar = clear + RANK_0_MARGIN + rankFraction * MAX_RANK_MARGIN + (1f - intensity) * INTENSITY_SLACK;
-            fogNear = fogFar * 0.55f;
+            fogNear = fogFar * NEAR_FAR_RATIO;
 
             // more space to fill as the box grows, and the drift is what makes that space legible
             moteRate = MAX_MOTE_RATE * intensity * (0.4f + 0.6f * rankFraction);
