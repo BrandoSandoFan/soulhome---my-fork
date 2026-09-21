@@ -1521,3 +1521,27 @@ would start smearing into haze - not because it was close to anything, but becau
   a tight, edge-only fade the way it was always supposed to.
 - A buff, not a nerf: nothing anyone could legally build gets any closer to being fogged than it
   already was: rank still opens the sky exactly as it did before (#235).
+- Ported to `1.21.1`.
+
+The Soul Key that couldn't find its way back out
+
+A Soul Key was meant to be the fallback that never leaves you stranded, but using one from inside
+your own soul could just... do nothing, or drop you somewhere odd inside your soul instead of
+taking you home. And every so often, the Soul Vessel you left standing in the overworld went in
+with you instead of staying behind.
+
+Both were the same mistake. A vessel is spawned exactly where its owner stands, which puts it
+inside that owner's own 2.5-block "bring your dog along" sweep the instant it exists - so it rode
+into the soul with them. Once it was in there, the vessel's own forced move across the dimension
+boundary read as it being killed or `/kill`'d rather than a peaceful return, and the code that
+keeps your return address up to date resynced it from the vessel's position - which was now
+*inside* the soul. From that point on, the Soul Key's exit path was reading "home" as the soul
+itself, so it dropped you back where the vessel was standing instead of taking you out.
+
+- The Soul Vessel is never swept along by a key, a bound key or meditation's own channel, in
+  either direction - it stays exactly where it was left, the way it was always supposed to.
+- The return address a vessel resyncs is refused, with a log line, if the vessel is ever found
+  inside a soul dimension in the first place - a second guard against the same corruption, in case
+  anything else ever manages to move one across that boundary.
+- A buff: the Soul Key reliably takes you home again, whichever door you used to get in.
+- Ported to `1.21.1`.
