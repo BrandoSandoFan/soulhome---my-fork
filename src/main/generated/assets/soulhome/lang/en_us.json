@@ -338,6 +338,8 @@
   "message.soulhome.buffs.trophy_grudge": "%1$s - you take %2$s less knockback from them",
   "message.soulhome.buffs.trophy_grudge_header": "Mounted in your trophy room:",
   "message.soulhome.growth.complete": "Your soul has grown: %s new columns of ground, out to %s blocks.",
+  "message.soulhome.guest.left_behind": "You were left behind - your soul has not ascended far enough to follow.",
+  "message.soulhome.guest.rank_required": "Your soul has not ascended far enough to enter someone else's - Rank %s or above is required.",
   "message.soulhome.lens.highlighted": "Use inside your soul to outline what was found",
   "message.soulhome.lens.nothing_to_show": "Nothing here to outline yet.",
   "message.soulhome.meditation.no_cushion": "You need a Meditation Cushion nearby to meditate.",

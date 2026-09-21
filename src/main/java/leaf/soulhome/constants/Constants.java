@@ -20,6 +20,10 @@ public class Constants
         public static final String KEY_MEDITATE = "key.soulhome.meditate";
         public static final String MEDITATION_NO_CUSHION = "message.soulhome.meditation.no_cushion";
 
+        //Guest passage (#184) - entering a soul that is not yours is gated on your own rank
+        public static final String GUEST_RANK_REQUIRED = "message.soulhome.guest.rank_required";
+        public static final String GUEST_LEFT_BEHIND = "message.soulhome.guest.left_behind";
+
         public static final String SOULHOME_ITEM_TOOLTIP = "tooltip.item.soulhome.%s";
 
         public static final String SHIFT_ITEM_TOOLTIP = "tooltip.item.info.shift";
