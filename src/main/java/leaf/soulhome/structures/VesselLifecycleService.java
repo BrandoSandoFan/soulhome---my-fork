@@ -114,6 +114,19 @@ public final class VesselLifecycleService
             return;
         }
 
+        // a vessel is never supposed to be inside a soul dimension at all (see EntityHelper's own
+        // exclusion of it from FlipDimension's sweep) - but trusting that unconditionally here would
+        // turn any future slip in that guarantee back into exactly the "the key cannot find its way
+        // out" bug it exists to prevent: resyncing from a vessel that is itself inside a soul would
+        // overwrite LAST_DIMENSION with the soul's own address, and the owner's next return trip
+        // would find "home" and "away" pointing at the same place
+        if (DimensionHelper.isInSoulDimension(vessel))
+        {
+            LogHelper.warn("Soul vessel for " + player.getGameProfile().getName()
+                    + " was found inside a soul dimension; leaving the saved return position untouched.");
+            return;
+        }
+
         final CompoundTag soulNBT = PlayerHelper.getPersistentTag(player, SoulHome.SOULHOME_LOC.toString());
         final ResourceLocation dimension = vesselLevel.dimension().location();
 
