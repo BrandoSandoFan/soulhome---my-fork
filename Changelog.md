@@ -1518,3 +1518,4 @@ to still work, which is what made the bug so easy to miss and so confusing to hi
   ever got far enough to see it.
 - A buff, not a nerf: nothing about the channel's length, its abort conditions or the cushion's
   reduced fragility changed - the cushion simply works now.
+- Ported to `1.21.1`.
