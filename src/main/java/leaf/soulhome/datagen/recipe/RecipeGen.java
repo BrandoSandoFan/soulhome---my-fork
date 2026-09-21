@@ -12,6 +12,7 @@ import net.minecraft.data.recipes.*;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
 
 import java.util.function.Consumer;
@@ -87,7 +88,7 @@ public class RecipeGen extends RecipeProvider implements IConditionBuilder
         // ordinary way in rather than something worth hoarding a key for.
         ShapelessRecipeBuilder
                 .shapeless(RecipeCategory.DECORATIONS, ItemsRegistry.MEDITATION_CUSHION.get())
-                .requires(ItemTags.WOOL, 2)
+                .requires(Ingredient.of(ItemTags.WOOL), 2)
                 .requires(Items.STRING, 2)
                 .unlockedBy("has_string", has(Items.STRING))
                 .save(consumer);
