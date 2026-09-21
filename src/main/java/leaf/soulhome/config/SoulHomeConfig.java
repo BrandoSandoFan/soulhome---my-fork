@@ -100,6 +100,15 @@ public final class SoulHomeConfig
         return snapshot.restrictSoulTravel();
     }
 
+    /**
+     * Ascension rank required to enter a soul that is not your own (#184). Read against the
+     * traveller's own rank, not the soul being entered - see {@code GuestPassageService}.
+     */
+    public static int guestRankRequired()
+    {
+        return snapshot.guestRankRequired();
+    }
+
     public static ScanSettings scanSettings()
     {
         return snapshot.scan();
@@ -263,6 +272,16 @@ public final class SoulHomeConfig
 
         snapshot = Snapshot.read();
 
+        // a pack that lowers max_rank below guest_rank_required makes guest passage unreachable
+        // forever - not rejected, since a pack may want exactly that, but worth a startup warning
+        // rather than a player discovering it by never being let in (#184)
+        if (snapshot.guestRankRequired() > snapshot.maxRank())
+        {
+            LogHelper.warn("dimension.guest_rank_required (" + snapshot.guestRankRequired()
+                    + ") is above ascent.max_rank (" + snapshot.maxRank()
+                    + ") - no rank will ever satisfy it, so guest passage is effectively disabled.");
+        }
+
         // the classifier is built over the scoring settings, so it has to be rebuilt when they
         // change rather than picking the new values up on the next scan
         ArchetypeManager.onScoringSettingsChanged();
@@ -275,6 +294,7 @@ public final class SoulHomeConfig
     private record Snapshot(
             boolean enabled,
             boolean restrictSoulTravel,
+            int guestRankRequired,
             ScanSettings scan,
             ScoringSettings scoring,
             BuffSettings buffs,
@@ -302,6 +322,7 @@ public final class SoulHomeConfig
         private static final Snapshot DEFAULTS = new Snapshot(
                 true,
                 true,
+                4,
                 ScanSettings.DEFAULTS,
                 ScoringSettings.DEFAULTS,
                 BuffSettings.DEFAULTS,
@@ -333,6 +354,7 @@ public final class SoulHomeConfig
                 return new Snapshot(
                         SERVER.enabled.get(),
                         SERVER.restrictSoulTravel.get(),
+                        SERVER.guestRankRequired.get(),
                         new ScanSettings(
                                 SERVER.maxRoomVolume.get(),
                                 SERVER.clusterRadius.get(),
@@ -531,6 +553,7 @@ public final class SoulHomeConfig
 
         public final ForgeConfigSpec.BooleanValue enabled;
         public final ForgeConfigSpec.BooleanValue restrictSoulTravel;
+        public final ForgeConfigSpec.IntValue guestRankRequired;
 
         public final ForgeConfigSpec.DoubleValue repeatedRoomFalloff;
         public final ForgeConfigSpec.IntValue maxRoomsPerArchetype;
@@ -628,6 +651,17 @@ public final class SoulHomeConfig
                             "Turn it off if your pack wants its own way in - and expect players to arrive in a",
                             "soulhome with no saved way back to where they came from.")
                     .define("restrict_travel", true);
+
+            this.guestRankRequired = builder
+                    .comment(
+                            "Ascension rank required to enter a soul that is not your own (#184) - a bound key",
+                            "handed to you, or simply standing within 2.5 blocks of someone else using theirs.",
+                            "Below this, you are refused outright if you are the one using the key, or left",
+                            "behind with a message if you were only swept along.",
+                            "Validated against ascent.max_rank at startup: set this above it and guest passage",
+                            "can never be reached, which is a warning rather than a rejected config, since a pack",
+                            "may want exactly that - guest passage switched off without a dedicated toggle.")
+                    .defineInRange("guest_rank_required", 4, 0, 20);
 
             builder.pop();
 

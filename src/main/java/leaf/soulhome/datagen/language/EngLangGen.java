@@ -149,6 +149,10 @@ public class EngLangGen extends LanguageProvider
         //Meditation (#183): the good way in, channelled at a Meditation Cushion
         add(Constants.StringKeys.MEDITATION_NO_CUSHION, "You need a Meditation Cushion nearby to meditate.");
 
+        //Guest passage (#184): entering a soul that is not yours is gated on your own rank
+        add(Constants.StringKeys.GUEST_RANK_REQUIRED, "Your soul has not ascended far enough to enter someone else's - Rank %s or above is required.");
+        add(Constants.StringKeys.GUEST_LEFT_BEHIND, "You were left behind - your soul has not ascended far enough to follow.");
+
         //Structure analysis
         //A fuzzy classifier that cannot say what it saw is indistinguishable from a broken one,
         //so these strings are load-bearing rather than decoration. Two rules they follow: never

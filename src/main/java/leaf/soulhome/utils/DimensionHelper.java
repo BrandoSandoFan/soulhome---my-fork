@@ -6,6 +6,7 @@ package leaf.soulhome.utils;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.registry.DimensionRegistry;
+import leaf.soulhome.structures.GuestPassageService;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -133,6 +134,12 @@ public class DimensionHelper
             //will create the dimension for that user if it's the first time accessing it
             destination = getOrCreateSoulDimension(targetSoulUUID.toString(), server);
 
+            // a guest among the entities swept along is only carried if their own rank clears the
+            // gate (#184) - checked here rather than at each call site, since every entry (the
+            // key, a bound key, meditation) funnels through this one method. The traveller
+            // themselves is never filtered: whichever gate applies to *them* has already been
+            // checked by the caller, before the vessel and before this sweep even started.
+            entitiesInRange = GuestPassageService.filterGuests(playerEntity, entitiesInRange, targetSoulUUID);
         }
 
         //dimension location eg minecraft:overworld
@@ -178,13 +185,9 @@ public class DimensionHelper
 
     private static ServerLevel getOrCreateSoulDimension(String userUUID, MinecraftServer server)
     {
-        //we use the user's UUID as the dimension ID.
-        //There can only be one soul dimension per user
-        ResourceLocation loc = ResourceLocationHelper.prefix(userUUID);
-
         //the key used in the map, Map<key,world>
         //if we've already made the dimension, we can grab it straight from server.getLevel
-        ResourceKey<Level> worldKey = ResourceKey.create(Registries.DIMENSION, loc);
+        ResourceKey<Level> worldKey = soulDimensionKey(userUUID);
 
         //check to find our special dimension
         ServerLevel soulDimensionForPlayer = server.getLevel(worldKey);
@@ -194,5 +197,20 @@ public class DimensionHelper
                : DimensionRegistry.createSoulDimension(server, worldKey, userUUID);
     }
 
+    /**
+     * The dimension key a player's own soul would have, whether or not it has ever been created -
+     * we use the owner's UUID as the dimension ID, so there is no map to consult, just this string.
+     * {@code GuestPassageService} (#184) reads a traveller's own rank through this without forcing
+     * a soul into existence just to check it.
+     */
+    public static ResourceKey<Level> soulDimensionKey(String ownerUUID)
+    {
+        return ResourceKey.create(Registries.DIMENSION, ResourceLocationHelper.prefix(ownerUUID));
+    }
 
+    /** As above, straight off a soul owner's own {@link UUID} rather than its string form. */
+    public static ResourceKey<Level> soulDimensionKey(UUID ownerUUID)
+    {
+        return soulDimensionKey(ownerUUID.toString());
+    }
 }

@@ -1470,3 +1470,23 @@ cushion, but it is no longer the only door.
 - A cushion's vessel carries a lower fragility than the key's - it does nothing yet, the same way
   the key's own fragility does nothing yet, but a cushion will be the gentler entry once a hit on
   your vessel actually reaches you.
+
+The Soul Key stays, but a guest needs to have earned the trip
+
+Nothing stopped anyone who was handed a bound key, or who simply stood close enough when someone
+else used theirs, from walking straight into another player's soul. A key meant for one friend was
+also a key meant for anyone that friend was careless enough to lend it to, and standing next to
+someone using their own key was a free ride into a place you had no claim on at all.
+
+- Entering a soul that is not your own now needs ascension rank IV or above, of a maximum of IX,
+  read off your own soul - never the one you are trying to enter. The ability to walk into someone
+  else's soul is something a high-rank person can do, not something a high-rank soul allows in.
+- Using a bound key on a soul below that rank refuses outright and costs nothing: no vessel is
+  spawned and nobody moves. Standing within 2.5 blocks of someone else's own entry and not
+  clearing the gate yourself leaves you behind with a message instead - the trip goes ahead
+  without you rather than dragging you along regardless.
+- The threshold is `dimension.guest_rank_required` (default IV), checked against
+  `ascent.max_rank` at startup: set it above the ladder's own top and the config logs a warning
+  rather than silently making guest passage impossible to reach - which a pack may want on
+  purpose.
+- Ported to `1.21.1`.

@@ -4,6 +4,7 @@
 
 package leaf.soulhome.items;
 
+import leaf.soulhome.structures.GuestPassageService;
 import leaf.soulhome.structures.VesselLifecycleService;
 import leaf.soulhome.utils.CompoundNBTHelper;
 import leaf.soulhome.utils.DimensionHelper;
@@ -74,9 +75,22 @@ public class BoundSoulkey extends SoulKeyItem
 				bindKeyToDimension(stack, player);
 			}
 
-			// the vessel this key leaves behind, or removes - #182/#184
+			final UUID targetSoulUUID = CompoundNBTHelper.getUuid(tag, "soul_uuid", player.getUUID());
+
 			if (player instanceof ServerPlayer serverPlayer)
 			{
+				// entering a soul that is not the traveller's own is gated on their own rank
+				// (#184) - checked before the vessel and before the sweep, not during either, so
+				// a refusal here costs the key nothing: no vessel spawned, no group moved
+				if (!DimensionHelper.isInSoulDimension(serverPlayer)
+						&& !targetSoulUUID.equals(serverPlayer.getUUID())
+						&& !GuestPassageService.canEnterGuestSoul(serverPlayer))
+				{
+					GuestPassageService.tellGateRefused(serverPlayer);
+					return stack;
+				}
+
+				// the vessel this key leaves behind, or removes - #182/#184
 				VesselLifecycleService.onKeyUse(serverPlayer, VesselLifecycleService.defaultKeyFragility());
 			}
 
@@ -85,7 +99,7 @@ public class BoundSoulkey extends SoulKeyItem
 					player,
 					player.getServer(),
 					EntityHelper.getEntitiesInRange(livingEntity,2.5d, true),
-					CompoundNBTHelper.getUuid(tag,"soul_uuid", player.getUUID())
+					targetSoulUUID
 			);
 		}
 
