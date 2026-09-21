@@ -6,6 +6,7 @@ package leaf.soulhome.client.render;
 
 import leaf.soulhome.entity.SoulVesselEntity;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.multiplayer.PlayerInfo;
@@ -38,8 +39,8 @@ public class SoulVesselRenderer extends LivingEntityRenderer<SoulVesselEntity, P
 
         this.addLayer(new HumanoidArmorLayer<>(
                 this,
-                new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR), true),
-                new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR), false),
+                new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)),
+                new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR)),
                 context.getModelManager()));
     }
 

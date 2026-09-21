@@ -1490,3 +1490,16 @@ someone using their own key was a free ride into a place you had no claim on at 
   rather than silently making guest passage impossible to reach - which a pack may want on
   purpose.
 - Ported to `1.21.1`.
+
+The game would not start at all
+
+The Soul Vessel's renderer built its armour layer out of `PlayerModel` - the model that also draws
+ears and a cloak - baked from the armour layer definitions, which carry neither. The first time
+anything tried to render a vessel, that model's constructor went looking for a part that was never
+there and threw, which happened while Forge was building every entity renderer up front - so the
+client crashed before the title screen, on every launch, no items or anything else ever visible.
+
+- The armour layers now use `HumanoidModel`, the same class vanilla's own player renderer builds
+  its armour from - it draws the same body, arms and legs `PlayerModel` does, minus the ears and
+  cloak the armour layer definitions were never going to have anyway.
+- Ported to `1.21.1`.
