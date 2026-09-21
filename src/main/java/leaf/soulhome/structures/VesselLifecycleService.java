@@ -4,12 +4,16 @@
 
 package leaf.soulhome.structures;
 
+import leaf.soulhome.SoulHome;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.entity.SoulVesselEntity;
 import leaf.soulhome.structures.core.VesselSettings;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.LogHelper;
+import leaf.soulhome.utils.PlayerHelper;
 import leaf.soulhome.utils.TextHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,10 +26,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * The Soul Vessel's whole lifecycle (#182): spawning one where the Soul Key finds a player, and
- * everything that can end one afterwards. {@code SoulKeyItem}/{@code BoundSoulkey} are the only
- * callers of {@link #onKeyUse} today - a cushion (#183) and Soulgaze (#187) are expected to call
- * their own way in through here too, rather than touching {@link SoulVesselEntity} directly.
+ * The Soul Vessel's whole lifecycle (#182): spawning one where the Soul Key or a Meditation
+ * Cushion finds a player, and everything that can end one afterwards. {@code SoulKeyItem},
+ * {@code BoundSoulkey} and {@code MeditationService} are the only callers of {@link #onKeyUse} -
+ * Soulgaze (#187) is expected to call its own way in through here too, rather than touching
+ * {@link SoulVesselEntity} directly. One code path for every entry, with only the fragility differing.
  *
  * <p>{@link #ACTIVE} exists purely as a fast owner-to-vessel lookup; {@link SoulVesselEntity}
  * itself is what actually persists (it is a normal saved entity), so a server restart rebuilds this
@@ -49,7 +54,7 @@ public final class VesselLifecycleService
     {
         if (DimensionHelper.isInSoulDimension(player))
         {
-            removeForReturn(player.getUUID());
+            removeForReturn(player);
         }
         else
         {
@@ -69,16 +74,44 @@ public final class VesselLifecycleService
         SoulVesselEntity.spawn(level, player, fragility);
     }
 
-    /** The owner's own return through the key - no message, no ejection, the trip simply ends. */
-    private static void removeForReturn(UUID ownerId)
+    /** The owner's own return through the key or a cushion - no message, no ejection, the trip simply ends. */
+    private static void removeForReturn(ServerPlayer player)
     {
-        final SoulVesselEntity vessel = ACTIVE.get(ownerId);
+        final SoulVesselEntity vessel = ACTIVE.get(player.getUUID());
 
         if (vessel != null)
         {
+            // the body may have been pushed, dragged or knocked since it was left - resync the
+            // saved return position to where it actually is before it is gone, or FlipDimension
+            // would send the player back to where they stood the moment they entered instead (#183)
+            syncReturnPosition(player, vessel);
             vessel.markReturningPeacefully();
             vessel.discard();
         }
+    }
+
+    /**
+     * Overwrites the same {@code LAST_DIMENSION_*} tag {@code DimensionHelper.FlipDimension} reads
+     * on the way out, with the vessel's own live position rather than the one recorded the moment
+     * the soul was entered. Cheaper than teaching {@code FlipDimension} to consult a live vessel
+     * itself, and correct for the same reason: whichever door the return trip uses, it is the same
+     * tag being read a moment later.
+     */
+    private static void syncReturnPosition(ServerPlayer player, SoulVesselEntity vessel)
+    {
+        if (!(vessel.level() instanceof ServerLevel vesselLevel))
+        {
+            return;
+        }
+
+        final CompoundTag soulNBT = PlayerHelper.getPersistentTag(player, SoulHome.SOULHOME_LOC.toString());
+        final ResourceLocation dimension = vesselLevel.dimension().location();
+
+        soulNBT.putDouble(Constants.NBTKeys.LAST_DIMENSION_X, vessel.getX());
+        soulNBT.putDouble(Constants.NBTKeys.LAST_DIMENSION_Y, vessel.getY());
+        soulNBT.putDouble(Constants.NBTKeys.LAST_DIMENSION_Z, vessel.getZ());
+        soulNBT.putString(Constants.NBTKeys.LAST_DIMENSION_MOD_ID, dimension.getNamespace());
+        soulNBT.putString(Constants.NBTKeys.LAST_DIMENSION_MOD_DIMENSION, dimension.getPath());
     }
 
     /**
@@ -88,7 +121,7 @@ public final class VesselLifecycleService
      */
     public static void onOwnerLoggedOut(ServerPlayer player)
     {
-        removeForReturn(player.getUUID());
+        removeForReturn(player);
     }
 
     /** Called by {@link SoulVesselEntity#onAddedToWorld} - including every reload, not just a fresh spawn. */
@@ -165,5 +198,11 @@ public final class VesselLifecycleService
     public static float defaultKeyFragility()
     {
         return VesselSettings.DEFAULTS.keyFragility();
+    }
+
+    /** The cushion's own, reduced fragility (#183) - see {@link #defaultKeyFragility}. */
+    public static float defaultCushionFragility()
+    {
+        return VesselSettings.DEFAULTS.cushionFragility();
     }
 }

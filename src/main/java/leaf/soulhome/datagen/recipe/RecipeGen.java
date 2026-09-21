@@ -9,8 +9,10 @@ import leaf.soulhome.structures.core.SoulBounds;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import net.minecraft.data.*;
 import net.minecraft.data.recipes.*;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.crafting.conditions.IConditionBuilder;
 
 import java.util.function.Consumer;
@@ -78,6 +80,17 @@ public class RecipeGen extends RecipeProvider implements IConditionBuilder
                 .pattern("OAO")
                 .pattern("EOE")
                 .unlockedBy("has_essence", has(ItemsRegistry.SUBLIME_ESSENCE.get(0).get()))
+                .save(consumer);
+
+        // the Meditation Cushion (#183): its own recipe rather than one that consumes a Soul Key -
+        // the key is not being retired, and returning it via hasCraftingRemainingItem would make
+        // the cushion free. Cheap and early-game on purpose, since a cushion is meant to be the
+        // ordinary way in rather than something worth hoarding a key for.
+        ShapelessRecipeBuilder
+                .shapeless(RecipeCategory.DECORATIONS, ItemsRegistry.MEDITATION_CUSHION.get())
+                .requires(Ingredient.of(ItemTags.WOOL), 2)
+                .requires(Items.STRING, 2)
+                .unlockedBy("has_string", has(Items.STRING))
                 .save(consumer);
     }
 

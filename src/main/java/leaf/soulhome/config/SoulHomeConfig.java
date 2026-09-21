@@ -11,6 +11,7 @@ import leaf.soulhome.structures.core.AscensionSettings;
 import leaf.soulhome.structures.core.AttunementSettings;
 import leaf.soulhome.structures.core.BuffSettings;
 import leaf.soulhome.structures.core.EssenceSettings;
+import leaf.soulhome.structures.core.MeditationSettings;
 import leaf.soulhome.structures.core.ScanDebouncer;
 import leaf.soulhome.structures.core.ScanSettings;
 import leaf.soulhome.structures.core.ScoringSettings;
@@ -207,6 +208,12 @@ public final class SoulHomeConfig
         return snapshot.activeAbilities();
     }
 
+    /** Meditation's and the Soul Key's own channel lengths, and the cushion's adjacency rule (#183). See {@link MeditationSettings}. */
+    public static MeditationSettings meditationSettings()
+    {
+        return snapshot.meditation();
+    }
+
     /**
      * Whether one particular ability may be used. A server that is happy with Aegis may not be
      * happy with Soul Step near its spawn protection, so the switch is per ability rather than only
@@ -289,7 +296,8 @@ public final class SoulHomeConfig
             AscensionSettings ascension,
             TerrainGrowthSettings terrainGrowth,
             ActiveAbilitySettings activeAbilities,
-            Set<String> disabledAbilities)
+            Set<String> disabledAbilities,
+            MeditationSettings meditation)
     {
         private static final Snapshot DEFAULTS = new Snapshot(
                 true,
@@ -315,7 +323,8 @@ public final class SoulHomeConfig
                 AscensionSettings.DEFAULTS,
                 TerrainGrowthSettings.DEFAULTS,
                 ActiveAbilitySettings.DEFAULTS,
-                Set.of());
+                Set.of(),
+                MeditationSettings.DEFAULTS);
 
         private static Snapshot read()
         {
@@ -396,7 +405,11 @@ public final class SoulHomeConfig
                                 SERVER.abilityCooldownMultiplier.get(),
                                 SERVER.abilityMinCooldownTicks.get(),
                                 SERVER.abilityMaxCharges.get()),
-                        readAbilityIds(SERVER.disabledAbilities.get()));
+                        readAbilityIds(SERVER.disabledAbilities.get()),
+                        new MeditationSettings(
+                                SERVER.cushionChannelTicks.get(),
+                                SERVER.keyChannelTicks.get(),
+                                SERVER.cushionDiagonalAdjacency.get()));
             }
             catch (RuntimeException e)
             {
@@ -595,6 +608,10 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.IntValue abilityMinCooldownTicks;
         public final ForgeConfigSpec.IntValue abilityMaxCharges;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> disabledAbilities;
+
+        public final ForgeConfigSpec.IntValue cushionChannelTicks;
+        public final ForgeConfigSpec.IntValue keyChannelTicks;
+        public final ForgeConfigSpec.BooleanValue cushionDiagonalAdjacency;
 
         private Server(ForgeConfigSpec.Builder builder)
         {
@@ -1159,6 +1176,32 @@ public final class SoulHomeConfig
                     .defineList("disabled", List.of(), entry -> entry instanceof String);
 
             builder.pop();
+
+            builder.comment(
+                            "Meditation (#183): the good way in, channelled at a Meditation Cushion, and the",
+                            "Soul Key's own channel now that it lives beside meditation's.")
+                    .push("meditation");
+
+            this.cushionChannelTicks = builder
+                    .comment("How long a channel at a Meditation Cushion takes to complete, in ticks.")
+                    .defineInRange(
+                            "cushion_channel_ticks", MeditationSettings.DEFAULT_CUSHION_CHANNEL_TICKS, 1, 24_000);
+
+            this.keyChannelTicks = builder
+                    .comment(
+                            "How long the Soul Key's own channel takes to complete, in ticks. Longer than the",
+                            "cushion's on purpose - the cushion is the reduced-fragility entry, and the key",
+                            "remains the way in when you have no cushion, at its own cost.")
+                    .defineInRange("key_channel_ticks", MeditationSettings.DEFAULT_KEY_CHANNEL_TICKS, 1, 24_000);
+
+            this.cushionDiagonalAdjacency = builder
+                    .comment(
+                            "Whether a cushion diagonally adjacent to the player, not only the four cardinal",
+                            "neighbours, still counts as being in reach to meditate.")
+                    .define("cushion_diagonal_adjacency", MeditationSettings.DEFAULT_CUSHION_DIAGONAL_ADJACENCY);
+
+            builder.pop();
+
             builder.pop();
             builder.pop();
         }
