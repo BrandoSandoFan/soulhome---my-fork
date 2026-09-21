@@ -1548,3 +1548,22 @@ client crashed before the title screen, on every launch, no items or anything el
   its armour from - it draws the same body, arms and legs `PlayerModel` does, minus the ears and
   cloak the armour layer definitions were never going to have anyway.
 - Ported to `1.20.1`.
+
+The verge's haze was reaching builds nowhere near the edge
+
+Fog was meant to answer one question - "am I near the wall" - and instead it could answer "am I
+looking across my own soul", which is a different thing entirely. The distance it started fading
+in at was sized off the middle of the box to one corner, not off the box's actual worst case: a
+player standing at their own wall, looking clear across at something they built well away from
+it. Walk to your own corner and a build sitting dead centre of your soul, nowhere near any edge,
+would start smearing into haze - not because it was close to anything, but because you were.
+
+- Fog now clears the box's true corner-to-corner span before it begins fading in at all, not just
+  the shorter centre-to-corner distance it used to be measured against. A centred build no longer
+  smears just because its owner has walked over to their own wall.
+- The gap between where the haze starts and where it finishes closed in too - down from just
+  under half of the far distance to about a sixth of it - so what used to be a wide smear reads as
+  a tight, edge-only fade the way it was always supposed to.
+- A buff, not a nerf: nothing anyone could legally build gets any closer to being fogged than it
+  already was: rank still opens the sky exactly as it did before (#235).
+- Ported to `1.20.1`.

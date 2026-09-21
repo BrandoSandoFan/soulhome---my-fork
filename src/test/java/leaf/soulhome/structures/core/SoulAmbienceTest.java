@@ -131,6 +131,37 @@ class SoulAmbienceTest
     }
 
     /**
+     * #235: a player is not pinned to the middle of their own box. They can stand at one wall and
+     * look clear across it at a build they put up nowhere near the edge - and that view has to stay
+     * clear too, or a central build reads as "smeared" the moment its owner walks to their own
+     * corner. {@code fogNear}, not just {@code fogFar}, has to clear that full corner-to-corner span.
+     */
+    @Test
+    void fogNeverReachesAnythingFromAnyLegalViewpointEither()
+    {
+        for (int rank = 0; rank <= SoulBounds.MAX_RANK; rank++)
+        {
+            final int verge = SoulBounds.forRank(rank).vergeHalfExtent();
+
+            // one corner of the box to the opposite one - the furthest apart two legal points can be
+            final double diagonal = 2d * Math.sqrt(2d) * verge;
+
+            for (double intensity = 0.1d; intensity <= 1d; intensity += 0.1d)
+            {
+                final SoulAmbience ambience = SoulAmbience.of(
+                        character(SoulTrait.HOLLOW, 500d), rank, SoulBounds.MAX_RANK, verge,
+                        new AmbienceSettings(true, true, true, true, intensity, 1d));
+
+                assertTrue(ambience.fogNear() > diagonal,
+                        "rank " + rank + " at intensity " + intensity + ": fog begins fading in at "
+                                + ambience.fogNear() + ", inside the box's own corner-to-corner span of "
+                                + diagonal + " - a centred build would be smeared by a player standing "
+                                + "at their own wall");
+            }
+        }
+    }
+
+    /**
      * #208: every draw has to land short of vanilla's own attenuation cliff, or the "distant" sound
      * plays at a gain of nothing (or is skipped outright as too far from the listener). Swept over
      * every rank and intensity now that #216 moves the band with rank - which is exactly the kind of
