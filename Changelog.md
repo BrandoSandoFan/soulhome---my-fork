@@ -1548,3 +1548,19 @@ client crashed before the title screen, on every launch, no items or anything el
   its armour from - it draws the same body, arms and legs `PlayerModel` does, minus the ears and
   cloak the armour layer definitions were never going to have anyway.
 - Ported to `1.20.1`.
+
+The Meditation Cushion did nothing when you stood on it
+
+The cushion is a short block - a player kneeling on one still stands inside its own cell rather
+than the cell above it, the way they would on a full block. The channel-start check looked at the
+cell *below* the player instead, so the one thing the cushion exists for - standing on it and
+holding the bind - was never once recognised. Standing beside a cushion instead of on it happened
+to still work, which is what made the bug so easy to miss and so confusing to hit.
+
+- Standing on top of a Meditation Cushion now starts the channel, exactly as advertised.
+- Pressing the bind with no cushion in reach, and not already in your soul, tells you so instead
+  of silently doing nothing - it always did, but nobody who tried standing on the cushion itself
+  ever got far enough to see it.
+- A buff, not a nerf: nothing about the channel's length, its abort conditions or the cushion's
+  reduced fragility changed - the cushion simply works now.
+- Ported to `1.21.1`.
