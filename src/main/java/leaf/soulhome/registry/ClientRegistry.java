@@ -53,6 +53,7 @@ public class ClientRegistry
     {
         event.register(SoulKeybinds.USE_ABILITY);
         event.register(SoulKeybinds.CYCLE_ABILITY);
+        event.register(SoulKeybinds.MEDITATE);
     }
 
     /** Barrage's shell (#194) - see {@link SoulBarrageShotRenderer}. */

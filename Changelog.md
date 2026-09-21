@@ -1447,3 +1447,26 @@ and a wide burst fanned every shot into one ever-widening line.
   rather than spreading a single row arbitrarily wide as magnitude climbs. A big volley reads as a
   volley with some depth to it, not a wall.
 - Ported to `1.21.1`.
+
+Meditation: the cushion, and the channel
+
+The Soul Key worked, but it was the only way in - hold it down wherever you happened to be
+standing, for as long as it took, key in hand every time. That is still there for a player with no
+cushion, but it is no longer the only door.
+
+- A new block, the Meditation Cushion, crafted from wool and string rather than from a Soul Key -
+  the key was never going away, so a recipe that consumed one would have made the cushion free.
+  Place one and hold a new bind (unbound by default, alongside the two ability keys) while
+  standing on it or beside it to channel your way into your soul - about three seconds, with the
+  same soul-fire ring the key already drew while it charged.
+- The channel is stationary and unguarded: move at all, or take a hit, and it stops where it
+  stands. A player under attack was never meant to be able to step out of a fight by meditating -
+  that is the whole reason the vessel exists in the first place.
+- The same bind brings you back, from inside your soul, with no cushion needed and no matter which
+  door you came in through - a player who entered by key and lost it is never stuck.
+- Coming back now always arrives at your vessel's own position rather than the spot you stood in
+  the moment you left, whichever way you return. A vessel that got shoved, dragged, or knocked
+  since you left it used to leave you back where you started; now it doesn't.
+- A cushion's vessel carries a lower fragility than the key's - it does nothing yet, the same way
+  the key's own fragility does nothing yet, but a cushion will be the gentler entry once a hit on
+  your vessel actually reaches you.

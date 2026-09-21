@@ -52,6 +52,7 @@ public class Network
         registerCodecPacket(id++, NETWORK_CHANNEL, CycleSoulAbilityMessage.CODEC, CycleSoulAbilityMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SetAttunementMessage.CODEC, SetAttunementMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, CollectResidueMessage.CODEC, CollectResidueMessage.INVALID);
+        registerCodecPacket(id++, NETWORK_CHANNEL, MeditateMessage.CODEC, MeditateMessage.INVALID);
     }
 
     public static <PACKET extends Consumer<NetworkEvent.Context>> void registerCodecPacket(int id, SimpleChannel channel, Codec<PACKET> codec, PACKET defaultPacket)
