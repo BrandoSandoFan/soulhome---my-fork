@@ -10,7 +10,7 @@ import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-/** The mod's first block (#83): a single-texture cube is all the Soul Anchor needs. */
+/** The Soul Anchor (#83) and the Meditation Cushion (#183): both a single-texture shape. */
 public class BlockStatesGen extends BlockStateProvider
 {
     public BlockStatesGen(PackOutput output, ExistingFileHelper existingFileHelper)
@@ -22,5 +22,9 @@ public class BlockStatesGen extends BlockStateProvider
     protected void registerStatesAndModels()
     {
         simpleBlockWithItem(BlocksRegistry.SOUL_ANCHOR.get(), cubeAll(BlocksRegistry.SOUL_ANCHOR.get()));
+
+        // a single-texture cube visually, same as the Soul Anchor - MeditationCushionBlock cuts
+        // its own collision shape down separately, in Java, rather than through the model
+        simpleBlockWithItem(BlocksRegistry.MEDITATION_CUSHION.get(), cubeAll(BlocksRegistry.MEDITATION_CUSHION.get()));
     }
 }

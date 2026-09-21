@@ -9,10 +9,14 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.ClientSoulAbilities;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.network.CycleSoulAbilityMessage;
+import leaf.soulhome.network.MeditateMessage;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.UseSoulAbilityMessage;
+import leaf.soulhome.structures.core.MeditationSettings;
+import leaf.soulhome.utils.ChannelRing;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.particles.ParticleTypes;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -21,7 +25,8 @@ import org.lwjgl.glfw.GLFW;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 /**
- * The two binds active abilities need (#87), and the client tick that drives them.
+ * The two binds active abilities need (#87), the Meditate bind (#183), and the client tick that
+ * drives all three.
  *
  * <p>Two rather than one per ability: a player with five ability rooms would otherwise be asked to
  * find five free keys, and the fifth would collide with something. One key fires, one key chooses.
@@ -52,6 +57,24 @@ public final class SoulKeybinds
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_B,
             Constants.StringKeys.KEYS_CATEGORY);
+
+    /** The good way in and the way back out, held rather than pressed - see {@code MeditationService}. */
+    public static final KeyMapping MEDITATE = new KeyMapping(
+            Constants.StringKeys.KEY_MEDITATE,
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_G,
+            Constants.StringKeys.KEYS_CATEGORY);
+
+    /**
+     * Whether this client last told the server the bind was held, and how long it has believed
+     * so - both purely cosmetic. The server is the only thing that ever decides a channel is
+     * complete; this local count only drives {@link ChannelRing}, the same ring
+     * {@code SoulKeyItem#onUseTick} draws, running here since a block has no use-tick of its own to
+     * hook.
+     */
+    private static boolean meditating = false;
+    private static int meditationTicks = 0;
 
     private SoulKeybinds()
     {
@@ -99,6 +122,35 @@ public final class SoulKeybinds
                 Network.sendToServer(new CycleSoulAbilityMessage(true));
                 cycled = true;
             }
+        }
+
+        tickMeditate(minecraft);
+    }
+
+    /**
+     * {@code isDown} rather than {@code consumeClick}: meditation is a hold, and the server is what
+     * actually tracks the channel - this only tells it when the key's state changes, and draws the
+     * same ring locally while it is down.
+     */
+    private static void tickMeditate(Minecraft minecraft)
+    {
+        final boolean down = MEDITATE.isDown();
+
+        if (down != meditating)
+        {
+            meditating = down;
+            meditationTicks = 0;
+            Network.sendToServer(new MeditateMessage(down));
+        }
+
+        if (meditating && minecraft.player != null)
+        {
+            meditationTicks++;
+
+            final int required = MeditationSettings.DEFAULT_CUSHION_CHANNEL_TICKS;
+            final int remaining = Math.max(0, required - meditationTicks);
+
+            ChannelRing.spawn(minecraft.player, remaining, required, ParticleTypes.SOUL_FIRE_FLAME);
         }
     }
 }

@@ -55,6 +55,10 @@ public class ItemsRegistry
     public static final DeferredHolder<Item, Item> SOUL_ANCHOR =
             ITEMS.register("soul_anchor", () -> new BlockItem(BlocksRegistry.SOUL_ANCHOR.get(), new Item.Properties()));
 
+    /** The Meditation Cushion's own {@link BlockItem} (#183). */
+    public static final DeferredHolder<Item, Item> MEDITATION_CUSHION =
+            ITEMS.register("meditation_cushion", () -> new BlockItem(BlocksRegistry.MEDITATION_CUSHION.get(), new Item.Properties()));
+
 
     private static <T extends net.minecraft.world.item.Item> T createItem(T item)
     {
