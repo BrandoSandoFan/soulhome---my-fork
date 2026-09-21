@@ -22,10 +22,20 @@ class VesselSettingsTest
     }
 
     @Test
+    @DisplayName("the cushion is reduced fragility, not the key's own")
+    void cushionIsReducedFragility()
+    {
+        assertEquals(VesselSettings.DEFAULT_CUSHION_FRAGILITY, VesselSettings.DEFAULTS.cushionFragility());
+        assertTrue(VesselSettings.DEFAULTS.cushionFragility() < VesselSettings.DEFAULTS.keyFragility());
+    }
+
+    @Test
     @DisplayName("a fragility that could never hurt anyone is rejected rather than stored")
     void nonPositiveFragilityIsRejected()
     {
-        assertThrows(IllegalArgumentException.class, () -> new VesselSettings(0f));
-        assertThrows(IllegalArgumentException.class, () -> new VesselSettings(-1f));
+        assertThrows(IllegalArgumentException.class, () -> new VesselSettings(0f, VesselSettings.DEFAULT_CUSHION_FRAGILITY));
+        assertThrows(IllegalArgumentException.class, () -> new VesselSettings(-1f, VesselSettings.DEFAULT_CUSHION_FRAGILITY));
+        assertThrows(IllegalArgumentException.class, () -> new VesselSettings(VesselSettings.DEFAULT_KEY_FRAGILITY, 0f));
+        assertThrows(IllegalArgumentException.class, () -> new VesselSettings(VesselSettings.DEFAULT_KEY_FRAGILITY, -1f));
     }
 }

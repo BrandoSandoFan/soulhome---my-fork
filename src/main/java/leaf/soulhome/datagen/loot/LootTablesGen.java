@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-/** Breaking the Soul Anchor (#83) drops itself - rank lives in the soulhome's own saved data, never on the block. */
+/** Breaking the Soul Anchor (#83) or the Meditation Cushion (#183) drops itself. */
 public class LootTablesGen extends LootTableProvider
 {
     public LootTablesGen(PackOutput output, CompletableFuture<HolderLookup.Provider> registries)
@@ -39,12 +39,13 @@ public class LootTablesGen extends LootTableProvider
         protected void generate()
         {
             dropSelf(BlocksRegistry.SOUL_ANCHOR.get());
+            dropSelf(BlocksRegistry.MEDITATION_CUSHION.get());
         }
 
         @Override
         protected Iterable<Block> getKnownBlocks()
         {
-            return List.of(BlocksRegistry.SOUL_ANCHOR.get());
+            return List.of(BlocksRegistry.SOUL_ANCHOR.get(), BlocksRegistry.MEDITATION_CUSHION.get());
         }
     }
 }

@@ -16,6 +16,10 @@ public class Constants
         //Soul Vessel (#182) - the body a player leaves behind when they enter their soul
         public static final String VESSEL_DISTURBED = "message.soulhome.vessel.disturbed";
 
+        //Meditation (#183) - the good way in, channelled at a Meditation Cushion
+        public static final String KEY_MEDITATE = "key.soulhome.meditate";
+        public static final String MEDITATION_NO_CUSHION = "message.soulhome.meditation.no_cushion";
+
         public static final String SOULHOME_ITEM_TOOLTIP = "tooltip.item.soulhome.%s";
 
         public static final String SHIFT_ITEM_TOOLTIP = "tooltip.item.info.shift";

@@ -48,11 +48,12 @@ public class Network
         toClient(registrar, SyncSoulAmbienceMessage.TYPE, SyncSoulAmbienceMessage.CODEC, SyncSoulAmbienceMessage.INVALID);
         toClient(registrar, AmbienceHoldMessage.TYPE, AmbienceHoldMessage.CODEC, AmbienceHoldMessage.INVALID);
 
-        //the only four that travel client to server - see UseSoulAbilityMessage on why that matters
+        //the only five that travel client to server - see UseSoulAbilityMessage on why that matters
         toServer(registrar, UseSoulAbilityMessage.TYPE, UseSoulAbilityMessage.CODEC, UseSoulAbilityMessage.INVALID);
         toServer(registrar, CycleSoulAbilityMessage.TYPE, CycleSoulAbilityMessage.CODEC, CycleSoulAbilityMessage.INVALID);
         toServer(registrar, SetAttunementMessage.TYPE, SetAttunementMessage.CODEC, SetAttunementMessage.INVALID);
         toServer(registrar, CollectResidueMessage.TYPE, CollectResidueMessage.CODEC, CollectResidueMessage.INVALID);
+        toServer(registrar, MeditateMessage.TYPE, MeditateMessage.CODEC, MeditateMessage.INVALID);
     }
 
     private static <P extends SoulPayload> void toClient(
