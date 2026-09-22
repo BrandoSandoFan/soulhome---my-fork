@@ -63,10 +63,27 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
             int rank, int maxRank, int floorY, int baseCeilingHeight, int ceilingHeightPerRank, int baseVerge,
             int vergePerRank)
     {
+        // no soul-specific floor to account for - the same as passing the nominal floorY itself
+        return forRank(rank, maxRank, floorY, baseCeilingHeight, ceilingHeightPerRank, baseVerge, vergePerRank, floorY);
+    }
+
+    /**
+     * As above, but the box's actual floor is lowered to {@code islandFloorY} when that sits below
+     * the nominal {@code floorY} - #236: {@code floorY} is a fixed datum, but a starter island's own
+     * terrain can dip below it (soul_island0 places ground down to world y 49 against a datum of
+     * 70), and a room built on a player's own ground must never read as out of bounds. The ceiling
+     * is still anchored on the nominal {@code floorY}, not the lowered one, so extending the floor
+     * downward only ever adds buildable space - it never shifts the box's height off what the rank
+     * already promised.
+     */
+    public static SoulBounds forRank(
+            int rank, int maxRank, int floorY, int baseCeilingHeight, int ceilingHeightPerRank, int baseVerge,
+            int vergePerRank, int islandFloorY)
+    {
         final int clampedRank = Math.max(0, Math.min(Math.max(0, maxRank), rank));
 
         return new SoulBounds(
-                floorY,
+                Math.min(floorY, islandFloorY),
                 floorY + baseCeilingHeight + clampedRank * ceilingHeightPerRank,
                 baseVerge + clampedRank * vergePerRank);
     }

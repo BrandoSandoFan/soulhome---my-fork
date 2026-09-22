@@ -81,8 +81,9 @@ public class AscentCommand
             return 0;
         }
 
-        final int rank = SoulHomeBuffData.get(soulhome).ascensionRank();
-        final SoulBounds bounds = SoulHomeConfig.soulBounds(rank);
+        final SoulHomeBuffData data = SoulHomeBuffData.get(soulhome);
+        final int rank = data.ascensionRank();
+        final SoulBounds bounds = SoulHomeConfig.soulBounds(rank, data.islandFloorY());
 
         player.sendSystemMessage(Component.translatable(Constants.StringKeys.ASCENT_HEADER)
                 .withStyle(ChatFormatting.AQUA));

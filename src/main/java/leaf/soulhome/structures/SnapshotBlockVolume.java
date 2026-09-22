@@ -550,7 +550,7 @@ public final class SnapshotBlockVolume implements BlockVolume
     public static RegionBounds declaredBox(ServerLevel level)
     {
         final SoulHomeBuffData data = SoulHomeBuffData.get(level);
-        final RegionBounds rankBox = SoulHomeConfig.soulBounds(data.ascensionRank()).toRegionBounds();
+        final RegionBounds rankBox = SoulHomeConfig.soulBounds(data.ascensionRank(), data.islandFloorY()).toRegionBounds();
 
         return data.legacyBox()
                 .map(legacy -> rankBox.encompass(legacy.minX(), legacy.minY(), legacy.minZ())
