@@ -129,7 +129,7 @@ public final class AscensionRitualService
             return new Readiness(false, targetRank, PillarInspector.Result.NO_BASE, data.totalScore(), willpowerRequired, 0, essenceRequired, false);
         }
 
-        final SoulBounds bounds = SoulHomeConfig.soulBounds(currentRank);
+        final SoulBounds bounds = SoulHomeConfig.soulBounds(currentRank, data.islandFloorY());
         final LiveBlockVolume volume = new LiveBlockVolume(level, bounds.toRegionBounds());
         final PillarInspector.Result pillar = PillarInspector.inspect(
                 volume, anchor.get().getX(), anchor.get().getZ(), bounds.floorY(), bounds.ceilingY(), settings.pillarSearchRadius());
@@ -177,7 +177,8 @@ public final class AscensionRitualService
             return;
         }
 
-        final SoulBounds bounds = SoulHomeConfig.soulBounds(SoulHomeBuffData.get(level).ascensionRank());
+        final SoulHomeBuffData tickData = SoulHomeBuffData.get(level);
+        final SoulBounds bounds = SoulHomeConfig.soulBounds(tickData.ascensionRank(), tickData.islandFloorY());
         final BlockPos capPos = findPlayerCap(player, readiness.pillar(), bounds.ceilingY());
 
         if (capPos == null)
@@ -287,7 +288,8 @@ public final class AscensionRitualService
             return 0;
         }
 
-        final SoulBounds bounds = SoulHomeConfig.soulBounds(SoulHomeBuffData.get(level).ascensionRank());
+        final SoulHomeBuffData data = SoulHomeBuffData.get(level);
+        final SoulBounds bounds = SoulHomeConfig.soulBounds(data.ascensionRank(), data.islandFloorY());
 
         return (bounds.ceilingY() - 1) - pillar.topY();
     }

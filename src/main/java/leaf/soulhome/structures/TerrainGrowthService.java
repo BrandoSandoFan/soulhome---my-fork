@@ -386,9 +386,10 @@ public final class TerrainGrowthService
             this.settings = settings;
             this.rank = rank;
             this.grownRank = grownRank;
-            this.bounds = SoulHomeConfig.soulBounds(rank);
+            final SoulHomeBuffData data = SoulHomeBuffData.get(level);
+            this.bounds = SoulHomeConfig.soulBounds(rank, data.islandFloorY());
             this.box = surveyBox(this.bounds, settings, rank);
-            this.legacyBox = SoulHomeBuffData.get(level).legacyBox().orElse(null);
+            this.legacyBox = data.legacyBox().orElse(null);
             this.soulSeed = seedOf(level);
             this.survey = new GroundSurvey(this.box.minX(), this.box.minZ(), this.box.maxX(), this.box.maxZ());
             this.surveyChunks = chunksOf(this.box);

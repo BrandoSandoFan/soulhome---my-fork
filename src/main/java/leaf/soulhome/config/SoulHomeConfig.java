@@ -161,6 +161,19 @@ public final class SoulHomeConfig
                 snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank());
     }
 
+    /**
+     * As above, but for one particular soulhome whose starter island's own ground may sit below the
+     * configured {@code floor_y} (#236) - pass {@code data.islandFloorY()}. Never raises the floor
+     * above the configured datum, only ever lowers it to include a soulhome's own pre-existing
+     * ground; a caller with no soulhome-specific value should use {@link #soulBounds(int)} instead.
+     */
+    public static SoulBounds soulBounds(int rank, int islandFloorY)
+    {
+        return SoulBounds.forRank(
+                rank, snapshot.maxRank(), snapshot.floorY(), snapshot.baseCeilingHeight(),
+                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank(), islandFloorY);
+    }
+
     /** Highest ascension rank a soulhome can reach. A pack shortening or lengthening the ladder. */
     public static int maxRank()
     {

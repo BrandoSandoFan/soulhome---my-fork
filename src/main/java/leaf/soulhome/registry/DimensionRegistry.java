@@ -11,6 +11,7 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.dimensions.SoulChunkGenerator;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncDimensionListMessage;
+import leaf.soulhome.structures.SoulHomeBuffData;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.mixin.DefrostedRegistry;
@@ -212,6 +213,18 @@ public class DimensionRegistry
 
 			BlockPos pos = new BlockPos(-template.getSize().getX() / 2, originY, -template.getSize().getZ() / 2);
 			template.placeInWorld(newSoulWorld, pos, new BlockPos(0, 0, 0), settings, newSoulWorld.random, 0);
+
+			// The ascent box's floor (#79) is a fixed datum that can sit above where this template
+			// actually places its own ground - #236 found soul_island0 placing terrain down to
+			// world y 49 against a floor of 70, reading a fresh soul's own island as partly out of
+			// bounds. Anchor this soulhome's floor to the lowest solid block the template actually
+			// placed, so SoulHomeConfig#soulBounds only ever lowers the box to include it.
+			int lowestSolidLocalY = lowestSolidBlockY(template);
+
+			if (lowestSolidLocalY != Integer.MIN_VALUE)
+			{
+				SoulHomeBuffData.get(newSoulWorld).setIslandFloorY(originY + lowestSolidLocalY);
+			}
 		}
 		else
 		{
@@ -229,6 +242,10 @@ public class DimensionRegistry
 					newSoulWorld.setBlockAndUpdate(new BlockPos(x, DimensionHelper.FLOOR_LEVEL - 4, z), Blocks.STONE.defaultBlockState());
 				}
 			}
+
+			// same reasoning as the template path above - this platform's own lowest layer sits
+			// four blocks below FLOOR_LEVEL, which is below the configured floor datum too
+			SoulHomeBuffData.get(newSoulWorld).setIslandFloorY(DimensionHelper.FLOOR_LEVEL - 4);
 		}
 		//send a packet to all players, requesting that they refresh their dimension list.
 		Network.sendPacketToAll(new SyncDimensionListMessage(worldKey, true));
@@ -259,6 +276,26 @@ public class DimensionRegistry
 		}
 
 		return highest;
+	}
+
+	// Lowest local Y (template space) holding a non-air block, across every column - the anchor
+	// for this soulhome's own floor (#236). Integer.MIN_VALUE for an entirely-air template.
+	private static int lowestSolidBlockY(StructureTemplate template)
+	{
+		int lowest = Integer.MAX_VALUE;
+
+		for (StructureTemplate.Palette palette : ((StructureTemplateAccessor) template).getPalettes())
+		{
+			for (StructureTemplate.StructureBlockInfo info : palette.blocks())
+			{
+				if (!info.state().isAir())
+				{
+					lowest = Math.min(lowest, info.pos().getY());
+				}
+			}
+		}
+
+		return lowest == Integer.MAX_VALUE ? Integer.MIN_VALUE : lowest;
 	}
 
 	// Same, but across every column - the fallback when the spawn column itself is empty.

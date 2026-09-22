@@ -170,6 +170,37 @@ class SoulBoundsTest
     }
 
     @Test
+    @DisplayName("an island floor below the datum lowers the box's own floor, but never its ceiling or verge")
+    void islandFloorBelowDatumLowersOnlyTheFloor()
+    {
+        SoulBounds nominal = SoulBounds.forRank(0);
+        SoulBounds lowered = SoulBounds.forRank(
+                0, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_FLOOR_Y, SoulBounds.DEFAULT_BASE_CEILING_HEIGHT,
+                SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK, SoulBounds.DEFAULT_BASE_VERGE,
+                SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_FLOOR_Y - 21);
+
+        assertEquals(SoulBounds.DEFAULT_FLOOR_Y - 21, lowered.floorY());
+        assertEquals(nominal.ceilingY(), lowered.ceilingY(), "the ceiling must stay anchored on the nominal floor");
+        assertEquals(nominal.vergeHalfExtent(), lowered.vergeHalfExtent());
+        assertTrue(lowered.buildLayers() > nominal.buildLayers(), "lowering the floor should only ever add buildable space");
+
+        assertTrue(lowered.contains(0, SoulBounds.DEFAULT_FLOOR_Y - 21, 0),
+                "a soul's own island ground below the datum must read as in-bounds");
+    }
+
+    @Test
+    @DisplayName("an island floor above the datum never raises the box's floor")
+    void islandFloorAboveDatumNeverRaisesTheFloor()
+    {
+        SoulBounds bounds = SoulBounds.forRank(
+                0, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_FLOOR_Y, SoulBounds.DEFAULT_BASE_CEILING_HEIGHT,
+                SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK, SoulBounds.DEFAULT_BASE_VERGE,
+                SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_FLOOR_Y + 10);
+
+        assertEquals(SoulBounds.DEFAULT_FLOOR_Y, bounds.floorY());
+    }
+
+    @Test
     @DisplayName("toRegionBounds is inclusive on every face, matching the scanner's own coordinate convention")
     void toRegionBoundsIsInclusive()
     {
