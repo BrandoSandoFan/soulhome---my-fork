@@ -647,7 +647,7 @@ public final class StructureScanService
 
         final SoulHomeBuffData data = SoulHomeBuffData.get(soulhome);
         final int rank = data.ascensionRank();
-        final SoulBounds bounds = SoulHomeConfig.soulBounds(rank);
+        final SoulBounds bounds = SoulHomeConfig.soulBounds(rank, data.islandFloorY());
 
         final List<Integer> legacyBox = data.legacyBox()
                 .map(box -> List.of(box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()))
