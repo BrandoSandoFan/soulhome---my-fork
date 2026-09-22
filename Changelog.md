@@ -1590,3 +1590,19 @@ itself, so it dropped you back where the vessel was standing instead of taking y
   anything else ever manages to move one across that boundary.
 - A buff: the Soul Key reliably takes you home again, whichever door you used to get in.
 - Ported to `1.20.1`.
+
+Every soul was rolling the same island
+
+Which starter island a new soulhome got was drawn from a `Random` seeded off the player's own
+UUID - the same seed every time, on every world, for that account. It read as variety at a
+glance, because different players got different islands from each other, but any one account was
+stuck with one island forever, and a test account recreating a world to see the others never saw
+anything but the first one it ever got.
+
+- The starter island is now rolled with no seed at all, at the moment a soulhome is first created
+  - so two different worlds, or the same account starting over, can land on a different island
+  each time.
+- A soulhome's island is still picked exactly once: the roll only happens the first time that
+  player's dimension is created, the same as before, so an existing soulhome's island never
+  changes underneath its owner on a later scan or server restart (#240).
+- Ported to `1.20.1`.

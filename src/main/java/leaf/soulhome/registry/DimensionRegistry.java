@@ -161,9 +161,13 @@ public class DimensionRegistry
 		StructurePlaceSettings settings = (new StructurePlaceSettings()).setIgnoreEntities(true).setMirror(Mirror.NONE).setRotation(Rotation.NONE);
 		StructureTemplateManager manager = newSoulWorld.getStructureManager();
 
-		// Use the UUID of the player to choose an island structure, different players will get different islands representitive of their 'souls'
-		UUID soul = UUID.fromString(userUUID);
-		Random rand = new Random(soul.getLeastSignificantBits() ^ soul.getMostSignificantBits());
+		// Rolled fresh at creation rather than seeded from the player's UUID (#240) - a UUID seed
+		// is the same on every world, so one account could never see more than one starter island
+		// while testing. This runs exactly once per player: getOrCreateSoulDimension only reaches
+		// here when server.getLevel(worldKey) came back null, and the dimension it creates stays
+		// registered (and reloads from disk on later server boots) from then on, so the roll made
+		// here is naturally the only one that soulhome will ever get.
+		Random rand = new Random();
 		// nextInt(bound) rather than nextInt() % bound: the latter returns the full int range,
 		// so a third of players got a negative style and a soul_island-1 / soul_island-2 that
 		// does not exist, silently falling through to the legacy platform below.
