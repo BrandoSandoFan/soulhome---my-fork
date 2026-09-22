@@ -1504,6 +1504,81 @@ client crashed before the title screen, on every launch, no items or anything el
   cloak the armour layer definitions were never going to have anyway.
 - Ported to `1.21.1`.
 
+The verge's haze was reaching builds nowhere near the edge
+
+Fog was meant to answer one question - "am I near the wall" - and instead it could answer "am I
+looking across my own soul", which is a different thing entirely. The distance it started fading
+in at was sized off the middle of the box to one corner, not off the box's actual worst case: a
+player standing at their own wall, looking clear across at something they built well away from
+it. Walk to your own corner and a build sitting dead centre of your soul, nowhere near any edge,
+would start smearing into haze - not because it was close to anything, but because you were.
+
+- Fog now clears the box's true corner-to-corner span before it begins fading in at all, not just
+  the shorter centre-to-corner distance it used to be measured against. A centred build no longer
+  smears just because its owner has walked over to their own wall.
+- The gap between where the haze starts and where it finishes closed in too - down from just
+  under half of the far distance to about a sixth of it - so what used to be a wide smear reads as
+  a tight, edge-only fade the way it was always supposed to.
+- A buff, not a nerf: nothing anyone could legally build gets any closer to being fogged than it
+  already was: rank still opens the sky exactly as it did before (#235).
+- Ported to `1.21.1`.
+
+The Soul Key that couldn't find its way back out
+
+A Soul Key was meant to be the fallback that never leaves you stranded, but using one from inside
+your own soul could just... do nothing, or drop you somewhere odd inside your soul instead of
+taking you home. And every so often, the Soul Vessel you left standing in the overworld went in
+with you instead of staying behind.
+
+Both were the same mistake. A vessel is spawned exactly where its owner stands, which puts it
+inside that owner's own 2.5-block "bring your dog along" sweep the instant it exists - so it rode
+into the soul with them. Once it was in there, the vessel's own forced move across the dimension
+boundary read as it being killed or `/kill`'d rather than a peaceful return, and the code that
+keeps your return address up to date resynced it from the vessel's position - which was now
+*inside* the soul. From that point on, the Soul Key's exit path was reading "home" as the soul
+itself, so it dropped you back where the vessel was standing instead of taking you out.
+
+- The Soul Vessel is never swept along by a key, a bound key or meditation's own channel, in
+  either direction - it stays exactly where it was left, the way it was always supposed to.
+- The return address a vessel resyncs is refused, with a log line, if the vessel is ever found
+  inside a soul dimension in the first place - a second guard against the same corruption, in case
+  anything else ever manages to move one across that boundary.
+- A buff: the Soul Key reliably takes you home again, whichever door you used to get in.
+- Ported to `1.21.1`.
+
+Every soul was rolling the same island
+
+Which starter island a new soulhome got was drawn from a `Random` seeded off the player's own
+UUID - the same seed every time, on every world, for that account. It read as variety at a
+glance, because different players got different islands from each other, but any one account was
+stuck with one island forever, and a test account recreating a world to see the others never saw
+anything but the first one it ever got.
+
+- The starter island is now rolled with no seed at all, at the moment a soulhome is first created
+  - so two different worlds, or the same account starting over, can land on a different island
+  each time.
+- A soulhome's island is still picked exactly once: the roll only happens the first time that
+  player's dimension is created, the same as before, so an existing soulhome's island never
+  changes underneath its owner on a later scan or server restart (#240).
+- Ported to `1.21.1`.
+
+Your own island's ground could read as out of bounds
+
+The ascent box's floor is a fixed datum, the same for every soul - but the starter islands don't
+all place their own ground at exactly that height. Some of a template's terrain could sit well
+below it, so standing in the wrong corner of your own freshly-generated island, on ground you never
+touched, could tell you that you were outside your own soulhome.
+
+- A soulhome's floor is now anchored to the lowest solid block its own starter island actually
+  placed, not just the fixed datum every soul used to share - so standing anywhere on your own
+  island's terrain is always inside your box from the moment you arrive.
+- The ceiling and verge are untouched: lowering the floor only ever adds buildable room below where
+  it already reached, never shifts the box's height or narrows it.
+- A soulhome that already existed before this fix keeps the box it always had - nothing about an
+  existing soul's floor moves on its own.
+- A buff: no legally-placed block on your own island reads as out of bounds any more (#236).
+- Ported to `1.21.1`.
+
 The Meditation Cushion did nothing when you stood on it
 
 The cushion is a short block - a player kneeling on one still stands inside its own cell rather
