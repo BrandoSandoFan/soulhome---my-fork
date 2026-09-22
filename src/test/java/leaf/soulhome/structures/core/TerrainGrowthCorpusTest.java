@@ -267,6 +267,49 @@ class TerrainGrowthCorpusTest
         }
     }
 
+    @Test
+    @DisplayName("the apron never grows from a tree's own canopy (#237)")
+    void theApronNeverGrowsFromFoliage()
+    {
+        for (SoulIslandVolume island : SoulIslandVolume.allShipped())
+        {
+            final ApronPlan plan = growOnce(island, 1, 0);
+            final int offsetX = -island.templateSizeX() / 2;
+            final int offsetZ = -island.templateSizeZ() / 2;
+
+            for (ApronPlan.Column column : plan.columns())
+            {
+                final int localX = column.sourceX() - offsetX;
+                final int localZ = column.sourceZ() - offsetZ;
+                final int localTop = columnTop(island, localX, localZ);
+
+                if (localTop == Integer.MIN_VALUE)
+                {
+                    continue;
+                }
+
+                final BlockSignature source = island.signatureAt(localX, localTop, localZ);
+
+                assertFalse(
+                        source != null
+                                && (source.hasTag("minecraft:leaves") || source.hasTag("minecraft:logs")),
+                        "soul_island" + island.style() + " planned " + column.x() + "," + column.z()
+                                + " off source " + column.sourceX() + "," + column.sourceZ()
+                                + ", whose own top block is a leaf or a log rather than the ground beneath the tree"
+                                + " - the #237 smear, where a canopy fringe read as ground");
+
+                if (island.style() == 2)
+                {
+                    assertTrue(
+                            column.surfaceY() <= FLOOR + 1,
+                            "soul_island2 planned " + column.x() + "," + column.z() + " at surfaceY "
+                                    + column.surfaceY() + ", more than one block above the floor datum - the snow"
+                                    + " island's ground is flat, so anything higher is apron grown from a tree");
+                }
+            }
+        }
+    }
+
     private static ApronPlan growOnce(SoulIslandVolume island, int rank, int grownRank)
     {
         return plan(surveyOf(island, rank), rank, grownRank, island);
@@ -318,9 +361,15 @@ class TerrainGrowthCorpusTest
                 }
 
                 final int worldTop = top + offsetY;
+                final BlockSignature topSignature = island.signatureAt(x - offsetX, top, z - offsetZ);
+                final boolean foliage = topSignature != null
+                        && (topSignature.hasTag("minecraft:leaves") || topSignature.hasTag("minecraft:logs"));
 
-                if (worldTop > FLOOR + SETTINGS.groundBand())
+                if (worldTop > FLOOR + SETTINGS.groundBand() || (worldTop >= FLOOR && foliage))
                 {
+                    // mirrors TerrainGrowthService#surveyChunk's foliage guard (#237): a tree's
+                    // canopy fringe tops out inside the ground band on height alone, and this test
+                    // would agree with itself and disagree with the game if it forgot that too
                     survey.set(x, z, GroundSurvey.Kind.BUILT, worldTop);
                 }
                 else if (worldTop >= FLOOR)

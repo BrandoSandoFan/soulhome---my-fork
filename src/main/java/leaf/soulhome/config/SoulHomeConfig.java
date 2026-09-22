@@ -1118,8 +1118,9 @@ public final class SoulHomeConfig
                     .comment(
                             "How far above the floor a column's highest block may sit and still read as ground",
                             "rather than as something built. Ground is what the apron grows out of; anything above",
-                            "this band is built, and is kept clear of instead. Three is enough for a patio or a path",
-                            "laid at floor level, and short of anything with walls.")
+                            "this band is built, and is kept clear of instead. Kept low on purpose: height alone",
+                            "cannot tell a laid floor from a tree's low canopy, so widening this reopens the door to",
+                            "an apron growing from a shelf of leaves rather than the ground beneath them.")
                     .defineInRange("ground_band", TerrainGrowthSettings.DEFAULT_GROUND_BAND, 0, 64);
 
             this.growthClearanceMargin = builder

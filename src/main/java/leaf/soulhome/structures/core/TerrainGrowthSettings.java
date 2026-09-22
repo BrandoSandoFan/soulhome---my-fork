@@ -40,10 +40,15 @@ public record TerrainGrowthSettings(
 
     /**
      * How far above the floor a column's highest block may sit and still read as ground rather than
-     * as something built. Three is enough for a patio, a path or a laid-out floor to seed growth,
-     * and short of anything with walls.
+     * as something built. This alone cannot tell a laid floor from a low canopy - the heightmap
+     * that feeds it counts a block's height, not what the block is - so it is kept to the one thing
+     * a flat build actually needs (a slab, a carpet, a layer of snow) rather than the three it used
+     * to be. Three was wide enough to also read a tree's lower canopy fringe as ground, which handed
+     * an apron a shelf of leaves - and, worse, the snow sitting on branches - to grow from a couple
+     * of blocks off the true floor (#237). The foliage guard in {@code TerrainGrowthService} catches
+     * what height alone cannot; this constant is sized for what it can.
      */
-    public static final int DEFAULT_GROUND_BAND = 3;
+    public static final int DEFAULT_GROUND_BAND = 1;
 
     /** How wide a moat is kept around anything built. Generating too little ground is the mild failure. */
     public static final int DEFAULT_CLEARANCE_MARGIN = 3;

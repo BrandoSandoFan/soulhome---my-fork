@@ -21,6 +21,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -311,11 +312,12 @@ public final class TerrainGrowthService
      * of it. A bridge they threw across the verge stands above the band, is built, keeps its moat,
      * and the island grows around it. See #160.
      *
-     * <p>The island's own trees and hills come out as built too, and that is the right answer
-     * rather than a misclassification worth fixing. Nothing here can tell a tree from a tower, and
-     * the two readings fail very differently: called built, a tree notches the coastline beside it
-     * and costs a handful of columns of apron; called ground, it would seed an apron at the height
-     * of its own canopy, which is a shelf of grass in mid-air.
+     * <p>Height alone cannot tell a tree from a tower, so a tree's tall trunk correctly comes out
+     * built - but its lower canopy fringe tops out inside the ground band, on the same reading as a
+     * patio, and used to be handed to {@code ApronPlanner} as ground it could grow from. That put
+     * new "ground" two or three blocks in the air, made of leaves and the snow lying on branches
+     * (#237). A column whose own top block is foliage is always built, whatever its height, so the
+     * moat lands around the tree instead of an apron seeding off it.
      */
     private static void surveyChunk(LevelChunk chunk, GroundSurvey survey, RegionBounds box, int floorY, int groundBand)
     {
@@ -338,9 +340,15 @@ public final class TerrainGrowthService
                 {
                     survey.set(x, z, GroundSurvey.Kind.BUILT, top);
                 }
-                else if (top >= floorY)
+                else if (top >= floorY && !isFoliage(chunk.getBlockState(new BlockPos(x, top, z))))
                 {
                     survey.set(x, z, GroundSurvey.Kind.GROUND, top);
+                }
+                else if (top >= floorY)
+                {
+                    // a leaf or a log at ground height is still a tree, not a patio - see the class
+                    // javadoc above
+                    survey.set(x, z, GroundSurvey.Kind.BUILT, top);
                 }
                 else
                 {
@@ -350,6 +358,12 @@ public final class TerrainGrowthService
                 }
             }
         }
+    }
+
+    /** Whether a column's top block is tree material rather than ground, whatever its height. */
+    private static boolean isFoliage(BlockState state)
+    {
+        return state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS);
     }
 
     /** One soulhome's run of growth, from the survey through to the last block written. */
