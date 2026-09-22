@@ -45,7 +45,7 @@ public record TerrainGrowthSettings(
      * a flat build actually needs (a slab, a carpet, a layer of snow) rather than the three it used
      * to be. Three was wide enough to also read a tree's lower canopy fringe as ground, which handed
      * an apron a shelf of leaves - and, worse, the snow sitting on branches - to grow from a couple
-     * of blocks off the true floor (#237). The foliage guard in {@code TerrainGrowthService} catches
+     * of blocks off the true floor (#235). The foliage guard in {@code TerrainGrowthService} catches
      * what height alone cannot; this constant is sized for what it can.
      */
     public static final int DEFAULT_GROUND_BAND = 1;

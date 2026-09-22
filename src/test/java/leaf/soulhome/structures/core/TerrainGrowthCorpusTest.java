@@ -268,7 +268,7 @@ class TerrainGrowthCorpusTest
     }
 
     @Test
-    @DisplayName("the apron never grows from a tree's own canopy (#237)")
+    @DisplayName("the apron never grows from a tree's own canopy (#235)")
     void theApronNeverGrowsFromFoliage()
     {
         for (SoulIslandVolume island : SoulIslandVolume.allShipped())
@@ -296,7 +296,7 @@ class TerrainGrowthCorpusTest
                         "soul_island" + island.style() + " planned " + column.x() + "," + column.z()
                                 + " off source " + column.sourceX() + "," + column.sourceZ()
                                 + ", whose own top block is a leaf or a log rather than the ground beneath the tree"
-                                + " - the #237 smear, where a canopy fringe read as ground");
+                                + " - the #235 smear, where a canopy fringe read as ground");
 
                 if (island.style() == 2)
                 {
@@ -367,7 +367,7 @@ class TerrainGrowthCorpusTest
 
                 if (worldTop > FLOOR + SETTINGS.groundBand() || (worldTop >= FLOOR && foliage))
                 {
-                    // mirrors TerrainGrowthService#surveyChunk's foliage guard (#237): a tree's
+                    // mirrors TerrainGrowthService#surveyChunk's foliage guard (#235): a tree's
                     // canopy fringe tops out inside the ground band on height alone, and this test
                     // would agree with itself and disagree with the game if it forgot that too
                     survey.set(x, z, GroundSurvey.Kind.BUILT, worldTop);

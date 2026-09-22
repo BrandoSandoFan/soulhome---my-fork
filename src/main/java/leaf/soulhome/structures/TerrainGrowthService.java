@@ -316,7 +316,7 @@ public final class TerrainGrowthService
      * built - but its lower canopy fringe tops out inside the ground band, on the same reading as a
      * patio, and used to be handed to {@code ApronPlanner} as ground it could grow from. That put
      * new "ground" two or three blocks in the air, made of leaves and the snow lying on branches
-     * (#237). A column whose own top block is foliage is always built, whatever its height, so the
+     * (#235). A column whose own top block is foliage is always built, whatever its height, so the
      * moat lands around the tree instead of an apron seeding off it.
      */
     private static void surveyChunk(LevelChunk chunk, GroundSurvey survey, RegionBounds box, int floorY, int groundBand)
