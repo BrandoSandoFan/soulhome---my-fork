@@ -7,12 +7,12 @@ package leaf.soulhome.structures;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.registry.BlocksRegistry;
+import leaf.soulhome.structures.core.MeditationAdjacency;
 import leaf.soulhome.structures.core.MeditationSettings;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.EntityHelper;
 import leaf.soulhome.utils.TextHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 
@@ -138,38 +138,23 @@ public final class MeditationService
     /**
      * On top of the cushion, or - per {@code cushionDiagonalAdjacency} - beside it at floor level or
      * one below. Read fresh at channel start rather than cached: no block entity, per #183.
+     *
+     * <p>The offsets themselves live in {@link MeditationAdjacency}, Minecraft-free and pinned by
+     * a test, precisely because getting them wrong here once (#239: checking the cell below the
+     * player instead of the player's own cell) shipped a cushion that silently never detected the
+     * one thing it exists for - a player standing on top of it.
      */
     private static boolean nearCushion(ServerPlayer player)
     {
         final Level level = player.level();
         final BlockPos base = player.blockPosition();
-
-        if (isCushion(level, base.below()))
-        {
-            return true;
-        }
-
         final boolean diagonal = SoulHomeConfig.meditationSettings().cushionDiagonalAdjacency();
 
-        for (Direction direction : Direction.Plane.HORIZONTAL)
+        for (int[] offset : MeditationAdjacency.offsets(diagonal))
         {
-            final BlockPos neighbour = base.relative(direction);
-
-            if (isCushion(level, neighbour) || isCushion(level, neighbour.below()))
+            if (isCushion(level, base.offset(offset[0], offset[1], offset[2])))
             {
                 return true;
-            }
-        }
-
-        if (diagonal)
-        {
-            for (BlockPos corner : new BlockPos[] {
-                    base.offset(1, 0, 1), base.offset(1, 0, -1), base.offset(-1, 0, 1), base.offset(-1, 0, -1)})
-            {
-                if (isCushion(level, corner) || isCushion(level, corner.below()))
-                {
-                    return true;
-                }
             }
         }
 
