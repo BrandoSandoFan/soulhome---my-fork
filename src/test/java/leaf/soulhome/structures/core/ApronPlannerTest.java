@@ -27,7 +27,7 @@ class ApronPlannerTest
 
     /** No jitter, so a case about extent is about extent rather than about a coastline. */
     private static final TerrainGrowthSettings SMOOTH = new TerrainGrowthSettings(
-            true, 18, 12, 6, 3, 3, 4, 0, 4);
+            true, 18, 12, 6, 3, 3, 4, 2, 0, 4);
 
     private static final long SEED = 0x50554CL;
 
@@ -68,7 +68,7 @@ class ApronPlannerTest
                 "...........",
                 "...........");
 
-        TerrainGrowthSettings narrow = new TerrainGrowthSettings(true, 18, 1, 6, 3, 3, 4, 0, 4);
+        TerrainGrowthSettings narrow = new TerrainGrowthSettings(true, 18, 1, 6, 3, 3, 4, 2, 0, 4);
         ApronPlan plan = ApronPlanner.plan(survey, narrow, 1, 0, 40, null, SEED);
 
         final String rendered = GroundGrid.render(survey, plan);
@@ -225,7 +225,7 @@ class ApronPlannerTest
                 ".........",
                 ".........");
 
-        TerrainGrowthSettings narrow = new TerrainGrowthSettings(true, 18, 1, 6, 3, 3, 4, 0, 4);
+        TerrainGrowthSettings narrow = new TerrainGrowthSettings(true, 18, 1, 6, 3, 3, 4, 2, 0, 4);
         ApronPlan plan = ApronPlanner.plan(survey, narrow, 1, 0, 40, null, SEED);
 
         final ApronPlan.Column west = columnAt(plan, -3, 0);
@@ -289,7 +289,7 @@ class ApronPlannerTest
     void growthCanBeSwitchedOff()
     {
         GroundSurvey survey = GroundGrid.island(FLOOR, 6, 40);
-        TerrainGrowthSettings off = new TerrainGrowthSettings(false, 18, 12, 6, 3, 3, 4, 3, 4);
+        TerrainGrowthSettings off = new TerrainGrowthSettings(false, 18, 12, 6, 3, 3, 4, 2, 3, 4);
 
         assertTrue(ApronPlanner.plan(survey, off, 5, 0, 104, null, SEED).isEmpty());
     }

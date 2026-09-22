@@ -378,6 +378,7 @@ public final class TerrainGrowthService
         private int placeCursor;
         private int placedColumns;
         private int plannedLimit;
+        private int plannedBandWidth;
         private int ticks;
         private long serverNanos;
 
@@ -497,6 +498,7 @@ public final class TerrainGrowthService
                     this.legacyBox, this.soulSeed);
 
             this.plannedLimit = plan.groundLimit();
+            this.plannedBandWidth = plan.bandWidth();
 
             final Map<Long, List<ApronPlan.Column>> grouped = new HashMap<>();
 
@@ -544,12 +546,17 @@ public final class TerrainGrowthService
          * survey time. A survey of a rank V box takes several seconds of ticks, and a player can
          * place a block inside that window; the survey is what decides <i>where</i> ground may go,
          * and this is what makes "no block a player placed is ever replaced" true regardless.
+         *
+         * <p>The box floor is never consulted here (#235) - only how deep the source column actually
+         * runs, and how far out in the band this one sits. See {@code TerrainGrowthSettings#depthAt}.
          */
         private void placeColumn(ServerLevel level, ApronPlan.Column column)
         {
-            final int layers = this.settings.layersAt(column.surfaceY(), this.bounds.floorY());
+            final int sourceDepth = sourceDepth(
+                    level, column.sourceX(), column.sourceZ(), column.surfaceY(), this.settings.soilDepth());
+            final int depth = this.settings.depthAt(column.bandDistance(), this.plannedBandWidth, sourceDepth);
 
-            if (layers <= 0)
+            if (depth <= 0)
             {
                 return;
             }
@@ -558,9 +565,9 @@ public final class TerrainGrowthService
             final BlockPos.MutableBlockPos source = new BlockPos.MutableBlockPos();
             boolean placedAny = false;
 
-            for (int depth = 0; depth < layers; depth++)
+            for (int layer = 0; layer < depth; layer++)
             {
-                final int y = column.surfaceY() - depth;
+                final int y = column.surfaceY() - layer;
                 target.set(column.x(), y, column.z());
 
                 if (!level.getBlockState(target).isAir())
@@ -576,7 +583,7 @@ public final class TerrainGrowthService
                     // the source column is thinner than this one would be. Carry its lowest solid
                     // block down rather than leaving a hole, so an apron off a shallow shelf is
                     // still a shelf and not a grate.
-                    material = deepestSolid(level, column.sourceX(), column.sourceZ(), column.surfaceY(), layers);
+                    material = deepestSolid(level, column.sourceX(), column.sourceZ(), column.surfaceY(), depth);
                 }
 
                 if (material.isAir() || isOccupiedByAnyone(level, target))
@@ -597,14 +604,32 @@ public final class TerrainGrowthService
             }
         }
 
-        private static BlockState deepestSolid(ServerLevel level, int x, int z, int surfaceY, int layers)
+        /**
+         * How many solid layers the ground column this apron grew from actually has, walking down
+         * from its surface and stopping at the first air - or at {@code maxDepth}, since nothing
+         * past {@code soilDepth} could ever be used regardless of how much further the column runs.
+         */
+        private static int sourceDepth(ServerLevel level, int x, int z, int surfaceY, int maxDepth)
+        {
+            final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+            int depth = 0;
+
+            while (depth < maxDepth && !level.getBlockState(cursor.set(x, surfaceY - depth, z)).isAir())
+            {
+                depth++;
+            }
+
+            return depth;
+        }
+
+        private static BlockState deepestSolid(ServerLevel level, int x, int z, int surfaceY, int depth)
         {
             final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
             BlockState deepest = level.getBlockState(cursor.set(x, surfaceY, z));
 
-            for (int depth = 1; depth < layers; depth++)
+            for (int layer = 1; layer < depth; layer++)
             {
-                final BlockState below = level.getBlockState(cursor.set(x, surfaceY - depth, z));
+                final BlockState below = level.getBlockState(cursor.set(x, surfaceY - layer, z));
 
                 if (below.isAir())
                 {

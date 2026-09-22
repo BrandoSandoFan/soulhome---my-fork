@@ -38,14 +38,19 @@ public record ApronPlan(List<Column> columns, int groundLimit, int bandWidth)
     /**
      * One column of new ground.
      *
-     * @param x        where it goes
-     * @param z        where it goes
-     * @param surfaceY the Y its top block lands on, inherited from its source so the apron
-     *                 continues the island's surface rather than sitting at a datum of its own
-     * @param sourceX  the ground column it grew from, and whose blocks it is made of
-     * @param sourceZ  the ground column it grew from, and whose blocks it is made of
+     * @param x            where it goes
+     * @param z            where it goes
+     * @param surfaceY     the Y its top block lands on, inherited from its source so the apron
+     *                     continues the island's surface rather than sitting at a datum of its own
+     * @param sourceX      the ground column it grew from, and whose blocks it is made of
+     * @param sourceZ      the ground column it grew from, and whose blocks it is made of
+     * @param bandDistance how far out from the nearest existing ground this column sits, in whole
+     *                     blocks - {@code ApronPlanner}'s own chamfer distance, converted out of the
+     *                     thirds-of-a-block it is measured in internally. What lets the apron taper
+     *                     thin toward its own rim instead of standing as a slab the same thickness
+     *                     at the coast as at the island's own shore (#235).
      */
-    public record Column(int x, int z, int surfaceY, int sourceX, int sourceZ)
+    public record Column(int x, int z, int surfaceY, int sourceX, int sourceZ, int bandDistance)
     {
     }
 }

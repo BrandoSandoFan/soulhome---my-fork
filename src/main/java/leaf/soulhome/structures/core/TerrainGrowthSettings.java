@@ -23,7 +23,7 @@ package leaf.soulhome.structures.core;
  */
 public record TerrainGrowthSettings(
         boolean enabled, int baseGround, int groundPerRank, int vergeMargin, int groundBand, int clearanceMargin,
-        int soilDepth, int edgeJitter, int chunksPerTick)
+        int soilDepth, int rimDepth, int edgeJitter, int chunksPerTick)
 {
     /**
      * How far ground may reach at rank 0 before the verge margin has its say. Not itself a promise
@@ -48,8 +48,19 @@ public record TerrainGrowthSettings(
     /** How wide a moat is kept around anything built. Generating too little ground is the mild failure. */
     public static final int DEFAULT_CLEARANCE_MARGIN = 3;
 
-    /** How deep the apron is cut, before the box floor clamps it - see {@link #soilDepth}. */
-    public static final int DEFAULT_SOIL_DEPTH = 4;
+    /**
+     * How deep the apron is cut where it meets the island's own ground - see {@link #depthAt}. Raised
+     * from the epic's original 4 (#235): against a shipped island's 26-32 block body, a 4-thick collar
+     * still read as a shelf nailed on rather than as the island's own underside continuing outward.
+     */
+    public static final int DEFAULT_SOIL_DEPTH = 8;
+
+    /**
+     * How deep the apron is cut at the far edge of its own band, whatever {@link #soilDepth} says at
+     * the island side. Never zero - a rim of no thickness at all is a coastline with a crack in it,
+     * one block wide, the whole way round.
+     */
+    public static final int DEFAULT_RIM_DEPTH = 2;
 
     /** How ragged the band's outer edge is allowed to be. A straight offset is a machine-cut collar. */
     public static final int DEFAULT_EDGE_JITTER = 3;
@@ -59,7 +70,8 @@ public record TerrainGrowthSettings(
 
     public static final TerrainGrowthSettings DEFAULTS = new TerrainGrowthSettings(
             true, DEFAULT_BASE_GROUND, DEFAULT_GROUND_PER_RANK, DEFAULT_VERGE_MARGIN, DEFAULT_GROUND_BAND,
-            DEFAULT_CLEARANCE_MARGIN, DEFAULT_SOIL_DEPTH, DEFAULT_EDGE_JITTER, DEFAULT_CHUNKS_PER_TICK);
+            DEFAULT_CLEARANCE_MARGIN, DEFAULT_SOIL_DEPTH, DEFAULT_RIM_DEPTH, DEFAULT_EDGE_JITTER,
+            DEFAULT_CHUNKS_PER_TICK);
 
     public TerrainGrowthSettings
     {
@@ -91,6 +103,12 @@ public record TerrainGrowthSettings(
         if (soilDepth < 1)
         {
             throw new IllegalArgumentException("soilDepth must be at least 1, got " + soilDepth);
+        }
+
+        if (rimDepth < 1 || rimDepth > soilDepth)
+        {
+            throw new IllegalArgumentException(
+                    "rimDepth must be between 1 and soilDepth (" + soilDepth + "), got " + rimDepth);
         }
 
         if (edgeJitter < 0)
@@ -129,13 +147,44 @@ public record TerrainGrowthSettings(
     }
 
     /**
-     * How many layers of the apron actually land, once the box floor has had its say. The box's
-     * floor is as real as its ceiling (#79), and generated ground is not exempt from it (#160), so
-     * an apron whose surface sits on the floor datum is one layer - a shelf rather than a slab.
-     * From the only angle a player standing on it has, that is the island.
+     * How many layers deep one column of apron is cut, tapering from {@link #soilDepth} where the
+     * band meets the island's own ground down to {@link #rimDepth} at the far edge of its own reach
+     * (#235). A flat slab the same thickness at the coast as at the shore reads as a shelf nailed on;
+     * a taper reads as the island's own underside continuing outward, which is what an apron is meant
+     * to look like it is.
+     *
+     * <p>The box floor does not clamp this any more than it clamps the island's own body - the mod
+     * already ships every island 25-31 blocks below the floor datum (#97), so an apron the player
+     * cannot dig through the bottom of is consistent with the status quo rather than a new
+     * restriction. Whether the floor datum belongs where it sits at all is #236, and is not this
+     * method's question to answer.
+     *
+     * <p>Never deeper than {@code sourceDepth}, the column this apron actually grew from - a shallow
+     * shelf grows a shallow apron rather than staging soil under thin air where the source ran out.
+     *
+     * @param bandDistance how many blocks out from the nearest existing ground this column sits
+     * @param bandWidth    how wide this run of growth reaches at its own full extent, before the
+     *                     edge jitter has its say - zero only for a band that should not exist, in
+     *                     which case there is nothing to taper against and {@link #soilDepth} alone
+     *                     decides, capped by the source as always
+     * @param sourceDepth  how many solid layers the ground column this apron grew from actually has
      */
-    public int layersAt(int surfaceY, int floorY)
+    public int depthAt(int bandDistance, int bandWidth, int sourceDepth)
     {
-        return Math.max(0, Math.min(this.soilDepth, surfaceY - floorY + 1));
+        if (sourceDepth <= 0)
+        {
+            return 0;
+        }
+
+        if (bandWidth <= 0)
+        {
+            return Math.min(this.soilDepth, sourceDepth);
+        }
+
+        final int clampedDistance = Math.max(0, Math.min(bandDistance, bandWidth));
+        final int span = this.soilDepth - this.rimDepth;
+        final int tapered = this.soilDepth - (span * clampedDistance) / bandWidth;
+
+        return Math.min(tapered, sourceDepth);
     }
 }

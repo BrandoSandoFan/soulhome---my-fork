@@ -45,7 +45,7 @@ class TerrainGrowthSettingsTest
     @DisplayName("a pack whose verge margin is wider than its own verge gets a one-block island, not an exception")
     void anAbsurdMarginClampsRatherThanThrows()
     {
-        TerrainGrowthSettings settings = new TerrainGrowthSettings(true, 18, 12, 500, 3, 3, 4, 3, 4);
+        TerrainGrowthSettings settings = new TerrainGrowthSettings(true, 18, 12, 500, 3, 3, 8, 2, 3, 4);
 
         assertEquals(1, settings.groundLimit(5, 104));
     }
@@ -68,21 +68,58 @@ class TerrainGrowthSettingsTest
     }
 
     @Test
-    @DisplayName("the box floor clamps how deep the apron is cut; a surface on the floor datum is one layer")
-    void theFloorClampsTheSoil()
+    @DisplayName("depth tapers from soil_depth at the island side to rim_depth at the band's own far edge")
+    void depthTapersAcrossTheBand()
     {
-        assertEquals(1, DEFAULTS.layersAt(70, 70));
-        assertEquals(3, DEFAULTS.layersAt(72, 70));
-        assertEquals(4, DEFAULTS.layersAt(80, 70));
-        assertEquals(0, DEFAULTS.layersAt(69, 70));
+        // band 12 wide (rank I), soil 8 deep, rim 2 deep - a source column deep enough not to clamp
+        assertEquals(8, DEFAULTS.depthAt(0, 12, 20), "right against the island, depth should be full soil depth");
+        assertEquals(2, DEFAULTS.depthAt(12, 12, 20), "at the band's own far edge, depth should be the rim minimum");
+
+        // somewhere in the middle, depth should have thinned but not yet reached the rim
+        final int middle = DEFAULTS.depthAt(6, 12, 20);
+        assertTrue(middle < 8 && middle > 2, "halfway out the band should be thinner than the island side and"
+                + " deeper than the rim, got " + middle);
+    }
+
+    @Test
+    @DisplayName("depth never exceeds what the source column it grew from actually has")
+    void depthIsCappedByTheSource()
+    {
+        assertEquals(1, DEFAULTS.depthAt(0, 12, 1), "a one-block shelf should grow a one-block apron");
+        assertEquals(0, DEFAULTS.depthAt(0, 12, 0), "a source with nothing to it grows no apron at all");
+    }
+
+    @Test
+    @DisplayName("a band with nothing to taper across still caps depth at soil_depth, bounded by the source")
+    void aZeroWidthBandFallsBackToSoilDepth()
+    {
+        assertEquals(8, DEFAULTS.depthAt(0, 0, 20));
+        assertEquals(5, DEFAULTS.depthAt(0, 0, 5));
+    }
+
+    @Test
+    @DisplayName("a distance past the band's own width clamps to the rim rather than tapering past it")
+    void distancePastTheBandClampsToTheRim()
+    {
+        assertEquals(2, DEFAULTS.depthAt(50, 12, 20));
     }
 
     @Test
     @DisplayName("a nonsensical setting is refused rather than quietly producing no ground")
     void nonsensicalSettingsAreRefused()
     {
-        assertThrows(IllegalArgumentException.class, () -> new TerrainGrowthSettings(true, -1, 12, 6, 3, 3, 4, 3, 4));
-        assertThrows(IllegalArgumentException.class, () -> new TerrainGrowthSettings(true, 18, 12, 6, 3, 3, 0, 3, 4));
-        assertThrows(IllegalArgumentException.class, () -> new TerrainGrowthSettings(true, 18, 12, 6, 3, 3, 4, 3, 0));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new TerrainGrowthSettings(true, -1, 12, 6, 3, 3, 8, 2, 3, 4));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new TerrainGrowthSettings(true, 18, 12, 6, 3, 3, 0, 0, 3, 4));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new TerrainGrowthSettings(true, 18, 12, 6, 3, 3, 4, 2, 3, 0));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new TerrainGrowthSettings(true, 18, 12, 6, 3, 3, 4, 8, 3, 4),
+                "rimDepth above soilDepth should be refused, not silently deepen the rim past the island side");
     }
 }

@@ -1561,3 +1561,27 @@ anything but the first one it ever got.
   player's dimension is created, the same as before, so an existing soulhome's island never
   changes underneath its owner on a later scan or server restart (#240).
 - Ported to `1.21.1`.
+
+The island's new coast was a one-block shelf no matter how deep the island itself ran
+
+#243 closed #235 by fixing the fog, and the fog was genuinely wrong - but it was not the whole of
+"the island expansion smears". Every apron of new ground an ascension grew was clamped against the
+box's own floor datum, and on every shipped island that datum sits exactly where the island's own
+crust already is. So the clamp could only ever leave one block. Ascending still fanned twelve to
+eighteen hundred columns of single-block grass out around an island whose own body runs twenty-five
+to thirty-one blocks deep, and from any angle off the island the new coast read as a flat pancake
+laid over something with real shape underneath it.
+
+- New ground is no longer clamped against the box floor at all. The island's own body already sits
+  well below that datum (#97), so an apron the player cannot dig through the bottom of is no
+  different from the island itself already being exactly that.
+- In its place, an apron now tapers: full depth where it meets the island's own ground, thinning
+  toward a shallow rim at the far edge of its own reach, and never deeper than the ground column it
+  actually grew from. A slab the same thickness at the coast as at the shore reads as a shelf nailed
+  on; a taper reads as the island's own underside continuing outward, which is what it was always
+  meant to look like.
+- The depth it tapers from is deeper too - `soil_depth` moves from 4 to 8 - so the near edge reads
+  as a cut into real island rather than disappearing against it.
+- A buff: new coastline finally looks like coastline. Nothing about how far ground reaches, or
+  which columns it grows into, changed - only how deep each one is cut (#235).
+- Not yet ported to `1.21.1`.

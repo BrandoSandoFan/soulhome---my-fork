@@ -174,6 +174,72 @@ class TerrainGrowthCorpusTest
     }
 
     @Test
+    @DisplayName("the apron tapers with distance from the island rather than reading as a flat one-block slab (#235)")
+    void theApronTapersRatherThanFlatteningToOneBlock()
+    {
+        for (SoulIslandVolume island : SoulIslandVolume.allShipped())
+        {
+            final ApronPlan plan = growOnce(island, 1, 0);
+
+            assertFalse(plan.isEmpty(), "soul_island" + island.style() + " grew no ground to check the taper of");
+
+            final int offsetX = -island.templateSizeX() / 2;
+            final int offsetZ = -island.templateSizeZ() / 2;
+            final int offsetY = FLOOR - spawnColumnTop(island);
+
+            // measured against what actually planned, not a fixed distance, because the edge jitter
+            // means no particular column is guaranteed to reach the band's full width
+            final int maxBandDistance = plan.columns().stream().mapToInt(ApronPlan.Column::bandDistance).max()
+                    .orElseThrow();
+
+            boolean sawMoreThanOneBlockDeep = false;
+            int deepestNearIsland = 0;
+            int shallowestAtRim = Integer.MAX_VALUE;
+
+            for (ApronPlan.Column column : plan.columns())
+            {
+                final int sourceDepth = sourceDepthOf(island, column, offsetX, offsetZ, offsetY);
+                final int depth = SETTINGS.depthAt(column.bandDistance(), plan.bandWidth(), sourceDepth);
+
+                assertTrue(
+                        depth <= SETTINGS.soilDepth(),
+                        "soul_island" + island.style() + " planned " + column.x() + "," + column.z() + " " + depth
+                                + " layers deep, past soil_depth of " + SETTINGS.soilDepth());
+
+                assertTrue(
+                        depth <= sourceDepth,
+                        "soul_island" + island.style() + " planned " + column.x() + "," + column.z() + " " + depth
+                                + " layers deep, deeper than the " + sourceDepth + " the ground it grew from has");
+
+                if (depth > 1)
+                {
+                    sawMoreThanOneBlockDeep = true;
+                }
+
+                if (column.bandDistance() <= 1)
+                {
+                    deepestNearIsland = Math.max(deepestNearIsland, depth);
+                }
+
+                if (column.bandDistance() >= maxBandDistance - 1)
+                {
+                    shallowestAtRim = Math.min(shallowestAtRim, depth);
+                }
+            }
+
+            assertTrue(
+                    sawMoreThanOneBlockDeep,
+                    "soul_island" + island.style() + " grew an apron that never got past one block deep anywhere -"
+                            + " the #235 smear, where the box floor clamped every column to a shelf");
+
+            assertTrue(
+                    deepestNearIsland > shallowestAtRim,
+                    "soul_island" + island.style() + " did not taper: " + deepestNearIsland
+                            + " layers deep right off the island against " + shallowestAtRim + " at its own rim");
+        }
+    }
+
+    @Test
     @DisplayName("a player's tower on the island's edge keeps its clearance, and is never grown over")
     void aBuildOnTheEdgeKeepsItsClearance()
     {
@@ -269,6 +335,33 @@ class TerrainGrowthCorpusTest
         }
 
         return survey;
+    }
+
+    /**
+     * How many solid layers a planned column's source actually has, walking down from its surface
+     * in the same template coordinates {@link #surveyOf} reads it in. Bounded by {@code soil_depth},
+     * exactly as {@code TerrainGrowthService} bounds its own walk down the live world - nothing past
+     * that could ever be used regardless of how much further the island's body runs.
+     */
+    private static int sourceDepthOf(SoulIslandVolume island, ApronPlan.Column column, int offsetX, int offsetZ, int offsetY)
+    {
+        int depth = 0;
+
+        for (int y = column.surfaceY(); depth < SETTINGS.soilDepth(); y--)
+        {
+            final int templateY = y - offsetY;
+
+            if (templateY < 0 || templateY >= island.templateSizeY()
+                    || island.passabilityAt(column.sourceX() - offsetX, templateY, column.sourceZ() - offsetZ)
+                            == Passability.EMPTY)
+            {
+                break;
+            }
+
+            depth++;
+        }
+
+        return depth;
     }
 
     /** The highest non-air block in one template column, or {@link Integer#MIN_VALUE} for an empty one. */

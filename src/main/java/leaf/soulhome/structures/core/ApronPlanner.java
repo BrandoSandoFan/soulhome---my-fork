@@ -154,7 +154,12 @@ public final class ApronPlanner
                 final int sourceX = survey.minX() + source / sizeZ;
                 final int sourceZ = survey.minZ() + source % sizeZ;
 
-                planned.add(new ApronPlan.Column(x, z, survey.surfaceAt(sourceX, sourceZ), sourceX, sourceZ));
+                // rounded down rather than to the nearest block: a column just inside a boundary
+                // reads as belonging to the side it is inside of, not the side it is closest to
+                final int distanceBlocks = bandDistance[index] / STEP_ORTHOGONAL;
+
+                planned.add(new ApronPlan.Column(
+                        x, z, survey.surfaceAt(sourceX, sourceZ), sourceX, sourceZ, distanceBlocks));
             }
         }
 
