@@ -1606,3 +1606,20 @@ anything but the first one it ever got.
   player's dimension is created, the same as before, so an existing soulhome's island never
   changes underneath its owner on a later scan or server restart (#240).
 - Ported to `1.20.1`.
+
+Your own island's ground could read as out of bounds
+
+The ascent box's floor is a fixed datum, the same for every soul - but the starter islands don't
+all place their own ground at exactly that height. Some of a template's terrain could sit well
+below it, so standing in the wrong corner of your own freshly-generated island, on ground you never
+touched, could tell you that you were outside your own soulhome.
+
+- A soulhome's floor is now anchored to the lowest solid block its own starter island actually
+  placed, not just the fixed datum every soul used to share - so standing anywhere on your own
+  island's terrain is always inside your box from the moment you arrive.
+- The ceiling and verge are untouched: lowering the floor only ever adds buildable room below where
+  it already reached, never shifts the box's height or narrows it.
+- A soulhome that already existed before this fix keeps the box it always had - nothing about an
+  existing soul's floor moves on its own.
+- A buff: no legally-placed block on your own island reads as out of bounds any more (#236).
+- Ported to `1.20.1`.
