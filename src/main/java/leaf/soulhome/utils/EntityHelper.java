@@ -4,6 +4,7 @@
 
 package leaf.soulhome.utils;
 
+import leaf.soulhome.entity.SoulVesselEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
@@ -32,11 +33,19 @@ public class EntityHelper
         return entitiesFound;
     }
 
+    // a vessel (#182) is spawned exactly where its owner stands (see SoulVesselEntity#spawn), so it
+    // is always inside its own owner's 2.5-block sweep the moment a key or cushion finishes - and
+    // canChangeDimensions says nothing against it, since a vessel is otherwise an ordinary
+    // LivingEntity. Left in, it rides along into the soul instead of staying behind, and its own
+    // cross-dimension removal reads as a disturbance (VesselLifecycleService#onVesselRemoved) that
+    // resyncs the owner's return position from wherever the vessel just landed - inside the soul -
+    // which is how a swept-in vessel turns into a Soul Key that cannot find its way back out.
     private static final Predicate<Entity> ALLOWED_TO_TELEPORT =
             EntitySelector.NO_SPECTATORS
                     .and(EntitySelector.LIVING_ENTITY_STILL_ALIVE)
                     .and(entity -> entity.canChangeDimensions(entity.level(), entity.level()))
-                    .and((entity)->!(entity instanceof Enemy));
+                    .and((entity)->!(entity instanceof Enemy))
+                    .and((entity)->!(entity instanceof SoulVesselEntity));
 
     public static List<Entity> getEntitiesInRange(Entity entity, double range, boolean includeSelf)
     {
