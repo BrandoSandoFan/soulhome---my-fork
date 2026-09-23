@@ -47,7 +47,14 @@ public final class SoulSynth
      * derived: it puts every voice's pieces between about -19 and -24 dBFS RMS at every rank, which
      * is where Minecraft's own tracks sit, and {@code SoulSynthTest} holds it there.
      */
-    static final float MASTER = 1.45f;
+    static final float MASTER = 1.2f;
+
+    /**
+     * The master's one-pole lowpass, at about 6 kHz. Nothing musical lives up there once the
+     * register ceiling is in place (#261); what does is the top of the foley's noise and the edge on
+     * a struck note, which is exactly what "ear piercing" is made of.
+     */
+    static final float TONE = (float) (1d - Math.exp(-2d * Math.PI * 6_000d / SAMPLE_RATE));
 
     /** Where a piece is supplied from - the stream asks for the next one when the rest runs out. */
     @FunctionalInterface
@@ -60,6 +67,9 @@ public final class SoulSynth
     private final SplittableRandom random;
     private final Reverb reverb = new Reverb();
     private final List<Voice> voices = new ArrayList<>();
+
+    private float toneL;
+    private float toneR;
 
     private SoulComposer.Piece piece;
     private MusicStyle style;
@@ -107,8 +117,11 @@ public final class SoulSynth
 
             this.reverb.process(dryL, dryR);
 
-            left[frame] = limit((dryL * this.reverb.dry + this.reverb.outL) * MASTER);
-            right[frame] = limit((dryR * this.reverb.dry + this.reverb.outR) * MASTER);
+            this.toneL += TONE * ((dryL * this.reverb.dry + this.reverb.outL) - this.toneL);
+            this.toneR += TONE * ((dryR * this.reverb.dry + this.reverb.outR) - this.toneR);
+
+            left[frame] = limit(this.toneL * MASTER);
+            right[frame] = limit(this.toneR * MASTER);
         }
     }
 
@@ -242,6 +255,16 @@ public final class SoulSynth
                 case MALLET -> new Mallet(event);
                 case DRONE -> new Drone(event, seed);
                 case FLUTE -> new Flute(event, seed);
+                case THUMP -> new Thump(event);
+                case CLANK -> new Clank(event, seed);
+                case TICK -> new Tick(event, seed);
+                case CRACKLE -> new Crackle(event, seed);
+                case HISS -> new Hiss(event, seed);
+                case WIND -> new Wind(event, seed);
+                case DRIP -> new Drip(event);
+                case CHIRP -> new Chirp(event, seed);
+                case RUSTLE -> new Rustle(event, seed);
+                case SWELL -> new Swell(event, seed);
             };
         }
 
@@ -288,20 +311,27 @@ public final class SoulSynth
     }
 
     /**
-     * Three saws, detuned a few cents apart, through a lowpass that breathes slowly. Band-limited by
+     * Two saws a couple of cents apart, through a lowpass that breathes slowly. Band-limited by
      * PolyBLEP so the low notes do not fizz; the filter is the TPT state-variable form, which stays
      * stable however its cutoff is moved.
+     *
+     * <p>It was three saws half a percent apart, which is a chorus: they beat against each other a
+     * couple of times a second, and #261 heard that as a warble on every held chord. Two cents apart
+     * they drift against each other once every few seconds, which reads as warmth rather than wobble.
      */
     static final class Pad extends Voice
     {
         private static final double ATTACK = 2.2d;
         private static final double RELEASE = 3.2d;
-        private static final double[] DETUNE = {-0.0045d, 0d, 0.0052d};
+        static final double[] DETUNE = {-0.0012d, 0.0012d};
+
+        /** How far the filter's slow sweep moves the cutoff either way, as a share of it. */
+        static final double SWEEP = 0.08d;
 
         /** {@code 1/Q}: a touch under Butterworth's 1.41, so the cutoff has a little body without ringing. */
         private static final double RESONANCE = 1.2d;
 
-        private final double[] phase = {0.13d, 0.51d, 0.87d};
+        private final double[] phase = {0.13d, 0.61d};
         private final double cutoff;
         private final double sweepRate;
         private double a1;
@@ -322,7 +352,7 @@ public final class SoulSynth
         {
             double saw = 0d;
 
-            for (int index = 0; index < 3; index++)
+            for (int index = 0; index < DETUNE.length; index++)
             {
                 final double increment = this.frequency * (1d + DETUNE[index]) / SAMPLE_RATE;
 
@@ -340,7 +370,7 @@ public final class SoulSynth
             // hundred times a second rather than on every sample - tan() is not free
             if ((this.age & 63L) == 0L)
             {
-                final double sweep = 0.75d + 0.25d * Sine.at(seconds * this.sweepRate);
+                final double sweep = 1d - SWEEP + SWEEP * Sine.at(seconds * this.sweepRate);
                 final double g = Math.tan(Math.PI * Math.min(0.45d * SAMPLE_RATE, this.cutoff * sweep) / SAMPLE_RATE);
 
                 this.a1 = 1d / (1d + g * (g + RESONANCE));
@@ -349,7 +379,7 @@ public final class SoulSynth
             }
 
             // Cytomic's form of the TPT state-variable filter: v1 is the band, v2 the low
-            final double v3 = saw / 3d - this.ic2;
+            final double v3 = saw / DETUNE.length - this.ic2;
             final double v1 = this.a1 * this.ic1 + this.a2 * v3;
             final double v2 = this.ic2 + this.a2 * this.ic1 + this.a3 * v3;
 
@@ -406,9 +436,10 @@ public final class SoulSynth
             final double modulator = Sine.at(this.frequency * seconds) * index / (2d * Math.PI);
             double tone = Sine.at(this.frequency * seconds + modulator);
 
-            if (this.frequency * 14d < 9_000d)
+            // the tine, only where it stays under the range #261 found piercing
+            if (this.frequency * 14d < 6_000d)
             {
-                tone += 0.07d * Sine.at(this.frequency * 14d * seconds) * Math.exp(-seconds / 0.04d);
+                tone += 0.04d * Sine.at(this.frequency * 14d * seconds) * Math.exp(-seconds / 0.04d);
             }
 
             return (float) (tone * strike(seconds, this.decay)) * this.velocity * sustained(seconds, 0.003d, 0.45d);
@@ -421,23 +452,33 @@ public final class SoulSynth
         }
     }
 
-    /** FM at 1:3.5, the classic inharmonic bell, with a second carrier a hair sharp so it shimmers. */
+    /**
+     * FM at 1:3.5, the classic inharmonic bell, at a low index so it rings rather than stings.
+     *
+     * <p>It had a second carrier 0.7 Hz sharp "so it shimmers", which is a beat - a wobble in the
+     * level - at the one rate the ear is surest to catch, on every bell for three seconds (#261). The
+     * shimmer is now a quiet second harmonic that holds still, and a high bell dies sooner than a low
+     * one, as a small bell does.
+     */
     static final class Bell extends Voice
     {
+        private final double decay;
+
         Bell(NoteEvent event)
         {
-            super(event, 0.24f);
+            super(event, 0.26f);
+            this.decay = 2.6d * Math.min(1d, Math.sqrt(262d / this.frequency));
         }
 
         @Override
         float sample(double seconds)
         {
-            final double index = 2.0d * Math.exp(-seconds / 0.9d) + 0.15d;
+            final double index = 1.1d * Math.exp(-seconds / 0.6d) + 0.1d;
             final double modulator = Sine.at(this.frequency * 3.5d * seconds) * index / (2d * Math.PI);
             final double tone = Sine.at(this.frequency * seconds + modulator)
-                    + 0.5d * Sine.at((this.frequency + 0.7d) * seconds + modulator * 0.8d);
+                    + 0.15d * Sine.at(this.frequency * 2d * seconds);
 
-            return (float) (tone / 1.5d * strike(seconds, 3.2d) * attackOf(seconds, 0.002d)) * this.velocity;
+            return (float) (tone / 1.15d * strike(seconds, this.decay) * attackOf(seconds, 0.002d)) * this.velocity;
         }
 
         @Override
@@ -447,31 +488,41 @@ public final class SoulSynth
         }
     }
 
-    /** Four slightly stretched partials, each dying at its own rate, under a slow vibrato. */
+    /**
+     * Three partials, each dying at its own rate, held still.
+     *
+     * <p>This is where #261's "wobbly high note held too long" came from, and it was a bug rather
+     * than a taste: the vibrato multiplied the frequency and then the elapsed time, so the pitch swing
+     * grew the longer a note rang - about a third of the pitch either way four seconds in, on the
+     * highest notes in the piece. Glass now has no vibrato at all, a third fewer partials, and a high
+     * note dies sooner than a low one.
+     */
     static final class Glass extends Voice
     {
-        private static final double[] RATIOS = {1d, 2.0d, 3.01d, 4.2d};
-        private static final double[] LEVELS = {1d, 0.35d, 0.16d, 0.07d};
-        private static final double[] DECAYS = {4.5d, 2.6d, 1.4d, 0.7d};
+        private static final double[] RATIOS = {1d, 2.0d, 3.01d};
+        private static final double[] LEVELS = {1d, 0.25d, 0.08d};
+        private static final double[] DECAYS = {3.5d, 1.8d, 0.9d};
+
+        private final double shorten;
 
         Glass(NoteEvent event)
         {
-            super(event, 0.22f);
+            super(event, 0.24f);
+            this.shorten = Math.min(1d, Math.sqrt(262d / this.frequency));
         }
 
         @Override
         float sample(double seconds)
         {
-            final double vibrato = 1d + 0.0025d * Sine.at(4.6d * seconds) * Math.min(1d, seconds / 0.6d);
             double tone = 0d;
 
             for (int index = 0; index < RATIOS.length; index++)
             {
-                tone += LEVELS[index] * Sine.at(this.frequency * RATIOS[index] * vibrato * seconds)
-                        * Math.exp(-seconds / DECAYS[index]);
+                tone += LEVELS[index] * Sine.at(this.frequency * RATIOS[index] * seconds)
+                        * Math.exp(-seconds / (DECAYS[index] * this.shorten));
             }
 
-            return (float) (tone / 1.6d * attackOf(seconds, 0.06d)) * this.velocity * sustained(seconds, 0.001d, 1.4d);
+            return (float) (tone / 1.33d * attackOf(seconds, 0.06d)) * this.velocity * sustained(seconds, 0.001d, 1.4d);
         }
 
         @Override
@@ -501,12 +552,13 @@ public final class SoulSynth
 
             this.line = new float[length];
 
-            // lowpassed noise, so the strike is a thumb rather than a pick
+            // well lowpassed noise, so the strike is a thumb rather than a pick - a workshop's bass
+            // plays this every eighth note, and a bright pluck that often is a hiss (#261)
             float last = 0f;
 
             for (int index = 0; index < length; index++)
             {
-                last = last * 0.6f + (float) (random.nextDouble() * 2d - 1d) * 0.4f;
+                last = last * 0.8f + (float) (random.nextDouble() * 2d - 1d) * 0.2f;
                 this.line[index] = last;
             }
 
@@ -523,9 +575,9 @@ public final class SoulSynth
             this.line[this.position] = this.loss * 0.5f * (out + this.line[next]);
             this.position = next;
 
-            this.smoothed += 0.35f * (out - this.smoothed);
+            this.smoothed += 0.14f * (out - this.smoothed);
 
-            return this.smoothed * this.velocity * 2.2f * sustained(seconds, 0.001d, 0.6d);
+            return this.smoothed * this.velocity * 5f * sustained(seconds, 0.001d, 0.6d);
         }
 
         @Override
@@ -551,7 +603,7 @@ public final class SoulSynth
         {
             final double tone = Sine.at(this.frequency * seconds) * Math.exp(-seconds / this.decay)
                     + 0.28d * Sine.at(this.frequency * 3.93d * seconds) * Math.exp(-seconds / 0.18d)
-                    + 0.07d * Sine.at(this.frequency * 9.2d * seconds) * Math.exp(-seconds / 0.05d);
+                    + 0.04d * Sine.at(this.frequency * 9.2d * seconds) * Math.exp(-seconds / 0.05d);
 
             return (float) (tone * attackOf(seconds, 0.0015d)) * this.velocity;
         }
@@ -598,11 +650,22 @@ public final class SoulSynth
         }
     }
 
-    /** A sine with a little of its second and third harmonics, breath on the onset, vibrato that arrives late. */
+    /**
+     * A sine with a little of its second and third harmonics, breath on the onset, and a vibrato
+     * that arrives late and stays light.
+     *
+     * <p>The vibrato is integrated into a running phase. It used to multiply the elapsed time, which
+     * made its swing grow for as long as the note was held - the same fault as {@link Glass}, heard
+     * on a flute as a note sliding further off pitch the longer it was held (#261).
+     */
     static final class Flute extends Voice
     {
+        /** How far the pitch moves either way at the vibrato's peak - a tenth of a percent, two cents. */
+        static final double VIBRATO = 0.0012d;
+
         private final SplittableRandom random;
         private double breath;
+        private double phase;
 
         Flute(NoteEvent event, long seed)
         {
@@ -613,8 +676,11 @@ public final class SoulSynth
         @Override
         float sample(double seconds)
         {
-            final double vibrato = 1d + 0.004d * Sine.at(5.1d * seconds) * Math.min(1d, Math.max(0d, seconds - 0.3d) / 0.5d);
-            final double phase = this.frequency * vibrato * seconds;
+            final double vibrato = 1d + VIBRATO * Sine.at(5.1d * seconds) * Math.min(1d, Math.max(0d, seconds - 0.3d) / 0.5d);
+
+            this.phase += this.frequency * vibrato / SAMPLE_RATE;
+
+            final double phase = this.phase;
 
             this.breath += 0.3d * ((this.random.nextDouble() * 2d - 1d) - this.breath);
 
@@ -628,6 +694,469 @@ public final class SoulSynth
         boolean done()
         {
             return pastRelease(0.35d);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Foley (#261)
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Cytomic's TPT state-variable filter, for the foley's noise. The same form the pad uses, kept
+     * separately because a foley voice moves its cutoff per pop or per sweep rather than slowly.
+     */
+    static final class Filter
+    {
+        private double k = 1.4d;
+        private double a1;
+        private double a2;
+        private double a3;
+        private double ic1;
+        private double ic2;
+
+        double low;
+        double band;
+
+        Filter tune(double cutoff, double q)
+        {
+            final double g = Math.tan(Math.PI * Math.max(20d, Math.min(0.45d * SAMPLE_RATE, cutoff)) / SAMPLE_RATE);
+
+            this.k = 1d / Math.max(0.1d, q);
+            this.a1 = 1d / (1d + g * (g + this.k));
+            this.a2 = g * this.a1;
+            this.a3 = g * this.a2;
+
+            return this;
+        }
+
+        void process(double input)
+        {
+            final double v3 = input - this.ic2;
+            final double v1 = this.a1 * this.ic1 + this.a2 * v3;
+            final double v2 = this.ic2 + this.a2 * this.ic1 + this.a3 * v3;
+
+            this.ic1 = 2d * v1 - this.ic1;
+            this.ic2 = 2d * v2 - this.ic2;
+            this.band = v1;
+            this.low = v2;
+        }
+    }
+
+    /** A hammer on wood: a sine falling from a knock to a thud, over a click of noise. The workshop's beat. */
+    static final class Thump extends Voice
+    {
+        private double phase;
+
+        Thump(NoteEvent event)
+        {
+            super(event, 0.45f);
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            this.phase += (48d + 95d * Math.exp(-seconds / 0.025d)) / SAMPLE_RATE;
+
+            final double body = Sine.at(this.phase) * Math.exp(-seconds / 0.11d);
+            final double knock = Sine.at(this.phase * 3.1d) * 0.25d * Math.exp(-seconds / 0.012d);
+
+            return (float) ((body + knock) * attackOf(seconds, 0.0015d)) * this.velocity;
+        }
+
+        @Override
+        boolean done()
+        {
+            return this.age > (long) (0.6d * SAMPLE_RATE);
+        }
+    }
+
+    /**
+     * A struck anvil: the modes of a struck bar (1, 2.76, 5.4, 8.93) over a short click, the upper
+     * modes gone in a few tens of milliseconds. Pitched to the chord, so two anvils a fifth apart
+     * trading the backbeat are part of the harmony rather than noise laid over it.
+     */
+    static final class Clank extends Voice
+    {
+        private static final double[] RATIOS = {1d, 2.76d, 5.4d, 8.93d};
+        private static final double[] LEVELS = {1d, 0.55d, 0.28d, 0.06d};
+        private static final double[] DECAYS = {0.32d, 0.16d, 0.07d, 0.03d};
+
+        private final SplittableRandom random;
+        private final double base;
+        private final Filter click = new Filter().tune(1_600d, 0.8d);
+
+        Clank(NoteEvent event, long seed)
+        {
+            super(event, 0.68f);
+            this.random = new SplittableRandom(seed);
+
+            // anvils ring between these, whatever note the chord hands them - lower, and it is a
+            // gong; higher, and it is the piercing edge #261 asked to have taken off
+            double base = this.frequency;
+
+            while (base < 330d)
+            {
+                base *= 2d;
+            }
+
+            while (base > 660d)
+            {
+                base /= 2d;
+            }
+
+            this.base = base;
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            double tone = 0d;
+
+            for (int index = 0; index < RATIOS.length; index++)
+            {
+                tone += LEVELS[index] * Sine.at(this.base * RATIOS[index] * seconds) * Math.exp(-seconds / DECAYS[index]);
+            }
+
+            this.click.process(this.random.nextDouble() * 2d - 1d);
+
+            final double strike = this.click.band * 0.9d * Math.exp(-seconds / 0.004d);
+
+            return (float) ((tone / 1.6d + strike) * attackOf(seconds, 0.0008d)) * this.velocity;
+        }
+
+        @Override
+        boolean done()
+        {
+            return this.age > (long) (1.4d * SAMPLE_RATE);
+        }
+    }
+
+    /** A ratchet's tooth or a clock's tick: a few milliseconds of band-passed noise at the note's pitch. */
+    static final class Tick extends Voice
+    {
+        private final SplittableRandom random;
+        private final Filter filter;
+
+        Tick(NoteEvent event, long seed)
+        {
+            super(event, 1.25f);
+            this.random = new SplittableRandom(seed);
+            this.filter = new Filter().tune(Math.min(2_400d, this.frequency), 3d);
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            this.filter.process(this.random.nextDouble() * 2d - 1d);
+
+            return (float) (this.filter.band * 2.5d * Math.exp(-seconds / 0.005d)) * this.velocity;
+        }
+
+        @Override
+        boolean done()
+        {
+            return this.age > (long) (0.06d * SAMPLE_RATE);
+        }
+    }
+
+    /**
+     * Fire. Held, it is a bed: a low roar of filtered noise with pops scattered through it at random,
+     * each a burst of noise at its own pitch dying in a few milliseconds, a few of them bigger than
+     * the rest - which is the whole difference between a crackle and a hiss. Struck (a note shorter
+     * than a fifth of a second), it is one sharp pop with a couple of smaller ones on its tail.
+     */
+    static final class Crackle extends Voice
+    {
+        /** Pops per second in the bed. */
+        private static final double BED_RATE = 11d;
+
+        private final SplittableRandom random;
+        private final boolean bed;
+        private final Filter roar = new Filter().tune(260d, 0.7d);
+        private final Filter pop = new Filter();
+        private double popLevel;
+        private double popDecay = 0.004d;
+        private int trailing;
+
+        Crackle(NoteEvent event, long seed)
+        {
+            super(event, 1.5f);
+            this.random = new SplittableRandom(seed);
+            this.bed = event.duration() > 0.2d;
+            this.trailing = this.bed ? 0 : 2 + this.random.nextInt(3);
+
+            if (!this.bed)
+            {
+                ignite(0.9d + 0.1d * this.random.nextDouble(), 0.006d);
+            }
+        }
+
+        private void ignite(double level, double decay)
+        {
+            this.popLevel = Math.max(this.popLevel, level);
+            this.popDecay = decay;
+
+            // pitched low to middling: an ember snapping, not a spark whistling
+            this.pop.tune(600d + 1_300d * this.random.nextDouble(), 1.1d);
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            final double noise = this.random.nextDouble() * 2d - 1d;
+
+            if (this.bed && this.random.nextDouble() < BED_RATE / SAMPLE_RATE)
+            {
+                // mostly small pops, now and then a loud one - cubed, so the loud ones are rare
+                final double size = this.random.nextDouble();
+
+                ignite(0.15d + 0.85d * size * size * size, 0.003d + 0.006d * this.random.nextDouble());
+            }
+            else if (!this.bed && this.trailing > 0 && this.random.nextDouble() < 60d / SAMPLE_RATE)
+            {
+                this.trailing--;
+                ignite(0.3d + 0.3d * this.random.nextDouble(), 0.003d);
+            }
+
+            this.pop.process(noise);
+            this.popLevel *= Math.exp(-1d / (this.popDecay * SAMPLE_RATE));
+
+            double out = this.pop.band * 3d * this.popLevel;
+
+            if (this.bed)
+            {
+                this.roar.process(noise);
+                out = out * 0.55d + this.roar.low * 0.5d;
+                out *= sustained(seconds, 1.5d, 2d);
+            }
+
+            return (float) out * this.velocity;
+        }
+
+        @Override
+        boolean done()
+        {
+            return this.bed ? pastRelease(2d) : this.age > (long) (0.25d * SAMPLE_RATE);
+        }
+    }
+
+    /** A steam vent: noise in a middling band, opening quickly and closing more slowly. */
+    static final class Hiss extends Voice
+    {
+        private final SplittableRandom random;
+        private final Filter filter = new Filter().tune(1_600d, 0.7d);
+
+        Hiss(NoteEvent event, long seed)
+        {
+            super(event, 0.75f);
+            this.random = new SplittableRandom(seed);
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            this.filter.process(this.random.nextDouble() * 2d - 1d);
+
+            return (float) (this.filter.band * 1.4d) * this.velocity * sustained(seconds, 0.03d, 0.18d);
+        }
+
+        @Override
+        boolean done()
+        {
+            return pastRelease(0.18d);
+        }
+    }
+
+    /**
+     * Wind: low-passed noise that swells and falls over the note, its cutoff opening as it swells
+     * the way a gust brightens. The note's pitch sets where it sits - a gust round a cold room, or
+     * the low rumble of an empty one.
+     */
+    static final class Wind extends Voice
+    {
+        private final SplittableRandom random;
+        private final Filter filter = new Filter();
+        private final double length;
+
+        Wind(NoteEvent event, long seed)
+        {
+            super(event, 1.0f);
+            this.random = new SplittableRandom(seed);
+            this.length = Math.max(0.5d, event.duration());
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            final double through = Math.max(0d, Math.min(1d, seconds / this.length));
+            final double swell = Math.sin(Math.PI * through);
+
+            if ((this.age & 31L) == 0L)
+            {
+                this.filter.tune(this.frequency * (0.6d + 0.9d * swell), 0.9d);
+            }
+
+            this.filter.process(this.random.nextDouble() * 2d - 1d);
+
+            return (float) (this.filter.low * 1.2d * swell * swell) * this.velocity;
+        }
+
+        @Override
+        boolean done()
+        {
+            return this.age > (long) (this.length * SAMPLE_RATE);
+        }
+    }
+
+    /** A drop of water: a sine that rises in pitch as it dies, the "plink" a drip makes in a cave. */
+    static final class Drip extends Voice
+    {
+        private double phase;
+
+        Drip(NoteEvent event)
+        {
+            super(event, 1.0f);
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            this.phase += this.frequency * (1d + 0.9d * (1d - Math.exp(-seconds / 0.03d))) / SAMPLE_RATE;
+
+            return (float) (Sine.at(this.phase) * Math.exp(-seconds / 0.045d) * attackOf(seconds, 0.001d)) * this.velocity;
+        }
+
+        @Override
+        boolean done()
+        {
+            return this.age > (long) (0.3d * SAMPLE_RATE);
+        }
+    }
+
+    /**
+     * A bird: two or three short whistles, each dipping and rising. Pitched at the note - the
+     * composer keeps it around 1.3 to 1.8 kHz, so its highest glint stays under 2.5 kHz and it is
+     * heard as a bird in the distance rather than one at the player's ear.
+     */
+    static final class Chirp extends Voice
+    {
+        private final int calls;
+        private final double gap;
+        private double phase;
+
+        Chirp(NoteEvent event, long seed)
+        {
+            super(event, 0.45f);
+
+            final SplittableRandom random = new SplittableRandom(seed);
+
+            this.calls = 2 + random.nextInt(2);
+            this.gap = 0.09d + 0.05d * random.nextDouble();
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            final int call = (int) (seconds / this.gap);
+            final double within = seconds - call * this.gap;
+            final double length = this.gap * 0.7d;
+
+            if (call >= this.calls || within > length)
+            {
+                return 0f;
+            }
+
+            final double t = within / length;
+
+            this.phase += this.frequency * (1.25d - 0.5d * t + 0.6d * t * t) / SAMPLE_RATE;
+
+            return (float) (Sine.at(this.phase) * Math.sin(Math.PI * t)) * this.velocity;
+        }
+
+        @Override
+        boolean done()
+        {
+            return this.age > (long) (this.calls * this.gap * SAMPLE_RATE) + 1;
+        }
+    }
+
+    /** Leaves: soft bursts of middling noise, a few to a note, each fading in and out. */
+    static final class Rustle extends Voice
+    {
+        private final SplittableRandom random;
+        private final Filter filter = new Filter().tune(1_400d, 0.6d);
+        private final double length;
+        private double gust;
+        private double gustTarget;
+
+        Rustle(NoteEvent event, long seed)
+        {
+            super(event, 2.0f);
+            this.random = new SplittableRandom(seed);
+            this.length = Math.max(0.3d, event.duration());
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            if ((this.age & 1023L) == 0L)
+            {
+                this.gustTarget = this.random.nextDouble() < 0.5d ? this.random.nextDouble() : 0d;
+            }
+
+            this.gust += (this.gustTarget - this.gust) * 0.0015d;
+            this.filter.process(this.random.nextDouble() * 2d - 1d);
+
+            final double through = Math.min(1d, seconds / this.length);
+
+            return (float) (this.filter.band * this.gust * Math.sin(Math.PI * through)) * this.velocity;
+        }
+
+        @Override
+        boolean done()
+        {
+            return this.age > (long) (this.length * SAMPLE_RATE);
+        }
+    }
+
+    /**
+     * The arcane breathing in: noise rising from a low hush to the middle of the range and growing
+     * as it rises, then gone in an instant - timed by the composer to end on the next chord.
+     */
+    static final class Swell extends Voice
+    {
+        private final SplittableRandom random;
+        private final Filter filter = new Filter();
+        private final double length;
+
+        Swell(NoteEvent event, long seed)
+        {
+            super(event, 0.7f);
+            this.random = new SplittableRandom(seed);
+            this.length = Math.max(0.5d, event.duration());
+        }
+
+        @Override
+        float sample(double seconds)
+        {
+            final double through = Math.max(0d, Math.min(1d, seconds / this.length));
+
+            if ((this.age & 31L) == 0L)
+            {
+                this.filter.tune(250d + 1_300d * through * through, 1.8d);
+            }
+
+            this.filter.process(this.random.nextDouble() * 2d - 1d);
+
+            final double fade = through > 0.97d ? (1d - through) / 0.03d : 1d;
+
+            return (float) (this.filter.band * 1.6d * through * through * fade) * this.velocity;
+        }
+
+        @Override
+        boolean done()
+        {
+            return this.age > (long) (this.length * SAMPLE_RATE);
         }
     }
 

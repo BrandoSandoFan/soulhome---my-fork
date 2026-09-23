@@ -7,75 +7,116 @@ package leaf.soulhome.structures.core.music;
 import leaf.soulhome.structures.core.SoulVoice;
 
 /**
- * How each voice of a soul (#166) is played as music (#163).
+ * How each voice of a soul (#166) is played as music (#163), and what it sounds like to be in the
+ * room it stands for (#261).
  *
  * <p>The same ten voices the ambience already speaks with, so a soul's music and its ambience are
  * one character heard two ways rather than two systems that happen to agree. And the same rule that
  * keeps every other part of this epic honest: a contested voice is its own thing. Steam is not the
- * warm style and the cold style taking turns - it is Lydian, the brightest mode, played on both the
- * hearth's piano and the cold's bells at once, because warm and cold together is the air between
- * them and that air is bright.
+ * warm style and the cold style taking turns - it is warm's flicker thinned out with a bell
+ * answering it and vents chuffing underneath, because warm and cold together is a working engine.
+ *
+ * <p>The owner's first listen (#261) set the direction for all ten: a workshop is rhythmic, with a
+ * solid beat and clanking; a hearth is quick, middle-register notes over a calm base with the fire
+ * crackling under it. Every other voice is extrapolated from those two - see the {@link Groove} each
+ * one plays and the table on #261.
  *
  * <p>In Java rather than in archetype JSON for #167's reason: a datapack chooses which traits its
  * room pulls toward, and so which of these it hears; it does not get to write a mode or an
  * instrument that makes a soul unbearable to build in.
  *
- * @param mode        what the harmony is drawn from
- * @param lead        the melodic instrument
- * @param texture     what plays the arpeggios and answers under the lead - never {@link Instrument#DRONE},
- *                    which is a floor rather than a voice and is asked for through {@code drone}
- * @param brightness  0 to 1: how open the pad's filter is
- * @param leadOctave  octaves above the pad the lead sits
- * @param tempo       a multiplier on the rank's tempo; below one is slower
- * @param density     0 to 1: how often the lead speaks at the height of a piece
- * @param drone       whether a drone holds the tonic under the whole piece
- * @param seventh     whether the pad voices sevenths, or stays with open fifths and seconds
+ * @param mode       what the harmony is drawn from
+ * @param groove     how the piece moves - the part #261 found was the same for every voice
+ * @param lead       the melodic instrument
+ * @param texture    what answers under the lead
+ * @param brightness 0 to 1: how open the pad's filter is
+ * @param bpm        the tempo at rank 0; rank slows it a little, never speeds it up
+ * @param density    0 to 1: how busy the lead is at the height of a piece
+ * @param drone      whether a drone holds the tonic under the whole piece
+ * @param seventh    whether the pad voices sevenths, or crowns the chord with its fifth
  */
 public record MusicStyle(
         MusicMode mode,
+        Groove groove,
         Instrument lead,
         Instrument texture,
         double brightness,
-        int leadOctave,
-        double tempo,
+        double bpm,
         double density,
         boolean drone,
         boolean seventh)
 {
+    /**
+     * How a piece moves, one per mood. The composer has a writer for each; what they share is only
+     * the pad under them, the key and the form.
+     */
+    public enum Groove
+    {
+        /** The place itself: a soft pad and a mallet, nothing to report. */
+        CALM,
+
+        /** Fire: quick flickering figures in the middle of the range over a still base, crackling. */
+        FLICKER,
+
+        /** A workshop: a hammer on the beat, the anvil on the backbeat, a driving bass under a riff. */
+        FORGE,
+
+        /** Cold: a bell or two a bar, a great deal of air, wind going past. */
+        DRIFT,
+
+        /** The arcane: low rolling arpeggios over a drone, each chord breathed in by a swell. */
+        SHIMMER,
+
+        /** Growing things: a lilting triplet ostinato under a flute, birds and leaves. */
+        LILT,
+
+        /** Emptied places: a low bell tolling on the downbeat over a drone, water dripping. */
+        TOLL,
+
+        /** Steam: the fire's flicker, thinner, answered by a bell over vents chuffing on the off-beats. */
+        VENT,
+
+        /** Worked matter and the arcane: a clock's tick-tock under a plucked ostinato and glass. */
+        CLOCKWORK,
+
+        /** Overgrowth: a sparse marimba over the drone, drips and rustle. */
+        DAMP
+    }
+
     /** The style a voice is played in. Every voice has one, so an unrecognised soul is never silent. */
     public static MusicStyle of(SoulVoice voice)
     {
         return switch (voice)
         {
-            // the place itself: major, soft, a mallet answering a pad - a soul before it is a mix of rooms
-            case BASE -> new MusicStyle(MusicMode.IONIAN, Instrument.MALLET, Instrument.GLASS, 0.45d, 1, 1.0d, 0.55d, false, false);
+            case BASE -> new MusicStyle(
+                    MusicMode.IONIAN, Groove.CALM, Instrument.MALLET, Instrument.GLASS, 0.4d, 72d, 0.55d, false, false);
 
-            // close and round: a hearth's piano over a warm pad, sevenths for the warmth in them
-            case WARM -> new MusicStyle(MusicMode.MIXOLYDIAN, Instrument.EPIANO, Instrument.PLUCK, 0.55d, 1, 1.0d, 0.65d, false, true);
+            case WARM -> new MusicStyle(
+                    MusicMode.MIXOLYDIAN, Groove.FLICKER, Instrument.EPIANO, Instrument.MALLET, 0.45d, 88d, 0.8d, false, true);
 
-            // high, glassy, slow: bells over a thin pad, minor and never sad - Dorian's raised sixth
-            case COLD -> new MusicStyle(MusicMode.DORIAN, Instrument.BELL, Instrument.GLASS, 0.3d, 2, 0.85d, 0.5d, false, false);
+            case COLD -> new MusicStyle(
+                    MusicMode.DORIAN, Groove.DRIFT, Instrument.BELL, Instrument.GLASS, 0.3d, 66d, 0.55d, false, false);
 
-            // both at once, and brighter than either: the piano and the bells in Lydian
-            case STEAM -> new MusicStyle(MusicMode.LYDIAN, Instrument.EPIANO, Instrument.BELL, 0.6d, 1, 0.95d, 0.6d, false, true);
+            case STEAM -> new MusicStyle(
+                    MusicMode.LYDIAN, Groove.VENT, Instrument.EPIANO, Instrument.BELL, 0.45d, 84d, 0.6d, false, true);
 
-            // the raised fourth that makes Lydian sound like it is floating; glass harmonica over it
-            case ARCANE -> new MusicStyle(MusicMode.LYDIAN, Instrument.GLASS, Instrument.BELL, 0.4d, 2, 0.8d, 0.5d, true, true);
+            case ARCANE -> new MusicStyle(
+                    MusicMode.LYDIAN, Groove.SHIMMER, Instrument.GLASS, Instrument.BELL, 0.3d, 64d, 0.5d, true, true);
 
-            // plucked strings in a steady pulse, low and Dorian - the workshop keeping time
-            case WROUGHT -> new MusicStyle(MusicMode.DORIAN, Instrument.PLUCK, Instrument.MALLET, 0.5d, 1, 1.1d, 0.7d, false, false);
+            case WROUGHT -> new MusicStyle(
+                    MusicMode.DORIAN, Groove.FORGE, Instrument.PLUCK, Instrument.MALLET, 0.4d, 104d, 0.8d, false, false);
 
-            // worked matter run through with the arcane: strings under glass, in Mixolydian
-            case QUICKENED -> new MusicStyle(MusicMode.MIXOLYDIAN, Instrument.GLASS, Instrument.PLUCK, 0.5d, 1, 1.05d, 0.6d, false, true);
+            case QUICKENED -> new MusicStyle(
+                    MusicMode.MIXOLYDIAN, Groove.CLOCKWORK, Instrument.GLASS, Instrument.PLUCK, 0.4d, 96d, 0.6d, false, true);
 
-            // growing things: a flute over marimba, major and open
-            case VERDANT -> new MusicStyle(MusicMode.IONIAN, Instrument.FLUTE, Instrument.MALLET, 0.6d, 1, 1.0d, 0.6d, false, false);
+            case VERDANT -> new MusicStyle(
+                    MusicMode.IONIAN, Groove.LILT, Instrument.FLUTE, Instrument.MALLET, 0.5d, 84d, 0.65d, false, false);
 
-            // emptied places: a drone, a low bell, a great deal of room between the notes
-            case HOLLOW -> new MusicStyle(MusicMode.AEOLIAN, Instrument.BELL, Instrument.GLASS, 0.25d, 1, 0.75d, 0.3d, true, false);
+            case HOLLOW -> new MusicStyle(
+                    MusicMode.AEOLIAN, Groove.TOLL, Instrument.BELL, Instrument.GLASS, 0.25d, 54d, 0.35d, true, false);
 
-            // growth that has taken somewhere emptied: marimba over the drone, Aeolian
-            case OVERGROWN -> new MusicStyle(MusicMode.AEOLIAN, Instrument.MALLET, Instrument.FLUTE, 0.4d, 1, 0.9d, 0.5d, true, false);
+            case OVERGROWN -> new MusicStyle(
+                    MusicMode.AEOLIAN, Groove.DAMP, Instrument.MALLET, Instrument.FLUTE, 0.35d, 66d, 0.5d, true, false);
         };
     }
 }
