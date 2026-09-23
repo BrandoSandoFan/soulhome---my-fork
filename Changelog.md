@@ -1798,6 +1798,23 @@ sky was one pale colour.
   still cosmetic and still off at zero intensity.
 - Ported to `1.21.1`.
 
+The server config is now in the instance folder too
+
+`soulhome-server.toml` is a Forge server config, and Forge keeps those per world - in
+`saves/<world>/serverconfig/` (or `world/serverconfig/` on a dedicated server), and only once that
+world has been loaded. Anyone looking in the instance's `config/` folder, where every other mod's
+file sits, found nothing and reasonably concluded it was never being generated.
+
+- The mod now also writes `defaultconfigs/soulhome-server.toml` in the instance folder at startup,
+  with every setting and its explanation. Forge copies it into every world created afterwards, so
+  it is the place to set defaults for a pack or for all your own worlds.
+- It is kept up to date: new settings are added to it on each launch, and nothing you have changed
+  in it is overwritten.
+- A world that already exists keeps its own file in its `serverconfig/` folder, and that is still
+  the one to edit for that world. The log says where it is each time a world loads.
+- Neither a buff nor a nerf: no setting or default changed.
+- Not ported to `1.21.1`, where NeoForge already keeps this file in the instance's `config/` folder.
+
 The soul's music matches its rooms, and comes down out of the rafters
 
 The first listen to the soul's own music found a workshop as chill as an ossuary, a high note held
