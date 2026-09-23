@@ -11,12 +11,15 @@ import leaf.soulhome.structures.core.AscensionSettings;
 import leaf.soulhome.structures.core.AttunementSettings;
 import leaf.soulhome.structures.core.BuffSettings;
 import leaf.soulhome.structures.core.EssenceSettings;
+import leaf.soulhome.structures.core.GazeSettings;
 import leaf.soulhome.structures.core.MeditationSettings;
 import leaf.soulhome.structures.core.ScanDebouncer;
 import leaf.soulhome.structures.core.ScanSettings;
 import leaf.soulhome.structures.core.ScoringSettings;
 import leaf.soulhome.structures.core.SoulBounds;
+import leaf.soulhome.structures.core.SuppressionSettings;
 import leaf.soulhome.structures.core.TerrainGrowthSettings;
+import leaf.soulhome.structures.core.VesselSettings;
 import leaf.soulhome.utils.LogHelper;
 import org.apache.commons.lang3.tuple.Pair;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -230,6 +233,24 @@ public final class SoulHomeConfig
         return snapshot.activeAbilities();
     }
 
+    /** The body a player leaves behind, and what a hit on it costs them (#182, #185, #186). See {@link VesselSettings}. */
+    public static VesselSettings vesselSettings()
+    {
+        return snapshot.vessel();
+    }
+
+    /** Soulgaze's reach, length, recharge and obviousness (#187, #189). See {@link GazeSettings}. */
+    public static GazeSettings gazeSettings()
+    {
+        return snapshot.gaze();
+    }
+
+    /** How another player's ascension is perceived (#188). See {@link SuppressionSettings}. */
+    public static SuppressionSettings suppressionSettings()
+    {
+        return snapshot.suppression();
+    }
+
     /**
      * Whether one particular ability may be used. A server that is happy with Aegis may not be
      * happy with Soul Step near its spawn protection, so the switch is per ability rather than only
@@ -330,12 +351,15 @@ public final class SoulHomeConfig
             TerrainGrowthSettings terrainGrowth,
             ActiveAbilitySettings activeAbilities,
             Set<String> disabledAbilities,
-            MeditationSettings meditation)
+            MeditationSettings meditation,
+            VesselSettings vessel,
+            GazeSettings gaze,
+            SuppressionSettings suppression)
     {
         private static final Snapshot DEFAULTS = new Snapshot(
                 true,
                 true,
-                4,
+                SoulBounds.DEFAULT_GUEST_RANK_REQUIRED,
                 ScanSettings.DEFAULTS,
                 ScoringSettings.DEFAULTS,
                 BuffSettings.DEFAULTS,
@@ -358,7 +382,10 @@ public final class SoulHomeConfig
                 TerrainGrowthSettings.DEFAULTS,
                 ActiveAbilitySettings.DEFAULTS,
                 Set.of(),
-                MeditationSettings.DEFAULTS);
+                MeditationSettings.DEFAULTS,
+                VesselSettings.DEFAULTS,
+                GazeSettings.DEFAULTS,
+                SuppressionSettings.DEFAULTS);
 
         private static Snapshot read()
         {
@@ -444,7 +471,36 @@ public final class SoulHomeConfig
                         new MeditationSettings(
                                 SERVER.cushionChannelTicks.get(),
                                 SERVER.keyChannelTicks.get(),
-                                SERVER.cushionDiagonalAdjacency.get()));
+                                SERVER.cushionDiagonalAdjacency.get()),
+                        new VesselSettings(
+                                SERVER.damageTransfer.get(),
+                                SERVER.keyFragility.get().floatValue(),
+                                SERVER.cushionFragility.get().floatValue(),
+                                SERVER.gazeFragility.get().floatValue(),
+                                SERVER.dropScatter.get()),
+                        new GazeSettings(
+                                SERVER.gazeEnabled.get(),
+                                SERVER.gazeNotifyOwner.get(),
+                                SERVER.gazeBaseRange.get(),
+                                SERVER.gazeRangePerMagnitude.get(),
+                                SERVER.gazeBaseDurationTicks.get(),
+                                SERVER.gazeDurationPerMagnitude.get(),
+                                SERVER.gazeBaseRechargeTicks.get(),
+                                SERVER.gazeRechargeSavedPerMagnitude.get(),
+                                SERVER.gazeOpenSoulDurationBonus.get(),
+                                SERVER.gazeObviousnessFloor.get(),
+                                SERVER.gazeObviousnessFalloff.get(),
+                                SERVER.gazeNoticeCooldownTicks.get()),
+                        new SuppressionSettings(
+                                SERVER.suppressionEnabled.get(),
+                                SERVER.suppressionDistortion.get(),
+                                SERVER.suppressionAudio.get(),
+                                SERVER.suppressionBasePerceptionRange.get(),
+                                SERVER.suppressionPerceptionRangePerRank.get(),
+                                SERVER.suppressionBaseRadius.get(),
+                                SERVER.suppressionRadiusPerRank.get(),
+                                SERVER.suppressionStrengthPerRank.get(),
+                                SERVER.suppressionSharpDisplacementShare.get()));
             }
             catch (RuntimeException e)
             {
@@ -562,6 +618,7 @@ public final class SoulHomeConfig
                 "soulhome:updraft=6.0",
                 "soulhome:last_stand=9.0",
                 "soulhome:calming_smoke=3.0",
+                "soulhome:soulgaze=3.0",
                 "soulhome:clear_sight=3.0");
 
         public final ModConfigSpec.BooleanValue enabled;
@@ -649,6 +706,35 @@ public final class SoulHomeConfig
         public final ModConfigSpec.IntValue keyChannelTicks;
         public final ModConfigSpec.BooleanValue cushionDiagonalAdjacency;
 
+        public final ModConfigSpec.BooleanValue damageTransfer;
+        public final ModConfigSpec.DoubleValue keyFragility;
+        public final ModConfigSpec.DoubleValue cushionFragility;
+        public final ModConfigSpec.DoubleValue gazeFragility;
+        public final ModConfigSpec.DoubleValue dropScatter;
+
+        public final ModConfigSpec.BooleanValue gazeEnabled;
+        public final ModConfigSpec.BooleanValue gazeNotifyOwner;
+        public final ModConfigSpec.DoubleValue gazeBaseRange;
+        public final ModConfigSpec.DoubleValue gazeRangePerMagnitude;
+        public final ModConfigSpec.IntValue gazeBaseDurationTicks;
+        public final ModConfigSpec.IntValue gazeDurationPerMagnitude;
+        public final ModConfigSpec.IntValue gazeBaseRechargeTicks;
+        public final ModConfigSpec.IntValue gazeRechargeSavedPerMagnitude;
+        public final ModConfigSpec.DoubleValue gazeOpenSoulDurationBonus;
+        public final ModConfigSpec.DoubleValue gazeObviousnessFloor;
+        public final ModConfigSpec.DoubleValue gazeObviousnessFalloff;
+        public final ModConfigSpec.IntValue gazeNoticeCooldownTicks;
+
+        public final ModConfigSpec.BooleanValue suppressionEnabled;
+        public final ModConfigSpec.BooleanValue suppressionDistortion;
+        public final ModConfigSpec.BooleanValue suppressionAudio;
+        public final ModConfigSpec.DoubleValue suppressionBasePerceptionRange;
+        public final ModConfigSpec.DoubleValue suppressionPerceptionRangePerRank;
+        public final ModConfigSpec.DoubleValue suppressionBaseRadius;
+        public final ModConfigSpec.DoubleValue suppressionRadiusPerRank;
+        public final ModConfigSpec.DoubleValue suppressionStrengthPerRank;
+        public final ModConfigSpec.DoubleValue suppressionSharpDisplacementShare;
+
         private Server(ModConfigSpec.Builder builder)
         {
             builder.comment("Getting into and out of a soul dimension.").push("dimension");
@@ -674,7 +760,7 @@ public final class SoulHomeConfig
                             "Validated against ascent.max_rank at startup: set this above it and guest passage",
                             "can never be reached, which is a warning rather than a rejected config, since a pack",
                             "may want exactly that - guest passage switched off without a dedicated toggle.")
-                    .defineInRange("guest_rank_required", 4, 0, 20);
+                    .defineInRange("guest_rank_required", SoulBounds.DEFAULT_GUEST_RANK_REQUIRED, 0, 20);
 
             builder.pop();
 
@@ -1219,7 +1305,7 @@ public final class SoulHomeConfig
                             "The shipped ids are: soulhome:surveyors_eye, soulhome:aegis, soulhome:soul_step,",
                             "soulhome:rally, soulhome:call_of_the_herd, soulhome:thunderclap, soulhome:barrage,",
                             "soulhome:rupture, soulhome:cleansing_font, soulhome:updraft,",
-                            "soulhome:last_stand, soulhome:calming_smoke")
+                            "soulhome:last_stand, soulhome:calming_smoke, soulhome:soulgaze")
                     .defineList("disabled", List.of(), entry -> entry instanceof String);
 
             builder.pop();
@@ -1246,6 +1332,162 @@ public final class SoulHomeConfig
                             "Whether a cushion diagonally adjacent to the player, not only the four cardinal",
                             "neighbours, still counts as being in reach to meditate.")
                     .define("cushion_diagonal_adjacency", MeditationSettings.DEFAULT_CUSHION_DIAGONAL_ADJACENCY);
+
+            builder.pop();
+
+            builder.comment(
+                            "The Soul Vessel (#182): the body a player leaves sitting where they were whenever they",
+                            "enter a soul - by cushion, by key, or by Soulgaze. The body itself is not switchable;",
+                            "what a hit on it costs its owner is.")
+                    .push("vessel");
+
+            this.damageTransfer = builder
+                    .comment(
+                            "Whether hitting a Soul Vessel hurts the player inside it (#185). On by default, because it",
+                            "is the point of the feature: entering your soul leaves a body that can be killed, and your",
+                            "things land on it. Off returns a soul to being a safe room - a vessel is still left behind",
+                            "and still keeps its chunk loaded, it simply forwards nothing.")
+                    .define("damage_transfer", VesselSettings.DEFAULT_DAMAGE_TRANSFER);
+
+            this.keyFragility = builder
+                    .comment("How much of a hit on a Soul Key user's body reaches them. 1 is all of it.")
+                    .defineInRange("key_fragility", (double) VesselSettings.DEFAULT_KEY_FRAGILITY, 0.01d, 100d);
+
+            this.cushionFragility = builder
+                    .comment("How much of a hit on a meditator's body reaches them - the cushion's reward. 1 is all of it.")
+                    .defineInRange("cushion_fragility", (double) VesselSettings.DEFAULT_CUSHION_FRAGILITY, 0.01d, 100d);
+
+            this.gazeFragility = builder
+                    .comment(
+                            "How much of a hit on a gazer's body reaches them (#187). Its own number, since Soulgaze needs",
+                            "neither a cushion nor a key and should not inherit either by accident.")
+                    .defineInRange("gaze_fragility", (double) VesselSettings.DEFAULT_GAZE_FRAGILITY, 0.01d, 100d);
+
+            this.dropScatter = builder
+                    .comment(
+                            "How hard a dead player's things are scattered from their body when they spill (#186), in",
+                            "blocks per tick. 0 drops them in a neat pile.")
+                    .defineInRange("drop_scatter", VesselSettings.DEFAULT_DROP_SCATTER, 0d, 2d);
+
+            builder.pop();
+
+            builder.comment(
+                            "The observatory's own active (#187): looking into another player's soul. A private",
+                            "dimension becoming readable by strangers is exactly the thing a server will want a",
+                            "switch for, so the switches are here before anyone asks.")
+                    .push("observatory");
+            builder.push("gaze");
+
+            this.gazeEnabled = builder
+                    .comment(
+                            "Whether Soulgaze can be cast at all. Off leaves the observatory classifying and granting",
+                            "Clear Sight exactly as before; the ability refuses with a message.")
+                    .define("enabled", GazeSettings.DEFAULT_ENABLED);
+
+            this.gazeNotifyOwner = builder
+                    .comment(
+                            "Whether the player being gazed at is told (#189): a prickle for everyone, and the gazer's",
+                            "name and direction for anyone who owns an observatory. Off makes a gaze silent, which the",
+                            "mod's own rules argue against - the switch exists for a server that disagrees.")
+                    .define("notify_owner", GazeSettings.DEFAULT_NOTIFY_OWNER);
+
+            this.gazeBaseRange = builder
+                    .comment("How far, in blocks, Soulgaze reaches before the observatory's magnitude adds to it.")
+                    .defineInRange("base_range", GazeSettings.DEFAULT_BASE_RANGE, 1d, 512d);
+
+            this.gazeRangePerMagnitude = builder
+                    .comment("Blocks of reach added per point of Soulgaze magnitude.")
+                    .defineInRange("range_per_magnitude", GazeSettings.DEFAULT_RANGE_PER_MAGNITUDE, 0d, 256d);
+
+            this.gazeBaseDurationTicks = builder
+                    .comment("How long a gaze lasts, in ticks, before magnitude adds to it.")
+                    .defineInRange("base_duration_ticks", GazeSettings.DEFAULT_BASE_DURATION_TICKS, 1, 72_000);
+
+            this.gazeDurationPerMagnitude = builder
+                    .comment("Ticks of gaze added per point of Soulgaze magnitude.")
+                    .defineInRange("duration_per_magnitude", GazeSettings.DEFAULT_DURATION_PER_MAGNITUDE, 0, 72_000);
+
+            this.gazeBaseRechargeTicks = builder
+                    .comment("Ticks for Soulgaze's one charge to recharge, before magnitude shortens it.")
+                    .defineInRange("base_recharge_ticks", GazeSettings.DEFAULT_BASE_RECHARGE_TICKS, 1, 720_000);
+
+            this.gazeRechargeSavedPerMagnitude = builder
+                    .comment("Ticks of recharge saved per point of Soulgaze magnitude.")
+                    .defineInRange(
+                            "recharge_saved_per_magnitude", GazeSettings.DEFAULT_RECHARGE_SAVED_PER_MAGNITUDE, 0, 72_000);
+
+            this.gazeOpenSoulDurationBonus = builder
+                    .comment(
+                            "How much longer a gaze into an open soul - one whose owner is inside it - lasts. Kept small",
+                            "on purpose: that both bodies are left out in the world is most of why gazing at a meditator",
+                            "is the better play.")
+                    .defineInRange("open_soul_duration_bonus", GazeSettings.DEFAULT_OPEN_SOUL_DURATION_BONUS, 1d, 10d);
+
+            this.gazeObviousnessFloor = builder
+                    .comment(
+                            "The quietest a gaze can ever be to its target, from 0 to 1 (#189). Must be above 0: a better",
+                            "observatory makes a gaze fainter, never silent.")
+                    .defineInRange("obviousness_floor", GazeSettings.DEFAULT_OBVIOUSNESS_FLOOR, 0.01d, 1d);
+
+            this.gazeObviousnessFalloff = builder
+                    .comment("How quickly a better observatory makes its gaze fainter, toward the floor above.")
+                    .defineInRange("obviousness_falloff", GazeSettings.DEFAULT_OBVIOUSNESS_FALLOFF, 0d, 100d);
+
+            this.gazeNoticeCooldownTicks = builder
+                    .comment("The shortest gap, in ticks, between two notices to the same player, so a watcher cannot strobe them.")
+                    .defineInRange("notice_cooldown_ticks", GazeSettings.DEFAULT_NOTICE_COOLDOWN_TICKS, 0, 72_000);
+
+            builder.pop();
+            builder.pop();
+
+            builder.comment(
+                            "Suppression (#188): what a player with at least one room perceives around another who has",
+                            "ascended. Their rank sets how large and strong the field is; yours sets how clearly you can",
+                            "read it. Rendering is line-of-sight only.")
+                    .push("suppression");
+
+            this.suppressionEnabled = builder
+                    .comment("Whether suppression is perceived at all. Off, the game looks exactly as it did before.")
+                    .define("enabled", SuppressionSettings.DEFAULT_ENABLED);
+
+            this.suppressionDistortion = builder
+                    .comment(
+                            "Whether the field warps the screen around a suppressed player. Screen warping makes some",
+                            "people motion sick; with it off, the ring aura and the drone still carry both what their",
+                            "rank is and how well you can read it. Each player can also turn it off for themselves.")
+                    .define("distortion", SuppressionSettings.DEFAULT_DISTORTION);
+
+            this.suppressionAudio = builder
+                    .comment("Whether a suppressed player carries a low drone - the accessible channel, and the fallback without distortion.")
+                    .define("audio", SuppressionSettings.DEFAULT_AUDIO);
+
+            this.suppressionBasePerceptionRange = builder
+                    .comment("How far, in blocks, suppression is perceived before the watched player's rank adds to it.")
+                    .defineInRange("base_perception_range", SuppressionSettings.DEFAULT_BASE_PERCEPTION_RANGE, 1d, 256d);
+
+            this.suppressionPerceptionRangePerRank = builder
+                    .comment("Blocks of perception range added per rank of the watched player.")
+                    .defineInRange(
+                            "perception_range_per_rank", SuppressionSettings.DEFAULT_PERCEPTION_RANGE_PER_RANK, 0d, 64d);
+
+            this.suppressionBaseRadius = builder
+                    .comment("The field's radius around a suppressed player, in blocks, before their rank adds to it.")
+                    .defineInRange("base_radius", SuppressionSettings.DEFAULT_BASE_RADIUS, 0.05d, 16d);
+
+            this.suppressionRadiusPerRank = builder
+                    .comment("Blocks of field radius added per rank. Must be above 0, or two ranks would look the same.")
+                    .defineInRange("radius_per_rank", SuppressionSettings.DEFAULT_RADIUS_PER_RANK, 0.01d, 4d);
+
+            this.suppressionStrengthPerRank = builder
+                    .comment("How much harder the field pulls on the image per rank, capped at 1.")
+                    .defineInRange("strength_per_rank", SuppressionSettings.DEFAULT_STRENGTH_PER_RANK, 0.001d, 1d);
+
+            this.suppressionSharpDisplacementShare = builder
+                    .comment(
+                            "How much of the warp is left once an observer can read the field fully, from 0 to 1. Below 1",
+                            "so a legible halo is one you can aim through.")
+                    .defineInRange(
+                            "sharp_displacement_share", SuppressionSettings.DEFAULT_SHARP_DISPLACEMENT_SHARE, 0d, 1d);
 
             builder.pop();
 

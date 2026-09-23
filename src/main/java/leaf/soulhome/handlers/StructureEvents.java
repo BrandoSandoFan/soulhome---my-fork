@@ -5,6 +5,7 @@
 package leaf.soulhome.handlers;
 
 import leaf.soulhome.SoulHome;
+import leaf.soulhome.structures.GazeService;
 import leaf.soulhome.structures.SoulAmbienceService;
 import leaf.soulhome.structures.StructureScanService;
 import leaf.soulhome.structures.TerrainGrowthService;
@@ -81,6 +82,22 @@ public class StructureEvents
         }
 
         final MinecraftServer server = player.getServer();
+
+        // a gazer arriving in someone else's soul, or leaving it (#187), is not its owner coming or
+        // going: no rescan, no terrain growth, nothing marked dirty. A gaze is read-only, and a
+        // stranger looking at a soul must not be what decides what its owner's rooms are worth.
+        // The ambience is the one thing they are owed - it belongs to the place, not the looker
+        if (GazeService.isGazeTravel(player))
+        {
+            final ServerLevel to = server == null ? null : server.getLevel(event.getTo());
+
+            if (to != null)
+            {
+                SoulAmbienceService.sendTo(player, to);
+            }
+
+            return;
+        }
 
         if (server != null)
         {

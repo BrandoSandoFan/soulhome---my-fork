@@ -5,6 +5,8 @@
 package leaf.soulhome.network;
 
 import leaf.soulhome.client.ClientAmbience;
+import leaf.soulhome.client.ClientSuppression;
+import leaf.soulhome.client.GazeNoticeOverlay;
 import leaf.soulhome.structures.core.SoulFeedback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -19,6 +21,18 @@ public class ClientPacketHandler
     public static void ambienceHold(SoulFeedback kind, int ticks)
     {
         ClientAmbience.hold(kind, ticks);
+    }
+
+    /** Someone is looking into this player's soul (#189) - see {@link GazeNoticeMessage}. */
+    public static void gazeNotice(double obviousness, int lingerTicks, boolean prickle)
+    {
+        GazeNoticeOverlay.onNotice(obviousness, lingerTicks, prickle);
+    }
+
+    /** How this player perceives another's ascension, as suppression (#188) - see {@link SyncSuppressionMessage}. */
+    public static void syncSuppression(SyncSuppressionMessage packet)
+    {
+        ClientSuppression.set(packet);
     }
 
     public static void syncDimensionList(SyncDimensionListMessage packet)

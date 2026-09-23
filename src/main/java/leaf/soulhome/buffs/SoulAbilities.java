@@ -8,6 +8,7 @@ import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncSoulAbilitiesMessage;
+import leaf.soulhome.structures.GazeService;
 import leaf.soulhome.structures.core.AbilityCharges;
 import leaf.soulhome.structures.core.ActiveAbilitySettings;
 import leaf.soulhome.utils.LogHelper;
@@ -149,6 +150,15 @@ public final class SoulAbilities
     {
         if (!accept(player))
         {
+            return;
+        }
+
+        // no ability fires from inside a gaze (#187): a spectator calling lightning down in someone
+        // else's soul is exactly the side effect a read-only visit must not have. A press is read
+        // as asking to come back instead, which is also how a gaze is ended early
+        if (GazeService.isGazing(player))
+        {
+            GazeService.end(player, GazeService.EndReason.RECALLED);
             return;
         }
 

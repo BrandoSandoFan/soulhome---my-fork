@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Want to let someone else in? A Bound Soulkey is set to a particular soul rather than your own, so you can hand it to a friend.$(p)Just like the standard key, hold [$(k:use)] for the full duration and everything within the circle travels to the soul the key is bound to."
+      "text": "Want to let someone else in? A Bound Soulkey is set to a particular soul rather than your own, so you can hand it to a friend.$(p)Just like the standard key, hold [$(k:use)] for the full duration and everything within the circle travels to the soul the key is bound to - but walking into a soul that is not your own asks something of the visitor. See $(l:soulhome:basics/guests)Guests$(/l)."
     },
     {
       "type": "patchouli:crafting",

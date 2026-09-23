@@ -19,6 +19,7 @@ import leaf.soulhome.buffs.effects.FireResistanceEffect;
 import leaf.soulhome.buffs.effects.FortuneEffect;
 import leaf.soulhome.buffs.effects.KnockbackResistanceEffect;
 import leaf.soulhome.buffs.effects.LastStandEffect;
+import leaf.soulhome.buffs.effects.SoulgazeEffect;
 import leaf.soulhome.buffs.effects.ManaEffect;
 import leaf.soulhome.buffs.effects.MiningSpeedEffect;
 import leaf.soulhome.buffs.effects.NourishedEffect;
@@ -114,6 +115,7 @@ public final class SoulBuffEffects
         register(new CalmingSmokeEffect());
         register(new ClearSightEffect());
         register(new LastStandEffect());
+        register(new SoulgazeEffect());
 
         LogHelper.info("Registered " + BY_TYPE.size() + " soul buff effect(s): " + BY_TYPE.keySet());
 

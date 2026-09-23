@@ -5,34 +5,51 @@
 package leaf.soulhome.structures;
 
 import leaf.soulhome.SoulHome;
+import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.entity.SoulSevered;
 import leaf.soulhome.entity.SoulVesselEntity;
-import leaf.soulhome.structures.core.VesselSettings;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.LogHelper;
 import leaf.soulhome.utils.PlayerHelper;
 import leaf.soulhome.utils.ResourceLocationHelper;
 import leaf.soulhome.utils.TextHelper;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.world.chunk.TicketController;
 import net.neoforged.neoforge.common.world.chunk.TicketHelper;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The Soul Vessel's whole lifecycle (#182): spawning one where the Soul Key or a Meditation
  * Cushion finds a player, and everything that can end one afterwards. {@code SoulKeyItem},
- * {@code BoundSoulkey} and {@code MeditationService} are the only callers of {@link #onKeyUse} -
- * Soulgaze (#187) is expected to call its own way in through here too, rather than touching
- * {@link SoulVesselEntity} directly. One code path for every entry, with only the fragility differing.
+ * {@code BoundSoulkey} and {@code MeditationService} are the only callers of {@link #onKeyUse};
+ * Soulgaze (#187) comes in through {@link #spawnForGaze} and {@link #endGaze}. One code path for
+ * every body, with only the fragility - and which trip a disturbance ends - differing.
+ *
+ * <p>Also the body's two consequences: {@link #forwardHit} (#185), and the spill when a forwarded
+ * hit kills its owner, {@link #relocateDrops} and {@link #relocateExperience} (#186).
  *
  * <p>{@link #ACTIVE} exists purely as a fast owner-to-vessel lookup; {@link SoulVesselEntity}
  * itself is what actually persists (it is a normal saved entity), so a server restart rebuilds this
@@ -81,7 +98,206 @@ public final class VesselLifecycleService
             return;
         }
 
-        SoulVesselEntity.spawn(level, player, fragility);
+        SoulVesselEntity.spawn(level, player, fragility, false);
+    }
+
+    /**
+     * The body a gazer leaves standing while they look into someone else's soul (#187) - the same
+     * entity, the same ticket, the same damage transfer, and only its own fragility. Returns false
+     * if a body could not be left, which refuses the gaze rather than letting it happen bodiless:
+     * rule 2 of #181, there is no way into a soul that does not leave a vessel.
+     */
+    public static boolean spawnForGaze(ServerPlayer player)
+    {
+        if (ACTIVE.containsKey(player.getUUID()) || !(player.level() instanceof ServerLevel level))
+        {
+            return false;
+        }
+
+        SoulVesselEntity.spawn(level, player, SoulHomeConfig.vesselSettings().gazeFragility(), true);
+        return true;
+    }
+
+    /** A gaze ended on its own terms - the timer, the gazer's choice, the target's soul closing. No ejection. */
+    public static void endGaze(ServerPlayer player)
+    {
+        final SoulVesselEntity vessel = ACTIVE.get(player.getUUID());
+
+        if (vessel != null && vessel.isGaze())
+        {
+            vessel.markReturningPeacefully();
+            vessel.discard();
+        }
+    }
+
+    /** The live body a player left, if any - a meditator's, a key user's, or a gazer's alike. */
+    public static Optional<SoulVesselEntity> vesselOf(UUID ownerId)
+    {
+        return Optional.ofNullable(ACTIVE.get(ownerId));
+    }
+
+    /**
+     * A hit on {@code vessel}, dealt to its owner as {@code soulhome:soul_severed} (#185). Scaled by
+     * the vessel's fragility and gated by {@code vessel.damage_transfer}; with the switch off this
+     * does nothing and a vessel is a decoration again.
+     *
+     * <p>Nothing is forwarded to an owner in creative or spectator, read through
+     * {@link GazeService#effectiveGameType} so a gazer is judged by the mode they will return to
+     * rather than the spectator mode the gaze lent them. And a gazer is the one owner who needs
+     * help being hurt at all, since spectator mode is invulnerable - see
+     * {@link GazeService#hurtWhileGazing}.
+     */
+    public static void forwardHit(SoulVesselEntity vessel, DamageSource source, float amount)
+    {
+        final float forwarded = SoulHomeConfig.vesselSettings().forwardedDamage(amount, vessel.getFragility());
+
+        if (forwarded <= 0f || !(vessel.level() instanceof ServerLevel level))
+        {
+            return;
+        }
+
+        final UUID ownerId = vessel.getOwnerId().orElse(null);
+        final ServerPlayer owner = ownerId == null ? null : level.getServer().getPlayerList().getPlayer(ownerId);
+
+        // a body whose owner is not away in some soul is not currently anyone's - an owner who got
+        // out by a door this service did not see should not be hurt by a stale body left behind
+        if (owner == null || !owner.isAlive() || !DimensionHelper.isInSoulDimension(owner))
+        {
+            return;
+        }
+
+        final GameType mode = GazeService.effectiveGameType(owner);
+
+        if (mode == GameType.CREATIVE || mode == GameType.SPECTATOR)
+        {
+            return;
+        }
+
+        final DamageSource severed = SoulSevered.from(owner.serverLevel(), source);
+
+        if (GazeService.isGazing(owner))
+        {
+            GazeService.hurtWhileGazing(owner, severed, forwarded);
+        }
+        else
+        {
+            owner.hurt(severed, forwarded);
+        }
+    }
+
+    /**
+     * Moves a dead owner's drops out of the soul they died in and onto the floor where their body
+     * was (#186), each with a small outward push so it reads as a spill. Returns false - leaving
+     * the drops where vanilla put them - for a death with no body to spill at.
+     *
+     * <p>Spawned at the vessel's own feet, nudged up out of its block if that block is solid, so a
+     * spill is never spawned inside a wall.
+     */
+    public static boolean relocateDrops(ServerPlayer owner, Collection<ItemEntity> drops)
+    {
+        final SoulVesselEntity vessel = ACTIVE.get(owner.getUUID());
+
+        if (vessel == null || !(vessel.level() instanceof ServerLevel level) || !DimensionHelper.isInSoulDimension(owner))
+        {
+            return false;
+        }
+
+        final double scatter = SoulHomeConfig.vesselSettings().dropScatter();
+        final Vec3 at = spillPosition(level, vessel);
+
+        for (ItemEntity original : drops)
+        {
+            final ItemStack stack = original.getItem();
+
+            if (stack.isEmpty())
+            {
+                continue;
+            }
+
+            final ItemEntity spilled = new ItemEntity(level, at.x, at.y, at.z, stack.copy());
+            final double angle = level.random.nextDouble() * Math.PI * 2d;
+            final double push = scatter * (0.5d + level.random.nextDouble() * 0.5d);
+
+            spilled.setDeltaMovement(Math.cos(angle) * push, 0.2d, Math.sin(angle) * push);
+            spilled.setDefaultPickUpDelay();
+            level.addFreshEntity(spilled);
+        }
+
+        return true;
+    }
+
+    /** The experience half of {@link #relocateDrops}. Returns false if there is no body to drop it at. */
+    public static boolean relocateExperience(ServerPlayer owner, int amount)
+    {
+        final SoulVesselEntity vessel = ACTIVE.get(owner.getUUID());
+
+        if (vessel == null || !(vessel.level() instanceof ServerLevel level) || !DimensionHelper.isInSoulDimension(owner))
+        {
+            return false;
+        }
+
+        if (amount > 0)
+        {
+            ExperienceOrb.award(level, spillPosition(level, vessel), amount);
+        }
+
+        return true;
+    }
+
+    /**
+     * The body goes with its owner's death (#186): with particles rather than by blinking out, and
+     * only once the drops are already on the floor - its ticket is what keeps the chunk they landed
+     * in loaded until they have. Marked peaceful, since a dead owner is not someone to eject.
+     */
+    public static void removeAfterDeath(ServerPlayer owner)
+    {
+        final SoulVesselEntity vessel = ACTIVE.get(owner.getUUID());
+
+        if (vessel == null)
+        {
+            return;
+        }
+
+        if (vessel.level() instanceof ServerLevel level)
+        {
+            level.sendParticles(ParticleTypes.SOUL, vessel.getX(), vessel.getY() + 0.6d, vessel.getZ(),
+                    24, 0.3d, 0.4d, 0.3d, 0.02d);
+            level.playSound(null, vessel.blockPosition(), SoundEvents.SOUL_ESCAPE.value(), SoundSource.PLAYERS, 1.0f, 0.8f);
+        }
+
+        vessel.markReturningPeacefully();
+        vessel.discard();
+    }
+
+    /**
+     * Where the vessel's owner died, as far as the recovery compass and the death screen are
+     * concerned: at the body, which is where their things are, not at a coordinate in a soul
+     * dimension where they are not (#186).
+     */
+    public static Optional<GlobalPos> deathPositionOf(ServerPlayer owner)
+    {
+        final SoulVesselEntity vessel = ACTIVE.get(owner.getUUID());
+
+        if (vessel == null || !DimensionHelper.isInSoulDimension(owner))
+        {
+            return Optional.empty();
+        }
+
+        return Optional.of(GlobalPos.of(vessel.level().dimension(), vessel.blockPosition()));
+    }
+
+    private static Vec3 spillPosition(ServerLevel level, SoulVesselEntity vessel)
+    {
+        BlockPos pos = vessel.blockPosition();
+
+        // never inside a block: a body knocked against a wall, or sat in a slab-height nook, would
+        // otherwise spawn its owner's inventory inside the wall where nobody can reach it
+        for (int lift = 0; lift < 3 && !level.getBlockState(pos).getCollisionShape(level, pos).isEmpty(); lift++)
+        {
+            pos = pos.above();
+        }
+
+        return new Vec3(vessel.getX(), Math.max(vessel.getY(), pos.getY()) + 0.25d, vessel.getZ());
     }
 
     /** The owner's own return through the key or a cushion - no message, no ejection, the trip simply ends. */
@@ -180,6 +396,19 @@ public final class VesselLifecycleService
         final MinecraftServer server = level.getServer();
         final ServerPlayer owner = server.getPlayerList().getPlayer(ownerId);
 
+        // a gazer's body disturbed ends the gaze, the same instant a meditator's would end their
+        // trip (#187) - through the session's own exit, which restores their game mode as well as
+        // their position, rather than through FlipDimension, which knows nothing about either
+        if (vessel.isGaze())
+        {
+            if (owner != null)
+            {
+                GazeService.end(owner, GazeService.EndReason.DISTURBED);
+            }
+
+            return;
+        }
+
         // not currently exposed by this vessel disappearing: offline, or already back out under
         // their own steam a tick earlier than this event landed
         if (owner == null || !DimensionHelper.isInSoulDimension(owner))
@@ -217,15 +446,15 @@ public final class VesselLifecycleService
         }
     }
 
-    /** {@code VesselSettings.DEFAULTS} today - a config knob is #185's to add once fragility does anything. */
+    /** The Soul Key's fragility, from {@code vessel.key_fragility}. */
     public static float defaultKeyFragility()
     {
-        return VesselSettings.DEFAULTS.keyFragility();
+        return SoulHomeConfig.vesselSettings().keyFragility();
     }
 
-    /** The cushion's own, reduced fragility (#183) - see {@link #defaultKeyFragility}. */
+    /** The cushion's own, reduced fragility (#183), from {@code vessel.cushion_fragility}. */
     public static float defaultCushionFragility()
     {
-        return VesselSettings.DEFAULTS.cushionFragility();
+        return SoulHomeConfig.vesselSettings().cushionFragility();
     }
 }
