@@ -1615,6 +1615,7 @@ still leaving the world: nothing in a soul can hurt you, and nothing outside one
   because it is the point. The fragilities, and how hard a spill scatters, are in the same section.
 - A nerf, and a deliberate one: a body left in the open is a body a griefer or a zombie will find.
   Build your cushion somewhere you would want to be found asleep.
+- Ported to `1.21.1`.
 
 Dying in your soul spills your things where your body was
 
@@ -1632,6 +1633,7 @@ nothing, and cost the victim nothing they could not walk back to.
   soulbound enchantment still decide what drops; this only moves it.
 - A guest in someone else's soul spills at their own body, back where they used the key - never at
   their host's.
+- Ported to `1.21.1`.
 
 The Soul Key takes longer, because it is the long way in now
 
@@ -1640,6 +1642,7 @@ The Soul Key takes longer, because it is the long way in now
   it should feel like it. Still no cushion needed, and still never so long a player far from home
   cannot reach their own soul.
 - A server that set `meditation.key_channel_ticks` by hand keeps its own number.
+- Ported to `1.21.1`.
 
 Guests need rank VI, not IV
 
@@ -1647,6 +1650,7 @@ Guests need rank VI, not IV
   the ladder topped out at V; with nine ranks it was not even halfway up.
 - `dimension.guest_rank_required` defaults to 6 in a fresh config. An existing config file keeps the
   4 it was written with - change it by hand to follow the new default.
+- Ported to `1.21.1`.
 
 Soulgaze: the observatory looks into other souls, and it cuts both ways
 
@@ -1671,6 +1675,7 @@ a while. Their rooms are there to read, and through them, what they carry.
 - The observatory now counts as an ability room for attunement, since it grants one. An observatory
   you already had bound stays bound - nothing is taken away - it simply sits in your ability slots
   from now on, so a soul whose ability slots were already full may find one fewer free.
+- Ported to `1.21.1`.
 
 Being gazed at: you always know, and an observatory tells you who
 
@@ -1683,6 +1688,7 @@ Being gazed at: you always know, and an observatory tells you who
   the last watcher leaves.
 - Notices to one player are spaced out, so nobody can be strobed. `observatory.gaze.notify_owner`
   silences all of it, for a server that wants gazes secret.
+- Ported to `1.21.1`.
 
 Suppression: you can feel how far another soul has climbed
 
@@ -1700,6 +1706,7 @@ not tell a rank IX soul from one that had never climbed.
 - Screen warping makes some people sick. `suppression.distortion` in `soulhome-client.toml` turns it
   off for you, and the server has its own switch; the rings and the hum still carry everything.
 - Unascended players are surrounded by nothing at all.
+- Ported to `1.21.1`.
 
 New advancements, and the book catches up
 
@@ -1709,3 +1716,4 @@ New advancements, and the book catches up
   meditation, for the body you leave, for guests, and for suppression - that last one appears once
   you have felt it, so it does not spoil it. The observatory's page describes Soulgaze from the
   archetype data, including what it costs you.
+- Ported to `1.21.1`.
