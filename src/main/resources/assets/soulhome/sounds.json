@@ -278,5 +278,20 @@
         "attenuation_distance": 22
       }
     ]
+  },
+  "suppression.drone": {
+    "subtitle": "subtitles.soulhome.suppression.drone",
+    "sounds": [
+      {
+        "name": "soulhome:suppression/drone",
+        "stream": true
+      }
+    ]
+  },
+  "suppression.throb": {
+    "subtitle": "subtitles.soulhome.suppression.throb",
+    "sounds": [
+      "soulhome:suppression/throb"
+    ]
   }
 }

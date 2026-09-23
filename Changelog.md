@@ -1775,4 +1775,31 @@ with the ground, and the texture on it was an unshaded flat colour never meant t
   soul-purple tuft at its centre, in the same family of colour as the Soul Anchor.
 - A buff, not a nerf: nothing about placement, crafting or the channel changed - the cushion reads
   correctly now.
+
+Suppression has a sound of its own
+
+The hum around a player who has ascended was the ascension ritual's own beacon hum, and the count
+of their rings was the amethyst chime the Soul Lens already rings on every scan. So a suppressed
+player walking past sounded like a ritual in progress and a scan going off at once - and a chime
+rings for most of a second, which at four to a second turned a rank IX into a smear rather than
+nine of anything.
+
+- The field now presses rather than hums: low tones beating slowly against each other under a swell
+  of breath, made for this and heard nowhere else.
+- Each ring is a short, low beat, over before the next begins, so the count can actually be counted.
+- Both carry to the edge of where you can perceive the player. They used to cut out at sixteen
+  blocks whatever their rank, well inside the fifty-two a rank IX is felt from.
+- Both have subtitles.
+- Cosmetic: nothing about suppression itself, or what it tells you, changed.
+- Ported to `1.21.1`.
+
+Suppression's switches are on the options screen
+
+`suppression.distortion` - the one switch in the mod that exists because of motion sickness - was
+only in `soulhome-client.toml`. A player who found the warp uncomfortable had to be told the file
+existed.
+
+- Mods -> SoulHome -> Config now has a second column, "Other souls", with the screen warp and the
+  suppression sound. Each says what turning it off costs you, which is nothing you would need.
+- The screen is now called "How Souls Look to You", since it is no longer only about your own.
 - Ported to `1.21.1`.
