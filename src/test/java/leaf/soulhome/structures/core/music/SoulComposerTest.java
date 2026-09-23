@@ -31,7 +31,7 @@ class SoulComposerTest
     private static final int PIECES = 40;
 
     @Test
-    @DisplayName("every note of every voice's pieces is in that piece's mode")
+    @DisplayName("every pitched note of every voice's pieces is in that piece's mode")
     void everyNoteIsInTheMode()
     {
         for (SoulVoice voice : SoulVoice.values())
@@ -44,6 +44,12 @@ class SoulComposerTest
 
                 for (NoteEvent event : piece.events())
                 {
+                    if (!event.instrument().pitched())
+                    {
+                        // foley: a clank's pitch is a colour, and a crackle has none
+                        continue;
+                    }
+
                     assertTrue(piece.mode().contains(piece.tonic(), event.midi()),
                             voice + " piece " + index + " plays " + event.midi() + " outside " + piece.mode());
                 }
@@ -182,8 +188,8 @@ class SoulComposerTest
 
         double groundLength = 0d;
         double summitLength = 0d;
-        float groundLoudest = 0f;
-        float summitLoudest = 0f;
+        double groundVelocity = 0d;
+        double summitVelocity = 0d;
 
         for (int index = 0; index < PIECES; index++)
         {
@@ -195,12 +201,12 @@ class SoulComposerTest
 
             groundLength += low.length();
             summitLength += high.length();
-            groundLoudest = Math.max(groundLoudest, loudest(low.events()));
-            summitLoudest = Math.max(summitLoudest, loudest(high.events()));
+            groundVelocity += meanVelocity(low.events()) / PIECES;
+            summitVelocity += meanVelocity(high.events()) / PIECES;
         }
 
         assertTrue(summitLength > groundLength * 1.5d, "a rank V soul's pieces take their time");
-        assertTrue(summitLoudest <= groundLoudest + 1e-6f, "and not one note of them is struck harder");
+        assertEquals(groundVelocity, summitVelocity, 0.03d, "and they are not struck any harder");
     }
 
     @Test
@@ -215,7 +221,7 @@ class SoulComposerTest
         {
             final int tonic = SoulMusicBrief.of(rooms, 1, 5, "soulhome:soul_" + soul).tonic();
 
-            assertTrue(tonic >= 48 && tonic <= 55, "tonic " + tonic + " is outside the range the pad was voiced for");
+            assertTrue(tonic >= 45 && tonic <= 52, "tonic " + tonic + " is outside the range the pad was voiced for");
 
             if (tonic != previous)
             {
@@ -226,6 +232,199 @@ class SoulComposerTest
         }
 
         assertTrue(distinctKeys > 4, "sixteen souls with the same rooms landed in too few keys");
+    }
+
+    @Test
+    @DisplayName("nothing pitched goes above G5, and nothing from C5 up is held (#261)")
+    void nothingPiercingAndNothingHeldHigh()
+    {
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            for (double rank : new double[] {0d, 1d})
+            {
+                final SoulMusicBrief brief = new SoulMusicBrief(Map.of(voice, 1d), rank, 13L);
+
+                for (int index = 0; index < PIECES; index++)
+                {
+                    final SoulComposer.Piece piece = SoulComposer.compose(brief, brief.pieceSeed(index));
+
+                    for (NoteEvent event : piece.events())
+                    {
+                        if (!event.instrument().pitched())
+                        {
+                            continue;
+                        }
+
+                        assertTrue(event.midi() <= SoulComposer.CEILING,
+                                voice + " plays " + event.midi() + " on " + event.instrument());
+
+                        if (event.midi() >= SoulComposer.HIGH_NOTE)
+                        {
+                            assertTrue(event.duration() <= SoulComposer.HIGH_NOTE_BEATS * piece.beat() + 1e-9d,
+                                    voice + " holds " + event.midi() + " for " + event.duration() + "s on " + event.instrument());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("the tune sits where a voice would sing it, not up in the rafters")
+    void leadsSitInTheMiddle()
+    {
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            final SoulMusicBrief brief = new SoulMusicBrief(Map.of(voice, 1d), 0.5d, 21L);
+            final List<Integer> pitches = new java.util.ArrayList<>();
+
+            for (int index = 0; index < 10; index++)
+            {
+                for (NoteEvent event : SoulComposer.compose(brief, brief.pieceSeed(index)).events())
+                {
+                    if (event.instrument().pitched() && event.instrument() != Instrument.PAD && event.instrument() != Instrument.DRONE)
+                    {
+                        pitches.add(event.midi());
+                    }
+                }
+            }
+
+            pitches.sort(null);
+
+            final int median = pitches.get(pitches.size() / 2);
+
+            assertTrue(median >= 45 && median <= 70, voice + "'s tune has a median of MIDI " + median);
+        }
+    }
+
+    @Test
+    @DisplayName("a workshop is rhythmic: a hammer on one and three, the anvil on two and four, a driving bass")
+    void theForgeKeepsTime()
+    {
+        final SoulMusicBrief brief = new SoulMusicBrief(Map.of(SoulVoice.WROUGHT, 1d), 0.3d, 5L);
+        final SoulComposer.Piece piece = SoulComposer.compose(brief, brief.pieceSeed(0));
+        final double beat = piece.beat();
+
+        int hammers = 0;
+        int anvils = 0;
+        int bass = 0;
+
+        for (NoteEvent event : piece.events())
+        {
+            final double onBeat = event.start() / beat;
+            final double offGrid = Math.abs(onBeat - Math.round(onBeat * 2d) / 2d);
+
+            switch (event.instrument())
+            {
+                case THUMP ->
+                {
+                    hammers++;
+                    assertTrue(offGrid < 1e-6d, "a hammer off the grid at beat " + onBeat);
+                }
+                case CLANK ->
+                {
+                    anvils++;
+                    assertTrue(offGrid < 1e-6d, "an anvil off the grid at beat " + onBeat);
+                }
+                case PLUCK -> bass++;
+                default ->
+                {
+                }
+            }
+        }
+
+        final double bars = (piece.length() - SoulComposer.TAIL_SECONDS) / (4d * beat);
+
+        assertTrue(piece.bpm() >= 90d, "a workshop at " + piece.bpm() + " bpm is the chill #261 complained of");
+        assertTrue(hammers >= bars * 1.5d, hammers + " hammer strikes in " + bars + " bars");
+        assertTrue(anvils >= bars, anvils + " anvil strikes in " + bars + " bars");
+        assertTrue(bass >= bars * 6d, "the bass drives in eighths");
+    }
+
+    @Test
+    @DisplayName("fire is quick notes in the middle of the range over a calm base, crackling the whole way")
+    void theFireFlickers()
+    {
+        final SoulMusicBrief brief = new SoulMusicBrief(Map.of(SoulVoice.WARM, 1d), 0.3d, 5L);
+        final SoulComposer.Piece piece = SoulComposer.compose(brief, brief.pieceSeed(0));
+        final double body = piece.length() - SoulComposer.TAIL_SECONDS;
+
+        double crackling = 0d;
+        int quick = 0;
+        int lead = 0;
+
+        for (NoteEvent event : piece.events())
+        {
+            if (event.instrument() == Instrument.CRACKLE)
+            {
+                crackling = Math.max(crackling, event.duration());
+            }
+
+            if (event.instrument() == Instrument.EPIANO)
+            {
+                lead++;
+
+                if (event.duration() <= piece.beat())
+                {
+                    quick++;
+                }
+
+                // no lower than a fourth under the lead's own octave, no higher than the ceiling
+                assertTrue(event.midi() >= piece.tonic() + 7 && event.midi() <= SoulComposer.CEILING,
+                        "neither too high nor too low: " + event.midi() + " over a tonic of " + piece.tonic());
+            }
+        }
+
+        assertTrue(crackling >= body * 0.9d, "the fire crackles under the whole piece");
+        assertTrue(quick >= lead * 0.8d, quick + " of " + lead + " piano notes are quick");
+        assertTrue(piece.events().stream().anyMatch(e -> e.instrument() == Instrument.PAD && e.duration() > 4d * piece.beat()),
+                "over a calm base that holds");
+    }
+
+    @Test
+    @DisplayName("every room's voice brings its own foley, and the place itself brings none")
+    void everyRoomSoundsLikeItself()
+    {
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            final SoulMusicBrief brief = new SoulMusicBrief(Map.of(voice, 1d), 0.4d, 9L);
+            final SoulComposer.Piece piece = SoulComposer.compose(brief, brief.pieceSeed(0));
+            final boolean foley = piece.events().stream().anyMatch(event -> !event.instrument().pitched());
+
+            assertEquals(voice != SoulVoice.BASE, foley, voice.name());
+        }
+    }
+
+    @Test
+    @DisplayName("a hearth soul with a workshop in it hears the odd anvil under its fire")
+    void theRunnerUpBringsItsFoley()
+    {
+        final SoulMusicBrief brief = new SoulMusicBrief(Map.of(SoulVoice.WARM, 0.7d, SoulVoice.WROUGHT, 0.3d), 0.4d, 9L);
+        int anvils = 0;
+
+        for (int index = 0; index < 20; index++)
+        {
+            final SoulComposer.Piece piece = SoulComposer.compose(brief, brief.pieceSeed(index));
+
+            if (piece.voice() == SoulVoice.WARM)
+            {
+                anvils += (int) piece.events().stream().filter(e -> e.instrument() == Instrument.CLANK).count();
+            }
+        }
+
+        assertTrue(anvils > 0);
+    }
+
+    @Test
+    @DisplayName("the moods keep their tempi apart: a workshop drives, a hearth is quick, an ossuary crawls")
+    void tempiMatchTheMoods()
+    {
+        final double forge = MusicStyle.of(SoulVoice.WROUGHT).bpm();
+        final double fire = MusicStyle.of(SoulVoice.WARM).bpm();
+        final double cold = MusicStyle.of(SoulVoice.COLD).bpm();
+        final double hollow = MusicStyle.of(SoulVoice.HOLLOW).bpm();
+
+        assertTrue(forge > fire && fire > cold && cold > hollow);
     }
 
     @Test
@@ -245,16 +444,21 @@ class SoulComposerTest
         }
     }
 
-    private static float loudest(List<NoteEvent> events)
+    private static double meanVelocity(List<NoteEvent> events)
     {
-        float loudest = 0f;
+        double total = 0d;
+        int count = 0;
 
         for (NoteEvent event : events)
         {
-            loudest = Math.max(loudest, event.velocity());
+            if (event.instrument().pitched())
+            {
+                total += event.velocity();
+                count++;
+            }
         }
 
-        return loudest;
+        return count == 0 ? 0d : total / count;
     }
 
     private static SoulCharacter character(Object... traitsAndPulls)
