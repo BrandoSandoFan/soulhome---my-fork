@@ -176,7 +176,7 @@ public final class SoulHomeClientConfig
                     .define("distortion", true);
 
             this.suppressionAudio = builder
-                    .comment("Whether a suppressed player carries a low drone, with a chime per rank once you can read them.")
+                    .comment("Whether a suppressed player carries a low drone, with a beat per rank once you can read them.")
                     .define("audio", true);
 
             builder.pop();

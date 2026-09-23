@@ -360,7 +360,7 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
 
         // The Soul Anchor's loadout screen (#154)
-        add(Constants.StringKeys.AMBIENCE_SCREEN_TITLE, "How Your Soul Looks");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_TITLE, "How Souls Look to You");
         add(Constants.StringKeys.AMBIENCE_SCREEN_ENABLED, "Soul ambience");
         add(Constants.StringKeys.AMBIENCE_SCREEN_RANK, "Answer your rank");
         add(Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER, "Answer what you built");
@@ -369,7 +369,18 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.AMBIENCE_SCREEN_VOLUME, "Ambient volume: %s");
         add(Constants.StringKeys.AMBIENCE_SCREEN_OFF, "Off");
         add(Constants.StringKeys.AMBIENCE_SCREEN_COSMETIC,
-                "All of this is only how the place looks and sounds. Nothing here changes a room, a buff or a cost.");
+                "All of this is only how things look and sound to you. Nothing here changes a room, a buff or a cost.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SOUL, "Your soul");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SUPPRESSION, "Other souls");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION, "Screen warp");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION_TIP,
+                "Whether the air around a player who has ascended warps your screen. Turn it off if warping makes you uncomfortable: their rings still show how far they have climbed.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO, "Suppression sound");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP,
+                "Whether a player who has ascended carries a low drone, with a beat for each rank once you can read them.");
+
+        add(Constants.StringKeys.SUBTITLE_SUPPRESSION_DRONE, "Suppression presses");
+        add(Constants.StringKeys.SUBTITLE_SUPPRESSION_THROB, "Suppression beats");
 
         add(Constants.StringKeys.ANCHOR_SCREEN_TITLE, "What Your Soul Carries");
         add(Constants.StringKeys.ANCHOR_SCREEN_SLOTS, "Rooms: %1$s / %2$s      Abilities: %3$s / %4$s");
