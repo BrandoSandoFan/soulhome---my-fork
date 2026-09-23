@@ -6,11 +6,11 @@ package leaf.soulhome.client;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.config.SoulHomeClientConfig;
+import leaf.soulhome.registry.SoundsRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
@@ -32,22 +32,30 @@ import java.util.Set;
  * <ul>
  *   <li><b>Their rank is the drone.</b> A low hum on the suppressed player, louder for a stronger
  *       field and pitched lower for a higher rank.</li>
- *   <li><b>Your rank is the chimes.</b> Every few seconds the field chimes once per ring - but only
+ *   <li><b>Your rank is the count.</b> Every few seconds the field throbs once per ring - but only
  *       as loudly as you can read it, so to a player who cannot, it is a hum with nothing in it to
  *       count, and to one who can it is a number.</li>
  * </ul>
  *
- * Positional and line-of-sight only, like everything else about suppression: a drone that carried
- * through walls would be a tracker.
+ * Both are the mod's own sounds (see {@code tools/ambience/suppression.py}). They were the ascension
+ * ritual's beacon hum and the lens's amethyst chime, which made a suppressed player walking past
+ * sound like a ritual and a scan at once; a count also needs a beat that is over before the next
+ * one, and a chime rings for most of a second.
+ *
+ * <p>Positional and line-of-sight only, like everything else about suppression: a drone that carried
+ * through walls would be a tracker. Neither rolls off with distance in the sound engine - both are
+ * {@link SoundInstance.Attenuation#NONE} - because the fall-off is already here, as {@code nearness},
+ * and runs out exactly at the edge of perception. The engine's own linear fall-off would silence
+ * them at sixteen blocks, inside a range that reaches fifty-two for a rank IX.
  */
 @EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public final class SuppressionSounds
 {
-    private static final int CHIME_PERIOD_TICKS = 100;
-    private static final int CHIME_SPACING_TICKS = 5;
+    private static final int BEAT_PERIOD_TICKS = 100;
+    private static final int BEAT_SPACING_TICKS = 5;
 
-    /** Below this, the chimes are not worth playing - the field is still a smear to this observer. */
-    private static final float MIN_CHIME_LEGIBILITY = 0.2f;
+    /** Below this, the count is not worth playing - the field is still a smear to this observer. */
+    private static final float MIN_COUNT_LEGIBILITY = 0.2f;
 
     private static final Map<Integer, Drone> DRONES = new HashMap<>();
 
@@ -98,7 +106,7 @@ public final class SuppressionSounds
 
             drone.aim(volume);
 
-            chime(minecraft, seen.player(), field, nearness);
+            throb(minecraft, seen.player(), field, nearness);
         }
 
         DRONES.entrySet().removeIf(entry ->
@@ -113,31 +121,35 @@ public final class SuppressionSounds
     }
 
     /**
-     * One chime per ring, spaced so they can be counted, repeated every {@link #CHIME_PERIOD_TICKS}.
+     * One throb per ring, spaced so they can be counted, repeated every {@link #BEAT_PERIOD_TICKS}.
      * Each player's cycle is offset by their entity id, so two suppressed players side by side do
-     * not chime over each other and merge into one larger number.
+     * not throb over each other and merge into one larger number.
      */
-    private static void chime(Minecraft minecraft, Player player, ClientSuppression.Perceived field, float nearness)
+    private static void throb(Minecraft minecraft, Player player, ClientSuppression.Perceived field, float nearness)
     {
-        if (field.legibility() < MIN_CHIME_LEGIBILITY)
+        if (field.legibility() < MIN_COUNT_LEGIBILITY)
         {
             return;
         }
 
-        final int phase = Math.floorMod(clock + field.entityId() * 37, CHIME_PERIOD_TICKS);
+        final int phase = Math.floorMod(clock + field.entityId() * 37, BEAT_PERIOD_TICKS);
 
-        if (phase % CHIME_SPACING_TICKS != 0 || phase / CHIME_SPACING_TICKS >= field.rings())
+        if (phase % BEAT_SPACING_TICKS != 0 || phase / BEAT_SPACING_TICKS >= field.rings())
         {
             return;
         }
 
         minecraft.getSoundManager().play(new SimpleSoundInstance(
-                SoundEvents.AMETHYST_BLOCK_CHIME,
+                SoundsRegistry.SUPPRESSION_THROB.get().getLocation(),
                 SoundSource.PLAYERS,
                 0.5f * field.legibility() * nearness,
-                0.8f,
+                1.0f,
                 SoundInstance.createUnseededRandom(),
-                player.getX(), player.getY() + 1d, player.getZ()));
+                false,
+                0,
+                SoundInstance.Attenuation.NONE,
+                player.getX(), player.getY() + 1d, player.getZ(),
+                false));
     }
 
     @SubscribeEvent
@@ -156,8 +168,9 @@ public final class SuppressionSounds
 
         Drone(Player player, float pitch)
         {
-            super(SoundEvents.BEACON_AMBIENT, SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
+            super(SoundsRegistry.SUPPRESSION_DRONE.get(), SoundSource.PLAYERS, SoundInstance.createUnseededRandom());
             this.player = player;
+            this.attenuation = Attenuation.NONE;
             this.looping = true;
             this.delay = 0;
             this.volume = 0.01f;

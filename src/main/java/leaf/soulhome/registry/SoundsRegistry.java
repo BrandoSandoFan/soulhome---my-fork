@@ -75,6 +75,16 @@ public final class SoundsRegistry
     private static final Map<SoulVoice, DeferredHolder<SoundEvent, SoundEvent>> CHARACTER_BEDS =
             registerCharacterBeds();
 
+    /**
+     * Suppression's two channels of sound (#188): the field around a player who has ascended, and
+     * one beat of it per ring. Their own events for the reason this class exists at all - the drone
+     * used to be the ascension ritual's hum and the count the lens's chime, so a suppressed player
+     * sounded like a ritual in progress and a scan going off at once.
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> SUPPRESSION_DRONE = register("suppression.drone");
+
+    public static final DeferredHolder<SoundEvent, SoundEvent> SUPPRESSION_THROB = register("suppression.throb");
+
     private SoundsRegistry()
     {
     }
