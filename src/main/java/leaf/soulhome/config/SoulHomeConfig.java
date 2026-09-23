@@ -22,13 +22,20 @@ import leaf.soulhome.structures.core.TerrainGrowthSettings;
 import leaf.soulhome.structures.core.VesselSettings;
 import leaf.soulhome.utils.LogHelper;
 import org.apache.commons.lang3.tuple.Pair;
+import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.loading.FMLConfig;
+import net.minecraftforge.fml.loading.FMLPaths;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -55,6 +62,13 @@ import java.util.Set;
 @Mod.EventBusSubscriber(modid = SoulHome.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class SoulHomeConfig
 {
+    /**
+     * Named rather than left to Forge's default so the template in {@code defaultconfigs/} and the
+     * per-world file are provably the same name - Forge only copies a default across when they
+     * match. It is the name Forge would have picked anyway, so no existing world loses its file.
+     */
+    public static final String FILE_NAME = SoulHome.MODID + "-server.toml";
+
     public static final ForgeConfigSpec SPEC;
     public static final Server SERVER;
 
@@ -80,7 +94,54 @@ public final class SoulHomeConfig
     /** Called from the mod constructor, before anything can ask for a value. */
     public static void register()
     {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, SPEC, FILE_NAME);
+        writeDefaultsTemplate();
+    }
+
+    /**
+     * Makes sure {@code defaultconfigs/soulhome-server.toml} exists and carries every current key.
+     *
+     * <p>A server config is per world: Forge writes it to {@code <world>/serverconfig/} the first
+     * time that world loads, and never to the instance's {@code config/} folder. So a player looking
+     * for the file where every other mod's config lives found nothing, and a pack author had no file
+     * to edit that would apply to the worlds their players go on to create. {@code defaultconfigs/}
+     * is Forge's own answer to both: whatever is there is copied into each new world's
+     * {@code serverconfig/} before it loads.
+     *
+     * <p>Keys are added and invalid values reset exactly as Forge does for the live file, and a
+     * value someone has set is left alone - otherwise the template would quietly undo a pack's
+     * tuning every launch. A template that fails to parse is logged and left untouched, for the
+     * same reason: rewriting it would throw away whatever the person was in the middle of editing.
+     */
+    private static void writeDefaultsTemplate()
+    {
+        final Path path = FMLPaths.GAMEDIR.get().resolve(FMLConfig.defaultConfigPath()).resolve(FILE_NAME);
+
+        try
+        {
+            Files.createDirectories(path.getParent());
+
+            try (CommentedFileConfig template = CommentedFileConfig.builder(path)
+                    .sync()
+                    .preserveInsertionOrder()
+                    .writingMode(WritingMode.REPLACE)
+                    .build())
+            {
+                template.load();
+
+                if (!SPEC.isCorrect(template))
+                {
+                    SPEC.correct(template);
+                    template.save();
+                }
+            }
+        }
+        catch (IOException | RuntimeException e)
+        {
+            //nightconfig reports a malformed file as an unchecked ParsingException; either way the
+            //live per-world config is unaffected, so this is worth a line and nothing more
+            LogHelper.warn("Could not write the server config template to " + path + ": " + e.getMessage());
+        }
     }
 
     /**
@@ -287,6 +348,13 @@ public final class SoulHomeConfig
     public static void onLoad(ModConfigEvent.Loading event)
     {
         refresh(event.getConfig());
+
+        // the live file is in the world's folder, not the instance's; saying where on every load
+        // answers "where is the config" from the log rather than a support thread
+        if (isOurs(event.getConfig()))
+        {
+            LogHelper.info("Server config loaded from " + event.getConfig().getFullPath());
+        }
     }
 
     @SubscribeEvent
@@ -297,9 +365,7 @@ public final class SoulHomeConfig
 
     private static void refresh(ModConfig config)
     {
-        //every mod's config events come through this bus, and reading ours while another mod's
-        //file is being loaded would throw
-        if (config.getType() != ModConfig.Type.SERVER || !SoulHome.MODID.equals(config.getModId()))
+        if (!isOurs(config))
         {
             return;
         }
@@ -319,6 +385,15 @@ public final class SoulHomeConfig
         // the classifier is built over the scoring settings, so it has to be rebuilt when they
         // change rather than picking the new values up on the next scan
         ArchetypeManager.onScoringSettingsChanged();
+    }
+
+    /**
+     * Every mod's config events come through this bus, and reading ours while another mod's file is
+     * being loaded would throw.
+     */
+    private static boolean isOurs(ModConfig config)
+    {
+        return config.getType() == ModConfig.Type.SERVER && SoulHome.MODID.equals(config.getModId());
     }
 
     /**
