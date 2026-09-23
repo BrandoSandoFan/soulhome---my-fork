@@ -1717,3 +1717,16 @@ New advancements, and the book catches up
   you have felt it, so it does not spoil it. The observatory's page describes Soulgaze from the
   archetype data, including what it costs you.
 - Ported to `1.21.1`.
+
+The Meditation Cushion looked like a full block, and the texture was a placeholder
+
+The cushion has always sat 5/16 tall in collision - you could never actually stand inside one -
+but its model was still `cube_all`, so it rendered as an ordinary full-height block sitting flush
+with the ground, and the texture on it was an unshaded flat colour never meant to ship.
+
+- The cushion now renders as a low mat instead of a cube, carved to the same box its own hitbox
+  already used - what you see finally matches what you stand on.
+- A real top and side texture, replacing the placeholder: a stitched, quilted mat with a small
+  soul-purple tuft at its centre, in the same family of colour as the Soul Anchor.
+- A buff, not a nerf: nothing about placement, crafting or the channel changed - the cushion reads
+  correctly now.
