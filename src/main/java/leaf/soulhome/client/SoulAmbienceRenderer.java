@@ -47,8 +47,10 @@ public final class SoulAmbienceRenderer
 
         ClientAmbience.tick(minecraft);
         SoulFirmamentMotes.tick(minecraft);
+        SoulWeatherParticles.tick(minecraft);
         SoulAmbienceSounds.tick(minecraft);
         SoulAmbienceBed.tick(minecraft);
+        SoulMusicPlayer.tick(minecraft);
     }
 
     /**

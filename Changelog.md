@@ -1803,3 +1803,42 @@ existed.
   suppression sound. Each says what turning it off costs you, which is nothing you would need.
 - The screen is now called "How Souls Look to You", since it is no longer only about your own.
 - Ported to `1.21.1`.
+
+A soul full of rooms now looks and sounds like one
+
+The first real hour of building under the Ambience epic (#163) found it wanting everywhere: a soul
+with a great many rooms in it looked and sounded like any other, its sounds were quieter than
+Minecraft's own music playing over them, the ascension ritual made a handful of specks, and the
+sky was one pale colour.
+
+- The sound was inaudible, by arithmetic rather than by taste: the bed was mastered 38 dB down and
+  then multiplied by three more ceilings, so it reached the ear around -58 dBFS against music at
+  about -20. The assets are re-mastered to be heard (one-shots at -20 dBFS, the bed at -24) and the
+  mod's own ceilings no longer stack on top. The default ambient volume is now 80% and the default
+  intensity 85%. If your `soulhome-client.toml` still held the old defaults (35% and 60%), they are
+  moved to the new ones once; anything you had set yourself is left alone.
+- Inside a soul, Minecraft's music gives way to the soul's own. It is composed as it plays, in the
+  soul's own key: the rooms choose its mode and its instruments - a hearth's piano, the cold's
+  bells, glass for the arcane, plucked strings for a workshop, marimba and flute where things grow,
+  a drone where the soul is hollow - and a soul built two ways at once is played as a third thing,
+  as its colour already was. Rank gives it room: slower, longer, wider and more reverberant as you
+  climb, and never louder. It rests between pieces, and it is under the game's own Music slider.
+  `soul_music` in `soulhome-client.toml`, or "Soul music" on the options screen, gives you
+  Minecraft's music back.
+- The sky is a sky. The soul dimension used to draw none, so the fog colour was all there was. Now a
+  dome rises from the horizon to a zenith of the soul's own colour, a slow veil of light hangs in
+  the colour of its second trait, a glow sits along the horizon, and stars come out as it climbs -
+  none at rank 0, a full field at the top. The colours are stronger, and a soul of many kinds of
+  room now reads as what it is mostly made of instead of averaging to grey.
+- The air carries what is built: embers in a soul of hearths, snow in a soul of ice, glyphs where
+  the arcane is, spores and petals where things grow, ash where the soul is hollow, and steam,
+  glowing motes or overgrowth where a soul is built both ways at once. In proportion, and never
+  more than light snowfall.
+- The firmament motes are specks you can see rather than a haze you could not.
+- The ascension ritual builds: strands of your soul's colour wind up the pillar, glyphs are drawn
+  in to the cap, a beam of light climbs toward the firmament, each quarter throws a ring of light
+  across the whole soul as the hum steps up, and the moment the rank arrives everything goes at
+  once. A higher rank is a bigger event.
+- Nothing flashes, nothing obscures a block, and the light you build by is unchanged. Everything is
+  still cosmetic and still off at zero intensity.
+- Ported to `1.21.1`.

@@ -7,10 +7,10 @@ package leaf.soulhome.client;
 import leaf.soulhome.network.SyncSoulAmbienceMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.particles.ColorParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
+import org.joml.Vector3f;
 
 /**
  * The firmament and the verge, seen from a distance (#164).
@@ -27,7 +27,11 @@ import net.minecraft.world.entity.player.Player;
  * most physical thing available that does not also block the view.
  *
  * <p>Sparse on purpose, and never dense enough to obscure a build: at full intensity and the last
- * rank this is under one mote a tick across the whole visible band, each one nearly transparent.
+ * rank this is a couple of motes a tick across the whole visible band.
+ *
+ * <p>They used to be {@code ENTITY_EFFECT}, the potion swirl, chosen because it was the one tintable
+ * vanilla particle quiet enough never to be noticed - and #163's playtest found it was exactly that.
+ * Dust takes the soul's colour just as well and is a speck a player can actually see.
  */
 public final class SoulFirmamentMotes
 {
@@ -77,20 +81,6 @@ public final class SoulFirmamentMotes
      * nearer the wall than the ceiling almost everywhere, and a firmament that only appears when
      * you fly up to it is the shimmer's job, not this one.
      */
-    /** The soul's colour as one ARGB int, at the low alpha that makes a mote a haze and not a speck. */
-    private static int packed()
-    {
-        return (63 << 24)
-                | (channel(ClientAmbience.red()) << 16)
-                | (channel(ClientAmbience.green()) << 8)
-                | channel(ClientAmbience.blue());
-    }
-
-    private static int channel(float value)
-    {
-        return Math.max(0, Math.min(255, Math.round(value * 255f)));
-    }
-
     /** Kept inside the box: air drifting past the outside of your own wall is not the firmament. */
     private static double clamp(double value, double half)
     {
@@ -133,15 +123,13 @@ public final class SoulFirmamentMotes
             return;
         }
 
-        // ENTITY_EFFECT is the one vanilla particle that is both tintable and quiet enough to hang
-        // in the air without reading as an effect. Since 1.20.5 the colour rides on the particle
-        // option rather than in the velocity arguments, so this is not a straight port of the
-        // 1.20.1 call - the alpha is ours to set here, and it is set low for the same reason.
-        // The velocity arguments no longer carry the colour, but they are still read: a spell
-        // particle handed two zeroes damps its own drift to a tenth, so a token nudge is what keeps
-        // these reading as moving air rather than as specks hanging in place.
-        level.addParticle(
-                ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, packed()),
-                x, y, z, 0.01d, 0d, 0.01d);
+        // lifted toward white so a mote in a deep-coloured soul is still a point of light against it
+        final Vector3f colour = new Vector3f(
+                0.35f + 0.65f * ClientAmbience.red(),
+                0.35f + 0.65f * ClientAmbience.green(),
+                0.35f + 0.65f * ClientAmbience.blue());
+
+        level.addParticle(new DustParticleOptions(colour, 1.1f + random.nextFloat() * 0.6f), x, y, z,
+                (random.nextDouble() - 0.5d) * 0.01d, 0d, (random.nextDouble() - 0.5d) * 0.01d);
     }
 }

@@ -68,7 +68,7 @@ public record SoulAmbience(
      * soulhome that has gone all-in on one kind of room should still read as a soulhome rather than
      * as a themed level.
      */
-    public static final float MAX_TINT = 0.85f;
+    public static final float MAX_TINT = 0.95f;
 
     /** No blend may end up darker than this, whatever it is made of - see the class javadoc. */
     public static final float LUMINANCE_FLOOR = 0.45f;
@@ -111,8 +111,19 @@ public record SoulAmbience(
      */
     public static final float INTENSITY_SLACK = 192f;
 
-    /** Firmament motes per tick at full intensity and the last rank. Sparse: this is a drift, not weather. */
-    public static final float MAX_MOTE_RATE = 0.85f;
+    /**
+     * Firmament motes per tick at full intensity and the last rank. Still a drift rather than
+     * weather, but a drift a player can see: it was 0.85 a tick of a nearly transparent particle,
+     * spread over a forty-block band, and #163's playtest never noticed it was there.
+     */
+    public static final float MAX_MOTE_RATE = 2.4f;
+
+    /**
+     * Character particles per tick, across every trait together, at full depth and intensity (#163).
+     * About what light snowfall is in the overworld near the player - enough to see that a soul of
+     * hearths has embers in its air and a soul of ice has snow, never enough to hide a block.
+     */
+    public static final float MAX_WEATHER_RATE = 1.6f;
 
     /**
      * The one-shot distance band at rank 0 and at the last rank, in blocks (#216).
@@ -180,9 +191,13 @@ public record SoulAmbience(
      * advantage over every other sound this mod plays: it is never not playing, and it arrives at
      * the ear undistanced, where a one-shot has four to eleven blocks of attenuation taken off it
      * first. The two land at about the same level with this ceiling in place and nowhere near it
-     * without. #210's own instruction, and the right one: if in doubt, quieter.
+     * without.
+     *
+     * <p>It was 0.45 against a bed mastered at -38 dBFS, which is how #210's "if in doubt, quieter"
+     * turned into a bed nobody could hear (#163). The asset now carries the quiet, mastered 4 dB
+     * under the one-shots, and this only keeps the bed from ever reaching what a one-shot is worth.
      */
-    public static final float BED_CEILING = 0.45f;
+    public static final float BED_CEILING = 0.8f;
 
     /** Below this a layer is not worth a sound instance, and the bed stops rather than idling. */
     public static final float BED_SILENCE = 0.001f;
@@ -222,7 +237,10 @@ public record SoulAmbience(
 
         if (settings.characterActive() && character != null && !character.isEmpty())
         {
-            final float strength = MAX_TINT * intensity * (float) character.depth();
+            // depth eased in faster than it is reached: the first few rooms are when a player is
+            // looking for an answer, and #163's playtest found a soul of many rooms still reading as
+            // barely tinted with depth taken straight
+            final float strength = MAX_TINT * intensity * (float) Math.sqrt(character.depth());
 
             if (strength > 0.001f)
             {
@@ -406,6 +424,51 @@ public record SoulAmbience(
         }
 
         return new CharacterBedMix(scaled);
+    }
+
+    /**
+     * What the air of a soul carries, per voice, in particles per tick (#163): embers where it is
+     * warm, snow where it is cold, spores where things grow.
+     *
+     * <p>The same shape as {@link #characterBedMix} - a pole's share by how far its axis leans, the
+     * contested reading replacing both poles as tension rises - but weighted by each axis's share of
+     * the soul rather than normalised, so the air is mostly what the soul is mostly made of. No
+     * {@link SoulVoice#BASE}: the place's own drift is the firmament motes.
+     *
+     * <p>Under the character switch, since it is the character being shown, and scaled by intensity
+     * like every other part of the epic, so zero intensity is zero particles.
+     */
+    public static Map<SoulVoice, Float> weatherRates(SoulCharacter character, AmbienceSettings settings)
+    {
+        if (settings == null || !settings.characterActive() || character == null || character.isEmpty())
+        {
+            return Map.of();
+        }
+
+        final float scale = MAX_WEATHER_RATE * (float) settings.intensity() * (float) Math.sqrt(character.depth());
+        final Map<SoulVoice, Float> rates = new EnumMap<>(SoulVoice.class);
+
+        for (SoulAxis axis : SoulAxis.values())
+        {
+            final float share = (float) character.share(axis);
+
+            if (share <= 0f)
+            {
+                continue;
+            }
+
+            final float lean = (float) character.lean(axis);
+            final float contested = (float) smoothstep(TENSION_FLOOR, TENSION_FULL, character.tension(axis));
+            final float poles = share * (1f - contested) * scale;
+
+            rates.merge(Palette.voice(axis.positive()), poles * (1f + lean) / 2f, Float::sum);
+            rates.merge(Palette.voice(axis.negative()), poles * (1f - lean) / 2f, Float::sum);
+            rates.merge(Palette.contestedVoice(axis), share * contested * scale, Float::sum);
+        }
+
+        rates.values().removeIf(rate -> rate <= 1e-4f);
+
+        return Map.copyOf(rates);
     }
 
     /**
@@ -854,8 +917,12 @@ public record SoulAmbience(
     /**
      * The colour a soul's own rooms pull it to, before depth and intensity are applied.
      *
-     * <p>Each axis contributes its own reading, weighted by its share of the whole soul, so an axis
-     * nothing has been built on says nothing rather than voting for its own midpoint.
+     * <p>Each axis contributes its own reading, so an axis nothing has been built on says nothing
+     * rather than voting for its own midpoint. Weighted by the <i>square</i> of its share rather than
+     * the share: three axes' colours averaged evenly are a grey, and #163's first playtest found
+     * exactly that - the more kinds of room a soul held, the blander it read. Squared, the axis a soul
+     * leans on most carries the colour and the others shade it, and there is still no threshold at
+     * which one wins: two axes built alike still meet halfway.
      */
     public static float[] characterColour(SoulCharacter character)
     {
@@ -872,11 +939,12 @@ public record SoulAmbience(
             }
 
             final float[] reading = axisColour(character, axis);
+            final float emphasis = share * share;
 
-            blended[0] += reading[0] * share;
-            blended[1] += reading[1] * share;
-            blended[2] += reading[2] * share;
-            weight += share;
+            blended[0] += reading[0] * emphasis;
+            blended[1] += reading[1] * emphasis;
+            blended[2] += reading[2] * emphasis;
+            weight += emphasis;
         }
 
         return weight <= 0f ? NEUTRAL : new float[] {blended[0] / weight, blended[1] / weight, blended[2] / weight};
@@ -1032,12 +1100,15 @@ public record SoulAmbience(
         {
             return switch (trait)
             {
-                case WARM -> new float[] {1.00f, 0.62f, 0.34f};
-                case COLD -> new float[] {0.55f, 0.78f, 1.00f};
-                case ARCANE -> new float[] {0.72f, 0.52f, 1.00f};
-                case WROUGHT -> new float[] {0.62f, 0.68f, 0.72f};
-                case VERDANT -> new float[] {0.58f, 0.88f, 0.50f};
-                case HOLLOW -> new float[] {0.66f, 0.62f, 0.68f};
+                // saturated further than the first pass, which was chosen never to offend and
+                // was, in #163's playtest, too pale to be noticed at all. The luminance floor, not
+                // a timid palette, is what keeps a soul from going dark
+                case WARM -> new float[] {1.00f, 0.52f, 0.20f};
+                case COLD -> new float[] {0.38f, 0.70f, 1.00f};
+                case ARCANE -> new float[] {0.68f, 0.36f, 1.00f};
+                case WROUGHT -> new float[] {0.52f, 0.63f, 0.80f};
+                case VERDANT -> new float[] {0.42f, 0.90f, 0.36f};
+                case HOLLOW -> new float[] {0.62f, 0.48f, 0.66f};
             };
         }
 
@@ -1049,9 +1120,9 @@ public record SoulAmbience(
                 // steam: forge and freezer in the same soul, and the air between them
                 case THERMAL -> new float[] {0.88f, 0.90f, 0.93f};
                 // worked matter run through with the arcane, which is neither and looks like it
-                case ESSENCE -> new float[] {0.55f, 0.85f, 0.80f};
+                case ESSENCE -> new float[] {0.32f, 0.90f, 0.78f};
                 // growth that has taken somewhere emptied: overgrowth, not a compromise between them
-                case VITALITY -> new float[] {0.70f, 0.80f, 0.42f};
+                case VITALITY -> new float[] {0.70f, 0.82f, 0.26f};
             };
         }
 
