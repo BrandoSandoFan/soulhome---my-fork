@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-13T21:24:37.170485251	SoulHome Advancements
+// 1.20.1	2026-09-23T02:06:36.417218746	SoulHome Advancements
 51c331efe01f43cd03d860bd13b1cf73b09210ec data/soulhome/advancements/main/alchemy_lab.json
 e68da1fc17772ce12cb8d130cc9520ee67200259 data/soulhome/advancements/main/apiary.json
 84ebb8af4df4f0e3c6a54530f886b067b05739c4 data/soulhome/advancements/main/aquarium.json
@@ -14,11 +14,15 @@ fe8610166fd6420691623e508c63a71cb5399211 data/soulhome/advancements/main/enchant
 c5a625fd680f1d21cdc57df785ad34870e6dfdb9 data/soulhome/advancements/main/farm.json
 bb08c51ff7c025c63731be7e74e80b2f80b381ef data/soulhome/advancements/main/first_room.json
 23491a314eee3649308db7c1198a06c3ec83c80b data/soulhome/advancements/main/gale_roost.json
+cd69d92139ff3c7a9449fe87c9af4947a83b465b data/soulhome/advancements/main/gazed.json
+a8922ed781991c7a2a9102a89423dcce7898985d data/soulhome/advancements/main/gazed_at.json
 919c8aef889795887feaeb0820ddf172562c5585 data/soulhome/advancements/main/greenhouse.json
+d8c6b7f03c9cc9a13a2d8634192663fbb20e1e11 data/soulhome/advancements/main/guest.json
 26f60472b7e1fd39dde2c7525809212974b6f306 data/soulhome/advancements/main/hearth.json
 be7f8be1f7916ac66017ccb760aeed7a8b4033d4 data/soulhome/advancements/main/infected_grotto.json
 12486052d47be9e093e0b077a4784d3a5aed2af5 data/soulhome/advancements/main/library.json
 7c98930e078b06c2dcd3db499603c0aff2abfc02 data/soulhome/advancements/main/mead_hall.json
+a0d372163d8633fd0ec5507ff1d442ffc7e1f370 data/soulhome/advancements/main/meditated.json
 9e757c35833a9b531fd8ed84a927927ce063796e data/soulhome/advancements/main/mine.json
 415a613cb0b8be1815ba3c218e7fb38d47d1e370 data/soulhome/advancements/main/observatory.json
 7749c2ca6ede1279ba3587e11a5041a6a2d794cf data/soulhome/advancements/main/obtained_guide.json
@@ -32,10 +36,12 @@ f665ccf9c94d5853de1e6f8dc4e6b090599685bb data/soulhome/advancements/main/root.js
 cde97e6c24aa8de7c358cf6ec88aa2028968b05f data/soulhome/advancements/main/shrine.json
 e5c36b9ea4b62abe50d067300367773d8f8b4483 data/soulhome/advancements/main/stable.json
 87fe17b53fa7589d702bdef7d42aa806ecf93062 data/soulhome/advancements/main/storm_spire.json
+bb14c4cd586ed26eac5990227663daee07b29263 data/soulhome/advancements/main/suppression.json
 ec0df9d0ebe2c7b4c82900d531d73170b7818736 data/soulhome/advancements/main/track.json
 4c2e5665a12bde4deddf273d4704f94332ca6505 data/soulhome/advancements/main/training_yard.json
 3d3443f2305781e5ffbf532a71d07ce19d593885 data/soulhome/advancements/main/treasury.json
 999a4875b18e9984e2f9d8f6d896ac587181667b data/soulhome/advancements/main/trophy_room.json
 e6903968a94181ecfff809494e62fa3691d259f5 data/soulhome/advancements/main/two_rooms.json
+fb8699322af1999e5c60140dd25d936d5f3059d3 data/soulhome/advancements/main/vessel_death.json
 95c1793b1e02b328f09a56c112e31f98f3260540 data/soulhome/advancements/main/watchtower.json
 3d569794ea65c88d607054987c14390d422729f7 data/soulhome/advancements/main/workshop.json

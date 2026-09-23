@@ -46,6 +46,8 @@ public class Network
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAnchorMessage.CODEC, SyncSoulAnchorMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAmbienceMessage.CODEC, SyncSoulAmbienceMessage.INVALID);
         registerCodecPacket(id++, NETWORK_CHANNEL, AmbienceHoldMessage.CODEC, AmbienceHoldMessage.INVALID);
+        registerCodecPacket(id++, NETWORK_CHANNEL, GazeNoticeMessage.CODEC, GazeNoticeMessage.INVALID);
+        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSuppressionMessage.CODEC, SyncSuppressionMessage.INVALID);
 
         //the only four that travel client to server - see UseSoulAbilityMessage on why that matters
         registerCodecPacket(id++, NETWORK_CHANNEL, UseSoulAbilityMessage.CODEC, UseSoulAbilityMessage.INVALID);

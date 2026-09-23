@@ -153,6 +153,38 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.GUEST_RANK_REQUIRED, "Your soul has not ascended far enough to enter someone else's - Rank %s or above is required.");
         add(Constants.StringKeys.GUEST_LEFT_BEHIND, "You were left behind - your soul has not ascended far enough to follow.");
 
+        //Damage transfer (#185): the one damage type that reaches a player inside their soul. The
+        //story is the body being killed, not the soul - a stranger shooting you in a field did not
+        //kill you "in your soul"
+        add("death.attack.soulhome.soul_severed", "%1$s's body was cut down while their soul was elsewhere");
+        add("death.attack.soulhome.soul_severed.player", "%1$s's body was cut down by %2$s while their soul was elsewhere");
+        add("death.attack.soulhome.soul_severed.item", "%1$s's body was cut down by %2$s using %3$s while their soul was elsewhere");
+
+        //Soulgaze (#187)
+        add(Constants.StringKeys.GAZE_DISABLED, "Soulgaze is switched off on this server.");
+        add(Constants.StringKeys.GAZE_FROM_OUTSIDE, "You cannot gaze into a soul from inside one.");
+        add(Constants.StringKeys.GAZE_NO_TARGET, "There is no one in your sight to look into.");
+        add(Constants.StringKeys.GAZE_NO_SOUL, "Their soul has never been opened. There is nothing there to see.");
+        add(Constants.StringKeys.GAZE_BEGIN, "You look into %s's soul. Your body stands where you left it - press an ability key to return.");
+        add(Constants.StringKeys.GAZE_END_EXPIRED, "The gaze fades, and you are back in your body.");
+        add(Constants.StringKeys.GAZE_END_SOUL_CLOSED, "The soul closes around its owner's departure, and you are back in your body.");
+        add(Constants.StringKeys.GAZE_END_RECALLED, "You draw your gaze back into your body.");
+
+        //Being gazed at (#189). The prickle says only that something is looking - where, and who,
+        //is the observatory's reward
+        add(Constants.StringKeys.GAZE_NOTICE_PRICKLE, "Something is looking into your soul.");
+        add(Constants.StringKeys.GAZE_NOTICE_OBSERVATORY, "%s is looking into your soul. Their body stands %s.");
+        add(Constants.StringKeys.GAZE_NOTICE_DIRECTION, "%s blocks to the %s");
+        add(Constants.StringKeys.GAZE_NOTICE_ELSEWHERE, "in another world");
+        add(Constants.StringKeys.COMPASS_PREFIX + "north", "north");
+        add(Constants.StringKeys.COMPASS_PREFIX + "north_east", "north-east");
+        add(Constants.StringKeys.COMPASS_PREFIX + "east", "east");
+        add(Constants.StringKeys.COMPASS_PREFIX + "south_east", "south-east");
+        add(Constants.StringKeys.COMPASS_PREFIX + "south", "south");
+        add(Constants.StringKeys.COMPASS_PREFIX + "south_west", "south-west");
+        add(Constants.StringKeys.COMPASS_PREFIX + "west", "west");
+        add(Constants.StringKeys.COMPASS_PREFIX + "north_west", "north-west");
+
         //Structure analysis
         //A fuzzy classifier that cannot say what it saw is indistinguishable from a broken one,
         //so these strings are load-bearing rather than decoration. Two rules they follow: never
@@ -438,6 +470,7 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_NAME_UPDRAFT, "Updraft");
         add(Constants.StringKeys.ABILITY_NAME_LAST_STAND, "Last Stand");
         add(Constants.StringKeys.ABILITY_NAME_CALMING_SMOKE, "Calming Smoke");
+        add(Constants.StringKeys.ABILITY_NAME_SOULGAZE, "Soulgaze");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -492,6 +525,20 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.aspect_taken.description", "Build a room of a kind that can be more than one thing. What you put in it decides which, and what it gives you.");
         add("advancements.soulhome.crowded_soul.title", "More Than You Can Carry");
         add("advancements.soulhome.crowded_soul.description", "Have eight rooms in your soul at once. You cannot carry all of them - choose at the Soul Anchor.");
+
+        //The Meditation epic's firsts (#190)
+        add("advancements.soulhome.meditated.title", "Sitting Still");
+        add("advancements.soulhome.meditated.description", "Meditate on a cushion you built, and leave your body sitting there while you go in.");
+        add("advancements.soulhome.vessel_death.title", "Nobody Home");
+        add("advancements.soulhome.vessel_death.description", "Die through your own body while your soul was elsewhere. Where did you leave it?");
+        add("advancements.soulhome.guest.title", "Guest of Honour");
+        add("advancements.soulhome.guest.description", "Walk into a soul that is not your own.");
+        add("advancements.soulhome.gazed.title", "Through the Glass");
+        add("advancements.soulhome.gazed.description", "Look into someone else's soul from your observatory. Your own body was standing there the whole time.");
+        add("advancements.soulhome.gazed_at.title", "Watched");
+        add("advancements.soulhome.gazed_at.description", "Feel someone looking into your soul.");
+        add("advancements.soulhome.suppression.title", "Pressure");
+        add("advancements.soulhome.suppression.description", "Sense how far another soul has climbed.");
 
         add("advancements.soulhome.farm.title", "Soul Food");
         add("advancements.soulhome.farm.description", "Grow enough in your soul that it counts as a farm.");

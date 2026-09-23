@@ -1,0 +1,35 @@
+{
+  "parent": "soulhome:main/entered_soul_dimension",
+  "criteria": {
+    "moment": {
+      "conditions": {
+        "moment": "vessel_death"
+      },
+      "trigger": "soulhome:soul_moment"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.soulhome.vessel_death.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "minecraft:skeleton_skull"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.soulhome.vessel_death.title"
+    }
+  },
+  "requirements": [
+    [
+      "moment"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

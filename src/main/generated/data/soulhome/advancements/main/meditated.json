@@ -1,0 +1,35 @@
+{
+  "parent": "soulhome:main/entered_soul_dimension",
+  "criteria": {
+    "moment": {
+      "conditions": {
+        "moment": "meditated"
+      },
+      "trigger": "soulhome:soul_moment"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.soulhome.meditated.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "soulhome:meditation_cushion"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.soulhome.meditated.title"
+    }
+  },
+  "requirements": [
+    [
+      "moment"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

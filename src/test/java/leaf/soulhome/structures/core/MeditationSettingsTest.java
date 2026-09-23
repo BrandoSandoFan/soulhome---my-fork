@@ -20,6 +20,9 @@ class MeditationSettingsTest
         assertEquals(MeditationSettings.DEFAULT_CUSHION_CHANNEL_TICKS, MeditationSettings.DEFAULTS.cushionChannelTicks());
         assertEquals(MeditationSettings.DEFAULT_KEY_CHANNEL_TICKS, MeditationSettings.DEFAULTS.keyChannelTicks());
         assertTrue(MeditationSettings.DEFAULTS.cushionChannelTicks() < MeditationSettings.DEFAULTS.keyChannelTicks());
+
+        // the key held for 80 ticks while it was the only way in; now it is the fallback (#190)
+        assertTrue(MeditationSettings.DEFAULTS.keyChannelTicks() > 80);
     }
 
     @Test
