@@ -275,6 +275,11 @@ public class Constants
         public static final String AMBIENCE_SCREEN_SUPPRESSION_AUDIO = "gui.soulhome.ambience.suppression_audio";
         public static final String AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP = "gui.soulhome.ambience.suppression_audio.tooltip";
 
+        // The soul's own music (#163), under a heading of its own in the same right-hand column
+        public static final String AMBIENCE_SCREEN_SECTION_MUSIC = "gui.soulhome.ambience.section.music";
+        public static final String AMBIENCE_SCREEN_MUSIC = "gui.soulhome.ambience.soul_music";
+        public static final String AMBIENCE_SCREEN_MUSIC_TIP = "gui.soulhome.ambience.soul_music.tooltip";
+
         // Suppression's sounds (#188), for anyone reading the game through its subtitles
         public static final String SUBTITLE_SUPPRESSION_DRONE = "subtitles.soulhome.suppression.drone";
         public static final String SUBTITLE_SUPPRESSION_THROB = "subtitles.soulhome.suppression.throb";

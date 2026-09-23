@@ -14,8 +14,13 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The bed under the one-shots (#210): what a soulhome sounds like when nothing is happening in it.
@@ -61,6 +66,18 @@ public final class SoulAmbienceBed
      */
     private static final int STARTUP_GRACE_TICKS = 20;
 
+    /**
+     * How many character layers may stream at once - the loudest ones, and the rest are left out.
+     *
+     * <p>Vanilla gives every streamed sound in the game eight OpenAL channels between them ({@code
+     * Library} clamps the square root of the device's channel count to 2..8). The two rank layers,
+     * nine character layers and the soul's own music (#163) would ask for twelve, and a stream that
+     * cannot get a channel does not play at all - it is dropped with a log line. Three is room for a
+     * soul contested on every axis to be heard as what it mostly is; a fourth layer is by
+     * construction quieter than three others and was never going to be picked out of them.
+     */
+    static final int MAX_CHARACTER_LAYERS = 3;
+
     private static Layer close;
     private static Layer open;
 
@@ -94,6 +111,8 @@ public final class SoulAmbienceBed
         close = tickLayer(manager, close, SoundsRegistry.BED_CLOSE.get(), ClientAmbience.bedClose());
         open = tickLayer(manager, open, SoundsRegistry.BED_OPEN.get(), ClientAmbience.bedOpen());
 
+        final Set<SoulVoice> loudest = loudestCharacterLayers();
+
         for (SoulVoice voice : SoulVoice.values())
         {
             if (voice == SoulVoice.BASE)
@@ -103,8 +122,32 @@ public final class SoulAmbienceBed
 
             character.put(voice, tickLayer(
                     manager, character.get(voice), SoundsRegistry.characterBed(voice),
-                    ClientAmbience.characterBed(voice)));
+                    loudest.contains(voice) ? ClientAmbience.characterBed(voice) : 0f));
         }
+    }
+
+    /** The character layers worth a channel this tick - see {@link #MAX_CHARACTER_LAYERS}. */
+    private static Set<SoulVoice> loudestCharacterLayers()
+    {
+        final List<SoulVoice> voices = new ArrayList<>();
+
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice != SoulVoice.BASE && ClientAmbience.characterBed(voice) > SoulAmbience.BED_SILENCE)
+            {
+                voices.add(voice);
+            }
+        }
+
+        // ties broken by enum order, so two equal layers do not trade places tick to tick
+        voices.sort(Comparator.comparingDouble((SoulVoice voice) -> -ClientAmbience.characterBed(voice))
+                .thenComparingInt(Enum::ordinal));
+
+        final Set<SoulVoice> chosen = EnumSet.noneOf(SoulVoice.class);
+
+        chosen.addAll(voices.subList(0, Math.min(MAX_CHARACTER_LAYERS, voices.size())));
+
+        return chosen;
     }
 
     /** Drop every layer immediately - a disconnect, or the game's own sound switched off. */
