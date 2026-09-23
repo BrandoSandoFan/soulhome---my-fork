@@ -1,4 +1,5 @@
-// 1.21.1	2026-09-19T03:42:19.796363698	Recipes
+// 1.21.1	2026-09-23T02:29:56.402580336	Recipes
+ad364bb4a91c0b2bb944e84e1b5736fe891ae7fa data/soulhome/advancement/recipes/decorations/meditation_cushion.json
 ba97ef8d002557d36da5158cc7099d8eca483078 data/soulhome/advancement/recipes/decorations/soul_anchor.json
 ea4f20432f19b1f64103014e75ec223734ffbc92 data/soulhome/advancement/recipes/misc/guide.json
 8b47040bf045d6cac5ed5a30ef45297ede86f708 data/soulhome/advancement/recipes/misc/sublime_essence_1_from_crafting.json
@@ -22,6 +23,7 @@ a31c815b80cc247c89d4f16776a6b175525ac2c4 data/soulhome/advancement/recipes/tools
 363cc06bb3d61b74bdebf304ae6a3c4df109541a data/soulhome/advancement/recipes/transportation/personal_soulkey.json
 697a6f68627c3271811b159f32b3bc0079d6cd82 data/soulhome/advancement/recipes/transportation/soulkey.json
 f2a30906da5b3bca4004d6b0693de40173ff1590 data/soulhome/recipe/guide.json
+7996e46ebc84d503087d5b469ae0522f2bf43bd7 data/soulhome/recipe/meditation_cushion.json
 89a41576c7d88873e052efa80b302094653a059a data/soulhome/recipe/personal_soulkey.json
 5d13f255f2f62844b7121da73efc6f2e71be0d86 data/soulhome/recipe/soul_anchor.json
 8741de3e74d0ef6b830adba2c9411b3d621c239d data/soulhome/recipe/soul_lens.json

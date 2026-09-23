@@ -5,6 +5,7 @@
 package leaf.soulhome.entity;
 
 import leaf.soulhome.registry.EntityRegistry;
+import leaf.soulhome.structures.GazeService;
 import leaf.soulhome.structures.VesselLifecycleService;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -15,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -43,12 +45,21 @@ import java.util.UUID;
  * <h2>One health pool, and it is not this entity's (rule 1 of #181)</h2>
  *
  * The vessel carries no health anyone can meaningfully reduce. {@link #hurt} never lowers it and
- * never kills it - forwarding a hit to the owner is #185's job, not this class's. It still returns
+ * never kills it; it hands the hit to {@link VesselLifecycleService#forwardHit}, which deals it to
+ * the owner as {@code soulhome:soul_severed} (#185), scaled by {@link #fragility}. It still returns
  * {@code true} from a real hit, because vanilla combat code only applies knockback when the target
  * entity's own {@code hurt()} succeeds; a body that could not even be shoved would not read as a
- * body. Because health never moves, every other damage path baseTick would otherwise route through
- * {@code hurt()} - fire, drowning, starvation, the void - falls out for free with no extra
- * overrides.
+ * body. Fire, drowning and the rest reach the owner the same way a sword does - a body left in lava
+ * is a body in lava - with two exceptions that are removals rather than hits: {@link #kill} (an
+ * operator's {@code /kill}) and {@link #onBelowWorld} (the void) take the vessel away and eject its
+ * owner alive, per #186's "anything that removes a vessel without killing the owner".
+ *
+ * <h2>Two reasons to exist</h2>
+ *
+ * A vessel is either a body left by entering a soul (the key, a cushion) or one left by casting
+ * Soulgaze (#187). {@link #isGaze} is the only difference, and it changes nothing about the body
+ * itself - the same health pool, the same chunk ticket, the same damage transfer. It only tells
+ * {@link VesselLifecycleService} which trip to end when the body is disturbed.
  *
  * <h2>The chunk ticket (rule 3 of #181)</h2>
  *
@@ -71,9 +82,13 @@ public class SoulVesselEntity extends LivingEntity
     private static final String NBT_OWNER_ID = "OwnerId";
     private static final String NBT_OWNER_NAME = "OwnerName";
     private static final String NBT_FRAGILITY = "Fragility";
+    private static final String NBT_GAZE = "Gaze";
 
-    /** How hard an incoming hit should eventually land on the owner - read only once #185 exists. */
+    /** How hard an incoming hit lands on the owner (#185), set at spawn by how they got in. */
     private float fragility = 1.0f;
+
+    /** Whether this body was left by a Soulgaze (#187) rather than by entering a soul - see the class javadoc. */
+    private boolean gaze;
 
     /**
      * {@code LivingEntity} leaves equipment storage to its subclass rather than {@code Mob}'s own
@@ -114,7 +129,7 @@ public class SoulVesselEntity extends LivingEntity
      * only caller, so that every entry path funnels through one place regardless of which item or
      * ability started it.
      */
-    public static SoulVesselEntity spawn(ServerLevel level, ServerPlayer owner, float fragility)
+    public static SoulVesselEntity spawn(ServerLevel level, ServerPlayer owner, float fragility, boolean gaze)
     {
         final SoulVesselEntity vessel = new SoulVesselEntity(EntityRegistry.SOUL_VESSEL.get(), level);
 
@@ -122,6 +137,7 @@ public class SoulVesselEntity extends LivingEntity
         vessel.setYHeadRot(owner.getYHeadRot());
         vessel.setOwner(owner);
         vessel.fragility = fragility;
+        vessel.gaze = gaze;
 
         for (EquipmentSlot slot : EquipmentSlot.values())
         {
@@ -165,6 +181,11 @@ public class SoulVesselEntity extends LivingEntity
         return this.fragility;
     }
 
+    public boolean isGaze()
+    {
+        return this.gaze;
+    }
+
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder)
     {
@@ -181,6 +202,7 @@ public class SoulVesselEntity extends LivingEntity
         this.getOwnerId().ifPresent(id -> tag.putUUID(NBT_OWNER_ID, id));
         tag.putString(NBT_OWNER_NAME, this.getOwnerName());
         tag.putFloat(NBT_FRAGILITY, this.fragility);
+        tag.putBoolean(NBT_GAZE, this.gaze);
     }
 
     @Override
@@ -199,6 +221,8 @@ public class SoulVesselEntity extends LivingEntity
         {
             this.fragility = tag.getFloat(NBT_FRAGILITY);
         }
+
+        this.gaze = tag.getBoolean(NBT_GAZE);
     }
 
     @Override
@@ -209,7 +233,25 @@ public class SoulVesselEntity extends LivingEntity
         if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel)
         {
             this.updateForcedChunk(serverLevel);
+
+            // a gazer's body with no gaze behind it is left over from a crash - its owner was put
+            // back on login and is not in it. Checked after a second, not on the first tick, so the
+            // body a gaze has only just spawned is never mistaken for one
+            if (this.gaze && this.tickCount > 20 && !this.hasLiveGaze(serverLevel))
+            {
+                this.markReturningPeacefully();
+                this.discard();
+            }
         }
+    }
+
+    private boolean hasLiveGaze(ServerLevel level)
+    {
+        final ServerPlayer owner = this.getOwnerId()
+                .map(id -> level.getServer().getPlayerList().getPlayer(id))
+                .orElse(null);
+
+        return owner != null && GazeService.isGazing(owner);
     }
 
     @Override
@@ -270,8 +312,11 @@ public class SoulVesselEntity extends LivingEntity
     /**
      * No health of its own to lose (rule 1 of #181) - a real hit still plays the hurt sound and
      * animation, and still returns {@code true}, because vanilla melee code only knocks a target
-     * back once its own {@code hurt()} has succeeded. Forwarding the amount to the owner is #185's
-     * hole in the soul dimension's blanket damage cancel, not this method's.
+     * back once its own {@code hurt()} has succeeded. The amount goes to the owner (#185); the
+     * owner being hurt never comes back here, so the vessel is a source and never a sink.
+     *
+     * <p>A source that bypasses invulnerability is {@code /kill} or the void by another route, and
+     * is a removal rather than a hit - see {@link #kill}.
      */
     @Override
     public boolean hurt(DamageSource source, float amount)
@@ -281,11 +326,39 @@ public class SoulVesselEntity extends LivingEntity
             return false;
         }
 
+        if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY))
+        {
+            this.kill();
+            return false;
+        }
+
         this.hurtDuration = 10;
         this.hurtTime = this.hurtDuration;
         this.playHurtSound(source);
         this.level().broadcastEntityEvent(this, (byte) 2);
+
+        VesselLifecycleService.forwardHit(this, source, amount);
         return true;
+    }
+
+    /**
+     * An operator's {@code /kill}, or anything else that asks a living entity to simply die. Vanilla
+     * routes that through {@code hurt()} with an enormous amount, which forwarded would kill the
+     * owner outright; #186 says a vessel removed without its owner dying ejects them alive and drops
+     * nothing, so this is a plain removal - and {@link VesselLifecycleService#onVesselRemoved} reads
+     * it as a disturbance.
+     */
+    @Override
+    public void kill()
+    {
+        this.remove(RemovalReason.KILLED);
+    }
+
+    /** The void is not somewhere a body is hit; it is somewhere a body is gone. See {@link #kill}. */
+    @Override
+    protected void onBelowWorld()
+    {
+        this.kill();
     }
 
     @Override

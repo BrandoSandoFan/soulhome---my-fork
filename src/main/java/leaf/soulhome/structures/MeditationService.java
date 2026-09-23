@@ -4,6 +4,7 @@
 
 package leaf.soulhome.structures;
 
+import leaf.soulhome.advancements.SoulAdvancements;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.registry.BlocksRegistry;
@@ -57,7 +58,9 @@ public final class MeditationService
 
     private static void start(ServerPlayer player)
     {
-        if (ACTIVE.containsKey(player.getUUID()))
+        // a gazer's body is already out in the world, and they are standing in someone else's soul
+        // as a spectator - there is no cushion under them and no soul of their own to go to
+        if (ACTIVE.containsKey(player.getUUID()) || GazeService.isGazing(player))
         {
             return;
         }
@@ -127,6 +130,11 @@ public final class MeditationService
                 : VesselLifecycleService.defaultCushionFragility();
 
         VesselLifecycleService.onKeyUse(player, fragility);
+
+        if (!returning)
+        {
+            SoulAdvancements.onMoment(player, SoulAdvancements.Moment.MEDITATED);
+        }
 
         DimensionHelper.FlipDimension(
                 player,

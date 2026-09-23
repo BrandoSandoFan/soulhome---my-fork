@@ -6,6 +6,9 @@ package leaf.soulhome.datagen.advancements;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.advancements.ClassifiedRoomTrigger;
+import leaf.soulhome.advancements.SoulAdvancements;
+import leaf.soulhome.advancements.SoulMomentTrigger;
+import leaf.soulhome.registry.BlocksRegistry;
 import leaf.soulhome.registry.ItemsRegistry;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
@@ -120,6 +123,17 @@ public class MainAdvancements implements AdvancementProvider.AdvancementGenerato
                 .rewards(new AdvancementRewards(5, List.of(), List.of(), Optional.empty()))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, enteredSoulDimension));
 
+        // The Meditation epic's firsts (#190). The key advancements above stay as they are - the key
+        // stays - and these hang off entering a soul, since every one of them starts there.
+        momentAdvancement(advancementConsumer, advancement3, SoulAdvancements.Moment.MEDITATED,
+                BlocksRegistry.MEDITATION_CUSHION.get(), AdvancementType.TASK);
+        momentAdvancement(advancementConsumer, advancement3, SoulAdvancements.Moment.VESSEL_DEATH,
+                Items.SKELETON_SKULL, AdvancementType.TASK);
+        momentAdvancement(advancementConsumer, advancement3, SoulAdvancements.Moment.GUEST,
+                Items.IRON_DOOR, AdvancementType.GOAL);
+        momentAdvancement(advancementConsumer, advancement3, SoulAdvancements.Moment.GAZED_AT,
+                Items.SCULK_SENSOR, AdvancementType.TASK);
+
         // The soulhome structure buffs. 'blank' used to sit here as a placeholder for exactly this
         // feature, gated behind an impossible trigger so nothing could ever unlock the book entry
         // it guarded. It is now the real thing.
@@ -201,6 +215,14 @@ public class MainAdvancements implements AdvancementProvider.AdvancementGenerato
                 .rewards(new AdvancementRewards(10, List.of(), List.of(), Optional.empty()))
                 .save(advancementConsumer, String.format(achievementPathFormat, tabName, crowdedSoul));
 
+        // Two that need a room first: a gaze is cast from an observatory, and suppression is only
+        // perceived by someone who has built at least one room. The second is also what the book's
+        // page on suppression is gated behind, so it is not spoiled for someone who has never seen it
+        momentAdvancement(advancementConsumer, roomAdvancement, SoulAdvancements.Moment.GAZED,
+                Items.ENDER_EYE, AdvancementType.TASK);
+        momentAdvancement(advancementConsumer, roomAdvancement, SoulAdvancements.Moment.SUPPRESSION,
+                Items.AMETHYST_CLUSTER, AdvancementType.TASK);
+
         // One per shipped archetype. Named after the archetype id so that the advancement, the
         // book entry and the datapack file all agree without anything mapping between them.
         archetypeAdvancement(advancementConsumer, roomAdvancement, "farm", Items.WHEAT);
@@ -247,6 +269,30 @@ public class MainAdvancements implements AdvancementProvider.AdvancementGenerato
         archetypeAdvancement(advancementConsumer, roomAdvancement, "apiary", Items.HONEYCOMB);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "observatory", Items.DAYLIGHT_DETECTOR);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "ossuary", Items.BONE_BLOCK);
+    }
+
+    /** One of the Meditation epic's firsts - see {@link SoulAdvancements.Moment}. Named after the moment's own id. */
+    private static void momentAdvancement(
+            Consumer<AdvancementHolder> advancementConsumer,
+            AdvancementHolder parent,
+            SoulAdvancements.Moment moment,
+            ItemLike icon,
+            AdvancementType frame)
+    {
+        Advancement.Builder.advancement()
+                .parent(parent)
+                .display(
+                        icon,
+                        Component.translatable("advancements.soulhome." + moment.id() + ".title"),
+                        Component.translatable("advancements.soulhome." + moment.id() + ".description"),
+                        (ResourceLocation) null,
+                        frame,
+                        true, //showToast
+                        true, //announce
+                        false)//hidden
+                .addCriterion("moment", SoulMomentTrigger.Instance.of(moment))
+                .rewards(new AdvancementRewards(10, List.of(), List.of(), Optional.empty()))
+                .save(advancementConsumer, "soulhome:main/" + moment.id());
     }
 
     /**

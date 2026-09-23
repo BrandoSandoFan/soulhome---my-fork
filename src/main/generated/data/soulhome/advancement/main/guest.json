@@ -1,0 +1,33 @@
+{
+  "parent": "soulhome:main/entered_soul_dimension",
+  "criteria": {
+    "moment": {
+      "conditions": {
+        "moment": "guest"
+      },
+      "trigger": "soulhome:soul_moment"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.soulhome.guest.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:iron_door"
+    },
+    "title": {
+      "translate": "advancements.soulhome.guest.title"
+    }
+  },
+  "requirements": [
+    [
+      "moment"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

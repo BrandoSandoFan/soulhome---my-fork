@@ -10,7 +10,12 @@
     },
     {
       "type": "text",
-      "text": "Hold [$(k:use)] for the full duration and you, along with everything else inside the circle, are carried into your soul. This is how you'd bring friends and livestock along."
+      "text": "Hold [$(k:use)] for the full 6 seconds and you, along with everything else inside the circle, are carried into your soul. This is how you'd bring friends and livestock along.$(p)You do not take your body with you. It stays sitting where you stood - see $(l:soulhome:basics/vessel)The Body You Leave$(/l)."
+    },
+    {
+      "type": "text",
+      "text": "The key works anywhere, with nothing built for it - which is why it is the slow way in, and why the body it leaves takes a hit as hard as you would.$(p)At home, a $(l:soulhome:basics/meditation)Meditation Cushion$(/l) is quicker, and the body it leaves is sturdier. The key is for when you are nowhere near one.",
+      "title": "The Long Way In"
     },
     {
       "type": "patchouli:crafting",

@@ -97,6 +97,9 @@ public final class BuffDisplayNames
         //the one passive that came with the same three rooms
         names.put(SoulBuffTypes.CLEAR_SIGHT, "Clear Sight");
 
+        //the observatory's second buff, and its active (#187)
+        names.put(SoulBuffTypes.SOULGAZE, "Soulgaze");
+
         //unmodifiableMap rather than Map.copyOf: the copy would be free to reorder itself, and the
         //order here is the order the lang file is written in
         return Collections.unmodifiableMap(names);

@@ -155,6 +155,36 @@ Our own moves are exempt because `TeleportHelper#teleportEntity` wraps them in
 through `TeleportHelper`**, or it will be cancelled by our own guard. `dimension.restrict_travel`
 turns the rule off for a pack that wants its own way in.
 
+### The body you leave, and the souls you can see into (#181)
+
+Every way into a soul - a cushion, a key, a gaze - leaves a `SoulVesselEntity` where the player
+stood, spawned only through `VesselLifecycleService`. The rules, and what breaks if one is missed:
+
+- **One health pool, and it is the player's.** The vessel never loses health. `hurt()` forwards the
+  hit to its owner as `soulhome:soul_severed` (datapack JSON under `data/soulhome/damage_type/`,
+  looked up through `SoulSevered.KEY`), scaled by the vessel's fragility and gated by
+  `vessel.damage_transfer`. `CommonEvents#onLivingHurt` has exactly **one hole** in its blanket
+  cancel for that type. Close it and damage transfer silently does nothing while every test passes.
+- **`/kill` and the void are removals, not hits.** `LivingEntity#kill` routes through `hurt()` with
+  `Float.MAX_VALUE`; the vessel overrides `kill()` and `onBelowWorld()` so an operator never kills a
+  meditating player by accident. A removal the owner did not choose ejects them alive.
+- **Spectators are invulnerable, and a gazer's body is not.** `GazeService#hurtWhileGazing` lifts
+  `abilities.invulnerable` for one `hurt()` call. Do not "simplify" this by tagging soul_severed
+  `bypasses_invulnerability` - that tag also stops a totem of undying from working.
+- **The spill runs in death order.** A gazer is handed their game mode back in `LivingDeathEvent`
+  (spectators drop nothing), drops and experience move at `LOWEST` priority, and the body is
+  removed only after the drops are spawned. Vanilla writes the death position at the *end* of
+  `ServerPlayer#die`, so the body's position is applied in `PlayerEvent.Clone`, not the death event.
+- **Nobody is stranded as a spectator.** A gaze session is saved in the gazer's persistent NBT the
+  moment it starts, and `GazeService#onLogin` restores and closes any it finds. A gazer's dimension
+  change is flagged (`isGazeTravel`) so `StructureEvents` never rescans on their account.
+- **Suppression is gated on the server.** `SuppressionService` sends a precomputed
+  `SuppressionSettings.Signature`, never raw ranks, and only to an observer with an awarded room.
+  Their rank is the amount, yours the legibility - `SuppressionSettingsTest` asserts no two rank
+  pairs render alike. Every channel reads `ClientSuppression#visible`, which is line-of-sight only.
+- **A gaze always leaves a trace.** `GazeSettings#obviousnessFor` falls toward a floor validated
+  strictly above zero; `GazeSettingsTest` pins it at any magnitude.
+
 ---
 
 ## Region detection: the part that gets changed most
@@ -475,13 +505,14 @@ single source of truth for defaults; the config spec should reference their `DEF
 rather than repeating a number.
 
 `config/SoulHomeClientConfig` (`soulhome-client.toml`) is the client one, added by the Ambience epic
-(#163/#167), and holds exactly one section: whether and how strongly a soul answers its rank and its
-rooms. It exists because a server has no business deciding whether one player sees fog. Registered
-off the mod's own `ModContainer` beside the server spec, read straight rather than through a
-snapshot - nothing is being computed against it, so a value that changes between two frames is just
-a value that changed between two frames - and its defaults live on `AmbienceSettings` in
-`structures/core` like every other settings record. Nothing on the server reads it, and nothing that
-decides an outcome may be put in it.
+(#163/#167). It holds two sections: whether and how strongly a soul answers its rank and its rooms,
+and whether suppression (#188) may warp this player's screen or hum at them. It exists because a
+server has no business deciding whether one player sees fog, or gets motion sick. Registered off
+the mod's own `ModContainer` beside the server spec, read straight rather than through a snapshot -
+nothing is being computed against it, so a value that changes between two frames is just a value
+that changed between two frames - and its defaults live on `AmbienceSettings` in `structures/core`
+like every other settings record. Nothing on the server reads it, and nothing that decides an
+outcome may be put in it.
 
 ---
 

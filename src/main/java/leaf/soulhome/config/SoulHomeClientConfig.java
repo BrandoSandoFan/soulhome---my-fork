@@ -24,6 +24,11 @@ import org.apache.commons.lang3.tuple.Pair;
  * the mod now has two config files, and it is the only reason it does: a knob that changes an
  * outcome belongs in the other one.
  *
+ * <p>Suppression (#188) added a second section for the same reason: screen warping makes some people
+ * motion sick, and whether it may is that person's call, not the server's. The server has its own
+ * switch too, and the stricter of the two wins - a server that forbids the warp forbids it for
+ * everyone, and a player who turns it off never sees it whatever the server allows.
+ *
  * <p>Read straight rather than through a snapshot. The server's snapshot exists so that a config
  * reload cannot land halfway through a scan and change the rules under it; nothing here is being
  * computed against, and a value that changes between two frames is a value that changed between two
@@ -78,6 +83,18 @@ public final class SoulHomeClientConfig
                 CLIENT.soundVolume.get());
     }
 
+    /** Whether this player allows suppression's screen warp (#188). False until the file is read, as with {@link #ambience}. */
+    public static boolean suppressionDistortion()
+    {
+        return SPEC.isLoaded() && CLIENT.suppressionDistortion.get();
+    }
+
+    /** Whether this player wants suppression's drone (#188). */
+    public static boolean suppressionAudio()
+    {
+        return SPEC.isLoaded() && CLIENT.suppressionAudio.get();
+    }
+
     public static final class Client
     {
         public final ModConfigSpec.BooleanValue ambienceEnabled;
@@ -86,6 +103,9 @@ public final class SoulHomeClientConfig
         public final ModConfigSpec.BooleanValue ambientSound;
         public final ModConfigSpec.DoubleValue intensity;
         public final ModConfigSpec.DoubleValue soundVolume;
+
+        public final ModConfigSpec.BooleanValue suppressionDistortion;
+        public final ModConfigSpec.BooleanValue suppressionAudio;
 
         Client(ModConfigSpec.Builder builder)
         {
@@ -140,6 +160,24 @@ public final class SoulHomeClientConfig
                             "vanilla category of this mod's own to put a slider under. Turning the soul down",
                             "without also turning down cave sounds and weather means this knob.")
                     .defineInRange("sound_volume", AmbienceSettings.DEFAULT_SOUND_VOLUME, 0d, 1d);
+
+            builder.pop();
+
+            builder.comment(
+                            "How another player's ascension looks and sounds to you (#188). What their rank is",
+                            "and how well you can read it are carried by the ring aura whatever you set here;",
+                            "these only choose which of the other two channels also carry it.")
+                    .push("suppression");
+
+            this.suppressionDistortion = builder
+                    .comment(
+                            "Whether the air around a suppressed player warps the screen. Turn this off if screen",
+                            "warping makes you uncomfortable - you lose nothing you would need to read them.")
+                    .define("distortion", true);
+
+            this.suppressionAudio = builder
+                    .comment("Whether a suppressed player carries a low drone, with a chime per rank once you can read them.")
+                    .define("audio", true);
 
             builder.pop();
         }

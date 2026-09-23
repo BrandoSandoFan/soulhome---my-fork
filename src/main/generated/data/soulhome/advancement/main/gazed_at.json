@@ -1,0 +1,32 @@
+{
+  "parent": "soulhome:main/entered_soul_dimension",
+  "criteria": {
+    "moment": {
+      "conditions": {
+        "moment": "gazed_at"
+      },
+      "trigger": "soulhome:soul_moment"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.soulhome.gazed_at.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "minecraft:sculk_sensor"
+    },
+    "title": {
+      "translate": "advancements.soulhome.gazed_at.title"
+    }
+  },
+  "requirements": [
+    [
+      "moment"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

@@ -5,6 +5,7 @@
 package leaf.soulhome.utils;
 
 import leaf.soulhome.SoulHome;
+import leaf.soulhome.advancements.SoulAdvancements;
 import leaf.soulhome.registry.DimensionRegistry;
 import leaf.soulhome.structures.GuestPassageService;
 import net.minecraft.core.registries.Registries;
@@ -20,12 +21,14 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
-import static leaf.soulhome.constants.Constants.NBTKeys.*;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static leaf.soulhome.constants.Constants.NBTKeys.*;
 
 public class DimensionHelper
 {
@@ -143,6 +146,7 @@ public class DimensionHelper
 
         //dimension location eg minecraft:overworld
         ResourceLocation location = playerEntity.getCommandSenderWorld().dimension().location();
+        final boolean entering = !isInSoulDimension(playerEntity);
 
         //then teleport everyone
         for (Entity ent : entitiesInRange)
@@ -179,6 +183,13 @@ public class DimensionHelper
                     destinationZ,
                     playerEntity.getYHeadRot(),
                     playerEntity.getXRot());
+
+            // walking into a soul that is not your own is the rank gate cleared (#184), and one of
+            // the Meditation epic's firsts (#190)
+            if (entering && ent instanceof ServerPlayer guest && !targetSoulUUID.equals(guest.getUUID()))
+            {
+                SoulAdvancements.onMoment(guest, SoulAdvancements.Moment.GUEST);
+            }
         }
     }
 
