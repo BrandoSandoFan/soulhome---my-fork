@@ -211,12 +211,14 @@ public record SoulMusicBrief(Map<SoulVoice, Double> weights, double rankFraction
     }
 
     /**
-     * This soul's tonic, somewhere from C3 to G3: low enough that the pad sits under the game, high
-     * enough that the lead an octave or two up is still in the range a small speaker plays.
+     * This soul's tonic, somewhere from A2 to E3. It was C3 to G3 with leads two octaves up, and
+     * #261's listen found the whole thing too high and piercing; an octave down for the leads and a
+     * minor third down for the tonic puts the tune where a voice would sing it, and the pad's bass
+     * an octave under that is still above what a small speaker gives up on.
      */
     public int tonic()
     {
-        return 48 + (int) Math.floorMod(mix(this.soulSeed), 8L);
+        return 45 + (int) Math.floorMod(mix(this.soulSeed), 8L);
     }
 
     /** A seed for this soul's {@code index}-th piece: distinct per piece, and the same every visit. */

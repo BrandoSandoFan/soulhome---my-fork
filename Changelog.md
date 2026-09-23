@@ -1797,3 +1797,32 @@ sky was one pale colour.
 - Nothing flashes, nothing obscures a block, and the light you build by is unchanged. Everything is
   still cosmetic and still off at zero intensity.
 - Ported to `1.21.1`.
+
+The soul's music matches its rooms, and comes down out of the rafters
+
+The first listen to the soul's own music found a workshop as chill as an ossuary, a high note held
+long enough to hear it wobble, and everything - the arcane most of all - pitched high enough to be
+piercing. It was: the leads sat two octaves over the tonic with their arpeggios a third octave up,
+reaching B7 in a cold or arcane soul, and every voice was written the same slow way with only the
+instruments changed. The wobble was a bug. The glass and the flute worked their vibrato out against
+the time a note had been held, so the longer one rang, the further off pitch it swung - about a third
+of its pitch either way four seconds in (#261).
+
+- Each kind of room now has music that moves its own way:
+  - A workshop is a hammer on the beat, an anvil on the backbeat, a ratchet ticking, and a plucked
+    bass driving eighths under a short riff.
+  - A hearth is quick notes in the middle of the range over a calm, held base, with the fire
+    crackling under it and popping now and then.
+  - Cold is a bell or two a bar with wind going past.
+  - The arcane is slow, low rolling arpeggios over a drone, breathed in by a swell at each chord.
+  - Growing things lilt in triplets under a flute, with birds and leaves.
+  - Emptied places toll a low bell over a drone, with water dripping.
+  - Steam, clockwork and overgrowth each have their own mix of these.
+- The sounds of the room are part of the music and land on its beat. A soul built two ways hears the
+  second's sounds too, more lightly - a hearth soul with a workshop in it hears the odd anvil.
+- Nothing pitched plays above G5, nothing from C5 up is held for more than a beat and a half, the
+  whole thing sits about an octave lower, and a gentle lowpass takes the edge off the top.
+- The wobble is gone: vibrato no longer grows with the note, the pad's saws are two cents apart
+  rather than half a percent, and the bell has lost the second carrier that beat against it.
+- Cosmetic only, still under the Music slider, still off with `soul_music`.
+- Ported to `1.21.1`.

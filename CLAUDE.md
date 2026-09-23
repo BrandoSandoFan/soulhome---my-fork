@@ -406,6 +406,14 @@ consumes a classification that already existed. The rules, and what breaks if on
   player; every note is in the piece's mode and no diminished chord is ever held, which
   `SoulComposerTest` pins, and `SoulSynthTest` holds every voice between -28 and -16 dBFS at every
   rank.
+- **Each mood has its own groove, and its room's foley is in the score** (#261). `MusicStyle.Groove`
+  picks a writer in `SoulComposer`; foley instruments (`Instrument#pitched` false) are placed on the
+  music's grid, never at random. The register rules live in one place, `Score#add`: nothing pitched
+  above `CEILING` (G5), nothing from `HIGH_NOTE` (C5) up held past `HIGH_NOTE_BEATS`. A writer that
+  voices from `chord.degree` into the lead's octave climbs out of the range - use `Chord#root()`.
+- **Never modulate a frequency by elapsed time.** `sin(2 pi f (1 + v(t)) t)` is a vibrato whose swing
+  grows for as long as the note is held; it is what made #261's "wobbly high note". Integrate the
+  instantaneous frequency into a phase instead. `SoulSynthTest#heldNotesHoldStill` pins it.
 - **Vanilla has eight streaming channels, total.** The bed's rank layers, its character layers and
   the music all stream. `SoulAmbienceBed.MAX_CHARACTER_LAYERS` keeps only the loudest few character
   layers alive; a stream that cannot get a channel is silently dropped, so anything new that streams
