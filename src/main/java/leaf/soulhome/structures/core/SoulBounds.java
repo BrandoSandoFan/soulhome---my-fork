@@ -39,6 +39,13 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
     /** Ranks run 0 (unascended) to 9 (IX). */
     public static final int MAX_RANK = 9;
 
+    /**
+     * Rank a traveller needs of their own to enter a soul that is not theirs (#184) - rank VI of IX.
+     * Walking into another person's soul in the flesh is near the top of the ladder, not halfway up
+     * it: this moved from IV when the ladder grew from five ranks to nine.
+     */
+    public static final int DEFAULT_GUEST_RANK_REQUIRED = 6;
+
     public SoulBounds
     {
         if (ceilingY <= floorY)

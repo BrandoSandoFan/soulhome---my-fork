@@ -1594,3 +1594,118 @@ to still work, which is what made the bug so easy to miss and so confusing to hi
 - A buff, not a nerf: nothing about the channel's length, its abort conditions or the cushion's
   reduced fragility changed - the cushion simply works now.
 - Ported to `1.21.1`.
+
+Entering your soul used to be the safest thing you could do, and now it is one of the more dangerous
+
+Your body has stayed behind when you enter your soul since the Soul Vessel arrived, but a hit on it
+did nothing - it flinched, got shoved, and you never felt it. So the safest act in the game was
+still leaving the world: nothing in a soul can hurt you, and nothing outside one could reach you.
+
+- Hitting a Soul Vessel now hurts the player inside it, wherever they are. It is dealt to you as
+  `soulhome:soul_severed`, carrying whoever struck the blow, so your own armour, enchantments,
+  absorption and resistance all apply - it is still you being hit - and a death names your killer.
+- The cushion's body takes half of every hit; the key's takes all of it; a gazer's takes all of it.
+- This is the one kind of damage that reaches you inside a soul. Fall damage, mobs in there with
+  you and everything else are still cancelled exactly as before - only your body, from outside.
+- Thorns on your armour still answers whoever hit you: the body wears your armour, so it is the
+  body's armour that bites back.
+- `/kill` on a vessel, or the vessel falling into the void, is a removal rather than a hit: you are
+  drawn back into your body alive, with nothing dropped.
+- `vessel.damage_transfer` switches all of it off, and a soul is a safe room again. It ships on,
+  because it is the point. The fragilities, and how hard a spill scatters, are in the same section.
+- A nerf, and a deliberate one: a body left in the open is a body a griefer or a zombie will find.
+  Build your cushion somewhere you would want to be found asleep.
+
+Dying in your soul spills your things where your body was
+
+With a body that can be killed, the next question was what happens to what you were carrying. A
+player killed through their body died inside a soul, so everything they had landed on the floor of
+a private dimension nobody else could reach - killing someone through their body won the killer
+nothing, and cost the victim nothing they could not walk back to.
+
+- Your items and experience now spill out of your body, in the world, where it was sitting - with a
+  small scatter, so it reads as a body's belongings rather than a neat pile - and never inside a
+  wall.
+- Your recovery compass points at your body, not at a coordinate in your soul where nothing is.
+- Your body goes with you, in a wisp of soul fire rather than blinking out.
+- Respawning is unchanged: bed, anchor or world spawn. `keepInventory`, Curse of Vanishing and any
+  soulbound enchantment still decide what drops; this only moves it.
+- A guest in someone else's soul spills at their own body, back where they used the key - never at
+  their host's.
+
+The Soul Key takes longer, because it is the long way in now
+
+- The key's channel is 6 seconds, up from 4. It was the only way in when it was 4; with a
+  Meditation Cushion taking 3, the key is the one you use when you are nowhere near a cushion, and
+  it should feel like it. Still no cushion needed, and still never so long a player far from home
+  cannot reach their own soul.
+- A server that set `meditation.key_channel_ticks` by hand keeps its own number.
+
+Guests need rank VI, not IV
+
+- Walking into a soul that is not your own now asks for rank VI of your own, of IX. IV was set when
+  the ladder topped out at V; with nine ranks it was not even halfway up.
+- `dimension.guest_rank_required` defaults to 6 in a fresh config. An existing config file keeps the
+  4 it was written with - change it by hand to follow the new default.
+
+Soulgaze: the observatory looks into other souls, and it cuts both ways
+
+The observatory has a second buff, and it is an ability. Put a player in your sight - or the body
+one left sitting somewhere - press the ability key, and you are inside their soul as a spectator for
+a while. Their rooms are there to read, and through them, what they carry.
+
+- It leaves your own body standing where you cast it, exactly as a meditator's does: the same
+  damage transfer, the same spill if it is killed. Looking into someone else's soul is no safer than
+  going into your own, and against a target who is walking around, they can simply come and find
+  your body while you are busy reading their bookshelves. Gazing at someone who is away in their own
+  soul is the even trade, and a soul whose owner is home stays open a little longer.
+- A gaze is read-only. You cannot ride anything's camera, no ability fires while you look - pressing
+  one brings you back instead, which is also how to end a gaze early - and nothing you see triggers a
+  rescan of the soul you are in.
+- It ends when the time runs out, when the owner of an open soul leaves it, when your own body is
+  disturbed, or when you press an ability key. Log out mid-gaze, or have the server stop, and you are
+  put back in your own game mode at your own body the moment you return - nobody is left a spectator
+  in a stranger's soul.
+- No rank needed, only the room. Walking in physically is still guest passage.
+- `observatory.gaze.enabled` switches it off.
+- The observatory now counts as an ability room for attunement, since it grants one. An observatory
+  you already had bound stays bound - nothing is taken away - it simply sits in your ability slots
+  from now on, so a soul whose ability slots were already full may find one fewer free.
+
+Being gazed at: you always know, and an observatory tells you who
+
+- Anyone gazed at feels it: a prickle at the edge of their vision, a sound, and a line saying
+  something is looking. A better observatory makes that fainter, never silent - even a tier 3 gaze
+  is noticeable. It points nowhere: where the watcher is stays hidden.
+- A player with an observatory of their own is told who is looking, and which way their body stands
+  - the telescope that lets you look also lets you notice being looked at.
+- If you are inside your soul when the gaze lands, the edge of your sight stays faintly dim until
+  the last watcher leaves.
+- Notices to one player are spaced out, so nobody can be strobed. `observatory.gaze.notify_owner`
+  silences all of it, for a server that wants gazes secret.
+
+Suppression: you can feel how far another soul has climbed
+
+Ascension was the mod's deepest progression and completely invisible. Two players meeting could
+not tell a rank IX soul from one that had never climbed.
+
+- Once you have built at least one room, a player who has ascended warps the air around them, with a
+  low hum. Their rank decides how large and strong it is and how far off you notice it.
+- How well you can read it is your own rank. To an unascended player a great soul is a formless
+  smear that spoils their aim; as you climb, the same field settles into rings - one per rank they
+  hold, with a chime for each - and weakens enough to aim through. A strong opponent you can handle
+  and a weak one never look the same.
+- Anchored on them, and only in plain sight: it follows the player, never the middle of your screen,
+  and a wall hides it.
+- Screen warping makes some people sick. `suppression.distortion` in `soulhome-client.toml` turns it
+  off for you, and the server has its own switch; the rings and the hum still carry everything.
+- Unascended players are surrounded by nothing at all.
+
+New advancements, and the book catches up
+
+- Six firsts: meditating on a cushion, dying through your body, walking into another's soul,
+  gazing, being gazed at, and feeling suppression.
+- The Soul Key pages now say that it leaves a body and that it is the long way in. New pages for
+  meditation, for the body you leave, for guests, and for suppression - that last one appears once
+  you have felt it, so it does not spoil it. The observatory's page describes Soulgaze from the
+  archetype data, including what it costs you.

@@ -1,11 +1,15 @@
-// 1.20.1	2026-09-19T03:49:03.272986698	PatchouliGeneration
+// 1.20.1	2026-09-23T02:09:26.154098927	PatchouliGeneration
 55b5193e14f138c8e2468487ae9da7bc7326b1cc assets/soulhome/patchouli_books/guide/en_us/categories/basics.json
 af711e3076ad05e4c6bf846b6186baec8c631781 assets/soulhome/patchouli_books/guide/en_us/categories/multiblocks.json
+bd1f7678104dd8229a05ce549a359e945f200e8f assets/soulhome/patchouli_books/guide/en_us/entries/basics/guests.json
 4eaf185d12387322f1041a793869ed4f73614854 assets/soulhome/patchouli_books/guide/en_us/entries/basics/guide.json
-648043f948d0ac2689a7e17a009296d7d9988142 assets/soulhome/patchouli_books/guide/en_us/entries/basics/personal_soul_key.json
+41fd1b270575933da207f25e9ae390fbe2c1a36d assets/soulhome/patchouli_books/guide/en_us/entries/basics/meditation.json
+a1635a0538632f0ce5712cfca018f55e0ab73850 assets/soulhome/patchouli_books/guide/en_us/entries/basics/personal_soul_key.json
 26c8082e6de6e551505d30b982f98c25c3b8c9c5 assets/soulhome/patchouli_books/guide/en_us/entries/basics/soul.json
-178182c77daf9f40324d81900e38857509d35323 assets/soulhome/patchouli_books/guide/en_us/entries/basics/soul_key.json
+f5aa8343f29647b39a84584b839c40df8dc6722f assets/soulhome/patchouli_books/guide/en_us/entries/basics/soul_key.json
+5a0c3bc0c7f3f251ebdca7347d68c77229954ec2 assets/soulhome/patchouli_books/guide/en_us/entries/basics/suppression.json
 ebf20bef27ae6d9b5737623ebb11bda10d380645 assets/soulhome/patchouli_books/guide/en_us/entries/basics/the_ground.json
+905c43200603a7349c0cb0e6377308e5d6d28b9a assets/soulhome/patchouli_books/guide/en_us/entries/basics/vessel.json
 a5d77056df89753b57978c7e39d7a649677304c1 assets/soulhome/patchouli_books/guide/en_us/entries/basics/welcome.json
 e6a9c8673391904def9e91e73ee1664a4c126264 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/alchemy_lab.json
 eebf38b23bd69fbde1681010cc387c703639b36b assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/apiary.json
@@ -27,7 +31,7 @@ bb4a5d96be7845fd7a3a0487cb35848f5b6e1eb8 assets/soulhome/patchouli_books/guide/e
 2251f5262631e782d6958a39f7f57d79f3d690c7 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/library.json
 4a9783a89818be1c4a1a4f4d76039d74db837a04 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/mead_hall.json
 4fdee005e3e11bb0abbedd27f1b89dc3ba586906 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/mine.json
-fc4f94b10f00c151ab3c609eaa9d4f66ed9b846a assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/observatory.json
+0b686798bf96b553f86eaedd13b999ce63e2ab9e assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/observatory.json
 5905f76a57bc8600151ef990cc46a0e62f26af19 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/ossuary.json
 42b984eb0acbb030678416ea11755dc695d1715b assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/powder_magazine.json
 c03bb34602bbebe976513b9c6afe6c6b424546de assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/purifying_font.json

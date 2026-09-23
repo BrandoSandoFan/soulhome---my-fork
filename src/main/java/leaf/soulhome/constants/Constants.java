@@ -24,6 +24,23 @@ public class Constants
         public static final String GUEST_RANK_REQUIRED = "message.soulhome.guest.rank_required";
         public static final String GUEST_LEFT_BEHIND = "message.soulhome.guest.left_behind";
 
+        //Soulgaze (#187) - the observatory's active, and the spectator session behind it
+        public static final String GAZE_DISABLED = "message.soulhome.gaze.disabled";
+        public static final String GAZE_FROM_OUTSIDE = "message.soulhome.gaze.from_outside";
+        public static final String GAZE_NO_TARGET = "message.soulhome.gaze.no_target";
+        public static final String GAZE_NO_SOUL = "message.soulhome.gaze.no_soul";
+        public static final String GAZE_BEGIN = "message.soulhome.gaze.begin";
+        public static final String GAZE_END_EXPIRED = "message.soulhome.gaze.end.expired";
+        public static final String GAZE_END_SOUL_CLOSED = "message.soulhome.gaze.end.soul_closed";
+        public static final String GAZE_END_RECALLED = "message.soulhome.gaze.end.recalled";
+
+        //Being gazed at (#189) - what the watched player perceives
+        public static final String GAZE_NOTICE_PRICKLE = "message.soulhome.gaze.notice.prickle";
+        public static final String GAZE_NOTICE_OBSERVATORY = "message.soulhome.gaze.notice.observatory";
+        public static final String GAZE_NOTICE_DIRECTION = "message.soulhome.gaze.notice.direction";
+        public static final String GAZE_NOTICE_ELSEWHERE = "message.soulhome.gaze.notice.elsewhere";
+        public static final String COMPASS_PREFIX = "direction.soulhome.";
+
         public static final String SOULHOME_ITEM_TOOLTIP = "tooltip.item.soulhome.%s";
 
         public static final String SHIFT_ITEM_TOOLTIP = "tooltip.item.info.shift";
@@ -312,6 +329,7 @@ public class Constants
         public static final String ABILITY_NAME_UPDRAFT = "ability.soulhome.updraft";
         public static final String ABILITY_NAME_LAST_STAND = "ability.soulhome.last_stand";
         public static final String ABILITY_NAME_CALMING_SMOKE = "ability.soulhome.calming_smoke";
+        public static final String ABILITY_NAME_SOULGAZE = "ability.soulhome.soulgaze";
     }
 
     public static class NBTKeys

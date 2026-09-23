@@ -847,6 +847,11 @@ public class PatchouliMultiblocks
             return " A per-block chance of +1 effective Fortune level, stacking on top of whatever your tool already has - never on a block that only ever drops itself, and never past what Silk Touch already gives you.";
         }
 
+        if (SoulBuffTypes.SOULGAZE.equals(buffType))
+        {
+            return " Look into the soul of a player in sight, or of a body one left. Your own body stays where you cast it, as open to a blade as a meditator's - and they will feel you looking.";
+        }
+
         return "";
     }
 

@@ -15,6 +15,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SoulBoundsTest
 {
     @Test
+    @DisplayName("guest passage is reachable on the shipped ladder, and near the top of it rather than halfway")
+    void guestRankIsReachableAndHigh()
+    {
+        assertTrue(SoulBounds.DEFAULT_GUEST_RANK_REQUIRED <= SoulBounds.MAX_RANK);
+        assertTrue(SoulBounds.DEFAULT_GUEST_RANK_REQUIRED * 2 > SoulBounds.MAX_RANK);
+    }
+
+    @Test
     @DisplayName("rank 0 is one storey: a floor, four of air, a ceiling")
     void rankZeroIsOneStorey()
     {

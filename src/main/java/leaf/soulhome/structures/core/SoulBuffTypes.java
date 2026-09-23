@@ -127,6 +127,12 @@ public final class SoulBuffTypes
     /** Observatory: a brightening shader whose strength ramps smoothly with the room's own score. */
     public static final String CLEAR_SIGHT = "soulhome:clear_sight";
 
+    /**
+     * Observatory: enter another player's soul as a spectator, for a while, leaving your own body
+     * standing in the world. Active (#187). The observatory's second buff, beside Clear Sight.
+     */
+    public static final String SOULGAZE = "soulhome:soulgaze";
+
     /** Ossuary: temporary armour, scaled by how much health is already gone. Active. */
     public static final String LAST_STAND = "soulhome:last_stand";
 
@@ -138,7 +144,7 @@ public final class SoulBuffTypes
      */
     public static final Set<String> ACTIVE =
             Set.of(SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
-                    CLEANSING_FONT, UPDRAFT, LAST_STAND, CALMING_SMOKE);
+                    CLEANSING_FONT, UPDRAFT, LAST_STAND, CALMING_SMOKE, SOULGAZE);
 
     public static final Set<String> BUILT_IN =
             Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
@@ -148,7 +154,7 @@ public final class SoulBuffTypes
                     FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, SWIM_SPEED,
                     SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
                     CLEANSING_FONT, UPDRAFT,
-                    CALMING_SMOKE, CLEAR_SIGHT, LAST_STAND);
+                    CALMING_SMOKE, CLEAR_SIGHT, LAST_STAND, SOULGAZE);
 
     /**
      * Types measured as a flat amount rather than a proportion: a count of jumps, a number of
@@ -163,7 +169,7 @@ public final class SoulBuffTypes
             Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT, MAX_MANA, REACH,
                     SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
                     CLEANSING_FONT, UPDRAFT,
-                    CLEAR_SIGHT, LAST_STAND, CALMING_SMOKE);
+                    CLEAR_SIGHT, LAST_STAND, CALMING_SMOKE, SOULGAZE);
 
     /** Whether this buff is pressed rather than carried - see {@link #ACTIVE}. */
     public static boolean isActive(String buffType)

@@ -146,7 +146,9 @@ public final class AscensionRitualService
      */
     public static void tick(ServerPlayer player)
     {
-        if (!SoulHomeConfig.enforceBounds() || !DimensionHelper.isInSoulDimension(player))
+        // a gazer is a spectator in someone else's soul (#187): hovering over a pillar's cap is not
+        // standing on it, and a read-only visit must never start or hold a ritual
+        if (!SoulHomeConfig.enforceBounds() || !DimensionHelper.isInSoulDimension(player) || GazeService.isGazing(player))
         {
             return;
         }
