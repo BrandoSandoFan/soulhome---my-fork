@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -136,6 +137,143 @@ class SoulSynthTest
             assertTrue(SoulSynth.limit(input) >= SoulSynth.limit(input / 1.3f), "monotonic");
             assertEquals(-SoulSynth.limit(input), SoulSynth.limit(-input), 0f);
         }
+    }
+
+    @Test
+    @DisplayName("a held note keeps its pitch: glass and flute drift no more at eight seconds than at one (#261)")
+    void heldNotesHoldStill()
+    {
+        // the bell is left out: its FM sidebands change the waveform as they die, which moves a
+        // zero-crossing count without the pitch moving at all
+        for (Instrument instrument : new Instrument[] {Instrument.GLASS, Instrument.FLUTE, Instrument.PAD})
+        {
+            final SoulSynth.Voice voice = SoulSynth.Voice.of(
+                    new NoteEvent(0d, 9d, 57, 1f, instrument, 0f), 0.5d, 1L);
+            final float[] samples = new float[9 * RATE];
+
+            for (int index = 0; index < samples.length; index++)
+            {
+                samples[index] = voice.next();
+            }
+
+            final double early = pitchOf(samples, RATE / 2, RATE / 2 + RATE);
+            final double late = pitchOf(samples, 7 * RATE, 8 * RATE);
+
+            // the old glass vibrato multiplied elapsed time, and swung a third of the pitch by here
+            assertEquals(early, late, early * 0.02d, instrument + " went from " + early + " Hz to " + late + " Hz");
+        }
+    }
+
+    @Test
+    @DisplayName("nothing beats or wobbles faster than warmth: the pad's detune and the flute's vibrato stay small")
+    void noWarble()
+    {
+        for (double detune : SoulSynth.Pad.DETUNE)
+        {
+            assertTrue(Math.abs(detune) <= 0.002d, "a pad detuned " + detune + " beats audibly on a held chord");
+        }
+
+        assertTrue(SoulSynth.Pad.SWEEP <= 0.1d);
+        assertTrue(SoulSynth.Flute.VIBRATO <= 0.002d);
+    }
+
+    @Test
+    @DisplayName("the foley is heard, and never louder than the music it is part of")
+    void foleySitsUnderTheMusic()
+    {
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            if (voice == SoulVoice.BASE)
+            {
+                continue;
+            }
+
+            final SoulMusicBrief brief = new SoulMusicBrief(Map.of(voice, 1d), 0.3d, 5L);
+            final double music = rmsDb(render(brief, 70d, event -> event.instrument().pitched()), 7 * RATE, 70 * RATE);
+            final double foley = rmsDb(render(brief, 70d, event -> !event.instrument().pitched()), 7 * RATE, 70 * RATE);
+
+            assertTrue(foley <= music + 1d, voice + ": foley at " + foley + " dB over music at " + music);
+            assertTrue(foley >= music - 22d, voice + ": foley at " + foley + " dB is lost under music at " + music);
+        }
+    }
+
+    @Test
+    @DisplayName("nothing is piercing: the tune's energy sits low, and so does the whole mix")
+    void nothingPiercing()
+    {
+        for (SoulVoice voice : SoulVoice.values())
+        {
+            final SoulMusicBrief brief = new SoulMusicBrief(Map.of(voice, 1d), 0.5d, 5L);
+            final double music = brightness(render(brief, 60d, event -> event.instrument().pitched()));
+            final double mix = brightness(render(brief, 60d, event -> true));
+
+            // RMS frequency - where the energy sits. The shipped music before #261 put cold at 1.6 kHz
+            assertTrue(music < 900d, voice + "'s notes sit at " + music + " Hz");
+            assertTrue(mix < 1_300d, voice + "'s mix sits at " + mix + " Hz");
+        }
+    }
+
+    private static float[][] render(SoulMusicBrief brief, double seconds, Predicate<NoteEvent> keep)
+    {
+        final int frames = (int) (seconds * RATE);
+        final float[] left = new float[frames];
+        final float[] right = new float[frames];
+
+        new SoulSynth(index ->
+        {
+            final SoulComposer.Piece piece = SoulComposer.compose(brief, brief.pieceSeed(index));
+
+            return new SoulComposer.Piece(piece.voice(), piece.support(), piece.mode(), piece.tonic(), piece.bpm(),
+                    piece.space(), piece.length(), piece.events().stream().filter(keep).toList());
+        }, 17L).render(left, right, frames);
+
+        return new float[][] {left, right};
+    }
+
+    /** RMS frequency, from the ratio of the signal's slope to the signal: where its energy sits. */
+    private static double brightness(float[][] audio)
+    {
+        double level = 0d;
+        double slope = 0d;
+
+        for (int index = 7 * RATE; index < audio[0].length; index++)
+        {
+            level += audio[0][index] * audio[0][index];
+
+            final double step = audio[0][index] - audio[0][index - 1];
+
+            slope += step * step;
+        }
+
+        return RATE / (2d * Math.PI) * Math.sqrt(slope / Math.max(1e-30d, level));
+    }
+
+    /**
+     * The fundamental over a window, by the lag of its strongest autocorrelation between 80 Hz and
+     * 1 kHz - which, unlike counting zero crossings, a changing timbre does not move.
+     */
+    private static double pitchOf(float[] samples, int from, int to)
+    {
+        int bestLag = 1;
+        double best = Double.NEGATIVE_INFINITY;
+
+        for (int lag = RATE / 1_000; lag <= RATE / 80; lag++)
+        {
+            double sum = 0d;
+
+            for (int index = from; index + lag < to; index++)
+            {
+                sum += samples[index] * samples[index + lag];
+            }
+
+            if (sum > best * 1.0001d)
+            {
+                best = sum;
+                bestLag = lag;
+            }
+        }
+
+        return RATE / (double) bestLag;
     }
 
     private static SoulSynth synth(SoulMusicBrief brief)
