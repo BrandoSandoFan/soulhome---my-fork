@@ -182,7 +182,7 @@ public class PatchouliBasics
                                 "A soul that has climbed presses on the air around it. Once you have built a room of your own, you can feel it: a warp around a player who has ascended, following them, and a low hum.$(p)The further they have climbed, the larger and stronger it is, and the further off you notice it.")
                                 .setTitle("Suppression"),
                         new BookStuff.TextPage(
-                                "How well you can read it is yours. To a soul that has not climbed, a great one is a formless smear that throws off your aim. As you ascend, the same field settles into rings, one for every rank they hold, and a chime for each.$(p)A strong soul you can read is one you can aim through. A strong soul you cannot is simply in the way."),
+                                "How well you can read it is yours. To a soul that has not climbed, a great one is a formless smear that throws off your aim. As you ascend, the same field settles into rings, one for every rank they hold, and a low beat for each that you can count.$(p)A strong soul you can read is one you can aim through. A strong soul you cannot is simply in the way."),
                         new BookStuff.TextPage(
                                 "You only feel what you can see. A wall hides a soul as well as it hides a face.$(p)If the warp is uncomfortable to look at, turn it off in $(bold)soulhome-client.toml$(0) - the rings and the hum still tell you everything it would have."),
                 };

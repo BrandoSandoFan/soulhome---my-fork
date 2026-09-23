@@ -266,6 +266,19 @@ public class Constants
         public static final String AMBIENCE_SCREEN_OFF = "gui.soulhome.ambience.off";
         public static final String AMBIENCE_SCREEN_COSMETIC = "gui.soulhome.ambience.cosmetic";
 
+        // The same screen's second column: suppression's client switches (#188, #190), which lived
+        // only in the toml until a player who gets motion sick had a screen to find them on.
+        public static final String AMBIENCE_SCREEN_SECTION_SOUL = "gui.soulhome.ambience.section.soul";
+        public static final String AMBIENCE_SCREEN_SECTION_SUPPRESSION = "gui.soulhome.ambience.section.suppression";
+        public static final String AMBIENCE_SCREEN_SUPPRESSION_DISTORTION = "gui.soulhome.ambience.suppression_distortion";
+        public static final String AMBIENCE_SCREEN_SUPPRESSION_DISTORTION_TIP = "gui.soulhome.ambience.suppression_distortion.tooltip";
+        public static final String AMBIENCE_SCREEN_SUPPRESSION_AUDIO = "gui.soulhome.ambience.suppression_audio";
+        public static final String AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP = "gui.soulhome.ambience.suppression_audio.tooltip";
+
+        // Suppression's sounds (#188), for anyone reading the game through its subtitles
+        public static final String SUBTITLE_SUPPRESSION_DRONE = "subtitles.soulhome.suppression.drone";
+        public static final String SUBTITLE_SUPPRESSION_THROB = "subtitles.soulhome.suppression.throb";
+
         // The climb, on the same screen as the loadout (#83): the requirement lines themselves are
         // the message.soulhome.anchor.* ones the summary was printed with, reused rather than
         // rewritten, so a screen and a chat line can never end up describing the same pillar

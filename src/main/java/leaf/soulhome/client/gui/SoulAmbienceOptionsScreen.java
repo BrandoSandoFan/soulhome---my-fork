@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -25,15 +26,27 @@ import net.minecraftforge.common.ForgeConfigSpec;
  * are different claims, and the second is the one the issue asks for - somebody who finds the fog
  * uncomfortable should not have to be told there is a toml file.
  *
- * <p>Six controls, and the first of them turns off the other five. {@code Intensity} reaches zero
- * through the same slider it is set by, which is deliberately the one control that does everything:
- * a player sensitive to motion or contrast has one thing to find rather than four.
+ * <p>Two columns. The left is the soul's own ambience: six controls, and the first of them turns off
+ * the other five. {@code Intensity} reaches zero through the same slider it is set by, which is
+ * deliberately the one control that does everything: a player sensitive to motion or contrast has one
+ * thing to find rather than four.
+ *
+ * <p>The right is suppression (#188): the screen warp around a player who has ascended, and its
+ * sound. Both were in the toml from the start, and the warp is the one control in the mod that
+ * exists because of motion sickness - which made it the one most in need of a screen, and it had
+ * none. It sits here rather than on a screen of its own because this is where a player who has
+ * already turned the fog off will look for the next thing that bothers them. Columns rather than
+ * two more rows, because two more rows push the last of them under the footer at the smallest window
+ * the game allows.
  */
 @OnlyIn(Dist.CLIENT)
 public class SoulAmbienceOptionsScreen extends Screen
 {
     private static final int ROW_HEIGHT = 24;
-    private static final int WIDTH = 200;
+    private static final int WIDTH = 150;
+    private static final int GUTTER = 10;
+    private static final int HEADING_Y = 34;
+    private static final int FIRST_ROW_Y = 46;
 
     private final Screen parent;
 
@@ -47,9 +60,10 @@ public class SoulAmbienceOptionsScreen extends Screen
     protected void init()
     {
         final SoulHomeClientConfig.Client config = SoulHomeClientConfig.CLIENT;
-        final int left = this.width / 2 - WIDTH / 2;
+        final int left = leftColumn();
+        final int right = rightColumn();
 
-        int y = 40;
+        int y = FIRST_ROW_Y;
 
         addToggle(left, y, Constants.StringKeys.AMBIENCE_SCREEN_ENABLED, config.ambienceEnabled);
         y += ROW_HEIGHT;
@@ -68,14 +82,50 @@ public class SoulAmbienceOptionsScreen extends Screen
 
         addSlider(left, y, Constants.StringKeys.AMBIENCE_SCREEN_VOLUME, config.soundVolume);
 
+        y = FIRST_ROW_Y;
+
+        addToggle(right, y, Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION,
+                Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION_TIP, config.suppressionDistortion);
+        y += ROW_HEIGHT;
+
+        addToggle(right, y, Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO,
+                Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP, config.suppressionAudio);
+
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
                 .bounds(this.width / 2 - 100, this.height - 30, 200, 20)
                 .build());
     }
 
+    private int leftColumn()
+    {
+        return this.width / 2 - WIDTH - GUTTER / 2;
+    }
+
+    private int rightColumn()
+    {
+        return this.width / 2 + GUTTER / 2;
+    }
+
     private void addToggle(int x, int y, String key, ForgeConfigSpec.BooleanValue value)
     {
         addRenderableWidget(CycleButton.onOffBuilder(value.get())
+                .create(x, y, WIDTH, 20, Component.translatable(key), (button, set) ->
+                {
+                    write(value, set);
+                    flush();
+                }));
+    }
+
+    /**
+     * A toggle whose name alone does not say enough. "Screen warp" is two words; what a player
+     * turning it off needs to know is that they lose nothing they would need, and that is a sentence.
+     */
+    private void addToggle(int x, int y, String key, String tooltipKey, ForgeConfigSpec.BooleanValue value)
+    {
+        final Tooltip tooltip = Tooltip.create(Component.translatable(tooltipKey));
+
+        addRenderableWidget(CycleButton.onOffBuilder(value.get())
+                .withTooltip(set -> tooltip)
                 .create(x, y, WIDTH, 20, Component.translatable(key), (button, set) ->
                 {
                     write(value, set);
@@ -115,7 +165,14 @@ public class SoulAmbienceOptionsScreen extends Screen
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 18, 0xE0E0FF);
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, 16, 0xE0E0FF);
+
+        graphics.drawCenteredString(
+                this.font, Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SOUL),
+                leftColumn() + WIDTH / 2, HEADING_Y, 0xC0C0C0);
+        graphics.drawCenteredString(
+                this.font, Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SUPPRESSION),
+                rightColumn() + WIDTH / 2, HEADING_Y, 0xC0C0C0);
 
         // said on the screen itself, because "cosmetic" is the one thing a player needs to know
         // before deciding, and a config comment is not where they will be looking

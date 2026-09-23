@@ -196,20 +196,51 @@ class AmbienceAssetsTest
     }
 
     @Test
+    @DisplayName("suppression has a drone and a count of its own, and the drone streams (#188)")
+    void suppressionIsRegistered()
+    {
+        final JsonObject sounds = readSounds();
+
+        assertTrue(sounds.has("suppression.drone"), "no sound event for suppression's drone");
+        assertTrue(sounds.has("suppression.throb"), "no sound event for suppression's count");
+
+        final JsonArray drone = sounds.getAsJsonObject("suppression.drone").getAsJsonArray("sounds");
+
+        assertEquals(1, drone.size(), "the drone is one loop, not a set of variants");
+        assertTrue(drone.get(0).getAsJsonObject().get("stream").getAsBoolean(),
+                "the drone loops for as long as someone suppressed is in view, and is streamed");
+
+        // a count whose beats differ is harder to count - vanilla's random pick between variants
+        // is exactly the variety the ambience wants and this does not
+        assertEquals(1, namesIn(sounds, "suppression.throb").size(),
+                "every beat of the count should be the same beat");
+
+        for (String key : List.of("suppression.drone", "suppression.throb"))
+        {
+            // the audio channel is the accessible one, and a player who cannot hear it still gets
+            // told something is there, in the subtitles, which is where they will be looking
+            assertTrue(sounds.getAsJsonObject(key).has("subtitle"), key + " has no subtitle");
+        }
+    }
+
+    @Test
     @DisplayName("the assets record where they came from")
     void provenanceIsRecorded()
     {
-        final Path sources = ASSETS.resolve("sounds").resolve("ambience").resolve("SOURCES.md");
+        for (String directory : List.of("ambience", "suppression"))
+        {
+            final Path sources = ASSETS.resolve("sounds").resolve(directory).resolve("SOURCES.md");
 
-        assertTrue(Files.isRegularFile(sources),
-                "\"CC0\" and \"CC-BY\" are different promises and the repo should be able to prove "
-                        + "which one it made (#209)");
+            assertTrue(Files.isRegularFile(sources),
+                    "\"CC0\" and \"CC-BY\" are different promises and the repo should be able to prove "
+                            + "which one it made (#209) - no record for " + directory);
 
-        final String text = read(sources);
+            final String text = read(sources);
 
-        assertTrue(text.contains("tools/ambience/generate.py"),
-                "the provenance record should name what produced these files");
-        assertFalse(text.isBlank());
+            assertTrue(text.contains("tools/ambience/generate.py"),
+                    "the provenance record should name what produced these files");
+            assertFalse(text.isBlank());
+        }
     }
 
     private static List<String> namesIn(JsonObject sounds, String key)
