@@ -10,6 +10,7 @@ import leaf.soulhome.structures.core.AmbienceSettings;
 import leaf.soulhome.structures.core.SoulAmbience;
 import leaf.soulhome.structures.core.SoulCharacter;
 import leaf.soulhome.structures.core.SoulFeedback;
+import leaf.soulhome.structures.core.SoulSky;
 import leaf.soulhome.structures.core.SoulVoice;
 import net.minecraft.client.Minecraft;
 
@@ -93,6 +94,19 @@ public final class ClientAmbience
 
     private static final Map<SoulVoice, Float> characterBed = zeroedCharacterBed();
 
+    /** The sky (#163): eased at the colour's pace for what is built, and the fog's for rank. */
+    private static boolean skyActive;
+    private static final float[] zenith = SoulSky.NEUTRAL_ZENITH.clone();
+    private static final float[] veil = SoulSky.NEUTRAL_ZENITH.clone();
+    private static final float[] glow = SoulAmbience.NEUTRAL.clone();
+    private static float height;
+    private static float veilStrength;
+    private static float glowStrength;
+    private static float stars;
+
+    /** Character particles per tick, per voice (#163). */
+    private static final Map<SoulVoice, Float> weather = zeroedCharacterBed();
+
     private static SoulCharacter character = SoulCharacter.EMPTY;
 
     private ClientAmbience()
@@ -148,6 +162,11 @@ public final class ClientAmbience
         tickBed(rankBed, settings);
         tickCharacterBed(SoulAmbience.characterBedMix(blend, rankBed.total(), settings), settings);
 
+        final SoulSky sky = SoulSky.of(blend, soul.getRank(), soul.getMaxRank(), settings);
+        final Map<SoulVoice, Float> weatherTarget = SoulAmbience.weatherRates(blend, settings);
+
+        skyActive = sky.active();
+
         if (arrived)
         {
             red = target.red();
@@ -156,7 +175,21 @@ public final class ClientAmbience
             fogNear = target.fogNear();
             fogFar = target.fogFar();
             moteRate = target.moteRate();
+            snapSky(sky);
+
+            for (SoulVoice voice : weather.keySet())
+            {
+                weather.put(voice, weatherTarget.getOrDefault(voice, 0f));
+            }
+
             return;
+        }
+
+        easeSky(sky);
+
+        for (SoulVoice voice : weather.keySet())
+        {
+            weather.put(voice, ease(weather.get(voice), weatherTarget.getOrDefault(voice, 0f), COLOUR_EASE));
         }
 
         red = ease(red, target.red(), COLOUR_EASE);
@@ -287,10 +320,88 @@ public final class ClientAmbience
         return active ? moteRate : 0f;
     }
 
+    /** Whether a sky should be drawn over the soul being looked at - see {@code SoulSkyRenderer}. */
+    public static boolean skyActive()
+    {
+        return active && skyActive;
+    }
+
+    public static float[] zenith()
+    {
+        return zenith;
+    }
+
+    public static float skyHeight()
+    {
+        return height;
+    }
+
+    public static float[] veil()
+    {
+        return veil;
+    }
+
+    public static float veilStrength()
+    {
+        return veilStrength;
+    }
+
+    public static float[] glow()
+    {
+        return glow;
+    }
+
+    public static float glowStrength()
+    {
+        return glowStrength;
+    }
+
+    public static float stars()
+    {
+        return stars;
+    }
+
+    /** Character particles to try for this tick, for one voice - see {@code SoulWeatherParticles}. */
+    public static float weather(SoulVoice voice)
+    {
+        return active ? weather.getOrDefault(voice, 0f) : 0f;
+    }
+
     /** The blend the soul around us is made of, for whatever wants to read it. */
     public static SoulCharacter character()
     {
         return character;
+    }
+
+    private static void snapSky(SoulSky sky)
+    {
+        System.arraycopy(sky.zenith(), 0, zenith, 0, 3);
+        System.arraycopy(sky.veil(), 0, veil, 0, 3);
+        System.arraycopy(sky.glow(), 0, glow, 0, 3);
+        height = sky.height();
+        veilStrength = sky.veilStrength();
+        glowStrength = sky.glowStrength();
+        stars = sky.stars();
+    }
+
+    /**
+     * Colours at the colour's pace, since they answer what is built; height and stars at the fog's,
+     * since they answer rank - so an ascension is felt as the sky slowly opening and filling with
+     * stars over the ten seconds after the ritual, the same beat the fog has always had.
+     */
+    private static void easeSky(SoulSky sky)
+    {
+        for (int channel = 0; channel < 3; channel++)
+        {
+            zenith[channel] = ease(zenith[channel], sky.zenith()[channel], COLOUR_EASE);
+            veil[channel] = ease(veil[channel], sky.veil()[channel], COLOUR_EASE);
+            glow[channel] = ease(glow[channel], sky.glow()[channel], COLOUR_EASE);
+        }
+
+        veilStrength = ease(veilStrength, sky.veilStrength(), COLOUR_EASE);
+        glowStrength = ease(glowStrength, sky.glowStrength(), COLOUR_EASE);
+        height = ease(height, sky.height(), FOG_EASE);
+        stars = ease(stars, sky.stars(), FOG_EASE);
     }
 
     private static void tickDuck()
@@ -417,6 +528,13 @@ public final class ClientAmbience
         red = SoulAmbience.NEUTRAL[0];
         green = SoulAmbience.NEUTRAL[1];
         blue = SoulAmbience.NEUTRAL[2];
+        skyActive = false;
+        snapSky(SoulSky.NONE);
+
+        for (SoulVoice voice : weather.keySet())
+        {
+            weather.put(voice, 0f);
+        }
     }
 
     private static float ease(float from, float to, float rate)

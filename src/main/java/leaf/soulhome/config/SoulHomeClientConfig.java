@@ -8,6 +8,8 @@ import leaf.soulhome.structures.core.AmbienceSettings;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -50,9 +52,54 @@ public final class SoulHomeClientConfig
     {
     }
 
+    /**
+     * What {@code ambience.config_version} is written as today. Bumped when a default changes in a
+     * way an existing file has to be told about - see {@link #migrate}.
+     */
+    public static final int CONFIG_VERSION = 2;
+
     public static void register()
     {
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, SPEC, "soulhome-client.toml");
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(SoulHomeClientConfig::onLoad);
+    }
+
+    private static void onLoad(ModConfigEvent.Loading event)
+    {
+        if (event.getConfig().getSpec() == SPEC)
+        {
+            migrate();
+        }
+    }
+
+    /**
+     * Carries an existing file over a change of default.
+     *
+     * <p>Forge writes every default into the file the first time it is created, so a default changed
+     * later reaches nobody who has already launched the game once - which, for #163's volume and
+     * intensity fix, is every player who ever heard the problem. A value still sitting exactly on
+     * the old default is taken to be the default rather than a choice, and moved; any other value is
+     * a player's own and is left alone. Runs once per file: the version is written back with it.
+     */
+    private static void migrate()
+    {
+        if (CLIENT.configVersion.get() >= CONFIG_VERSION)
+        {
+            return;
+        }
+
+        if (CLIENT.intensity.get() == AmbienceSettings.LEGACY_DEFAULT_INTENSITY)
+        {
+            CLIENT.intensity.set(AmbienceSettings.DEFAULT_INTENSITY);
+        }
+
+        if (CLIENT.soundVolume.get() == AmbienceSettings.LEGACY_DEFAULT_SOUND_VOLUME)
+        {
+            CLIENT.soundVolume.set(AmbienceSettings.DEFAULT_SOUND_VOLUME);
+        }
+
+        CLIENT.configVersion.set(CONFIG_VERSION);
+        SPEC.save();
     }
 
     /**
@@ -80,7 +127,8 @@ public final class SoulHomeClientConfig
                 CLIENT.characterColour.get(),
                 CLIENT.ambientSound.get(),
                 CLIENT.intensity.get(),
-                CLIENT.soundVolume.get());
+                CLIENT.soundVolume.get(),
+                CLIENT.soulMusic.get());
     }
 
     /** Whether this player allows suppression's screen warp (#188). False until the file is read, as with {@link #ambience}. */
@@ -103,6 +151,8 @@ public final class SoulHomeClientConfig
         public final ForgeConfigSpec.BooleanValue ambientSound;
         public final ForgeConfigSpec.DoubleValue intensity;
         public final ForgeConfigSpec.DoubleValue soundVolume;
+        public final ForgeConfigSpec.BooleanValue soulMusic;
+        public final ForgeConfigSpec.IntValue configVersion;
 
         public final ForgeConfigSpec.BooleanValue suppressionDistortion;
         public final ForgeConfigSpec.BooleanValue suppressionAudio;
@@ -153,13 +203,25 @@ public final class SoulHomeClientConfig
 
             this.soundVolume = builder
                     .comment(
-                            "Volume of the ambient one-shots, 0 to 1, on top of your own Ambient/Environment",
-                            "slider. The default sits under a block being placed on purpose.",
+                            "Volume of the ambient bed and one-shots, 0 to 1, on top of your own",
+                            "Ambient/Environment slider. The default sits under the game, and audibly above nothing.",
                             "This is the real mix control, not a stand-in for a dedicated options-screen slider:",
                             "SoundSource is not one of the enums Forge patches to be extensible on 1.20.1 (#211),",
                             "so there is no vanilla category of this mod's own to put a slider under. Turning the",
                             "soul down without also turning down cave sounds and weather means this knob.")
                     .defineInRange("sound_volume", AmbienceSettings.DEFAULT_SOUND_VOLUME, 0d, 1d);
+
+            this.soulMusic = builder
+                    .comment(
+                            "Whether a soul plays music of its own in place of Minecraft's while you are inside it.",
+                            "It is composed as it plays, from what is built there: the rooms choose its mode and",
+                            "its instruments, and how far the soul has climbed decides how much space is in it.",
+                            "Under the game's own Music slider. Off gives you Minecraft's music back.")
+                    .define("soul_music", true);
+
+            this.configVersion = builder
+                    .comment("Bookkeeping for carrying this file over a change of default. Leave it alone.")
+                    .defineInRange("config_version", 1, 0, Integer.MAX_VALUE);
 
             builder.pop();
 

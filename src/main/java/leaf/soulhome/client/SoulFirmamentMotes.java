@@ -7,9 +7,10 @@ package leaf.soulhome.client;
 import leaf.soulhome.network.SyncSoulAmbienceMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
+import org.joml.Vector3f;
 
 /**
  * The firmament and the verge, seen from a distance (#164).
@@ -26,7 +27,11 @@ import net.minecraft.world.entity.player.Player;
  * most physical thing available that does not also block the view.
  *
  * <p>Sparse on purpose, and never dense enough to obscure a build: at full intensity and the last
- * rank this is under one mote a tick across the whole visible band, each one nearly transparent.
+ * rank this is a couple of motes a tick across the whole visible band.
+ *
+ * <p>They used to be {@code ENTITY_EFFECT}, the potion swirl, chosen because it was the one tintable
+ * vanilla particle quiet enough never to be noticed - and #163's playtest found it was exactly that.
+ * Dust takes the soul's colour just as well and is a speck a player can actually see.
  */
 public final class SoulFirmamentMotes
 {
@@ -118,11 +123,13 @@ public final class SoulFirmamentMotes
             return;
         }
 
-        // ENTITY_EFFECT takes its colour through the velocity arguments and draws at low alpha, so
-        // the soul's own colour arrives on a particle that is already a faint haze rather than a
-        // bright speck. Nothing else in vanilla is both tintable and this quiet.
-        level.addParticle(
-                ParticleTypes.ENTITY_EFFECT, x, y, z,
-                ClientAmbience.red(), ClientAmbience.green(), ClientAmbience.blue());
+        // lifted toward white so a mote in a deep-coloured soul is still a point of light against it
+        final Vector3f colour = new Vector3f(
+                0.35f + 0.65f * ClientAmbience.red(),
+                0.35f + 0.65f * ClientAmbience.green(),
+                0.35f + 0.65f * ClientAmbience.blue());
+
+        level.addParticle(new DustParticleOptions(colour, 1.1f + random.nextFloat() * 0.6f), x, y, z,
+                (random.nextDouble() - 0.5d) * 0.01d, 0d, (random.nextDouble() - 0.5d) * 0.01d);
     }
 }
