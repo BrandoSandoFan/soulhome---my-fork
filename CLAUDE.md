@@ -103,7 +103,7 @@ The bridge is three small interfaces/records:
 
 | Package | What lives there |
 | --- | --- |
-| `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. |
+| `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. `structures/core/music` is the soul's composer and synth. |
 | `structures` | the game-facing half: snapshot, datapack loading, scan scheduling, saved data, codecs (`ArchetypeCodecs`, `FormCodecs`, `BondCodecs`) |
 | `config` | two `ForgeConfigSpec`s: the server's, read through an immutable `Snapshot`, and the client's, which holds only the cosmetic ambience knobs |
 | `buffs`, `buffs/effects` | the capability holding a player's magnitudes, and one class per buff type |
@@ -391,6 +391,28 @@ consumes a classification that already existed. The rules, and what breaks if on
   would duck for somebody else's beacon or anvil, and matching on `SoundSource.PLAYERS` inside a
   soul would duck for every block placed - in a dimension whose whole purpose is placing blocks.
   A tail in flight is silenced by a hold rather than allowed to finish.
+
+- **Quiet is relative to the game, and it lives in the assets and the player's knobs** (#163). The
+  first playtest found the whole ambience quieter than Minecraft's music, because every layer had
+  added its own "if in doubt, quieter" ceiling on top of assets already mastered far down. The
+  assets are mastered by `tools/ambience` (one-shots -20 dBFS RMS, limited to -3 peak; bed -24;
+  character beds -28), and the Java ceilings only keep the layers in order relative to each other.
+  Do not add another attenuation stage; turn a mastering target or a default instead.
+- **The soul plays its own music, and vanilla's is held off by a mixin** (#163). `SoulSynth` and
+  `SoulComposer` (under `structures/core/music`, Minecraft-free) compose and render it live;
+  `SoulMusicPlayer` hands it to the sound engine through Forge's `SoundInstance#getStream`, and
+  `MusicManagerMixin` cancels `MusicManager#tick` while a soul's music is on - Forge 47.3.0 has no
+  `SelectMusicEvent`. A piece is composed from the brief when it starts and never changes under a
+  player; every note is in the piece's mode and no diminished chord is ever held, which
+  `SoulComposerTest` pins, and `SoulSynthTest` holds every voice between -28 and -16 dBFS at every
+  rank.
+- **Vanilla has eight streaming channels, total.** The bed's rank layers, its character layers and
+  the music all stream. `SoulAmbienceBed.MAX_CHARACTER_LAYERS` keeps only the loudest few character
+  layers alive; a stream that cannot get a channel is silently dropped, so anything new that streams
+  has to fit in that budget.
+- **The sky's horizon is the fog colour, read back** (`RenderSystem.getShaderFogColor`), never
+  recomputed, so terrain at the edge of sight fades into the sky without a seam. `SoulSky` decides
+  everything above it; its zenith has a floor of its own and the lightmap is still never touched.
 
 ### Attunement: which rooms a soul is actually carrying
 
