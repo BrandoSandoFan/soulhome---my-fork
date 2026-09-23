@@ -8,11 +8,12 @@ This file is for agents working on the repo. It exists so you do not have to red
 workaround, the architecture, or the invariants that are easy to break silently.
 
 An agent working here is usually running in an environment with free permissions - broad tool
-access with little or no per-action approval - rather than a tightly sandboxed one. That changes
-nothing about the engineering judgment this file asks for: verify the offline build and tests the
-way this file describes, do not claim something works without having run it, and still treat
-destructive or hard-to-reverse actions (force-pushing, discarding uncommitted work, and the like)
-with the same caution as ever.
+access with little or no per-action approval, and outbound network access to the Maven
+repositories - rather than a tightly sandboxed one. **That means you can, and should, run the full
+Gradle build yourself, Minecraft and all** (see below); it is not something to leave for CI. None
+of this changes the engineering judgment this file asks for: do not claim something works without
+having run it, and still treat destructive or hard-to-reverse actions (force-pushing, discarding
+uncommitted work, and the like) with the same caution as ever.
 
 ---
 
@@ -22,14 +23,32 @@ with the same caution as ever.
 (`.github/workflows/build.yml`). Note the repo stores `gradlew` **without** the executable bit, so
 CI does `chmod +x ./gradlew` first; locally use `sh gradlew ...` if you hit "Permission denied".
 
-### Gradle needs network access, and often does not have it
+### Run the full build locally - it is expected
+
+You will normally have network access to `maven.neoforged.net`, Maven Central and the other
+repositories `build.gradle` names, and permission to run long commands. So the default is the real
+thing: **`sh gradlew build` before every push**, Minecraft classes included. It compiles every
+file - the NeoForge-facing half too - and runs the whole suite. The first run on a cold cache
+downloads and decompiles Minecraft and takes several minutes; that is the cost of the check, not a
+reason to skip it. Run it in the background if it helps, but run it. The toolchain is pinned to
+Java 21; if Gradle reports "No matching toolchains found", the container simply lacks one - install
+it (`apt-get install -y openjdk-21-jdk-headless`) rather than treating the build as unrunnable.
+`runData` and `runServer` belong in the same habit whenever a change touches datagen or can only be
+seen in the game (a config file appearing, a world loading) - see "run the game" below.
+
+Do not substitute the offline path below out of habit, and do not report a change to a
+NeoForge-facing class as verified because it `javac`s with only missing-symbol errors. That is a
+fallback for when Gradle genuinely cannot reach its repositories, not an equivalent.
+
+### Fallback: when Gradle cannot reach the network
 
 ModDevGradle resolves from `maven.neoforged.net` and decompiles Minecraft on a cold cache. In a
 sandbox with no route to that host, **`./gradlew` cannot run at all** - it fails at plugin
-resolution before compiling a single file.
+resolution before compiling a single file. Confirm that is actually what happened (the error names
+the host) before falling back.
 
-**Do not conclude the tests cannot be run.** The parts of this codebase that carry the interesting
-logic are deliberately Minecraft-free and compile with plain `javac`:
+Even then, **do not conclude the tests cannot be run.** The parts of this codebase that carry the
+interesting logic are deliberately Minecraft-free and compile with plain `javac`:
 
 ```sh
 SP=/tmp/soulhome-offline && mkdir -p $SP
@@ -47,7 +66,8 @@ java -jar $SP/junit.jar execute -cp "$SP/out:$SP/gson.jar:src/main/resources:src
 ```
 
 That runs the great majority of the suite (region detection, classification, form clauses, buff
-maths). What it does **not** cover, and what CI is therefore the first real compile of:
+maths). What it does **not** cover, and what CI is the first real compile of when you had to take
+this path (say so when you report the change):
 
 | Not covered offline | Why |
 | --- | --- |
@@ -61,7 +81,7 @@ For a file you cannot compile, `javac` it anyway against the offline classpath a
 **every** error is a missing NeoForge/Minecraft symbol rather than a syntax error. That catches most
 mistakes.
 
-### When you do have network access, run the game
+### Run the game, too
 
 `./gradlew runData` regenerates `src/main/generated` and is the only check that the datapack the mod
 ships still parses; `./gradlew runServer` boots a dedicated server, which is where NeoForge's
@@ -499,6 +519,12 @@ a knob that changes only what one person sees is that person's.**
 cosmetic. All server-side, read through an immutable `Snapshot` so a reload cannot land halfway
 through a scan. Values that fail a settings record's validation fall back to the defaults with a log
 line rather than refusing to start - keep that property when adding a knob.
+
+On this line the server config's file is `config/soulhome-server.toml` in the instance folder:
+NeoForge keeps server configs global rather than per world (it is still synced to clients). That
+differs from `1.20.1`, where Forge writes them to `<world>/serverconfig/` and `SoulHomeConfig`
+also keeps a template in `defaultconfigs/` so the file can be found - a fix deliberately not
+ported, because the problem it solves does not exist here.
 
 `ScanSettings`, `ScoringSettings` and `BuffSettings` are records in `structures/core` and are the
 single source of truth for defaults; the config spec should reference their `DEFAULT_*` constants
