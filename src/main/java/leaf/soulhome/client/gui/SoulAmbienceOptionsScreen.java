@@ -37,7 +37,8 @@ import net.neoforged.neoforge.common.ModConfigSpec;
  * none. It sits here rather than on a screen of its own because this is where a player who has
  * already turned the fog off will look for the next thing that bothers them. Columns rather than
  * two more rows, because two more rows push the last of them under the footer at the smallest window
- * the game allows.
+ * the game allows. The soul's own music (#163) sits under it, under a heading of its own, for the
+ * same reason.
  */
 @OnlyIn(Dist.CLIENT)
 public class SoulAmbienceOptionsScreen extends Screen
@@ -47,6 +48,14 @@ public class SoulAmbienceOptionsScreen extends Screen
     private static final int GUTTER = 10;
     private static final int HEADING_Y = 34;
     private static final int FIRST_ROW_Y = 46;
+
+    /**
+     * The soul's music (#163) sits under the suppression pair with a heading of its own: it is about
+     * your soul rather than other people's, but a seventh row on the left would put the intensity
+     * slider's neighbour under the footer at the smallest window the game allows.
+     */
+    private static final int MUSIC_HEADING_Y = FIRST_ROW_Y + 2 * ROW_HEIGHT + 8;
+    private static final int MUSIC_ROW_Y = MUSIC_HEADING_Y + 12;
 
     private final Screen parent;
 
@@ -90,6 +99,9 @@ public class SoulAmbienceOptionsScreen extends Screen
 
         addToggle(right, y, Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO,
                 Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP, config.suppressionAudio);
+
+        addToggle(right, MUSIC_ROW_Y, Constants.StringKeys.AMBIENCE_SCREEN_MUSIC,
+                Constants.StringKeys.AMBIENCE_SCREEN_MUSIC_TIP, config.soulMusic);
 
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
                 .bounds(this.width / 2 - 100, this.height - 30, 200, 20)
@@ -171,6 +183,9 @@ public class SoulAmbienceOptionsScreen extends Screen
         graphics.drawCenteredString(
                 this.font, Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SUPPRESSION),
                 rightColumn() + WIDTH / 2, HEADING_Y, 0xC0C0C0);
+        graphics.drawCenteredString(
+                this.font, Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_MUSIC),
+                rightColumn() + WIDTH / 2, MUSIC_HEADING_Y, 0xC0C0C0);
 
         // said on the screen itself, because "cosmetic" is the one thing a player needs to know
         // before deciding, and a config comment is not where they will be looking

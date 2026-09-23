@@ -99,8 +99,12 @@ public final class SoulAmbienceSounds
     /** Longest, at three and a half minutes. Drawn uniformly, so nothing about it is periodic. */
     private static final int MAX_GAP = 4_200;
 
-    /** Shared ceiling on the whole thing, so the ambience sits well under a block being placed. */
-    private static final float BASE_VOLUME = 0.6f;
+    /**
+     * Shared ceiling on the whole thing. Full, now that the assets are mastered where they should be
+     * (#163): the quiet lives in {@code tools/ambience} and the player's own knobs, and a third
+     * attenuation stacked on top of both is how the one-shots came to be inaudible.
+     */
+    private static final float BASE_VOLUME = 1.0f;
 
     /** How much further round the compass each repeat of a tail arrives from. */
     private static final double ECHO_SWING = 0.4d;

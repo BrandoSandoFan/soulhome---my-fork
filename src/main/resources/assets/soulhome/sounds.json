@@ -293,5 +293,14 @@
     "sounds": [
       "soulhome:suppression/throb"
     ]
+  },
+  "music.soul": {
+    "category": "music",
+    "sounds": [
+      {
+        "name": "soulhome:music/soul",
+        "stream": true
+      }
+    ]
   }
 }

@@ -25,6 +25,7 @@ package leaf.soulhome.structures.core;
  * @param sound       whether the ambient one-shots play at all (#166)
  * @param intensity   0 to 1, scaling every part of it together
  * @param soundVolume 0 to 1, on top of the player's own Ambient/Environment slider
+ * @param music       whether the soul's own music replaces Minecraft's while inside one (#163)
  */
 public record AmbienceSettings(
         boolean enabled,
@@ -32,24 +33,47 @@ public record AmbienceSettings(
         boolean character,
         boolean sound,
         double intensity,
-        double soundVolume)
+        double soundVolume,
+        boolean music)
 {
-    public static final double DEFAULT_INTENSITY = 0.6d;
+    /**
+     * Most of the way up. It was 0.6, which with every other ceiling in the epic multiplied under it
+     * left a soul full of rooms looking and sounding like an empty one (#163's first real playtest).
+     * The accessibility half of #167 is that this reaches zero through one control, not that it
+     * starts near it.
+     */
+    public static final double DEFAULT_INTENSITY = 0.85d;
 
-    /** Deliberately well under a block being placed: ambience that competes with the game is noise. */
-    public static final double DEFAULT_SOUND_VOLUME = 0.35d;
+    /**
+     * Under the game, not under hearing. It was 0.35 on top of assets already mastered 10 dB down,
+     * and the ambience reached the ear quieter than Minecraft's own music. The assets now carry the
+     * "quiet" (see {@code tools/ambience}); this knob only sets where the soul sits against the game.
+     */
+    public static final double DEFAULT_SOUND_VOLUME = 0.8d;
+
+    /** What the two defaults above used to be - {@code SoulHomeClientConfig} migrates a file still holding them. */
+    public static final double LEGACY_DEFAULT_INTENSITY = 0.6d;
+
+    public static final double LEGACY_DEFAULT_SOUND_VOLUME = 0.35d;
 
     public static final AmbienceSettings DEFAULT =
-            new AmbienceSettings(true, true, true, true, DEFAULT_INTENSITY, DEFAULT_SOUND_VOLUME);
+            new AmbienceSettings(true, true, true, true, DEFAULT_INTENSITY, DEFAULT_SOUND_VOLUME, true);
 
     /** Every part off - what {@code ambience.enabled = false} gives, and what a dedicated server has. */
     public static final AmbienceSettings OFF =
-            new AmbienceSettings(false, false, false, false, 0d, 0d);
+            new AmbienceSettings(false, false, false, false, 0d, 0d, false);
 
     public AmbienceSettings
     {
         intensity = clamp(intensity);
         soundVolume = clamp(soundVolume);
+    }
+
+    /** The settings as they were before the soul had music of its own - music on, as it defaults. */
+    public AmbienceSettings(
+            boolean enabled, boolean rankVisuals, boolean character, boolean sound, double intensity, double soundVolume)
+    {
+        this(enabled, rankVisuals, character, sound, intensity, soundVolume, true);
     }
 
     /** Whether anything at all should be drawn or played - the one test every surface starts with. */
@@ -71,6 +95,17 @@ public record AmbienceSettings(
     public boolean soundActive()
     {
         return active() && this.sound && this.soundVolume > 0d;
+    }
+
+    /**
+     * Whether the soul's own music plays, and so whether Minecraft's is held off while inside one.
+     * Not scaled by {@link #soundVolume}: music has a slider of its own in the game's options, and
+     * a second one here would be two controls for one thing. Off at zero intensity like everything
+     * else, because that is the one switch #167 promises turns all of it off.
+     */
+    public boolean musicActive()
+    {
+        return active() && this.music;
     }
 
     private static double clamp(double value)

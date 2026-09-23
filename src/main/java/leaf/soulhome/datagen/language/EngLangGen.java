@@ -379,6 +379,11 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP,
                 "Whether a player who has ascended carries a low drone, with a beat for each rank once you can read them.");
 
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_MUSIC, "Music");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_MUSIC, "Soul music");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_MUSIC_TIP,
+                "Inside a soul, play music composed from what is built there in place of Minecraft's own. Its mode and instruments come from your rooms, and its space from your rank. Uses the game's Music slider.");
+
         add(Constants.StringKeys.SUBTITLE_SUPPRESSION_DRONE, "Suppression presses");
         add(Constants.StringKeys.SUBTITLE_SUPPRESSION_THROB, "Suppression beats");
 

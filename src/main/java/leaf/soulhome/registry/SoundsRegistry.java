@@ -85,6 +85,14 @@ public final class SoundsRegistry
 
     public static final DeferredHolder<SoundEvent, SoundEvent> SUPPRESSION_THROB = register("suppression.throb");
 
+    /**
+     * The soul's own music (#163). One event, and the file behind it is a second of silence: the
+     * music is composed as it plays, and {@code SoulMusicPlayer} hands the sound engine a stream of
+     * its own in place of that file. The event exists so the music is under the Music slider and so
+     * a resource pack can point it at a real file, which is then played instead.
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> SOUL_MUSIC = register("music.soul");
+
     private SoundsRegistry()
     {
     }

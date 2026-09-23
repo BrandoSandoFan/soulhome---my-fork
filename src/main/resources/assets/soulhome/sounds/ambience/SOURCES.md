@@ -19,46 +19,46 @@ the generator's own docstring for why that is the guarantee worth making.
 
 | File | What it is | Length | PCM sha256 |
 | --- | --- | --- | --- |
-| `base_1.ogg` | one-shot, base voice, variant 1 | 4.50s | `424bea9b35a1580f…` |
-| `base_2.ogg` | one-shot, base voice, variant 2 | 4.50s | `a029ba5d22ca2437…` |
-| `base_3.ogg` | one-shot, base voice, variant 3 | 4.50s | `79be923c33f2897e…` |
-| `warm_1.ogg` | one-shot, warm voice, variant 1 | 3.00s | `a8cfff3d62ad7b4e…` |
-| `warm_2.ogg` | one-shot, warm voice, variant 2 | 3.00s | `9fe43455887f7828…` |
-| `warm_3.ogg` | one-shot, warm voice, variant 3 | 3.00s | `8091507a28d28c32…` |
-| `cold_1.ogg` | one-shot, cold voice, variant 1 | 4.00s | `65d9cc855c327ee2…` |
-| `cold_2.ogg` | one-shot, cold voice, variant 2 | 4.00s | `43d1516af8c77ce4…` |
-| `cold_3.ogg` | one-shot, cold voice, variant 3 | 4.00s | `e98ae446af1e76fd…` |
-| `steam_1.ogg` | one-shot, steam voice, variant 1 | 3.40s | `45b0062fd7849d3e…` |
-| `steam_2.ogg` | one-shot, steam voice, variant 2 | 3.40s | `7a096e89c5067cbc…` |
-| `steam_3.ogg` | one-shot, steam voice, variant 3 | 3.40s | `f1ff568e849da8d0…` |
-| `arcane_1.ogg` | one-shot, arcane voice, variant 1 | 4.20s | `15bc8a4a4a08fefd…` |
-| `arcane_2.ogg` | one-shot, arcane voice, variant 2 | 4.20s | `9e1c1488ba02b5c1…` |
-| `arcane_3.ogg` | one-shot, arcane voice, variant 3 | 4.20s | `4f15af2b9ec5a4a8…` |
-| `wrought_1.ogg` | one-shot, wrought voice, variant 1 | 3.20s | `de2579d59de27363…` |
-| `wrought_2.ogg` | one-shot, wrought voice, variant 2 | 3.20s | `1d3548bbe87e8090…` |
-| `wrought_3.ogg` | one-shot, wrought voice, variant 3 | 3.20s | `673164b2b90ed026…` |
-| `quickened_1.ogg` | one-shot, quickened voice, variant 1 | 4.00s | `eafa90560bf6caf1…` |
-| `quickened_2.ogg` | one-shot, quickened voice, variant 2 | 4.00s | `6dc0c3031e84f8ac…` |
-| `quickened_3.ogg` | one-shot, quickened voice, variant 3 | 4.00s | `06983cfdfaff4b83…` |
-| `verdant_1.ogg` | one-shot, verdant voice, variant 1 | 3.40s | `88c26e4198f20b02…` |
-| `verdant_2.ogg` | one-shot, verdant voice, variant 2 | 3.40s | `c62147aba6777092…` |
-| `verdant_3.ogg` | one-shot, verdant voice, variant 3 | 3.40s | `8656aa233e706c49…` |
-| `hollow_1.ogg` | one-shot, hollow voice, variant 1 | 4.20s | `c4a166b1814c4b43…` |
-| `hollow_2.ogg` | one-shot, hollow voice, variant 2 | 4.20s | `c5d96c829e63a5bc…` |
-| `hollow_3.ogg` | one-shot, hollow voice, variant 3 | 4.20s | `c65a0802d42e62b9…` |
-| `overgrown_1.ogg` | one-shot, overgrown voice, variant 1 | 4.00s | `bd91dee810958f8f…` |
-| `overgrown_2.ogg` | one-shot, overgrown voice, variant 2 | 4.00s | `3f654088d148edc1…` |
-| `overgrown_3.ogg` | one-shot, overgrown voice, variant 3 | 4.00s | `4ecd6be42752aea5…` |
-| `bed_close.ogg` | ambient bed, close rank layer, seamless loop | 68.00s | `2e84af681e4f8583…` |
-| `bed_open.ogg` | ambient bed, open rank layer, seamless loop | 68.00s | `1a849a9f4cd7754a…` |
-| `character_warm.ogg` | ambient bed, warm character layer, seamless loop | 68.00s | `018e80256b3e1370…` |
-| `character_cold.ogg` | ambient bed, cold character layer, seamless loop | 68.00s | `0859762a7b644b22…` |
-| `character_steam.ogg` | ambient bed, steam character layer, seamless loop | 68.00s | `ed3c1ecc9bf1f763…` |
-| `character_arcane.ogg` | ambient bed, arcane character layer, seamless loop | 68.00s | `f05b638eef2d4ca4…` |
-| `character_wrought.ogg` | ambient bed, wrought character layer, seamless loop | 68.00s | `fe5e25ecefed7585…` |
-| `character_quickened.ogg` | ambient bed, quickened character layer, seamless loop | 68.00s | `1aaa0abfa7810253…` |
-| `character_verdant.ogg` | ambient bed, verdant character layer, seamless loop | 68.00s | `0e8e2edbe2e2099a…` |
-| `character_hollow.ogg` | ambient bed, hollow character layer, seamless loop | 68.00s | `a7d51d09e16e300d…` |
-| `character_overgrown.ogg` | ambient bed, overgrown character layer, seamless loop | 68.00s | `dac760152b54d62b…` |
+| `base_1.ogg` | one-shot, base voice, variant 1 | 4.50s | `27b4ebf61501b711…` |
+| `base_2.ogg` | one-shot, base voice, variant 2 | 4.50s | `ff7174719ddab54f…` |
+| `base_3.ogg` | one-shot, base voice, variant 3 | 4.50s | `d3a48c0a912528b7…` |
+| `warm_1.ogg` | one-shot, warm voice, variant 1 | 3.00s | `a50c7a84b8072888…` |
+| `warm_2.ogg` | one-shot, warm voice, variant 2 | 3.00s | `15d63fb4b8ef408c…` |
+| `warm_3.ogg` | one-shot, warm voice, variant 3 | 3.00s | `4c3764ad9fa37ff1…` |
+| `cold_1.ogg` | one-shot, cold voice, variant 1 | 4.00s | `0086dcc50110c275…` |
+| `cold_2.ogg` | one-shot, cold voice, variant 2 | 4.00s | `c5c8f54e98500bf5…` |
+| `cold_3.ogg` | one-shot, cold voice, variant 3 | 4.00s | `7438838828def399…` |
+| `steam_1.ogg` | one-shot, steam voice, variant 1 | 3.40s | `ba65f2fa7eaa877b…` |
+| `steam_2.ogg` | one-shot, steam voice, variant 2 | 3.40s | `19ad21b966930554…` |
+| `steam_3.ogg` | one-shot, steam voice, variant 3 | 3.40s | `0678d8c769ed6da5…` |
+| `arcane_1.ogg` | one-shot, arcane voice, variant 1 | 4.20s | `33e05728453fc025…` |
+| `arcane_2.ogg` | one-shot, arcane voice, variant 2 | 4.20s | `338bb0f09ad29c73…` |
+| `arcane_3.ogg` | one-shot, arcane voice, variant 3 | 4.20s | `307d41a3b28fb386…` |
+| `wrought_1.ogg` | one-shot, wrought voice, variant 1 | 3.20s | `13e3f756d98b0d7f…` |
+| `wrought_2.ogg` | one-shot, wrought voice, variant 2 | 3.20s | `35f0d54463bcd777…` |
+| `wrought_3.ogg` | one-shot, wrought voice, variant 3 | 3.20s | `9de41e89b0679e8b…` |
+| `quickened_1.ogg` | one-shot, quickened voice, variant 1 | 4.00s | `b5a8f5047cfc53cd…` |
+| `quickened_2.ogg` | one-shot, quickened voice, variant 2 | 4.00s | `320956b28f67e90d…` |
+| `quickened_3.ogg` | one-shot, quickened voice, variant 3 | 4.00s | `2cc06fb95c8b9ba5…` |
+| `verdant_1.ogg` | one-shot, verdant voice, variant 1 | 3.40s | `8a82632c520e56e0…` |
+| `verdant_2.ogg` | one-shot, verdant voice, variant 2 | 3.40s | `e5123703a07b883a…` |
+| `verdant_3.ogg` | one-shot, verdant voice, variant 3 | 3.40s | `2fd4edf8b67c4f2a…` |
+| `hollow_1.ogg` | one-shot, hollow voice, variant 1 | 4.20s | `7e00e3e63a43b74a…` |
+| `hollow_2.ogg` | one-shot, hollow voice, variant 2 | 4.20s | `9094fa2449eb073e…` |
+| `hollow_3.ogg` | one-shot, hollow voice, variant 3 | 4.20s | `7d4a07cc6be20ae3…` |
+| `overgrown_1.ogg` | one-shot, overgrown voice, variant 1 | 4.00s | `27fcebaa9ad1bec6…` |
+| `overgrown_2.ogg` | one-shot, overgrown voice, variant 2 | 4.00s | `71c7ebd2fab7482e…` |
+| `overgrown_3.ogg` | one-shot, overgrown voice, variant 3 | 4.00s | `721e123a5f5f0e47…` |
+| `bed_close.ogg` | ambient bed, close rank layer, seamless loop | 68.00s | `08ce13ac04dd09a0…` |
+| `bed_open.ogg` | ambient bed, open rank layer, seamless loop | 68.00s | `bfb4e491ca912a0c…` |
+| `character_warm.ogg` | ambient bed, warm character layer, seamless loop | 68.00s | `0cf553d03dfccfd5…` |
+| `character_cold.ogg` | ambient bed, cold character layer, seamless loop | 68.00s | `3e4de3935ab72fe1…` |
+| `character_steam.ogg` | ambient bed, steam character layer, seamless loop | 68.00s | `25b70cfd7394c2bc…` |
+| `character_arcane.ogg` | ambient bed, arcane character layer, seamless loop | 68.00s | `68b74f86c690d8d1…` |
+| `character_wrought.ogg` | ambient bed, wrought character layer, seamless loop | 68.00s | `b146c9e399b098ee…` |
+| `character_quickened.ogg` | ambient bed, quickened character layer, seamless loop | 68.00s | `a688b422f9b5e014…` |
+| `character_verdant.ogg` | ambient bed, verdant character layer, seamless loop | 68.00s | `d06cc3bc5351c325…` |
+| `character_hollow.ogg` | ambient bed, hollow character layer, seamless loop | 68.00s | `d30b8246f89fe090…` |
+| `character_overgrown.ogg` | ambient bed, overgrown character layer, seamless loop | 68.00s | `3cd1886891cd56d6…` |
 
-_Last rendered 2026-09-17._
+_Last rendered 2026-09-23._
