@@ -1843,3 +1843,16 @@ of its pitch either way four seconds in (#261).
   rather than half a percent, and the bell has lost the second carrier that beat against it.
 - Cosmetic only, still under the Music slider, still off with `soul_music`.
 - Ported to `1.21.1`.
+
+A pack could raise `max_rank` past the ranks that have an essence
+
+`ascent.max_rank` accepted anything from 0 to 20, but the ascension ritual pays for each rank with
+its own Sublime Essence item, and there are only nine of those. A pack that set it above IX had the
+anchor screen show a next rank the ritual could never start for, with no essence anywhere in the
+game to satisfy it (#281).
+
+- `ascent.max_rank` above IX is now clamped back down to IX at startup, with a log line saying so,
+  the same way `dimension.guest_rank_required` above `max_rank` already warns instead of silently
+  doing nothing.
+- Neither a buff nor a nerf: no pack could ever reach a rank above IX before, this only stops the
+  config from promising one.

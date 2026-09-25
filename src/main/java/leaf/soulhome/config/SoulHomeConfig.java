@@ -514,7 +514,7 @@ public final class SoulHomeConfig
                         SERVER.ceilingHeightPerRank.get(),
                         SERVER.baseVerge.get(),
                         SERVER.vergePerRank.get(),
-                        SERVER.maxRank.get(),
+                        clampMaxRank(SERVER.maxRank.get()),
                         SERVER.startingRank.get(),
                         SERVER.trophyRoomTrackPlayerHeads.get(),
                         SERVER.residueTapEnabled.get(),
@@ -584,6 +584,25 @@ public final class SoulHomeConfig
                 LogHelper.error("Could not read the soulhome config, falling back to defaults: " + e);
                 return DEFAULTS;
             }
+        }
+
+        /**
+         * The field itself accepts 0-20, but a rank above {@link SoulBounds#MAX_RANK} can never be
+         * paid for - there is one Sublime Essence item per rank and no more (#281). Clamping here,
+         * rather than narrowing the field's own range, keeps the warning specific to why a pack's
+         * value was rejected instead of Forge's generic out-of-range message.
+         */
+        private static int clampMaxRank(int rawMaxRank)
+        {
+            if (rawMaxRank > SoulBounds.MAX_RANK)
+            {
+                LogHelper.warn("ascent.max_rank (" + rawMaxRank + ") is above " + SoulBounds.MAX_RANK
+                        + ", the highest rank there is a Sublime Essence to pay for - clamping to "
+                        + SoulBounds.MAX_RANK + ". A rank beyond that could never be reached.");
+                return SoulBounds.MAX_RANK;
+            }
+
+            return rawMaxRank;
         }
 
         /**
