@@ -41,7 +41,8 @@ import java.util.Optional;
  *
  * <h2>One rule decides when growth runs</h2>
  *
- * Growth is due whenever a soulhome's {@code grownRank} trails its {@code ascensionRank}. That one
+ * Growth is due whenever a soulhome's {@code grownRank} trails its {@code ascensionRank} by an
+ * outward rank ({@link SoulBounds#outwardRank} - III, VI and IX at the defaults). That one
  * condition covers an ascension a moment ago, a soulhome that was already rank III before any of
  * this shipped, and a server that stopped halfway through a band - so there is no ascension-shaped
  * trigger a duplicated event could fire twice, no "already grown" flag to keep in step, and
@@ -116,7 +117,9 @@ public final class TerrainGrowthService
         final SoulHomeBuffData data = SoulHomeBuffData.get(soulhome);
         final int rank = Math.min(data.ascensionRank(), SoulHomeConfig.maxRank());
 
-        if (settings.bandWidth(rank, data.grownRank()) <= 0)
+        // measured in outward ranks, so a rank that only raises the ceiling owes no ground. grownRank
+        // then stays at the last rank that did, and the next outward rank catches up from there
+        if (settings.bandWidth(SoulHomeConfig.outwardRank(rank), SoulHomeConfig.outwardRank(data.grownRank())) <= 0)
         {
             return;
         }
@@ -362,7 +365,10 @@ public final class TerrainGrowthService
 
         private final TerrainGrowthSettings settings;
         private final int rank;
-        private final int grownRank;
+
+        /** {@code rank} and the grown rank as the ground reads them - see {@link SoulBounds#outwardRank}. */
+        private final int outwardRank;
+        private final int outwardGrownRank;
         private final SoulBounds bounds;
         private final RegionBounds box;
         private final RegionBounds legacyBox;
@@ -385,10 +391,11 @@ public final class TerrainGrowthService
         {
             this.settings = settings;
             this.rank = rank;
-            this.grownRank = grownRank;
+            this.outwardRank = SoulHomeConfig.outwardRank(rank);
+            this.outwardGrownRank = SoulHomeConfig.outwardRank(grownRank);
             final SoulHomeBuffData data = SoulHomeBuffData.get(level);
             this.bounds = SoulHomeConfig.soulBounds(rank, data.islandFloorY());
-            this.box = surveyBox(this.bounds, settings, rank);
+            this.box = surveyBox(this.bounds, settings, this.outwardRank);
             this.legacyBox = data.legacyBox().orElse(null);
             this.soulSeed = seedOf(level);
             this.survey = new GroundSurvey(this.box.minX(), this.box.minZ(), this.box.maxX(), this.box.maxZ());
@@ -494,7 +501,7 @@ public final class TerrainGrowthService
         private boolean stepPlan()
         {
             final ApronPlan plan = ApronPlanner.plan(
-                    this.survey, this.settings, this.rank, this.grownRank, this.bounds.vergeHalfExtent(),
+                    this.survey, this.settings, this.outwardRank, this.outwardGrownRank, this.bounds.vergeHalfExtent(),
                     this.legacyBox, this.soulSeed);
 
             this.plannedLimit = plan.groundLimit();
@@ -660,10 +667,10 @@ public final class TerrainGrowthService
      * ground limit is about 100 of them; the sixty-odd in between can never hold a block of apron
      * whatever they contain, so there is nothing to learn by creating them.
      */
-    private static RegionBounds surveyBox(SoulBounds bounds, TerrainGrowthSettings settings, int rank)
+    private static RegionBounds surveyBox(SoulBounds bounds, TerrainGrowthSettings settings, int outwardRank)
     {
         final RegionBounds box = bounds.toRegionBounds();
-        final int reach = settings.groundLimit(rank, bounds.vergeHalfExtent()) + settings.clearanceMargin();
+        final int reach = settings.groundLimit(outwardRank, bounds.vergeHalfExtent()) + settings.clearanceMargin();
 
         return new RegionBounds(
                 Math.max(box.minX(), -reach), box.minY(), Math.max(box.minZ(), -reach),

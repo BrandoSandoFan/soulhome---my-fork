@@ -222,7 +222,7 @@ public final class SoulHomeConfig
     {
         return SoulBounds.forRank(
                 rank, snapshot.maxRank(), snapshot.floorY(), snapshot.baseCeilingHeight(),
-                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank());
+                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank(), snapshot.outwardRanks());
     }
 
     /**
@@ -235,7 +235,23 @@ public final class SoulHomeConfig
     {
         return SoulBounds.forRank(
                 rank, snapshot.maxRank(), snapshot.floorY(), snapshot.baseCeilingHeight(),
-                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank(), islandFloorY);
+                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank(), snapshot.outwardRanks(),
+                islandFloorY);
+    }
+
+    /**
+     * The rank this soul has grown outward to - see {@link SoulBounds#outwardRank}. What the ground
+     * is grown to and measured in, so the island steps out at the same ranks the walls do.
+     */
+    public static int outwardRank(int rank)
+    {
+        return SoulBounds.outwardRank(rank, snapshot.maxRank(), snapshot.outwardRanks());
+    }
+
+    /** The next rank above this one that grows the soul outward, or -1 when none is left. */
+    public static int nextOutwardRank(int rank)
+    {
+        return SoulBounds.nextOutwardRank(rank, snapshot.maxRank(), snapshot.outwardRanks());
     }
 
     /** Highest ascension rank a soulhome can reach. A pack shortening or lengthening the ladder. */
@@ -417,6 +433,7 @@ public final class SoulHomeConfig
             int ceilingHeightPerRank,
             int baseVerge,
             int vergePerRank,
+            List<Integer> outwardRanks,
             int maxRank,
             int startingRank,
             boolean trophyRoomTrackPlayerHeads,
@@ -448,6 +465,7 @@ public final class SoulHomeConfig
                 SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
                 SoulBounds.DEFAULT_BASE_VERGE,
                 SoulBounds.DEFAULT_VERGE_PER_RANK,
+                SoulBounds.DEFAULT_OUTWARD_RANKS,
                 SoulBounds.MAX_RANK,
                 0,
                 true,
@@ -514,6 +532,7 @@ public final class SoulHomeConfig
                         SERVER.ceilingHeightPerRank.get(),
                         SERVER.baseVerge.get(),
                         SERVER.vergePerRank.get(),
+                        readOutwardRanks(SERVER.outwardRanks.get()),
                         SERVER.maxRank.get(),
                         SERVER.startingRank.get(),
                         SERVER.trophyRoomTrackPlayerHeads.get(),
@@ -592,6 +611,15 @@ public final class SoulHomeConfig
          * {@code Soulhome:Soul_Step} still switches off {@code soulhome:soul_step} rather than
          * silently matching nothing.
          */
+        /**
+         * Sorted and de-duplicated, so the snapshot holds one canonical ladder however the list was
+         * written. Read through {@link Number} because a TOML integer may arrive as a Long.
+         */
+        private static List<Integer> readOutwardRanks(List<? extends Number> entries)
+        {
+            return entries.stream().map(Number::intValue).distinct().sorted().toList();
+        }
+
         private static Set<String> readAbilityIds(List<? extends String> entries)
         {
             Set<String> ids = new LinkedHashSet<>();
@@ -746,6 +774,7 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.IntValue ceilingHeightPerRank;
         public final ForgeConfigSpec.IntValue baseVerge;
         public final ForgeConfigSpec.IntValue vergePerRank;
+        public final ForgeConfigSpec.ConfigValue<List<? extends Number>> outwardRanks;
         public final ForgeConfigSpec.IntValue maxRank;
         public final ForgeConfigSpec.IntValue startingRank;
 
@@ -1159,13 +1188,28 @@ public final class SoulHomeConfig
             this.baseVerge = builder
                     .comment(
                             "How far the buildable box reaches from the soulhome's origin on each horizontal axis,",
-                            "at rank 0. Keep rank V's verge (base + 5 * per-rank) inside the scanner's own search",
-                            "square, or builds near its edge start being clipped from scans silently.")
+                            "at rank 0. Keep the top rank's verge (base + max_rank * per-rank) inside the scanner's",
+                            "own search square, or builds near its edge start being clipped from scans silently.")
                     .defineInRange("base_verge", SoulBounds.DEFAULT_BASE_VERGE, 1, 128);
 
             this.vergePerRank = builder
-                    .comment("Further verge granted per ascension rank.")
+                    .comment(
+                            "Further verge granted per ascension rank, averaged over the ladder: the walls only",
+                            "move at the ranks listed in outward_ranks, and then catch up this much for each rank",
+                            "since the last move.")
                     .defineInRange("verge_per_rank", SoulBounds.DEFAULT_VERGE_PER_RANK, 1, 128);
+
+            this.outwardRanks = builder
+                    .comment(
+                            "The ranks at which the soul grows outward. At [3, 6, 9], the walls and the island",
+                            "widen only at ranks III, VI and IX, each by three ranks' worth, and the ranks between",
+                            "raise the ceiling alone. Listed exactly, in any order: list every rank from 1 to",
+                            "max_rank to widen the soul at each, and include max_rank itself if the summit should",
+                            "reach its full width. An empty list means the soul never grows outward at all.")
+                    .defineListAllowEmpty(
+                            List.of("outward_ranks"),
+                            () -> SoulBounds.DEFAULT_OUTWARD_RANKS,
+                            entry -> entry instanceof Number number && number.intValue() >= 1 && number.intValue() <= 20);
 
             this.maxRank = builder
                     .comment(
@@ -1281,7 +1325,7 @@ public final class SoulHomeConfig
             this.growthVergeMargin = builder
                     .comment(
                             "How much open verge is kept between the apron and the wall, at every rank. This is what",
-                            "makes 'your walls are at 104 and your ground reaches 78' true, which is the distinction",
+                            "makes 'your walls are at 120 and your ground reaches 90' true, which is the distinction",
                             "the guide book explains - a player who does not know those are different numbers reads",
                             "the void inside their own walls as growth having failed.")
                     .defineInRange("verge_margin", TerrainGrowthSettings.DEFAULT_VERGE_MARGIN, 0, 128);

@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Ascending widens the walls your soul may be built inside of. It also grows the island, so that the room you just earned is somewhere you can stand.$(p)The new ground follows the coast you already have, and is made of your own soul's blocks - a snowy soul grows snow."
+      "text": "Every rank of ascent raises your soul's ceiling. Ranks III, VI and IX also widen its walls and grow the island, so the room you just earned is somewhere to stand.$(p)The new ground follows the coast you already have, and is made of your own soul's blocks - a snowy soul grows snow."
     },
     {
       "type": "text",
@@ -18,7 +18,7 @@
     },
     {
       "type": "text",
-      "text": "Each rank adds roughly 12 blocks of coast, up to that limit. A soul that climbed before any of this existed catches up all at once, the next time you walk into it.$(p)Type $(bold)/soulhome ascent$(0) to see how far your ground reaches, how far your walls do, and what the next rank would add."
+      "text": "Each widening pushes the walls out 48 blocks and adds roughly 36 blocks of coast, up to that limit. A soul that climbed before any of this existed catches up all at once, the next time you walk into it.$(p)Type $(bold)/soulhome ascent$(0) to see how far your ground reaches, how far your walls do, and which rank widens your soul next."
     }
   ],
   "priority": false,
