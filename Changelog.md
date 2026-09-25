@@ -1855,9 +1855,10 @@ once - forty-eight blocks of wall and about thirty-six of new coast. A widening 
   out to about 54, 90 and 126. Rank IX is unchanged.
 - Ranks I, II, IV, V, VII and VIII raise the ceiling only. `/soulhome ascent` now names the next
   rank that widens your soul and what it will bring, rather than what the very next rank adds.
-- `outward_step` in the server config's `ascent` section sets how many ranks apart the widenings
-  are. 1 puts back a widening at every rank. The top rank always widens, so a pack with a ladder
-  that is not a multiple of the step still ends at its full size.
+- `outward_ranks` in the server config's `ascent` section lists the ranks that widen the soul,
+  `[3, 6, 9]` by default. List every rank to put back a widening at each, or any ranks you like -
+  each widening catches the walls up to where `verge_per_rank` would have had them by that rank.
+  The list is taken exactly as written, so the top rank widens only if it is on it.
 - A nerf for a soul sitting at one of the ranks between: its walls are pulled back to the last
   outward rank's until it climbs to the next. Anything built past the new walls stays standing, but
   cannot be added to, and a room out there stops being scanned until the walls reach it again.

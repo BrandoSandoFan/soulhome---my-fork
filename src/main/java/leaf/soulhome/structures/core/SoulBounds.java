@@ -4,6 +4,8 @@
 
 package leaf.soulhome.structures.core;
 
+import java.util.List;
+
 /**
  * The box a soulhome may be built inside of, by ascension rank: a floor, a ceiling and four walls.
  * See #78/#79 - a ceiling alone is not a limit in a void dimension, because a player denied a
@@ -36,18 +38,18 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
 
     /**
      * Verge per rank, averaged over the ladder: the walls move only at an outward rank (see {@link
-     * #DEFAULT_OUTWARD_STEP}), and when they do they catch up this much for every rank since the
+     * #DEFAULT_OUTWARD_RANKS}), and when they do they catch up this much for every rank since the
      * last one. So rank III, VI and IX stand exactly where they did when every rank widened the box.
      */
     public static final int DEFAULT_VERGE_PER_RANK = 16;
 
     /**
-     * How many ranks apart the soul grows outward: III, VI and IX. Every rank still raises the
+     * The ranks at which the soul grows outward: III, VI and IX. Every rank still raises the
      * ceiling, but the walls, and the ground with them, move only on these. A widening every rank
      * was sixteen blocks nobody noticed arriving; three large ones are each a new place to build.
-     * One restores a widening every rank.
+     * Listing every rank restores a widening at each.
      */
-    public static final int DEFAULT_OUTWARD_STEP = 3;
+    public static final List<Integer> DEFAULT_OUTWARD_RANKS = List.of(3, 6, 9);
 
     /** Ranks run 0 (unascended) to 9 (IX). */
     public static final int MAX_RANK = 9;
@@ -82,11 +84,11 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
      */
     public static SoulBounds forRank(
             int rank, int maxRank, int floorY, int baseCeilingHeight, int ceilingHeightPerRank, int baseVerge,
-            int vergePerRank, int outwardStep)
+            int vergePerRank, List<Integer> outwardRanks)
     {
         // no soul-specific floor to account for - the same as passing the nominal floorY itself
         return forRank(rank, maxRank, floorY, baseCeilingHeight, ceilingHeightPerRank, baseVerge, vergePerRank,
-                outwardStep, floorY);
+                outwardRanks, floorY);
     }
 
     /**
@@ -100,44 +102,49 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
      */
     public static SoulBounds forRank(
             int rank, int maxRank, int floorY, int baseCeilingHeight, int ceilingHeightPerRank, int baseVerge,
-            int vergePerRank, int outwardStep, int islandFloorY)
+            int vergePerRank, List<Integer> outwardRanks, int islandFloorY)
     {
         final int clampedRank = clamp(rank, maxRank);
 
         return new SoulBounds(
                 Math.min(floorY, islandFloorY),
                 floorY + baseCeilingHeight + clampedRank * ceilingHeightPerRank,
-                baseVerge + outwardRank(rank, maxRank, outwardStep) * vergePerRank);
+                baseVerge + outwardRank(rank, maxRank, outwardRanks) * vergePerRank);
     }
 
     /** As above, at the suggested defaults - what a fresh install reads before any config exists. */
     public static SoulBounds forRank(int rank)
     {
         return forRank(rank, MAX_RANK, DEFAULT_FLOOR_Y, DEFAULT_BASE_CEILING_HEIGHT, DEFAULT_CEILING_HEIGHT_PER_RANK,
-                DEFAULT_BASE_VERGE, DEFAULT_VERGE_PER_RANK, DEFAULT_OUTWARD_STEP);
+                DEFAULT_BASE_VERGE, DEFAULT_VERGE_PER_RANK, DEFAULT_OUTWARD_RANKS);
     }
 
     /**
-     * The rank a soul has grown outward to: {@code rank} rounded down to a multiple of
-     * {@code outwardStep}, so at the defaults ranks I and II are as wide as rank 0, IV and V as
-     * wide as III, and so on. Both the verge and the ground ({@code TerrainGrowthSettings}) are
+     * The rank a soul has grown outward to: the highest of {@code outwardRanks} at or below
+     * {@code rank}, or 0 when none is. At the defaults ranks I and II are as wide as rank 0, IV and
+     * V as wide as III, and so on. Both the verge and the ground ({@code TerrainGrowthSettings}) are
      * measured in this rank rather than the real one, which is what keeps the island and the walls
      * moving together.
      *
-     * <p>The top of the ladder always counts, whatever the step: a pack that sets {@code max_rank}
-     * to 10 would otherwise climb a whole rank to the summit and find its soul no wider for it.
-     * A step below one is read as one - a widening every rank - rather than a division by zero.
+     * <p>The list is honoured exactly, in any order, and a rank in it outside {@code [1, maxRank]}
+     * is simply never reached. So the top of the ladder widens only if it is listed: a pack that
+     * raises {@code max_rank} without extending the list gets a summit no wider than its last
+     * listed rank, which is a choice it can see in its own config rather than one made for it.
      */
-    public static int outwardRank(int rank, int maxRank, int outwardStep)
+    public static int outwardRank(int rank, int maxRank, List<Integer> outwardRanks)
     {
         final int clampedRank = clamp(rank, maxRank);
+        int outward = 0;
 
-        if (clampedRank == Math.max(0, maxRank))
+        for (int listed : outwardRanks)
         {
-            return clampedRank;
+            if (listed <= clampedRank && listed > outward)
+            {
+                outward = listed;
+            }
         }
 
-        return clampedRank - clampedRank % Math.max(1, outwardStep);
+        return outward;
     }
 
     /**
@@ -145,13 +152,13 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
      * ladder. What {@code /soulhome ascent} names when it says how far the ground will reach next,
      * since at most ranks the answer to "what does ascending add" is "height, and no ground".
      */
-    public static int nextOutwardRank(int rank, int maxRank, int outwardStep)
+    public static int nextOutwardRank(int rank, int maxRank, List<Integer> outwardRanks)
     {
-        final int current = outwardRank(rank, maxRank, outwardStep);
+        final int current = outwardRank(rank, maxRank, outwardRanks);
 
         for (int next = clamp(rank, maxRank) + 1; next <= maxRank; next++)
         {
-            if (outwardRank(next, maxRank, outwardStep) > current)
+            if (outwardRank(next, maxRank, outwardRanks) > current)
             {
                 return next;
             }

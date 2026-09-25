@@ -37,7 +37,7 @@ class TerrainGrowthCorpusTest
 
     /** The first rank that grows the soul outward at the defaults - III. */
     private static final int FIRST_OUTWARD =
-            SoulBounds.nextOutwardRank(0, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
+            SoulBounds.nextOutwardRank(0, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_RANKS);
 
     @Test
     @DisplayName("every shipped island grows a coast on its first outward rank, and none before it")
@@ -233,7 +233,7 @@ class TerrainGrowthCorpusTest
 
     private static int outward(int rank)
     {
-        return SoulBounds.outwardRank(rank, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
+        return SoulBounds.outwardRank(rank, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_RANKS);
     }
 
     /** Lay a plan down, so the next rank grows from the coast this one left. */

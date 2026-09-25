@@ -222,7 +222,7 @@ public final class SoulHomeConfig
     {
         return SoulBounds.forRank(
                 rank, snapshot.maxRank(), snapshot.floorY(), snapshot.baseCeilingHeight(),
-                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank(), snapshot.outwardStep());
+                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank(), snapshot.outwardRanks());
     }
 
     /**
@@ -235,7 +235,7 @@ public final class SoulHomeConfig
     {
         return SoulBounds.forRank(
                 rank, snapshot.maxRank(), snapshot.floorY(), snapshot.baseCeilingHeight(),
-                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank(), snapshot.outwardStep(),
+                snapshot.ceilingHeightPerRank(), snapshot.baseVerge(), snapshot.vergePerRank(), snapshot.outwardRanks(),
                 islandFloorY);
     }
 
@@ -245,13 +245,13 @@ public final class SoulHomeConfig
      */
     public static int outwardRank(int rank)
     {
-        return SoulBounds.outwardRank(rank, snapshot.maxRank(), snapshot.outwardStep());
+        return SoulBounds.outwardRank(rank, snapshot.maxRank(), snapshot.outwardRanks());
     }
 
     /** The next rank above this one that grows the soul outward, or -1 when none is left. */
     public static int nextOutwardRank(int rank)
     {
-        return SoulBounds.nextOutwardRank(rank, snapshot.maxRank(), snapshot.outwardStep());
+        return SoulBounds.nextOutwardRank(rank, snapshot.maxRank(), snapshot.outwardRanks());
     }
 
     /** Highest ascension rank a soulhome can reach. A pack shortening or lengthening the ladder. */
@@ -433,7 +433,7 @@ public final class SoulHomeConfig
             int ceilingHeightPerRank,
             int baseVerge,
             int vergePerRank,
-            int outwardStep,
+            List<Integer> outwardRanks,
             int maxRank,
             int startingRank,
             boolean trophyRoomTrackPlayerHeads,
@@ -465,7 +465,7 @@ public final class SoulHomeConfig
                 SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
                 SoulBounds.DEFAULT_BASE_VERGE,
                 SoulBounds.DEFAULT_VERGE_PER_RANK,
-                SoulBounds.DEFAULT_OUTWARD_STEP,
+                SoulBounds.DEFAULT_OUTWARD_RANKS,
                 SoulBounds.MAX_RANK,
                 0,
                 true,
@@ -532,7 +532,7 @@ public final class SoulHomeConfig
                         SERVER.ceilingHeightPerRank.get(),
                         SERVER.baseVerge.get(),
                         SERVER.vergePerRank.get(),
-                        SERVER.outwardStep.get(),
+                        readOutwardRanks(SERVER.outwardRanks.get()),
                         SERVER.maxRank.get(),
                         SERVER.startingRank.get(),
                         SERVER.trophyRoomTrackPlayerHeads.get(),
@@ -611,6 +611,15 @@ public final class SoulHomeConfig
          * {@code Soulhome:Soul_Step} still switches off {@code soulhome:soul_step} rather than
          * silently matching nothing.
          */
+        /**
+         * Sorted and de-duplicated, so the snapshot holds one canonical ladder however the list was
+         * written. Read through {@link Number} because a TOML integer may arrive as a Long.
+         */
+        private static List<Integer> readOutwardRanks(List<? extends Number> entries)
+        {
+            return entries.stream().map(Number::intValue).distinct().sorted().toList();
+        }
+
         private static Set<String> readAbilityIds(List<? extends String> entries)
         {
             Set<String> ids = new LinkedHashSet<>();
@@ -765,7 +774,7 @@ public final class SoulHomeConfig
         public final ForgeConfigSpec.IntValue ceilingHeightPerRank;
         public final ForgeConfigSpec.IntValue baseVerge;
         public final ForgeConfigSpec.IntValue vergePerRank;
-        public final ForgeConfigSpec.IntValue outwardStep;
+        public final ForgeConfigSpec.ConfigValue<List<? extends Number>> outwardRanks;
         public final ForgeConfigSpec.IntValue maxRank;
         public final ForgeConfigSpec.IntValue startingRank;
 
@@ -1186,16 +1195,21 @@ public final class SoulHomeConfig
             this.vergePerRank = builder
                     .comment(
                             "Further verge granted per ascension rank, averaged over the ladder: the walls only",
-                            "move at every outward_step-th rank, and then catch up this much for each rank since",
-                            "the last move.")
+                            "move at the ranks listed in outward_ranks, and then catch up this much for each rank",
+                            "since the last move.")
                     .defineInRange("verge_per_rank", SoulBounds.DEFAULT_VERGE_PER_RANK, 1, 128);
 
-            this.outwardStep = builder
+            this.outwardRanks = builder
                     .comment(
-                            "How many ranks apart the soul grows outward. At 3, the walls and the island widen",
-                            "only at ranks III, VI and IX, each by three ranks' worth, and the ranks between raise",
-                            "the ceiling alone. The top rank always widens. 1 widens the soul at every rank.")
-                    .defineInRange("outward_step", SoulBounds.DEFAULT_OUTWARD_STEP, 1, 20);
+                            "The ranks at which the soul grows outward. At [3, 6, 9], the walls and the island",
+                            "widen only at ranks III, VI and IX, each by three ranks' worth, and the ranks between",
+                            "raise the ceiling alone. Listed exactly, in any order: list every rank from 1 to",
+                            "max_rank to widen the soul at each, and include max_rank itself if the summit should",
+                            "reach its full width. An empty list means the soul never grows outward at all.")
+                    .defineListAllowEmpty(
+                            List.of("outward_ranks"),
+                            () -> SoulBounds.DEFAULT_OUTWARD_RANKS,
+                            entry -> entry instanceof Number number && number.intValue() >= 1 && number.intValue() <= 20);
 
             this.maxRank = builder
                     .comment(

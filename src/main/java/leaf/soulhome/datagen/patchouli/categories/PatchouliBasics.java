@@ -214,8 +214,10 @@ public class PatchouliBasics
     {
         final int vergeAtMax = SoulBounds.forRank(SoulBounds.MAX_RANK).vergeHalfExtent();
         final int groundAtMax = TerrainGrowthSettings.DEFAULTS.groundLimit(SoulBounds.MAX_RANK, vergeAtMax);
-        final int groundPerStep = SoulBounds.DEFAULT_OUTWARD_STEP * TerrainGrowthSettings.DEFAULT_GROUND_PER_RANK;
-        final int vergePerStep = SoulBounds.DEFAULT_OUTWARD_STEP * SoulBounds.DEFAULT_VERGE_PER_RANK;
+        // the shipped ladder is evenly spaced, so the first widening is the size of every one
+        final int firstOutward = SoulBounds.DEFAULT_OUTWARD_RANKS.get(0);
+        final int groundPerStep = firstOutward * TerrainGrowthSettings.DEFAULT_GROUND_PER_RANK;
+        final int vergePerStep = firstOutward * SoulBounds.DEFAULT_VERGE_PER_RANK;
 
         BookStuff.Entry entry = new BookStuff.Entry("the_ground", basics, "minecraft:grass_block");
         entry.setDisplayTitle("ground, and the verge");
@@ -252,8 +254,8 @@ public class PatchouliBasics
 
     /**
      * The ranks that widen a soul at the defaults, as the book spells them - "III, VI and IX".
-     * Read off {@link SoulBounds#outwardRank} rather than written out, so a changed step changes the
-     * page with it.
+     * Read off {@link SoulBounds#DEFAULT_OUTWARD_RANKS} rather than written out, so a changed ladder
+     * changes the page with it.
      */
     private static String outwardRanks()
     {
@@ -261,7 +263,7 @@ public class PatchouliBasics
 
         for (int rank = 1; rank <= SoulBounds.MAX_RANK; rank++)
         {
-            if (SoulBounds.nextOutwardRank(rank - 1, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_STEP) == rank)
+            if (SoulBounds.nextOutwardRank(rank - 1, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_RANKS) == rank)
             {
                 ranks.add(SoulBounds.rankLabel(rank));
             }

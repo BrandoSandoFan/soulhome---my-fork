@@ -111,6 +111,6 @@ class TerrainGrowthSettingsTest
 
     private static int outward(int rank)
     {
-        return SoulBounds.outwardRank(rank, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
+        return SoulBounds.outwardRank(rank, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_RANKS);
     }
 }
