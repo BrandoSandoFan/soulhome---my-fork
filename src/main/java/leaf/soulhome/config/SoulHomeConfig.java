@@ -1214,10 +1214,11 @@ public final class SoulHomeConfig
             this.maxRank = builder
                     .comment(
                             "Highest ascension rank a soulhome can reach. The shipped ladder runs 0 (unascended) to",
-                            "9 (IX); shortening or lengthening it changes how far base_ceiling_height/base_verge and",
-                            "their per-rank steps above are ever multiplied out to - there is no separate table to",
-                            "edit alongside it.")
-                    .defineInRange("max_rank", SoulBounds.MAX_RANK, 0, 20);
+                            "9 (IX); shortening it changes how far base_ceiling_height/base_verge and their per-rank",
+                            "steps above are ever multiplied out to - there is no separate table to edit alongside",
+                            "it. Capped at 9: ascending costs Sublime Essence equal to the target rank, and there",
+                            "are only nine essence items, so a rank above this could never actually be reached.")
+                    .defineInRange("max_rank", SoulBounds.MAX_RANK, 0, SoulBounds.MAX_RANK);
 
             this.startingRank = builder
                     .comment(
