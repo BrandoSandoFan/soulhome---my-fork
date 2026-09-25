@@ -62,8 +62,8 @@ class SoulBoundsTest
     }
 
     @Test
-    @DisplayName("every rank grows the ceiling and the verge, and the floor never moves")
-    void everyRankGrowsTheBox()
+    @DisplayName("every rank grows the ceiling, only III, VI and IX grow the verge, and the floor never moves")
+    void everyRankGrowsTheCeilingAndEveryThirdTheVerge()
     {
         SoulBounds previous = SoulBounds.forRank(0);
 
@@ -73,10 +73,81 @@ class SoulBoundsTest
 
             assertEquals(previous.floorY(), current.floorY(), "the floor moved at rank " + rank);
             assertTrue(current.ceilingY() > previous.ceilingY(), "the ceiling did not grow at rank " + rank);
-            assertTrue(current.vergeHalfExtent() > previous.vergeHalfExtent(), "the verge did not grow at rank " + rank);
+
+            if (rank % 3 == 0)
+            {
+                assertTrue(current.vergeHalfExtent() > previous.vergeHalfExtent(),
+                        "the verge did not grow at rank " + rank);
+            }
+            else
+            {
+                assertEquals(previous.vergeHalfExtent(), current.vergeHalfExtent(),
+                        "the verge grew at rank " + rank + ", which is not an outward rank");
+            }
 
             previous = current;
         }
+    }
+
+    @Test
+    @DisplayName("an outward rank stands exactly as wide as it did when every rank widened the soul")
+    void outwardRanksKeepTheirOldWidth()
+    {
+        for (int rank : new int[] {0, 3, 6, 9})
+        {
+            assertEquals(SoulBounds.DEFAULT_BASE_VERGE + rank * SoulBounds.DEFAULT_VERGE_PER_RANK,
+                    SoulBounds.forRank(rank).vergeHalfExtent(), "rank " + rank);
+        }
+
+        assertEquals(SoulBounds.forRank(0).vergeHalfExtent(), SoulBounds.forRank(2).vergeHalfExtent());
+        assertEquals(SoulBounds.forRank(3).vergeHalfExtent(), SoulBounds.forRank(5).vergeHalfExtent());
+        assertEquals(SoulBounds.forRank(6).vergeHalfExtent(), SoulBounds.forRank(8).vergeHalfExtent());
+    }
+
+    @Test
+    @DisplayName("an outward step of one widens the soul at every rank, as it did before steps existed")
+    void stepOfOneWidensEveryRank()
+    {
+        for (int rank = 0; rank <= SoulBounds.MAX_RANK; rank++)
+        {
+            assertEquals(rank, SoulBounds.outwardRank(rank, SoulBounds.MAX_RANK, 1));
+
+            SoulBounds bounds = SoulBounds.forRank(rank, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_FLOOR_Y,
+                    SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
+                    SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK, 1);
+
+            assertEquals(SoulBounds.DEFAULT_BASE_VERGE + rank * SoulBounds.DEFAULT_VERGE_PER_RANK,
+                    bounds.vergeHalfExtent(), "rank " + rank);
+        }
+
+        // and a step below one is read as one rather than dividing by zero
+        assertEquals(4, SoulBounds.outwardRank(4, SoulBounds.MAX_RANK, 0));
+    }
+
+    @Test
+    @DisplayName("the top of a ladder that is not a multiple of the step still widens the soul")
+    void topRankAlwaysWidens()
+    {
+        assertEquals(9, SoulBounds.outwardRank(10, 10, 3));
+        assertEquals(10, SoulBounds.outwardRank(10, 10, 3));
+        assertEquals(3, SoulBounds.outwardRank(4, 5, 3));
+        assertEquals(5, SoulBounds.outwardRank(5, 5, 3));
+        assertEquals(5, SoulBounds.outwardRank(50, 5, 3), "a rank past the top is clamped to it first");
+        assertEquals(0, SoulBounds.outwardRank(-2, 9, 3));
+    }
+
+    @Test
+    @DisplayName("the next outward rank is the next rank that widens the soul, and -1 at the top")
+    void nextOutwardRankNamesTheNextWidening()
+    {
+        assertEquals(3, SoulBounds.nextOutwardRank(0, 9, 3));
+        assertEquals(3, SoulBounds.nextOutwardRank(2, 9, 3));
+        assertEquals(6, SoulBounds.nextOutwardRank(3, 9, 3));
+        assertEquals(9, SoulBounds.nextOutwardRank(8, 9, 3));
+        assertEquals(-1, SoulBounds.nextOutwardRank(9, 9, 3));
+        assertEquals(10, SoulBounds.nextOutwardRank(9, 10, 3));
+        assertEquals(5, SoulBounds.nextOutwardRank(4, 5, 3));
+        assertEquals(1, SoulBounds.nextOutwardRank(0, 9, 1));
     }
 
     @Test
@@ -138,13 +209,13 @@ class SoulBoundsTest
         final int maxRank = 3;
         SoulBounds previous = SoulBounds.forRank(0, maxRank, SoulBounds.DEFAULT_FLOOR_Y,
                 SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
-                SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK);
+                SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
 
         for (int rank = 1; rank <= maxRank; rank++)
         {
             SoulBounds current = SoulBounds.forRank(rank, maxRank, SoulBounds.DEFAULT_FLOOR_Y,
                     SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
-                    SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK);
+                    SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
 
             assertTrue(current.ceilingY() > previous.ceilingY(), "rank " + rank + " did not grow the ceiling");
             previous = current;
@@ -153,10 +224,10 @@ class SoulBoundsTest
         // a rank past the configured max is clamped to it, not to the shipped MAX_RANK of 9
         SoulBounds atMax = SoulBounds.forRank(maxRank, maxRank, SoulBounds.DEFAULT_FLOOR_Y,
                 SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
-                SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK);
+                SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
         SoulBounds pastMax = SoulBounds.forRank(maxRank + 50, maxRank, SoulBounds.DEFAULT_FLOOR_Y,
                 SoulBounds.DEFAULT_BASE_CEILING_HEIGHT, SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK,
-                SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK);
+                SoulBounds.DEFAULT_BASE_VERGE, SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
 
         assertEquals(atMax, pastMax);
         assertTrue(atMax.ceilingY() < SoulBounds.forRank(SoulBounds.MAX_RANK).ceilingY(),
@@ -185,7 +256,7 @@ class SoulBoundsTest
         SoulBounds lowered = SoulBounds.forRank(
                 0, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_FLOOR_Y, SoulBounds.DEFAULT_BASE_CEILING_HEIGHT,
                 SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK, SoulBounds.DEFAULT_BASE_VERGE,
-                SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_FLOOR_Y - 21);
+                SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_OUTWARD_STEP, SoulBounds.DEFAULT_FLOOR_Y - 21);
 
         assertEquals(SoulBounds.DEFAULT_FLOOR_Y - 21, lowered.floorY());
         assertEquals(nominal.ceilingY(), lowered.ceilingY(), "the ceiling must stay anchored on the nominal floor");
@@ -203,7 +274,7 @@ class SoulBoundsTest
         SoulBounds bounds = SoulBounds.forRank(
                 0, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_FLOOR_Y, SoulBounds.DEFAULT_BASE_CEILING_HEIGHT,
                 SoulBounds.DEFAULT_CEILING_HEIGHT_PER_RANK, SoulBounds.DEFAULT_BASE_VERGE,
-                SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_FLOOR_Y + 10);
+                SoulBounds.DEFAULT_VERGE_PER_RANK, SoulBounds.DEFAULT_OUTWARD_STEP, SoulBounds.DEFAULT_FLOOR_Y + 10);
 
         assertEquals(SoulBounds.DEFAULT_FLOOR_Y, bounds.floorY());
     }

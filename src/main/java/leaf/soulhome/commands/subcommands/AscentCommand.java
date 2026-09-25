@@ -215,8 +215,8 @@ public class AscentCommand
 
     /**
      * Ground, beside walls (#162). These are different numbers on purpose and the whole epic is
-     * invisible unless a player is told so: a soul whose walls are at 104 and whose ground reaches
-     * 78 has open void inside its own box, and a player who has not been told that is deliberate
+     * invisible unless a player is told so: a soul whose walls are at 120 and whose ground reaches
+     * 90 has open void inside its own box, and a player who has not been told that is deliberate
      * reads it as growth having failed.
      */
     private static void reportGround(ServerPlayer player, ServerLevel soulhome, SoulBounds bounds, int rank)
@@ -243,12 +243,18 @@ public class AscentCommand
                 Component.translatable(Constants.StringKeys.ASCENT_GROUND_GROWING, (int) Math.round(progress * 100))
                         .withStyle(ChatFormatting.AQUA)));
 
-        if (rank < SoulHomeConfig.maxRank())
+        // named by the next rank that widens the soul rather than the next rank, because at most
+        // ranks the honest answer to "what would ascending add" is height and no ground at all
+        final int nextRank = SoulHomeConfig.nextOutwardRank(rank);
+
+        if (nextRank >= 0)
         {
-            final int next = growth.groundLimit(rank + 1, SoulHomeConfig.soulBounds(rank + 1).vergeHalfExtent());
+            final int nextVerge = SoulHomeConfig.soulBounds(nextRank).vergeHalfExtent();
+            final int next = growth.groundLimit(SoulHomeConfig.outwardRank(nextRank), nextVerge);
 
             player.sendSystemMessage(Component.translatable(
-                            Constants.StringKeys.ASCENT_GROUND_NEXT, Math.max(0, next - reach), next)
+                            Constants.StringKeys.ASCENT_GROUND_NEXT, SoulBounds.rankLabel(nextRank),
+                            Math.max(0, next - reach), next, nextVerge)
                     .withStyle(ChatFormatting.GRAY));
         }
     }

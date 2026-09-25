@@ -22,7 +22,7 @@ class TerrainGrowthSettingsTest
         for (int rank = 0; rank <= SoulBounds.MAX_RANK; rank++)
         {
             final int verge = SoulBounds.forRank(rank).vergeHalfExtent();
-            final int ground = DEFAULTS.groundLimit(rank, verge);
+            final int ground = DEFAULTS.groundLimit(outward(rank), verge);
 
             assertTrue(
                     ground < verge,
@@ -31,14 +31,31 @@ class TerrainGrowthSettingsTest
     }
 
     @Test
-    @DisplayName("the shipped ladder: 30 against 40 at rank I, 78 against 104 at rank V")
+    @DisplayName("the shipped ladder: 54 against 72 at rank III, 90 against 120 at VI, 126 against 168 at IX")
     void theShippedLadder()
     {
-        assertEquals(30, DEFAULTS.groundLimit(1, SoulBounds.forRank(1).vergeHalfExtent()));
-        assertEquals(42, DEFAULTS.groundLimit(2, SoulBounds.forRank(2).vergeHalfExtent()));
-        assertEquals(54, DEFAULTS.groundLimit(3, SoulBounds.forRank(3).vergeHalfExtent()));
-        assertEquals(66, DEFAULTS.groundLimit(4, SoulBounds.forRank(4).vergeHalfExtent()));
-        assertEquals(78, DEFAULTS.groundLimit(5, SoulBounds.forRank(5).vergeHalfExtent()));
+        assertEquals(54, groundAt(3));
+        assertEquals(72, SoulBounds.forRank(3).vergeHalfExtent());
+        assertEquals(90, groundAt(6));
+        assertEquals(120, SoulBounds.forRank(6).vergeHalfExtent());
+        assertEquals(126, groundAt(9));
+        assertEquals(168, SoulBounds.forRank(9).vergeHalfExtent());
+    }
+
+    @Test
+    @DisplayName("the ranks between outward ranks hold the ground where the last one left it")
+    void betweenRanksTheGroundHolds()
+    {
+        assertEquals(groundAt(0), groundAt(1));
+        assertEquals(groundAt(0), groundAt(2));
+        assertEquals(groundAt(3), groundAt(4));
+        assertEquals(groundAt(3), groundAt(5));
+        assertEquals(groundAt(6), groundAt(7));
+        assertEquals(groundAt(6), groundAt(8));
+
+        // and so owe no band: a soul grown to III that climbs to V has nothing coming until VI
+        assertEquals(0, DEFAULTS.bandWidth(outward(5), outward(3)));
+        assertEquals(36, DEFAULTS.bandWidth(outward(6), outward(4)));
     }
 
     @Test
@@ -84,5 +101,16 @@ class TerrainGrowthSettingsTest
         assertThrows(IllegalArgumentException.class, () -> new TerrainGrowthSettings(true, -1, 12, 6, 3, 3, 4, 3, 4));
         assertThrows(IllegalArgumentException.class, () -> new TerrainGrowthSettings(true, 18, 12, 6, 3, 3, 0, 3, 4));
         assertThrows(IllegalArgumentException.class, () -> new TerrainGrowthSettings(true, 18, 12, 6, 3, 3, 4, 3, 0));
+    }
+
+    /** The ground limit at a soul's real rank, converted the way {@code TerrainGrowthService} converts it. */
+    private static int groundAt(int rank)
+    {
+        return DEFAULTS.groundLimit(outward(rank), SoulBounds.forRank(rank).vergeHalfExtent());
+    }
+
+    private static int outward(int rank)
+    {
+        return SoulBounds.outwardRank(rank, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
     }
 }

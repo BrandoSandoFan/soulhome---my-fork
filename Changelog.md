@@ -1843,3 +1843,23 @@ of its pitch either way four seconds in (#261).
   rather than half a percent, and the bell has lost the second carrier that beat against it.
 - Cosmetic only, still under the Music slider, still off with `soul_music`.
 - Ported to `1.21.1`.
+
+Your soul grows outward at ranks III, VI and IX, and upward at every rank
+
+Every rank used to push the walls out sixteen blocks and add twelve of coast, which at the size a
+soul reaches was a strip nobody noticed arriving. The ceiling still climbs at every rank, but the
+walls and the island now move only at III, VI and IX, and each of those moves three ranks' worth at
+once - forty-eight blocks of wall and about thirty-six of new coast. A widening is now an event.
+
+- Ranks III, VI and IX are exactly as wide as they always were: walls at 72, 120 and 168, ground
+  out to about 54, 90 and 126. Rank IX is unchanged.
+- Ranks I, II, IV, V, VII and VIII raise the ceiling only. `/soulhome ascent` now names the next
+  rank that widens your soul and what it will bring, rather than what the very next rank adds.
+- `outward_step` in the server config's `ascent` section sets how many ranks apart the widenings
+  are. 1 puts back a widening at every rank. The top rank always widens, so a pack with a ladder
+  that is not a multiple of the step still ends at its full size.
+- A nerf for a soul sitting at one of the ranks between: its walls are pulled back to the last
+  outward rank's until it climbs to the next. Anything built past the new walls stays standing, but
+  cannot be added to, and a room out there stops being scanned until the walls reach it again.
+  Ground that has already grown is never taken away.
+- Ported to `1.21.1`.

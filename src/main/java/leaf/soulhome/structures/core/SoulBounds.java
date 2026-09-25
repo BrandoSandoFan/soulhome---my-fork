@@ -34,7 +34,20 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
 
     public static final int DEFAULT_BASE_VERGE = 24;
 
+    /**
+     * Verge per rank, averaged over the ladder: the walls move only at an outward rank (see {@link
+     * #DEFAULT_OUTWARD_STEP}), and when they do they catch up this much for every rank since the
+     * last one. So rank III, VI and IX stand exactly where they did when every rank widened the box.
+     */
     public static final int DEFAULT_VERGE_PER_RANK = 16;
+
+    /**
+     * How many ranks apart the soul grows outward: III, VI and IX. Every rank still raises the
+     * ceiling, but the walls, and the ground with them, move only on these. A widening every rank
+     * was sixteen blocks nobody noticed arriving; three large ones are each a new place to build.
+     * One restores a widening every rank.
+     */
+    public static final int DEFAULT_OUTWARD_STEP = 3;
 
     /** Ranks run 0 (unascended) to 9 (IX). */
     public static final int MAX_RANK = 9;
@@ -64,14 +77,16 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
      * {@code [0, maxRank]} rather than rejected outright - a corrupt or future save holding an
      * out-of-range rank should not take a scan down with it. {@code maxRank} is itself a config
      * knob (#84's {@code max_rank}), so a pack that wants a three-rung ladder passes 3 here and
-     * gets one, with no dead ranks and no out-of-bounds lookup.
+     * gets one, with no dead ranks and no out-of-bounds lookup. The ceiling climbs every rank; the
+     * verge only at an {@link #outwardRank outward rank}.
      */
     public static SoulBounds forRank(
             int rank, int maxRank, int floorY, int baseCeilingHeight, int ceilingHeightPerRank, int baseVerge,
-            int vergePerRank)
+            int vergePerRank, int outwardStep)
     {
         // no soul-specific floor to account for - the same as passing the nominal floorY itself
-        return forRank(rank, maxRank, floorY, baseCeilingHeight, ceilingHeightPerRank, baseVerge, vergePerRank, floorY);
+        return forRank(rank, maxRank, floorY, baseCeilingHeight, ceilingHeightPerRank, baseVerge, vergePerRank,
+                outwardStep, floorY);
     }
 
     /**
@@ -85,21 +100,69 @@ public record SoulBounds(int floorY, int ceilingY, int vergeHalfExtent)
      */
     public static SoulBounds forRank(
             int rank, int maxRank, int floorY, int baseCeilingHeight, int ceilingHeightPerRank, int baseVerge,
-            int vergePerRank, int islandFloorY)
+            int vergePerRank, int outwardStep, int islandFloorY)
     {
-        final int clampedRank = Math.max(0, Math.min(Math.max(0, maxRank), rank));
+        final int clampedRank = clamp(rank, maxRank);
 
         return new SoulBounds(
                 Math.min(floorY, islandFloorY),
                 floorY + baseCeilingHeight + clampedRank * ceilingHeightPerRank,
-                baseVerge + clampedRank * vergePerRank);
+                baseVerge + outwardRank(rank, maxRank, outwardStep) * vergePerRank);
     }
 
     /** As above, at the suggested defaults - what a fresh install reads before any config exists. */
     public static SoulBounds forRank(int rank)
     {
         return forRank(rank, MAX_RANK, DEFAULT_FLOOR_Y, DEFAULT_BASE_CEILING_HEIGHT, DEFAULT_CEILING_HEIGHT_PER_RANK,
-                DEFAULT_BASE_VERGE, DEFAULT_VERGE_PER_RANK);
+                DEFAULT_BASE_VERGE, DEFAULT_VERGE_PER_RANK, DEFAULT_OUTWARD_STEP);
+    }
+
+    /**
+     * The rank a soul has grown outward to: {@code rank} rounded down to a multiple of
+     * {@code outwardStep}, so at the defaults ranks I and II are as wide as rank 0, IV and V as
+     * wide as III, and so on. Both the verge and the ground ({@code TerrainGrowthSettings}) are
+     * measured in this rank rather than the real one, which is what keeps the island and the walls
+     * moving together.
+     *
+     * <p>The top of the ladder always counts, whatever the step: a pack that sets {@code max_rank}
+     * to 10 would otherwise climb a whole rank to the summit and find its soul no wider for it.
+     * A step below one is read as one - a widening every rank - rather than a division by zero.
+     */
+    public static int outwardRank(int rank, int maxRank, int outwardStep)
+    {
+        final int clampedRank = clamp(rank, maxRank);
+
+        if (clampedRank == Math.max(0, maxRank))
+        {
+            return clampedRank;
+        }
+
+        return clampedRank - clampedRank % Math.max(1, outwardStep);
+    }
+
+    /**
+     * The next rank above {@code rank} that grows the soul outward, or -1 when none is left on the
+     * ladder. What {@code /soulhome ascent} names when it says how far the ground will reach next,
+     * since at most ranks the answer to "what does ascending add" is "height, and no ground".
+     */
+    public static int nextOutwardRank(int rank, int maxRank, int outwardStep)
+    {
+        final int current = outwardRank(rank, maxRank, outwardStep);
+
+        for (int next = clamp(rank, maxRank) + 1; next <= maxRank; next++)
+        {
+            if (outwardRank(next, maxRank, outwardStep) > current)
+            {
+                return next;
+            }
+        }
+
+        return -1;
+    }
+
+    private static int clamp(int rank, int maxRank)
+    {
+        return Math.max(0, Math.min(Math.max(0, maxRank), rank));
     }
 
     /**

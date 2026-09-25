@@ -35,17 +35,28 @@ class TerrainGrowthCorpusTest
 
     private static final TerrainGrowthSettings SETTINGS = TerrainGrowthSettings.DEFAULTS;
 
+    /** The first rank that grows the soul outward at the defaults - III. */
+    private static final int FIRST_OUTWARD =
+            SoulBounds.nextOutwardRank(0, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
+
     @Test
-    @DisplayName("every shipped island grows a coast on its first ascension")
+    @DisplayName("every shipped island grows a coast on its first outward rank, and none before it")
     void everyIslandGrows()
     {
         for (SoulIslandVolume island : SoulIslandVolume.allShipped())
         {
-            final ApronPlan plan = growOnce(island, 1, 0);
+            for (int rank = 1; rank < FIRST_OUTWARD; rank++)
+            {
+                assertTrue(
+                        growOnce(island, rank, 0).isEmpty(),
+                        "soul_island" + island.style() + " grew ground at rank " + rank + ", which only raises the ceiling");
+            }
+
+            final ApronPlan plan = growOnce(island, FIRST_OUTWARD, 0);
 
             assertFalse(
                     plan.isEmpty(),
-                    "soul_island" + island.style() + " grew no ground at all on its first ascension");
+                    "soul_island" + island.style() + " grew no ground at all on its first outward rank");
         }
     }
 
@@ -55,9 +66,9 @@ class TerrainGrowthCorpusTest
     {
         for (SoulIslandVolume island : SoulIslandVolume.allShipped())
         {
-            final GroundSurvey survey = surveyOf(island, 1);
+            final GroundSurvey survey = surveyOf(island, FIRST_OUTWARD);
 
-            for (ApronPlan.Column column : growOnce(island, 1, 0).columns())
+            for (ApronPlan.Column column : growOnce(island, FIRST_OUTWARD, 0).columns())
             {
                 assertEquals(
                         GroundSurvey.Kind.VOID, survey.kindAt(column.x(), column.z()),
@@ -74,7 +85,7 @@ class TerrainGrowthCorpusTest
         for (int rank = 1; rank <= SoulBounds.MAX_RANK; rank++)
         {
             final SoulBounds bounds = SoulBounds.forRank(rank);
-            final int limit = SETTINGS.groundLimit(rank, bounds.vergeHalfExtent());
+            final int limit = SETTINGS.groundLimit(outward(rank), bounds.vergeHalfExtent());
 
             for (SoulIslandVolume island : SoulIslandVolume.allShipped())
             {
@@ -100,10 +111,10 @@ class TerrainGrowthCorpusTest
     {
         for (SoulIslandVolume island : SoulIslandVolume.allShipped())
         {
-            final SoulBounds bounds = SoulBounds.forRank(1);
+            final SoulBounds bounds = SoulBounds.forRank(FIRST_OUTWARD);
             int reach = 0;
 
-            for (ApronPlan.Column column : growOnce(island, 1, 0).columns())
+            for (ApronPlan.Column column : growOnce(island, FIRST_OUTWARD, 0).columns())
             {
                 reach = Math.max(reach, Math.max(Math.abs(column.x()), Math.abs(column.z())));
             }
@@ -121,8 +132,10 @@ class TerrainGrowthCorpusTest
     {
         for (SoulIslandVolume island : SoulIslandVolume.allShipped())
         {
-            final List<ApronPlan.Column> first = growOnce(island, 2, 1).columns();
-            final List<ApronPlan.Column> second = growOnce(island, 2, 1).columns();
+            final List<ApronPlan.Column> first = growOnce(island, 6, 3).columns();
+            final List<ApronPlan.Column> second = growOnce(island, 6, 3).columns();
+
+            assertFalse(first.isEmpty(), "soul_island" + island.style() + " grew nothing at rank VI to compare");
 
             assertEquals(first, second, "soul_island" + island.style() + " grew differently the second time");
         }
@@ -151,10 +164,10 @@ class TerrainGrowthCorpusTest
 
             // The two do not grow an identical coastline, and are not meant to. The stepwise one
             // measures each band from the coast the previous band left and pays the edge jitter
-            // five times; the catch-up pays it once, and so reaches a block or two further. What
-            // has to hold is that neither crosses the limit and that they arrive at the same sort
-            // of island - a player who climbed patiently must not find they have less ground than
-            // one who was handed rank V by an operator.
+            // once per outward rank; the catch-up pays it once, and so reaches a block or two
+            // further. What has to hold is that neither crosses the limit and that they arrive at
+            // the same sort of island - a player who climbed patiently must not find they have less
+            // ground than one who was handed rank IX by an operator.
             final int stepwiseReach = ApronPlanner.groundReach(stepwise);
             final int atOnceReach = ApronPlanner.groundReach(atOnce);
             final int startingReach = ApronPlanner.groundReach(surveyOf(island, SoulBounds.MAX_RANK));
@@ -179,7 +192,7 @@ class TerrainGrowthCorpusTest
     {
         for (SoulIslandVolume island : SoulIslandVolume.allShipped())
         {
-            final GroundSurvey survey = surveyOf(island, 1);
+            final GroundSurvey survey = surveyOf(island, FIRST_OUTWARD);
 
             // a tower standing in the void just off the island's east edge, as a player who
             // bridged out and built before ascending would leave it
@@ -187,7 +200,8 @@ class TerrainGrowthCorpusTest
             survey.set(towerX, 0, GroundSurvey.Kind.BUILT, FLOOR + 12);
 
             final ApronPlan plan = ApronPlanner.plan(
-                    survey, SETTINGS, 1, 0, SoulBounds.forRank(1).vergeHalfExtent(), null, island.style());
+                    survey, SETTINGS, outward(FIRST_OUTWARD), 0, SoulBounds.forRank(FIRST_OUTWARD).vergeHalfExtent(),
+                    null, island.style());
 
             for (ApronPlan.Column column : plan.columns())
             {
@@ -206,10 +220,20 @@ class TerrainGrowthCorpusTest
         return plan(surveyOf(island, rank), rank, grownRank, island);
     }
 
+    /**
+     * Growth as {@code TerrainGrowthService} runs it: the ground is planned in outward ranks, so a
+     * rank that only raises the ceiling plans nothing, and the walls are the real rank's.
+     */
     private static ApronPlan plan(GroundSurvey survey, int rank, int grownRank, SoulIslandVolume island)
     {
         return ApronPlanner.plan(
-                survey, SETTINGS, rank, grownRank, SoulBounds.forRank(rank).vergeHalfExtent(), null, island.style());
+                survey, SETTINGS, outward(rank), outward(grownRank), SoulBounds.forRank(rank).vergeHalfExtent(), null,
+                island.style());
+    }
+
+    private static int outward(int rank)
+    {
+        return SoulBounds.outwardRank(rank, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_STEP);
     }
 
     /** Lay a plan down, so the next rank grows from the coast this one left. */
@@ -236,7 +260,7 @@ class TerrainGrowthCorpusTest
         final int offsetY = FLOOR - spawnColumnTop(island);
 
         final SoulBounds bounds = SoulBounds.forRank(rank);
-        final int reach = SETTINGS.groundLimit(rank, bounds.vergeHalfExtent()) + SETTINGS.clearanceMargin();
+        final int reach = SETTINGS.groundLimit(outward(rank), bounds.vergeHalfExtent()) + SETTINGS.clearanceMargin();
         final GroundSurvey survey = new GroundSurvey(-reach, -reach, reach, reach);
 
         for (int x = -reach; x <= reach; x++)
