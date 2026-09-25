@@ -9,6 +9,7 @@ import leaf.soulhome.structures.core.MeditationSettings;
 import leaf.soulhome.structures.core.SoulBounds;
 import leaf.soulhome.structures.core.TerrainGrowthSettings;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PatchouliBasics
@@ -201,8 +202,8 @@ public class PatchouliBasics
      * its own defaults from, so the book and a fresh install agree by construction rather than by
      * anyone remembering to update prose.
      *
-     * <p>The page that has to exist is the third one. A player whose walls are at 104 and whose
-     * ground reaches 78 has open void inside their own box, and unless they have been told that is
+     * <p>The page that has to exist is the third one. A player whose walls are at 120 and whose
+     * ground reaches 90 has open void inside their own box, and unless they have been told that is
      * deliberate they will report it as a bug - or, worse, conclude their ascension broke something.
      *
      * <p>Gated on having entered a soul at all rather than on having ascended: the mod ships no
@@ -211,10 +212,12 @@ public class PatchouliBasics
      */
     private static BookStuff.Entry theGround(BookStuff.Category basics)
     {
-        final int baseVerge = SoulBounds.DEFAULT_BASE_VERGE;
-        final int vergeAtMax = baseVerge + SoulBounds.MAX_RANK * SoulBounds.DEFAULT_VERGE_PER_RANK;
+        final int vergeAtMax = SoulBounds.forRank(SoulBounds.MAX_RANK).vergeHalfExtent();
         final int groundAtMax = TerrainGrowthSettings.DEFAULTS.groundLimit(SoulBounds.MAX_RANK, vergeAtMax);
-        final int groundPerRank = TerrainGrowthSettings.DEFAULT_GROUND_PER_RANK;
+        // the shipped ladder is evenly spaced, so the first widening is the size of every one
+        final int firstOutward = SoulBounds.DEFAULT_OUTWARD_RANKS.get(0);
+        final int groundPerStep = firstOutward * TerrainGrowthSettings.DEFAULT_GROUND_PER_RANK;
+        final int vergePerStep = firstOutward * SoulBounds.DEFAULT_VERGE_PER_RANK;
 
         BookStuff.Entry entry = new BookStuff.Entry("the_ground", basics, "minecraft:grass_block");
         entry.setDisplayTitle("ground, and the verge");
@@ -223,8 +226,9 @@ public class PatchouliBasics
         entry.pages = new BookStuff.Page[]
                 {
                         new BookStuff.TextPage(
-                                "Ascending widens the walls your soul may be built inside of. It also grows the island, "
-                                        + "so that the room you just earned is somewhere you can stand.$(p)The new ground follows "
+                                "Every rank of ascent raises your soul's ceiling. Ranks " + outwardRanks()
+                                        + " also widen its walls and grow the island, so the room you just earned is somewhere "
+                                        + "to stand.$(p)The new ground follows "
                                         + "the coast you already have, and is made of your own soul's blocks - a snowy soul grows "
                                         + "snow."),
                         new BookStuff.TextPage(
@@ -238,12 +242,38 @@ public class PatchouliBasics
                                         + " blocks out while the ground reaches about " + groundAtMax + ".$(p)That gap is yours to "
                                         + "build into. If you want a floating hall over open sky, the sky is already waiting."),
                         new BookStuff.TextPage(
-                                "Each rank adds roughly " + groundPerRank + " blocks of coast, up to that limit. A soul that "
+                                "Each widening pushes the walls out " + vergePerStep + " blocks and adds roughly "
+                                        + groundPerStep + " blocks of coast, up to that limit. A soul that "
                                         + "climbed before any of this existed catches up all at once, the next time you walk into it."
                                         + "$(p)Type $(bold)/soulhome ascent$(0) to see how far your ground reaches, how far your walls "
-                                        + "do, and what the next rank would add."),
+                                        + "do, and which rank widens your soul next."),
                 };
 
         return entry;
+    }
+
+    /**
+     * The ranks that widen a soul at the defaults, as the book spells them - "III, VI and IX".
+     * Read off {@link SoulBounds#DEFAULT_OUTWARD_RANKS} rather than written out, so a changed ladder
+     * changes the page with it.
+     */
+    private static String outwardRanks()
+    {
+        final List<String> ranks = new ArrayList<>();
+
+        for (int rank = 1; rank <= SoulBounds.MAX_RANK; rank++)
+        {
+            if (SoulBounds.nextOutwardRank(rank - 1, SoulBounds.MAX_RANK, SoulBounds.DEFAULT_OUTWARD_RANKS) == rank)
+            {
+                ranks.add(SoulBounds.rankLabel(rank));
+            }
+        }
+
+        if (ranks.size() < 2)
+        {
+            return String.join("", ranks);
+        }
+
+        return String.join(", ", ranks.subList(0, ranks.size() - 1)) + " and " + ranks.get(ranks.size() - 1);
     }
 }

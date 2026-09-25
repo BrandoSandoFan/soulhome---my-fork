@@ -18,8 +18,13 @@ package leaf.soulhome.structures.core;
  * catch up by the same arithmetic as an ordinary ascension. There is no separate "has this rank
  * been grown" flag and so no duplicate event to guard against.
  *
- * <p>The defaults are sized against the shipped verge (24 base, 16 per rank): ground reaches 30 at
- * rank I against walls at 40, and 78 at rank V against walls at 104.
+ * <p>Every {@code rank} here is an outward rank ({@link SoulBounds#outwardRank}), not the soul's
+ * own: the ground steps out at III, VI and IX with the walls, and a rank between them owes none.
+ * Callers convert; this record does not know the ladder.
+ *
+ * <p>The defaults are sized against the shipped verge (24 base, 16 per rank, widening every third
+ * rank): ground reaches 54 at rank III against walls at 72, 90 at rank VI against 120, and 126 at
+ * rank IX against 168.
  */
 public record TerrainGrowthSettings(
         boolean enabled, int baseGround, int groundPerRank, int vergeMargin, int groundBand, int clearanceMargin,

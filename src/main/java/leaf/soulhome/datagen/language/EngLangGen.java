@@ -300,7 +300,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ASCENT_GROUND, "Ground reaches %s blocks out; the walls are at %s.");
         add(Constants.StringKeys.ASCENT_GROUND_VERGE,
                 "The %s blocks of open verge past it are deliberate - somewhere to build outward into.");
-        add(Constants.StringKeys.ASCENT_GROUND_NEXT, "Ascending would add about %s blocks of ground, reaching %s.");
+        add(Constants.StringKeys.ASCENT_GROUND_NEXT,
+                "Your soul next grows outward at rank %s: about %s more blocks of ground, reaching %s, with the walls at %s.");
         add(Constants.StringKeys.ASCENT_GROUND_GROWING, "Ground is still arriving - about %s%% of the way.");
         add(Constants.StringKeys.ASCENT_GROUND_OFF, "Ground does not grow with rank on this server.");
         add(Constants.StringKeys.GROWTH_COMPLETE, "Your soul has grown: %s new columns of ground, out to %s blocks.");

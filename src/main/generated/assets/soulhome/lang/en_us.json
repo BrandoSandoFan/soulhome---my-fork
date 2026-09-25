@@ -333,7 +333,7 @@
   "message.soulhome.ascent.disabled": "Soulhome bounds are switched off in the server config.",
   "message.soulhome.ascent.ground": "Ground reaches %s blocks out; the walls are at %s.",
   "message.soulhome.ascent.ground_growing": "Ground is still arriving - about %s%% of the way.",
-  "message.soulhome.ascent.ground_next": "Ascending would add about %s blocks of ground, reaching %s.",
+  "message.soulhome.ascent.ground_next": "Your soul next grows outward at rank %s: about %s more blocks of ground, reaching %s, with the walls at %s.",
   "message.soulhome.ascent.ground_off": "Ground does not grow with rank on this server.",
   "message.soulhome.ascent.ground_verge": "The %s blocks of open verge past it are deliberate - somewhere to build outward into.",
   "message.soulhome.ascent.header": "Your soul's reach:",
