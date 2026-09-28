@@ -88,13 +88,17 @@ public final class SoulAbilities
 
         List<String> owned = ownedBy(player);
 
-        if (owned.isEmpty())
-        {
-            return;
-        }
-
         player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held ->
         {
+            // before the early return below: a player who has unbound every ability room still has
+            // banks refilling, and a dormant bank is never shown, so nothing here needs a sync
+            held.tickDormant(owned);
+
+            if (owned.isEmpty())
+            {
+                return;
+            }
+
             boolean chargesChanged = false;
 
             for (String type : owned)
@@ -107,6 +111,8 @@ public final class SoulAbilities
                 final double magnitude = SoulBuffs.magnitude(player, type);
                 final int maxCharges = maxChargesOf(effect, magnitude);
                 final int cooldown = cooldownOf(effect, magnitude);
+
+                held.noteRate(type, maxCharges, cooldown);
 
                 // a newly granted ability arrives full: the player earned it by building the room,
                 // and making them wait out a cooldown for something they have never used reads as

@@ -1864,3 +1864,12 @@ once - forty-eight blocks of wall and about thirty-six of new coast. A widening 
   cannot be added to, and a room out there stops being scanned until the walls reach it again.
   Ground that has already grown is never taken away.
 - Ported to `1.21.1`.
+
+Fix: unbinding an ability room no longer refills it
+
+Spending every charge of Barrage, Thunderclap or Soul Step, then unbinding the room at the anchor
+and binding it again, handed the ability back full - two clicks for a free recharge. An ability's
+charges now stay with you while its room is unbound or torn down, and go on refilling at the pace
+they had, so binding it again gives back exactly what time would have. A first grant still arrives
+full. A nerf to the trick only; an honest loadout swap loses nothing, since the bank keeps filling.
+- Ported to `1.21.1`.
