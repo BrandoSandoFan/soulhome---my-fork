@@ -11,6 +11,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -39,9 +41,18 @@ public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
     private static final String RANK_KEY = "$rank";
     private static final String CHARGES_KEY = "charges";
     private static final String CLOCK_KEY = "clock";
+    private static final String MAX_KEY = "max";
+    private static final String COOLDOWN_KEY = "cooldown";
 
     private SoulBuffSet buffs = SoulBuffSet.empty();
     private final Map<String, AbilityCharges> abilities = new LinkedHashMap<>();
+
+    /**
+     * The ceiling and cooldown each bank last recharged at while its ability was owned, so a bank
+     * whose room has gone dormant can go on recharging at the same pace - its own magnitude is zero
+     * by then, and says nothing about how fast it used to fill (#275).
+     */
+    private final Map<String, Rate> rates = new LinkedHashMap<>();
     private String selectedAbility = "";
 
     /**
@@ -90,9 +101,11 @@ public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
 
         this.buffs = replacement;
 
-        // an ability whose room was demolished should not keep a bank of charges waiting for the
-        // day it is rebuilt; a rebuilt room granting it again starts it fresh, from full
-        this.abilities.keySet().removeIf(type -> replacement.magnitude(type) <= 0d);
+        // an ability whose room was demolished or unbound keeps its bank rather than losing it, and
+        // tickDormant goes on filling it. Deleting it here was what let unbinding and at once
+        // rebinding an ability room refill it for free: the room going to zero deleted the bank,
+        // and being granted again handed it back full (#275). SoulAbilities only shows and fires
+        // abilities a player currently owns, so a dormant bank is invisible until then.
 
         if (!this.selectedAbility.isEmpty() && replacement.magnitude(this.selectedAbility) <= 0d)
         {
@@ -132,6 +145,66 @@ public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
     public boolean hasChargesFor(String abilityType)
     {
         return this.abilities.containsKey(abilityType);
+    }
+
+    /** Remembers the pace an owned ability recharges at, for {@link #tickDormant}. */
+    public void noteRate(String abilityType, int maxCharges, int cooldownTicks)
+    {
+        if (abilityType == null || abilityType.isEmpty())
+        {
+            return;
+        }
+
+        final Rate rate = new Rate(Math.max(0, maxCharges), Math.max(0, cooldownTicks));
+
+        // called every tick for every owned ability, and the pace almost never changes
+        if (!rate.equals(this.rates.get(abilityType)))
+        {
+            this.rates.put(abilityType, rate);
+        }
+    }
+
+    /**
+     * One tick of recharging for every bank whose ability is not in {@code owned}, at the pace it
+     * last had. A bank that reaches full is dropped: a fresh grant arrives full anyway, so nothing
+     * is lost, and a player who never rebuilds a room does not carry its bank forever. A bank with
+     * no recorded pace (never owned since this was saved) is dropped too, as the old code did -
+     * there is nothing to recharge it by, and frozen empty forever would be worse than full.
+     */
+    public void tickDormant(Collection<String> owned)
+    {
+        final Iterator<Map.Entry<String, AbilityCharges>> it = this.abilities.entrySet().iterator();
+
+        while (it.hasNext())
+        {
+            final Map.Entry<String, AbilityCharges> entry = it.next();
+
+            if (owned.contains(entry.getKey()))
+            {
+                continue;
+            }
+
+            final Rate rate = this.rates.get(entry.getKey());
+
+            if (rate == null || rate.maxCharges() <= 0)
+            {
+                it.remove();
+                this.rates.remove(entry.getKey());
+                continue;
+            }
+
+            final AbilityCharges after = entry.getValue().tick(rate.maxCharges(), rate.cooldownTicks());
+
+            if (after.charges() >= rate.maxCharges())
+            {
+                it.remove();
+                this.rates.remove(entry.getKey());
+            }
+            else
+            {
+                entry.setValue(after);
+            }
+        }
     }
 
     public Map<String, AbilityCharges> allCharges()
@@ -180,6 +253,14 @@ public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
             CompoundTag state = new CompoundTag();
             state.putInt(CHARGES_KEY, entry.getValue().charges());
             state.putInt(CLOCK_KEY, entry.getValue().ticksToNextCharge());
+
+            final Rate rate = this.rates.get(entry.getKey());
+
+            if (rate != null)
+            {
+                state.putInt(MAX_KEY, rate.maxCharges());
+                state.putInt(COOLDOWN_KEY, rate.cooldownTicks());
+            }
             abilityTag.put(entry.getKey(), state);
         }
 
@@ -194,6 +275,7 @@ public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
     public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag)
     {
         this.abilities.clear();
+        this.rates.clear();
         this.selectedAbility = "";
         this.rank = 0;
 
@@ -229,6 +311,13 @@ public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
                     key,
                     new AbilityCharges(
                             Math.max(0, state.getInt(CHARGES_KEY)), Math.max(0, state.getInt(CLOCK_KEY))));
+
+            // absent on a save from before dormant banks were kept - noteRate fills it on the
+            // first tick the ability is owned, and tickDormant drops a bank that never gets one
+            if (state.contains(MAX_KEY))
+            {
+                this.rates.put(key, new Rate(Math.max(0, state.getInt(MAX_KEY)), Math.max(0, state.getInt(COOLDOWN_KEY))));
+            }
         }
 
         this.selectedAbility = tag.getString(SELECTED_KEY);
@@ -236,5 +325,9 @@ public class PlayerSoulBuffs implements INBTSerializable<CompoundTag>
         // absent on any save written before rank existed - reads back as 0, matching a soulhome
         // that has never ascended, same as SoulHomeBuffData's own missing-key default
         this.rank = Math.max(0, tag.getInt(RANK_KEY));
+    }
+
+    private record Rate(int maxCharges, int cooldownTicks)
+    {
     }
 }
