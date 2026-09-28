@@ -186,6 +186,7 @@ public class Constants
         // The Soul Anchor and the ascension ritual (#83): the climb itself, rather than merely the
         // box it climbs against.
         public static final String ANCHOR_NOT_HERE = "message.soulhome.anchor.not_here";
+        public static final String ANCHOR_NOT_YOURS = "message.soulhome.anchor.not_yours";
         public static final String ANCHOR_ALREADY_EXISTS = "message.soulhome.anchor.already_exists";
         public static final String ANCHOR_RANK = "message.soulhome.anchor.rank";
         public static final String ANCHOR_MAXED = "message.soulhome.anchor.maxed";
