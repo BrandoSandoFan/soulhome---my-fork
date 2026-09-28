@@ -1865,6 +1865,24 @@ once - forty-eight blocks of wall and about thirty-six of new coast. A widening 
   Ground that has already grown is never taken away.
 - Ported to `1.21.1`.
 
+Fixes: residue, the rank ceiling and the Soul Anchor
+
+- Soul residue was billed backwards at the score a scan had just found, across the whole time since
+  the scan before it. A soul left empty for a week and then given a strong room collected a week of
+  residue at the strong room's rate; tearing a room down just before a scan billed the week at the
+  lower one. Each interval is now billed at the score the soul actually held through it. A nerf to
+  the timing trick, neutral for anyone who never used it.
+- `max_rank` in the server config's `ascent` section accepted up to 20, but there are only nine
+  Sublime Essences, so a rank above IX could never be paid for - and the anchor still showed it as
+  the next goal. It is now capped at 9.
+- A Soul Anchor can only be placed in your own soul. Placed in the overworld or in a friend's soul, it
+  is handed back with a message instead of claiming that dimension's one anchor slot.
+- An anchor that vanished without being broken (WorldEdit, another mod, a restored backup) no longer
+  blocks every new anchor with "this soulhome already has a Soul Anchor". If nothing stands where the
+  old one was saved, the new one takes its place.
+- The leftover `/soulhome home sub` debug subcommand is gone.
+- Ported to `1.21.1`.
+
 Fix: unbinding an ability room no longer refills it
 
 Spending every charge of Barrage, Thunderclap or Soul Step, then unbinding the room at the anchor
