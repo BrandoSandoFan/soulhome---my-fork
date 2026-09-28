@@ -485,13 +485,16 @@ public final class StructureScanService
             rooms = AttunementBook.anonymise(awarded);
         }
 
-        data.update(rooms, contentHash);
-
         // Sublime Essence's soul-residue tap (#82): "the same schedule the scan service already
         // runs on; no new timer". Rate is set by the same total awarded room score the ascension
         // ritual's willpower check (#83) reads too, so an unbuilt soulhome (total is 0) accrues
-        // nothing.
+        // nothing. Billed against the score that was in force since the *last* scan, before this
+        // scan's results replace it - otherwise a room built just before this scan gets credited
+        // retroactively across the whole interval it did not exist for, and tearing one down right
+        // before a scan bills the interval at the lower score it did not hold either (#269).
         data.accrueResidue(data.totalScore());
+
+        data.update(rooms, contentHash);
 
         // Pushed on every completed scan, not only when the saved results changed. A soulhome
         // whose rooms are unchanged can still have an owner whose buffs are not: what a player is
