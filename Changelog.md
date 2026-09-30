@@ -1870,3 +1870,29 @@ Network hardening (#282)
 - Fix: every network message is now registered with its direction, so a message that arrives the wrong
   way round is dropped by Forge. Before, a guest on a LAN game could send a message meant for clients
   and have the host's own game run its client-side handler. Nothing changes for anyone playing normally.
+Fixes: residue, the rank ceiling and the Soul Anchor
+
+- Soul residue was billed backwards at the score a scan had just found, across the whole time since
+  the scan before it. A soul left empty for a week and then given a strong room collected a week of
+  residue at the strong room's rate; tearing a room down just before a scan billed the week at the
+  lower one. Each interval is now billed at the score the soul actually held through it. A nerf to
+  the timing trick, neutral for anyone who never used it.
+- `max_rank` in the server config's `ascent` section accepted up to 20, but there are only nine
+  Sublime Essences, so a rank above IX could never be paid for - and the anchor still showed it as
+  the next goal. It is now capped at 9.
+- A Soul Anchor can only be placed in your own soul. Placed in the overworld or in a friend's soul, it
+  is handed back with a message instead of claiming that dimension's one anchor slot.
+- An anchor that vanished without being broken (WorldEdit, another mod, a restored backup) no longer
+  blocks every new anchor with "this soulhome already has a Soul Anchor". If nothing stands where the
+  old one was saved, the new one takes its place.
+- The leftover `/soulhome home sub` debug subcommand is gone.
+- Ported to `1.21.1`.
+
+Fix: unbinding an ability room no longer refills it
+
+Spending every charge of Barrage, Thunderclap or Soul Step, then unbinding the room at the anchor
+and binding it again, handed the ability back full - two clicks for a free recharge. An ability's
+charges now stay with you while its room is unbound or torn down, and go on refilling at the pace
+they had, so binding it again gives back exactly what time would have. A first grant still arrives
+full. A nerf to the trick only; an honest loadout swap loses nothing, since the bank keeps filling.
+- Ported to `1.21.1`.

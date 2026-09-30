@@ -314,6 +314,7 @@
   "message.soulhome.anchor.essence_ok": "Essence: %s / %s Sublime Essence %s - enough to spend on the climb.",
   "message.soulhome.anchor.maxed": "This soul has reached the highest rank this server allows.",
   "message.soulhome.anchor.not_here": "The Soul Anchor only answers inside a soulhome.",
+  "message.soulhome.anchor.not_yours": "You can only place a Soul Anchor in your own soulhome.",
   "message.soulhome.anchor.pillar_gap": "Pillar: stops %s block(s) short of the firmament.",
   "message.soulhome.anchor.pillar_no_base": "Pillar: no 3x3 base of full blocks stands near this anchor.",
   "message.soulhome.anchor.pillar_ok": "Pillar: stands unbroken to the firmament.",
