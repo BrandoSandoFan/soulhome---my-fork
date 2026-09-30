@@ -1864,3 +1864,9 @@ once - forty-eight blocks of wall and about thirty-six of new coast. A widening 
   cannot be added to, and a room out there stops being scanned until the walls reach it again.
   Ground that has already grown is never taken away.
 - Ported to `1.21.1`.
+
+Network hardening (#282)
+
+- Fix: every network message is now registered with its direction, so a message that arrives the wrong
+  way round is dropped by Forge. Before, a guest on a LAN game could send a message meant for clients
+  and have the host's own game run its client-side handler. Nothing changes for anyone playing normally.
