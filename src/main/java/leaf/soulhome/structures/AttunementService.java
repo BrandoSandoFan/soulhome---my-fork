@@ -58,6 +58,13 @@ public final class AttunementService
             return;
         }
 
+        // the loadout is changed at the anchor and nowhere else; a modified client could otherwise
+        // swap it mid-fight (#276). Refused silently, as collectResidue does
+        if (!SoulAnchorService.atOwnAnchor(player))
+        {
+            return;
+        }
+
         final ServerLevel soulhome = StructureScanService.soulhomeOf(player);
 
         if (soulhome == null)

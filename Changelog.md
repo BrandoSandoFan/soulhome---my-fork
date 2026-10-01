@@ -1896,3 +1896,12 @@ charges now stay with you while its room is unbound or torn down, and go on refi
 they had, so binding it again gives back exactly what time would have. A first grant still arrives
 full. A nerf to the trick only; an honest loadout swap loses nothing, since the bank keeps filling.
 - Ported to `1.21.1`.
+
+Fix: the loadout can only be changed at the Soul Anchor
+
+Binding and unbinding rooms was only ever meant to happen at the anchor, but the server never checked
+where the request came from, so a modified client could swap its whole loadout from the overworld
+mid-fight. The server now applies the same gate the anchor's residue button always had: you must be in
+your own soul, within reach of its anchor. Nothing changes for an unmodified client, which only sends
+the request from the anchor's screen. A nerf to cheating only.
+- Ported to `1.21.1`.

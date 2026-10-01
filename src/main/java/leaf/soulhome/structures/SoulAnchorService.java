@@ -85,24 +85,30 @@ public final class SoulAnchorService
      */
     public static void collectResidue(ServerPlayer player)
     {
-        if (!(player.level() instanceof ServerLevel level) || !DimensionHelper.isInSoulDimension(player))
-        {
-            return;
-        }
-
-        if (!isOwner(level, player))
-        {
-            return;
-        }
-
-        final Optional<BlockPos> anchor = SoulHomeBuffData.get(level).anchorPos();
-
-        if (anchor.isEmpty() || !player.blockPosition().closerThan(anchor.get(), CONVERSION_REACH))
+        if (!atOwnAnchor(player) || !(player.level() instanceof ServerLevel level))
         {
             return;
         }
 
         send(level, player, true, AscensionRitualService.convertResidue(level, player));
+    }
+
+    /**
+     * Whether this player is standing at the anchor of their own soulhome. One gate for every packet
+     * the anchor's screen sends (#276): a legitimate client only sends them from that screen and never
+     * feels the check, while a modified one could otherwise swap its loadout from anywhere.
+     */
+    public static boolean atOwnAnchor(ServerPlayer player)
+    {
+        if (!(player.level() instanceof ServerLevel level) || !DimensionHelper.isInSoulDimension(player)
+                || !isOwner(level, player))
+        {
+            return false;
+        }
+
+        return SoulHomeBuffData.get(level).anchorPos()
+                .filter(anchor -> player.blockPosition().closerThan(anchor, CONVERSION_REACH))
+                .isPresent();
     }
 
     private static void send(ServerLevel soulhome, ServerPlayer player, boolean owner, int collected)
