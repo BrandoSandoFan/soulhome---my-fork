@@ -1928,3 +1928,14 @@ mid-fight. The server now applies the same gate the anchor's residue button alwa
 your own soul, within reach of its anchor. Nothing changes for an unmodified client, which only sends
 the request from the anchor's screen. A nerf to cheating only.
 - Ported to `1.21.1`.
+
+Fix: a bound room can no longer smuggle in extra abilities by changing what it is (#277)
+
+A bound room keeps its binding when you rebuild it, even if the rebuild pays from the other pool - a
+bound library turned into a storm spire, say. The slot limit was only checked when you bound a room,
+so you could end up carrying more abilities than you had active slots, and the anchor read "active
+2/1". Bindings past their pool's limit are now suspended: the newest binding waits, you keep the
+older ones, and nothing is unbound or lost. The suspended room carries nothing until you free a
+slot (or gain one by ascending), then resumes by itself. A nerf to the exploit only; a loadout
+within its limits is untouched.
+- To be ported to `1.21.1`.

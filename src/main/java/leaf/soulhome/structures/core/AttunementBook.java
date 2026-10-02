@@ -336,6 +336,90 @@ public final class AttunementBook
         return List.copyOf(out);
     }
 
+    /**
+     * {@link #carried(List, Collection, AttunementSettings)}, held to the slot limits (#277).
+     *
+     * <p>A binding follows its room by footprint, and archetype is only a tiebreak, so a bound room
+     * can be rebuilt into something that pays from the other pool - or lose slots to a lower rank or
+     * a tighter config - while staying bound. Limits are otherwise checked only at the moment of
+     * binding, which left a soul able to carry more abilities than it has active slots.
+     *
+     * <p>Bindings over their pool's limit are <b>suspended</b>, not dropped: they stay in the list
+     * and keep holding their slot for display, and simply stop being carried until there is room.
+     * Dropping them would silently undo a choice the player made, which the attunement rules refuse
+     * to do everywhere else. Suspension is derived here on every call and never saved, so it cannot
+     * go stale, and it is decided by binding order - the most recently bound is suspended first - so
+     * the same save always gives the same answer.
+     */
+    public static List<AwardedRoom> carried(
+            List<AwardedRoom> rooms,
+            Collection<RoomBinding> bindings,
+            Map<String, ArchetypeDefinition> archetypes,
+            AttunementSettings settings,
+            int rank)
+    {
+        if (!settings.enabled())
+        {
+            return rooms;
+        }
+
+        final Set<Integer> within = new HashSet<>();
+
+        for (RoomBinding binding : withinLimits(bindings, rooms, archetypes, settings, rank))
+        {
+            within.add(binding.roomId());
+        }
+
+        List<AwardedRoom> out = new ArrayList<>();
+
+        for (AwardedRoom room : rooms)
+        {
+            if (within.contains(room.roomId()))
+            {
+                out.add(room);
+            }
+        }
+
+        return List.copyOf(out);
+    }
+
+    /** The bindings that fit their pool's slots, oldest first. A ghost holds a slot like any other. */
+    public static List<RoomBinding> withinLimits(
+            Collection<RoomBinding> bindings,
+            List<AwardedRoom> rooms,
+            Map<String, ArchetypeDefinition> archetypes,
+            AttunementSettings settings,
+            int rank)
+    {
+        Map<Integer, AwardedRoom> byId = new HashMap<>();
+
+        for (AwardedRoom room : rooms)
+        {
+            byId.put(room.roomId(), room);
+        }
+
+        Map<RoomPool, Integer> used = new LinkedHashMap<>();
+        List<RoomBinding> kept = new ArrayList<>();
+
+        for (RoomBinding binding : bindings)
+        {
+            final AwardedRoom room = byId.get(binding.roomId());
+            final RoomPool pool = poolOf(
+                    archetypes.get(room == null ? binding.archetypeId() : room.archetypeId()),
+                    room == null ? null : room.aspectId());
+
+            if (used.getOrDefault(pool, 0) >= settings.slotsFor(pool, rank))
+            {
+                continue;
+            }
+
+            used.merge(pool, 1, Integer::sum);
+            kept.add(binding);
+        }
+
+        return kept;
+    }
+
     public static Set<Integer> boundIds(Collection<RoomBinding> bindings)
     {
         Set<Integer> ids = new LinkedHashSet<>();

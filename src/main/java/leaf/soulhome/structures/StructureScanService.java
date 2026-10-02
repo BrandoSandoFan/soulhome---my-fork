@@ -630,7 +630,8 @@ public final class StructureScanService
     private static List<AwardedRoom> carriedRooms(SoulHomeBuffData data)
     {
         return AttunementBook.carried(
-                data.awardedRooms(), data.attunements(), SoulHomeConfig.attunementSettings());
+                data.awardedRooms(), data.attunements(), ArchetypeManager.byId(),
+                SoulHomeConfig.attunementSettings(), data.ascensionRank());
     }
 
     /**

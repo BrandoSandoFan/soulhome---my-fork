@@ -270,6 +270,50 @@ class AttunementBookTest
         }
 
         @Test
+        @DisplayName("a bound room that changes pool is suspended past the limit, not dropped (#277)")
+        void poolChangeRespectsTheLimit()
+        {
+            final AttunementSettings tight = new AttunementSettings(true, 1, 0, 1, 0);
+
+            AttunementBook.Reconciliation first = AttunementBook.reconcile(
+                    List.of(), List.of(),
+                    List.of(
+                            room(BULWARK, box(0, 0, 0, 6, 4, 6)),
+                            room(LIBRARY, box(20, 0, 0, 26, 4, 6))),
+                    1);
+
+            List<RoomBinding> bindings = new ArrayList<>();
+            assertEquals(
+                    AttunementBook.BindResult.BOUND,
+                    AttunementBook.apply(bindings, first.rooms(), archetypes(), tight, 0, first.rooms().get(0).roomId(), true));
+            assertEquals(
+                    AttunementBook.BindResult.BOUND,
+                    AttunementBook.apply(bindings, first.rooms(), archetypes(), tight, 0, first.rooms().get(1).roomId(), true));
+
+            // the library is rebuilt in place as a second bulwark: same footprint, so same room id
+            AttunementBook.Reconciliation second = AttunementBook.reconcile(
+                    first.rooms(), bindings,
+                    List.of(
+                            room(BULWARK, box(0, 0, 0, 6, 4, 6)),
+                            room(BULWARK, box(20, 0, 0, 26, 4, 6))),
+                    first.nextRoomId());
+
+            assertEquals(2, second.bindings().size());
+
+            // the older binding is carried, the newer one waits - and keeps its binding
+            assertEquals(
+                    List.of(second.rooms().get(0)),
+                    AttunementBook.carried(second.rooms(), second.bindings(), archetypes(), tight, 0));
+
+            // and resumes once there is room for it
+            assertEquals(
+                    second.rooms(),
+                    AttunementBook.carried(
+                            second.rooms(), second.bindings(), archetypes(),
+                            new AttunementSettings(true, 1, 0, 1, 1), 1));
+        }
+
+        @Test
         @DisplayName("a room id nobody has ever classified binds nothing")
         void forgedIdsChangeNothing()
         {
