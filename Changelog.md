@@ -1938,4 +1938,4 @@ so you could end up carrying more abilities than you had active slots, and the a
 older ones, and nothing is unbound or lost. The suspended room carries nothing until you free a
 slot (or gain one by ascending), then resumes by itself. A nerf to the exploit only; a loadout
 within its limits is untouched.
-- To be ported to `1.21.1`.
+- Ported to `1.21.1`.
