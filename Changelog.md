@@ -1925,4 +1925,4 @@ forgot the ritual and the essence with it - still the same rank, and the most ex
 mod gone. The essence now stays in your inventory for the whole ritual and is taken only on the tick
 it completes. Dropping it mid-ritual ends the ritual, with a message, and nothing is spent. A buff
 only for the unlucky; nothing changes for a ritual that runs to the end.
-- To be ported to `1.21.1`.
+- Ported to `1.21.1`.
