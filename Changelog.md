@@ -1939,3 +1939,13 @@ older ones, and nothing is unbound or lost. The suspended room carries nothing u
 slot (or gain one by ascending), then resumes by itself. A nerf to the exploit only; a loadout
 within its limits is untouched.
 - Ported to `1.21.1`.
+
+Fix: a crash mid-ascension no longer eats your essence (#273)
+
+The ascension ritual took its essence the moment you stepped onto the pillar's cap and gave it back
+if the ritual was abandoned. A clean stop or a logout refunded it, but a crash or a killed server
+forgot the ritual and the essence with it - still the same rank, and the most expensive thing in the
+mod gone. The essence now stays in your inventory for the whole ritual and is taken only on the tick
+it completes. Dropping it mid-ritual ends the ritual, with a message, and nothing is spent. A buff
+only for the unlucky; nothing changes for a ritual that runs to the end.
+- Ported to `1.21.1`.

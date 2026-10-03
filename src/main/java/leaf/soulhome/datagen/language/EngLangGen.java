@@ -331,8 +331,9 @@ public class EngLangGen extends LanguageProvider
 
         add(Constants.StringKeys.ANCHOR_RITUAL_IN_PROGRESS, "Another ascension is already underway in this soulhome.");
         add(Constants.StringKeys.ANCHOR_RITUAL_STARTED, "The sky presses down. Hold your ground.");
-        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_MOVED, "You left the pillar's cap. The ritual fails, and your essence is returned.");
-        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_PILLAR, "The pillar gave way beneath the ritual. Your essence is returned.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_MOVED, "You left the pillar's cap. The ritual fails. Nothing was spent.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_PILLAR, "The pillar gave way beneath the ritual. Nothing was spent.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_ESSENCE, "The essence left your keeping. The ritual fails. Nothing was spent.");
         add(Constants.StringKeys.ANCHOR_RITUAL_SUCCESS, "Your soul ascends to rank %s.");
 
         add(Constants.StringKeys.LENS_HIGHLIGHTED, "Use inside your soul to outline what was found");
