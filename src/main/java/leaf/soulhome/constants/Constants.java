@@ -205,6 +205,7 @@ public class Constants
         public static final String ANCHOR_RITUAL_STARTED = "message.soulhome.anchor.ritual_started";
         public static final String ANCHOR_RITUAL_ABORTED_MOVED = "message.soulhome.anchor.ritual_aborted_moved";
         public static final String ANCHOR_RITUAL_ABORTED_PILLAR = "message.soulhome.anchor.ritual_aborted_pillar";
+        public static final String ANCHOR_RITUAL_ABORTED_ESSENCE = "message.soulhome.anchor.ritual_aborted_essence";
         public static final String ANCHOR_RITUAL_SUCCESS = "message.soulhome.anchor.ritual_success";
 
         public static final String LENS_HIGHLIGHTED = "message.soulhome.lens.highlighted";

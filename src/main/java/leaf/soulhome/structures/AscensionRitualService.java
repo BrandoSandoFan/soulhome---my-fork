@@ -50,7 +50,9 @@ import java.util.UUID;
  *
  * <p>One ritual per soulhome at a time, tracked here rather than on the anchor or in
  * {@code SoulHomeBuffData}: it is transient state that a server restart is allowed to forget
- * (nothing was ever spent until success, so there is nothing to refund on a restart either), and
+ * (nothing is spent until success, so there is nothing to refund on a restart either: the essence stays
+ * in the player's inventory for the whole ritual and is taken only on the tick that completes it, which is
+ * what makes a crash mid-ritual cost nothing), and
  * keying it by dimension is what makes "two players ascending the same soulhome cannot double
  * spend one payment of essence" true for free - a second player simply finds the lock held and is
  * never offered a ritual of their own to start.
@@ -203,7 +205,6 @@ public final class AscensionRitualService
             if (entry.getValue().playerId().equals(player.getUUID()))
             {
                 ACTIVE.remove(entry.getKey());
-                refund(player, entry.getValue());
             }
         }
     }
@@ -304,8 +305,8 @@ public final class AscensionRitualService
             ServerLevel level, ServerPlayer player, ResourceKey<Level> key, Readiness readiness, BlockPos capPos,
             int floorY)
     {
+        // nothing is taken yet: a crash mid-ritual would lose it, and the ritual's state is not saved
         final Item essenceItem = essenceItem(readiness.targetRank());
-        removeEssence(player, essenceItem, readiness.essenceRequired());
 
         final int totalTicks = SoulHomeConfig.ascensionSettings().ritualDurationTicks();
 
@@ -327,7 +328,6 @@ public final class AscensionRitualService
         if (!state.capPos().equals(player.blockPosition()))
         {
             ACTIVE.remove(key);
-            refund(player, state);
             player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_MOVED).withStyle(ChatFormatting.RED));
             return;
         }
@@ -337,8 +337,16 @@ public final class AscensionRitualService
         if (dueForFullCheck && !pillarStillStandsUnder(level, state.capPos()))
         {
             ACTIVE.remove(key);
-            refund(player, state);
             player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_PILLAR).withStyle(ChatFormatting.RED));
+            return;
+        }
+
+        // the essence is carried, not paid, until the ritual completes, so a player could drop it
+        // and still ascend; checked on the same cadence as the pillar
+        if (dueForFullCheck && countEssence(player, state.essenceItem()) < state.essenceCount())
+        {
+            ACTIVE.remove(key);
+            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_ESSENCE).withStyle(ChatFormatting.RED));
             return;
         }
 
@@ -361,6 +369,16 @@ public final class AscensionRitualService
 
     private static void complete(ServerLevel level, ServerPlayer player, RitualState state)
     {
+        // last check and the one real spend, in one place: the player may have dropped the essence
+        // between the last periodic check and this tick
+        if (countEssence(player, state.essenceItem()) < state.essenceCount())
+        {
+            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_ESSENCE).withStyle(ChatFormatting.RED));
+            return;
+        }
+
+        removeEssence(player, state.essenceItem(), state.essenceCount());
+
         final SoulHomeBuffData data = SoulHomeBuffData.get(level);
         data.setAscensionRank(state.targetRank());
         StructureScanService.refresh(player);
@@ -381,11 +399,6 @@ public final class AscensionRitualService
 
         player.sendSystemMessage(Component.translatable(Constants.StringKeys.ANCHOR_RITUAL_SUCCESS, SoulBounds.rankLabel(state.targetRank()))
                 .withStyle(ChatFormatting.AQUA));
-    }
-
-    private static void refund(ServerPlayer player, RitualState state)
-    {
-        giveOrDrop(player, new ItemStack(state.essenceItem(), state.essenceCount()));
     }
 
     /**
