@@ -1936,4 +1936,4 @@ the anchor's own packet and is drawn on the screen for a few seconds, in the hin
 a bind, plain for a release, red for a refusal. The "not your soul" chat line a visitor got as the
 screen opened is gone as well; the screen already says so. Cosmetic only; nothing about what binds
 or what is refused has changed.
-- To be ported to `1.21.1`.
+- Ported to `1.21.1`.
