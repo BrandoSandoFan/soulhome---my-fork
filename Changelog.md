@@ -1926,3 +1926,14 @@ mod gone. The essence now stays in your inventory for the whole ritual and is ta
 it completes. Dropping it mid-ritual ends the ritual, with a message, and nothing is spent. A buff
 only for the unlucky; nothing changes for a ritual that runs to the end.
 - Ported to `1.21.1`.
+
+Fix: attunement feedback is on the anchor's screen, not in chat behind it (#279)
+
+Clicking a room on the Soul Anchor's screen answered through chat - "Attuned", "Released", "No slot
+free for that" - and chat is not drawn while that screen is open. With every slot full, a click on a
+dormant room looked like it did nothing, so people clicked again. The server's answer now rides in
+the anchor's own packet and is drawn on the screen for a few seconds, in the hint's place: green for
+a bind, plain for a release, red for a refusal. The "not your soul" chat line a visitor got as the
+screen opened is gone as well; the screen already says so. Cosmetic only; nothing about what binds
+or what is refused has changed.
+- To be ported to `1.21.1`.
