@@ -37,7 +37,7 @@ public class SyncSoulAnchorMessage implements SoulPayload
             new CustomPacketPayload.Type<>(ResourceLocationHelper.prefix("sync_soul_anchor"));
 
     public static final SyncSoulAnchorMessage INVALID =
-            new SyncSoulAnchorMessage(AscensionReport.EMPTY, AttunementReport.EMPTY);
+            new SyncSoulAnchorMessage(AscensionReport.EMPTY, AttunementReport.EMPTY, Notice.NONE);
 
     public static final Codec<SyncSoulAnchorMessage> CODEC =
             RecordCodecBuilder.create(instance -> instance
@@ -45,16 +45,45 @@ public class SyncSoulAnchorMessage implements SoulPayload
                             AscensionReport.CODEC.optionalFieldOf("ascension", AscensionReport.EMPTY)
                                     .forGetter(SyncSoulAnchorMessage::getAscension),
                             AttunementReport.CODEC.optionalFieldOf("attunement", AttunementReport.EMPTY)
-                                    .forGetter(SyncSoulAnchorMessage::getAttunement))
+                                    .forGetter(SyncSoulAnchorMessage::getAttunement),
+                            Codec.INT.optionalFieldOf("notice", 0)
+                                    .xmap(Notice::fromOrdinal, Notice::ordinal)
+                                    .forGetter(SyncSoulAnchorMessage::getNotice))
                     .apply(instance, SyncSoulAnchorMessage::new));
 
     private final AscensionReport ascension;
     private final AttunementReport attunement;
+    private final Notice notice;
 
-    public SyncSoulAnchorMessage(AscensionReport ascension, AttunementReport attunement)
+    public SyncSoulAnchorMessage(AscensionReport ascension, AttunementReport attunement, Notice notice)
     {
         this.ascension = ascension;
         this.attunement = attunement;
+        this.notice = notice;
+    }
+
+    /**
+     * What became of the click this report answers (#279). Carried in the packet and drawn by the
+     * screen because chat is not visible while that screen is open, so a refusal sent as a chat line
+     * reads as a click that did nothing. An ordinal on the wire, with unknown values reading as
+     * {@link #NONE}, so a newer server's notice never breaks an older client.
+     */
+    public enum Notice
+    {
+        NONE,
+        BOUND,
+        UNBOUND,
+        NO_SLOTS;
+
+        static Notice fromOrdinal(int ordinal)
+        {
+            return ordinal > 0 && ordinal < values().length ? values()[ordinal] : NONE;
+        }
+    }
+
+    public Notice getNotice()
+    {
+        return this.notice;
     }
 
     public AscensionReport getAscension()
@@ -70,7 +99,7 @@ public class SyncSoulAnchorMessage implements SoulPayload
     @Override
     public void accept(IPayloadContext context)
     {
-        context.enqueueWork(() -> ClientAnchor.accept(new Anchor(this.ascension, this.attunement)));
+        context.enqueueWork(() -> ClientAnchor.accept(new Anchor(this.ascension, this.attunement, this.notice)));
     }
 
     @Override
@@ -80,9 +109,9 @@ public class SyncSoulAnchorMessage implements SoulPayload
     }
 
     /** The anchor as the client last heard it. */
-    public record Anchor(AscensionReport ascension, AttunementReport attunement)
+    public record Anchor(AscensionReport ascension, AttunementReport attunement, Notice notice)
     {
-        public static final Anchor EMPTY = new Anchor(AscensionReport.EMPTY, AttunementReport.EMPTY);
+        public static final Anchor EMPTY = new Anchor(AscensionReport.EMPTY, AttunementReport.EMPTY, Notice.NONE);
     }
 
     /**

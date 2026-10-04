@@ -57,6 +57,7 @@ public class SoulAnchorScreen extends Screen
     private static final int BOTTOM_MARGIN = 26;
     private static final int LINE_HEIGHT = 11;
     private static final int INDENT = 8;
+    private static final int NOTICE_TICKS = 80;
 
     private static final int COLOR_TITLE = 0xE0E0FF;
     private static final int COLOR_SLOTS = 0xC7A6FF;
@@ -81,6 +82,10 @@ public class SoulAnchorScreen extends Screen
     private AttunementReport report;
     private Button residueButton;
     private long seenGeneration;
+
+    /** The server's word on the last click, and the tick it arrived on - drawn briefly in the hint's place (#279). */
+    private SyncSoulAnchorMessage.Notice notice = SyncSoulAnchorMessage.Notice.NONE;
+    private int noticeAge;
 
     public SoulAnchorScreen(AscensionReport ascension, AttunementReport report)
     {
@@ -114,6 +119,8 @@ public class SoulAnchorScreen extends Screen
     {
         // a report that lands while this is open is the server's answer to a click made in it, so it
         // updates the screen in place rather than opening a second one over the top
+        this.noticeAge++;
+
         final long generation = SyncSoulAnchorMessage.ClientAnchor.generation();
 
         if (generation != this.seenGeneration)
@@ -123,6 +130,8 @@ public class SoulAnchorScreen extends Screen
             final SyncSoulAnchorMessage.Anchor anchor = SyncSoulAnchorMessage.ClientAnchor.latest();
             this.ascension = anchor.ascension();
             this.report = anchor.attunement();
+            this.notice = anchor.notice();
+            this.noticeAge = 0;
 
             updateResidueButton();
         }
@@ -143,10 +152,15 @@ public class SoulAnchorScreen extends Screen
                             this.report.activeUsed(), this.report.activeSlots()),
                     LEFT, 26, COLOR_SLOTS);
 
-            graphics.drawString(this.font, Component.translatable(this.ascension.owner()
-                            ? Constants.StringKeys.ANCHOR_SCREEN_HINT
-                            : Constants.StringKeys.ANCHOR_SCREEN_VISITOR),
-                    LEFT, 38, COLOR_MUTED);
+            // the notice takes the hint's line for its few seconds rather than sitting beside it, which
+            // would run off a narrow screen
+            if (!drawNotice(graphics))
+            {
+                graphics.drawString(this.font, Component.translatable(this.ascension.owner()
+                                ? Constants.StringKeys.ANCHOR_SCREEN_HINT
+                                : Constants.StringKeys.ANCHOR_SCREEN_VISITOR),
+                        LEFT, 38, COLOR_MUTED);
+            }
         }
 
         final int right = this.width - RIGHT_MARGIN;
@@ -217,6 +231,35 @@ public class SoulAnchorScreen extends Screen
     private int panelBottom()
     {
         return this.height - BOTTOM_MARGIN;
+    }
+
+    /**
+     * What the server made of the last click, for a few seconds in the hint's place. A refusal used to go
+     * to chat, which is not drawn behind this screen, so a full loadout read as a click that did
+     * nothing (#279).
+     */
+    private boolean drawNotice(GuiGraphics graphics)
+    {
+        if (this.notice == SyncSoulAnchorMessage.Notice.NONE || this.noticeAge > NOTICE_TICKS)
+        {
+            return false;
+        }
+
+        final String key = switch (this.notice)
+        {
+            case BOUND -> Constants.StringKeys.ATTUNE_BOUND;
+            case UNBOUND -> Constants.StringKeys.ATTUNE_UNBOUND;
+            default -> Constants.StringKeys.ATTUNE_NO_SLOTS;
+        };
+        final int color = switch (this.notice)
+        {
+            case BOUND -> COLOR_ATTUNED;
+            case NO_SLOTS -> COLOR_MISSING;
+            default -> COLOR_TEXT;
+        };
+
+        graphics.drawString(this.font, Component.translatable(key), LEFT, 38, color);
+        return true;
     }
 
     /** The button says what pressing it would actually yield, and is not there when that is nothing. */

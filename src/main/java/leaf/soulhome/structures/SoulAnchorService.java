@@ -4,15 +4,11 @@
 
 package leaf.soulhome.structures;
 
-import leaf.soulhome.config.SoulHomeConfig;
-import leaf.soulhome.constants.Constants;
 import leaf.soulhome.feedback.AscensionReport;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncSoulAnchorMessage;
 import leaf.soulhome.utils.DimensionHelper;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -58,19 +54,21 @@ public final class SoulAnchorService
     {
         final boolean owner = isOwner(soulhome, player);
 
-        send(soulhome, player, owner, 0);
-
-        if (!owner && SoulHomeConfig.attunementEnabled())
-        {
-            player.sendSystemMessage(Component.translatable(Constants.StringKeys.ATTUNE_NOT_YOURS)
-                    .withStyle(ChatFormatting.GRAY));
-        }
+        // a visitor is told on the screen itself (ANCHOR_SCREEN_VISITOR): a chat line sent as it opens
+        // would sit behind it, unread, until it closed (#279)
+        send(soulhome, player, owner, 0, SyncSoulAnchorMessage.Notice.NONE);
     }
 
     /** Redraw the screen a player already has open on their own soulhome - see {@link AttunementService#set}. */
     public static void refresh(ServerLevel soulhome, ServerPlayer player)
     {
-        send(soulhome, player, true, 0);
+        refresh(soulhome, player, SyncSoulAnchorMessage.Notice.NONE);
+    }
+
+    /** As {@link #refresh(ServerLevel, ServerPlayer)}, also telling the screen what became of the click (#279). */
+    public static void refresh(ServerLevel soulhome, ServerPlayer player, SyncSoulAnchorMessage.Notice notice)
+    {
+        send(soulhome, player, true, 0, notice);
     }
 
     /**
@@ -90,7 +88,7 @@ public final class SoulAnchorService
             return;
         }
 
-        send(level, player, true, AscensionRitualService.convertResidue(level, player));
+        send(level, player, true, AscensionRitualService.convertResidue(level, player), SyncSoulAnchorMessage.Notice.NONE);
     }
 
     /**
@@ -111,12 +109,12 @@ public final class SoulAnchorService
                 .isPresent();
     }
 
-    private static void send(ServerLevel soulhome, ServerPlayer player, boolean owner, int collected)
+    private static void send(ServerLevel soulhome, ServerPlayer player, boolean owner, int collected, SyncSoulAnchorMessage.Notice notice)
     {
         final AscensionReport ascension = AscensionRitualService.statusFor(soulhome, player, owner)
                 .withCollected(collected);
 
-        Network.sendTo(new SyncSoulAnchorMessage(ascension, AttunementService.reportFor(soulhome, owner)), player);
+        Network.sendTo(new SyncSoulAnchorMessage(ascension, AttunementService.reportFor(soulhome, owner), notice), player);
     }
 
     private static boolean isOwner(ServerLevel soulhome, ServerPlayer player)
