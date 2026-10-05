@@ -406,6 +406,32 @@ public final class SnapshotBlockVolume implements BlockVolume
     }
 
     /**
+     * Whether every chunk the box touches is loaded (#267).
+     *
+     * <p>{@link #hasLoadedChunks(ServerLevel, RegionBounds)} only says the box can be seen at all,
+     * which is the wrong bar for a scan whose result is believed: the capture leaves an unloaded
+     * chunk as air, so a box that is half loaded reads as a soul that is half empty, and a room on
+     * the loaded edge has an open side and stops being a room. Either way the owner's buffs would
+     * vanish for a scan that merely could not see. Whether an unloaded chunk holds anything is not
+     * knowable until it is loaded, so the only safe reading of a gap is "cannot say".
+     */
+    public static boolean allChunksLoaded(ServerLevel level, RegionBounds box)
+    {
+        for (int chunkX = box.minX() >> 4; chunkX <= box.maxX() >> 4; chunkX++)
+        {
+            for (int chunkZ = box.minZ() >> 4; chunkZ <= box.maxZ() >> 4; chunkZ++)
+            {
+                if (!level.hasChunk(chunkX, chunkZ))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * The box worth scanning in this soulhome, derived from which chunk sections actually hold
      * blocks rather than from a fixed guess. A soulhome is one small island in an otherwise empty
      * 384-block-tall void; sweeping all of it would be almost entirely wasted work.
@@ -508,7 +534,7 @@ public final class SnapshotBlockVolume implements BlockVolume
 
         final RegionBounds box = declaredBox(level);
 
-        if (!hasLoadedChunks(level, box))
+        if (!allChunksLoaded(level, box))
         {
             return Capture.of(Capture.Outcome.UNREADABLE);
         }
