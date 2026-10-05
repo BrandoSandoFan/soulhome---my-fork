@@ -54,13 +54,17 @@ jobs:
       # 'jar' is finalised by 'reobfJar', so what lands in build/libs is the reobfuscated jar that
       # can be dropped straight into a mods folder - which makes every run of this workflow a
       # build someone can actually go and play.
+      #
+      # Only pushes to 1.20.1 upload it: a pull request or a manual run has nothing anyone needs to
+      # keep, and three days is long enough to fetch a build before the next one replaces it.
       - name: Upload the mod jar
+        if: github.event_name == 'push' && github.ref == 'refs/heads/1.20.1'
         uses: actions/upload-artifact@v4
         with:
           name: soulhome-mod-jar
           path: build/libs/*.jar
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 3
 
       # The generated resources under src/main/generated are committed, and they are what the mod
       # actually ships - a book entry or an advancement that was edited by hand rather than
@@ -89,7 +93,7 @@ jobs:
           fi
 
       - name: Upload test report
-        if: always()
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/1.20.1'
         uses: actions/upload-artifact@v4
         with:
           name: test-report
@@ -97,4 +101,4 @@ jobs:
             build/reports/tests/test
             build/test-results/test
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 3
