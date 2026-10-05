@@ -21,6 +21,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -314,11 +315,12 @@ public final class TerrainGrowthService
      * of it. A bridge they threw across the verge stands above the band, is built, keeps its moat,
      * and the island grows around it. See #160.
      *
-     * <p>The island's own trees and hills come out as built too, and that is the right answer
-     * rather than a misclassification worth fixing. Nothing here can tell a tree from a tower, and
-     * the two readings fail very differently: called built, a tree notches the coastline beside it
-     * and costs a handful of columns of apron; called ground, it would seed an apron at the height
-     * of its own canopy, which is a shelf of grass in mid-air.
+     * <p>Height alone cannot tell a tree from a tower, so a tree's tall trunk correctly comes out
+     * built - but its lower canopy fringe tops out inside the ground band, on the same reading as a
+     * patio, and used to be handed to {@code ApronPlanner} as ground it could grow from. That put
+     * new "ground" two or three blocks in the air, made of leaves and the snow lying on branches
+     * (#235). A column whose own top block is foliage is always built, whatever its height, so the
+     * moat lands around the tree instead of an apron seeding off it.
      */
     private static void surveyChunk(LevelChunk chunk, GroundSurvey survey, RegionBounds box, int floorY, int groundBand)
     {
@@ -341,9 +343,15 @@ public final class TerrainGrowthService
                 {
                     survey.set(x, z, GroundSurvey.Kind.BUILT, top);
                 }
-                else if (top >= floorY)
+                else if (top >= floorY && !isFoliage(chunk.getBlockState(new BlockPos(x, top, z))))
                 {
                     survey.set(x, z, GroundSurvey.Kind.GROUND, top);
+                }
+                else if (top >= floorY)
+                {
+                    // a leaf or a log at ground height is still a tree, not a patio - see the class
+                    // javadoc above
+                    survey.set(x, z, GroundSurvey.Kind.BUILT, top);
                 }
                 else
                 {
@@ -353,6 +361,12 @@ public final class TerrainGrowthService
                 }
             }
         }
+    }
+
+    /** Whether a column's top block is tree material rather than ground, whatever its height. */
+    private static boolean isFoliage(BlockState state)
+    {
+        return state.is(BlockTags.LEAVES) || state.is(BlockTags.LOGS);
     }
 
     /** One soulhome's run of growth, from the survey through to the last block written. */
@@ -384,6 +398,7 @@ public final class TerrainGrowthService
         private int placeCursor;
         private int placedColumns;
         private int plannedLimit;
+        private int plannedBandWidth;
         private int ticks;
         private long serverNanos;
 
@@ -505,6 +520,7 @@ public final class TerrainGrowthService
                     this.legacyBox, this.soulSeed);
 
             this.plannedLimit = plan.groundLimit();
+            this.plannedBandWidth = plan.bandWidth();
 
             final Map<Long, List<ApronPlan.Column>> grouped = new HashMap<>();
 
@@ -552,12 +568,17 @@ public final class TerrainGrowthService
          * survey time. A survey of a rank V box takes several seconds of ticks, and a player can
          * place a block inside that window; the survey is what decides <i>where</i> ground may go,
          * and this is what makes "no block a player placed is ever replaced" true regardless.
+         *
+         * <p>The box floor is never consulted here (#235) - only how deep the source column actually
+         * runs, and how far out in the band this one sits. See {@code TerrainGrowthSettings#depthAt}.
          */
         private void placeColumn(ServerLevel level, ApronPlan.Column column)
         {
-            final int layers = this.settings.layersAt(column.surfaceY(), this.bounds.floorY());
+            final int sourceDepth = sourceDepth(
+                    level, column.sourceX(), column.sourceZ(), column.surfaceY(), this.settings.soilDepth());
+            final int depth = this.settings.depthAt(column.bandDistance(), this.plannedBandWidth, sourceDepth);
 
-            if (layers <= 0)
+            if (depth <= 0)
             {
                 return;
             }
@@ -566,9 +587,9 @@ public final class TerrainGrowthService
             final BlockPos.MutableBlockPos source = new BlockPos.MutableBlockPos();
             boolean placedAny = false;
 
-            for (int depth = 0; depth < layers; depth++)
+            for (int layer = 0; layer < depth; layer++)
             {
-                final int y = column.surfaceY() - depth;
+                final int y = column.surfaceY() - layer;
                 target.set(column.x(), y, column.z());
 
                 if (!level.getBlockState(target).isAir())
@@ -584,7 +605,7 @@ public final class TerrainGrowthService
                     // the source column is thinner than this one would be. Carry its lowest solid
                     // block down rather than leaving a hole, so an apron off a shallow shelf is
                     // still a shelf and not a grate.
-                    material = deepestSolid(level, column.sourceX(), column.sourceZ(), column.surfaceY(), layers);
+                    material = deepestSolid(level, column.sourceX(), column.sourceZ(), column.surfaceY(), depth);
                 }
 
                 if (material.isAir() || isOccupiedByAnyone(level, target))
@@ -605,14 +626,32 @@ public final class TerrainGrowthService
             }
         }
 
-        private static BlockState deepestSolid(ServerLevel level, int x, int z, int surfaceY, int layers)
+        /**
+         * How many solid layers the ground column this apron grew from actually has, walking down
+         * from its surface and stopping at the first air - or at {@code maxDepth}, since nothing
+         * past {@code soilDepth} could ever be used regardless of how much further the column runs.
+         */
+        private static int sourceDepth(ServerLevel level, int x, int z, int surfaceY, int maxDepth)
+        {
+            final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+            int depth = 0;
+
+            while (depth < maxDepth && !level.getBlockState(cursor.set(x, surfaceY - depth, z)).isAir())
+            {
+                depth++;
+            }
+
+            return depth;
+        }
+
+        private static BlockState deepestSolid(ServerLevel level, int x, int z, int surfaceY, int depth)
         {
             final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
             BlockState deepest = level.getBlockState(cursor.set(x, surfaceY, z));
 
-            for (int depth = 1; depth < layers; depth++)
+            for (int layer = 1; layer < depth; layer++)
             {
-                final BlockState below = level.getBlockState(cursor.set(x, surfaceY - depth, z));
+                final BlockState below = level.getBlockState(cursor.set(x, surfaceY - layer, z));
 
                 if (below.isAir())
                 {

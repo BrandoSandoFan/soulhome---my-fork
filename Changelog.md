@@ -1562,6 +1562,54 @@ anything but the first one it ever got.
   changes underneath its owner on a later scan or server restart (#240).
 - Ported to `1.21.1`.
 
+The island's new coast was a one-block shelf no matter how deep the island itself ran
+
+#243 closed #235 by fixing the fog, and the fog was genuinely wrong - but it was not the whole of
+"the island expansion smears". Every apron of new ground an ascension grew was clamped against the
+box's own floor datum, and on every shipped island that datum sits exactly where the island's own
+crust already is. So the clamp could only ever leave one block. Ascending still fanned twelve to
+eighteen hundred columns of single-block grass out around an island whose own body runs twenty-five
+to thirty-one blocks deep, and from any angle off the island the new coast read as a flat pancake
+laid over something with real shape underneath it.
+
+- New ground is no longer clamped against the box floor at all. The island's own body already sits
+  well below that datum (#97), so an apron the player cannot dig through the bottom of is no
+  different from the island itself already being exactly that.
+- In its place, an apron now tapers: full depth where it meets the island's own ground, thinning
+  toward a shallow rim at the far edge of its own reach, and never deeper than the ground column it
+  actually grew from. A slab the same thickness at the coast as at the shore reads as a shelf nailed
+  on; a taper reads as the island's own underside continuing outward, which is what it was always
+  meant to look like.
+- The depth it tapers from is deeper too - `soil_depth` moves from 4 to 8 - so the near edge reads
+  as a cut into real island rather than disappearing against it.
+- A buff: new coastline finally looks like coastline. Nothing about how far ground reaches, or
+  which columns it grows into, changed - only how deep each one is cut (#235).
+- Not yet ported to `1.21.1`.
+
+New coastline grown out of the island's own trees
+
+Depth was fixed (#235), and the coast was still wrong on the one starter island that ships with
+trees on it. Growth decides ground from built by height alone - anything within a few blocks of
+the floor is ground, anything taller is built and kept clear of - and a tree's tall trunk reads
+correctly as built. Its lower canopy fringe does not: a spruce's low branches, and the snow sitting
+on top of them, top out inside that same band, so a fringe column read exactly like a patio laid at
+floor level. A run of growth took that reading at face value and planted new "ground" two or three
+blocks in the air, made of leaves and logs - on the snow island specifically, nearly a fifth of
+every apron it grew.
+
+- The ground band - how far above the floor a column may sit and still read as ground - drops from
+  three blocks to one. Three was wide enough to read a canopy fringe as a laid floor; one still
+  keeps the flowers and tall grass standing on real ground on the other two starter islands
+  seeding growth the way they always did, since a heightmap cannot tell a dandelion from a deck.
+- A column whose own top block is a leaf or a log is now always read as built, whatever its
+  height - the one thing the band alone could never catch, since the snow lying on a branch is
+  ordinary snow and no height threshold tells it apart from snow on the ground.
+- A nerf in raw column count on every island, because a build overhanging the ground now keeps a
+  moat instead of seeding growth: roughly 4% fewer columns on `soul_island0`, 7% fewer on
+  `soul_island1`, and 29% fewer on the snow island, `soul_island2` - where every column lost was
+  one made of tree, not one made of ground.
+- Not yet ported to `1.21.1`.
+
 Your own island's ground could read as out of bounds
 
 The ascent box's floor is a fixed datum, the same for every soul - but the starter islands don't

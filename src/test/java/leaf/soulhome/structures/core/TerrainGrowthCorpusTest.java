@@ -187,6 +187,72 @@ class TerrainGrowthCorpusTest
     }
 
     @Test
+    @DisplayName("the apron tapers with distance from the island rather than reading as a flat one-block slab (#235)")
+    void theApronTapersRatherThanFlatteningToOneBlock()
+    {
+        for (SoulIslandVolume island : SoulIslandVolume.allShipped())
+        {
+            final ApronPlan plan = growOnce(island, FIRST_OUTWARD, 0);
+
+            assertFalse(plan.isEmpty(), "soul_island" + island.style() + " grew no ground to check the taper of");
+
+            final int offsetX = -island.templateSizeX() / 2;
+            final int offsetZ = -island.templateSizeZ() / 2;
+            final int offsetY = FLOOR - spawnColumnTop(island);
+
+            // measured against what actually planned, not a fixed distance, because the edge jitter
+            // means no particular column is guaranteed to reach the band's full width
+            final int maxBandDistance = plan.columns().stream().mapToInt(ApronPlan.Column::bandDistance).max()
+                    .orElseThrow();
+
+            boolean sawMoreThanOneBlockDeep = false;
+            int deepestNearIsland = 0;
+            int shallowestAtRim = Integer.MAX_VALUE;
+
+            for (ApronPlan.Column column : plan.columns())
+            {
+                final int sourceDepth = sourceDepthOf(island, column, offsetX, offsetZ, offsetY);
+                final int depth = SETTINGS.depthAt(column.bandDistance(), plan.bandWidth(), sourceDepth);
+
+                assertTrue(
+                        depth <= SETTINGS.soilDepth(),
+                        "soul_island" + island.style() + " planned " + column.x() + "," + column.z() + " " + depth
+                                + " layers deep, past soil_depth of " + SETTINGS.soilDepth());
+
+                assertTrue(
+                        depth <= sourceDepth,
+                        "soul_island" + island.style() + " planned " + column.x() + "," + column.z() + " " + depth
+                                + " layers deep, deeper than the " + sourceDepth + " the ground it grew from has");
+
+                if (depth > 1)
+                {
+                    sawMoreThanOneBlockDeep = true;
+                }
+
+                if (column.bandDistance() <= 1)
+                {
+                    deepestNearIsland = Math.max(deepestNearIsland, depth);
+                }
+
+                if (column.bandDistance() >= maxBandDistance - 1)
+                {
+                    shallowestAtRim = Math.min(shallowestAtRim, depth);
+                }
+            }
+
+            assertTrue(
+                    sawMoreThanOneBlockDeep,
+                    "soul_island" + island.style() + " grew an apron that never got past one block deep anywhere -"
+                            + " the #235 smear, where the box floor clamped every column to a shelf");
+
+            assertTrue(
+                    deepestNearIsland > shallowestAtRim,
+                    "soul_island" + island.style() + " did not taper: " + deepestNearIsland
+                            + " layers deep right off the island against " + shallowestAtRim + " at its own rim");
+        }
+    }
+
+    @Test
     @DisplayName("a player's tower on the island's edge keeps its clearance, and is never grown over")
     void aBuildOnTheEdgeKeepsItsClearance()
     {
@@ -211,6 +277,49 @@ class TerrainGrowthCorpusTest
                         distance > SETTINGS.clearanceMargin(),
                         "soul_island" + island.style() + " planned ground at " + column.x() + "," + column.z()
                                 + ", only " + distance + " from a tower the player built");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("the apron never grows from a tree's own canopy (#235)")
+    void theApronNeverGrowsFromFoliage()
+    {
+        for (SoulIslandVolume island : SoulIslandVolume.allShipped())
+        {
+            final ApronPlan plan = growOnce(island, FIRST_OUTWARD, 0);
+            final int offsetX = -island.templateSizeX() / 2;
+            final int offsetZ = -island.templateSizeZ() / 2;
+
+            for (ApronPlan.Column column : plan.columns())
+            {
+                final int localX = column.sourceX() - offsetX;
+                final int localZ = column.sourceZ() - offsetZ;
+                final int localTop = columnTop(island, localX, localZ);
+
+                if (localTop == Integer.MIN_VALUE)
+                {
+                    continue;
+                }
+
+                final BlockSignature source = island.signatureAt(localX, localTop, localZ);
+
+                assertFalse(
+                        source != null
+                                && (source.hasTag("minecraft:leaves") || source.hasTag("minecraft:logs")),
+                        "soul_island" + island.style() + " planned " + column.x() + "," + column.z()
+                                + " off source " + column.sourceX() + "," + column.sourceZ()
+                                + ", whose own top block is a leaf or a log rather than the ground beneath the tree"
+                                + " - the #235 smear, where a canopy fringe read as ground");
+
+                if (island.style() == 2)
+                {
+                    assertTrue(
+                            column.surfaceY() <= FLOOR + 1,
+                            "soul_island2 planned " + column.x() + "," + column.z() + " at surfaceY "
+                                    + column.surfaceY() + ", more than one block above the floor datum - the snow"
+                                    + " island's ground is flat, so anything higher is apron grown from a tree");
+                }
             }
         }
     }
@@ -276,9 +385,15 @@ class TerrainGrowthCorpusTest
                 }
 
                 final int worldTop = top + offsetY;
+                final BlockSignature topSignature = island.signatureAt(x - offsetX, top, z - offsetZ);
+                final boolean foliage = topSignature != null
+                        && (topSignature.hasTag("minecraft:leaves") || topSignature.hasTag("minecraft:logs"));
 
-                if (worldTop > FLOOR + SETTINGS.groundBand())
+                if (worldTop > FLOOR + SETTINGS.groundBand() || (worldTop >= FLOOR && foliage))
                 {
+                    // mirrors TerrainGrowthService#surveyChunk's foliage guard (#235): a tree's
+                    // canopy fringe tops out inside the ground band on height alone, and this test
+                    // would agree with itself and disagree with the game if it forgot that too
                     survey.set(x, z, GroundSurvey.Kind.BUILT, worldTop);
                 }
                 else if (worldTop >= FLOOR)
@@ -293,6 +408,33 @@ class TerrainGrowthCorpusTest
         }
 
         return survey;
+    }
+
+    /**
+     * How many solid layers a planned column's source actually has, walking down from its surface
+     * in the same template coordinates {@link #surveyOf} reads it in. Bounded by {@code soil_depth},
+     * exactly as {@code TerrainGrowthService} bounds its own walk down the live world - nothing past
+     * that could ever be used regardless of how much further the island's body runs.
+     */
+    private static int sourceDepthOf(SoulIslandVolume island, ApronPlan.Column column, int offsetX, int offsetZ, int offsetY)
+    {
+        int depth = 0;
+
+        for (int y = column.surfaceY(); depth < SETTINGS.soilDepth(); y--)
+        {
+            final int templateY = y - offsetY;
+
+            if (templateY < 0 || templateY >= island.templateSizeY()
+                    || island.passabilityAt(column.sourceX() - offsetX, templateY, column.sourceZ() - offsetZ)
+                            == Passability.EMPTY)
+            {
+                break;
+            }
+
+            depth++;
+        }
+
+        return depth;
     }
 
     /** The highest non-air block in one template column, or {@link Integer#MIN_VALUE} for an empty one. */
