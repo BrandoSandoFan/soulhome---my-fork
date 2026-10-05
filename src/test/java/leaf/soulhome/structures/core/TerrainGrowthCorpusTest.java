@@ -192,7 +192,7 @@ class TerrainGrowthCorpusTest
     {
         for (SoulIslandVolume island : SoulIslandVolume.allShipped())
         {
-            final ApronPlan plan = growOnce(island, 1, 0);
+            final ApronPlan plan = growOnce(island, FIRST_OUTWARD, 0);
 
             assertFalse(plan.isEmpty(), "soul_island" + island.style() + " grew no ground to check the taper of");
 
@@ -287,7 +287,7 @@ class TerrainGrowthCorpusTest
     {
         for (SoulIslandVolume island : SoulIslandVolume.allShipped())
         {
-            final ApronPlan plan = growOnce(island, 1, 0);
+            final ApronPlan plan = growOnce(island, FIRST_OUTWARD, 0);
             final int offsetX = -island.templateSizeX() / 2;
             final int offsetZ = -island.templateSizeZ() / 2;
 
