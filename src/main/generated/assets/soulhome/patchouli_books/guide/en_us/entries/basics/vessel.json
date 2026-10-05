@@ -1,0 +1,26 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:basics",
+  "icon": "minecraft:armor_stand",
+  "name": "The Body You Leave",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Whenever you enter your soul - by cushion, by key, or by looking into someone else's - your body stays sitting where you were.$(p)$(bold)It is real.$(0) Strike it and the blow lands on you, wherever you are: your armour, your enchantments and your potions still apply, because it is still you being hit.",
+      "title": "The Body You Leave"
+    },
+    {
+      "type": "text",
+      "text": "It does not wait politely in an unloaded field, either. Your body keeps the ground it sits on awake, so anything that wanders by can find it.$(p)If it is killed, you die - and everything you carried spills out where your body fell, in the world, not in your soul where nobody could follow. Your compass points there."
+    },
+    {
+      "type": "text",
+      "text": "A body left by a cushion takes half of every hit. One left by a key takes it all.$(p)If your body is disturbed some other way - struck from existence, or taken while you were logged out - you are drawn back into it at once, alive, wherever it stood.$(p)Choose where you sit down.",
+      "title": "Where You Leave It"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 8
+}

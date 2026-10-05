@@ -8,11 +8,12 @@ This file is for agents working on the repo. It exists so you do not have to red
 workaround, the architecture, or the invariants that are easy to break silently.
 
 An agent working here is usually running in an environment with free permissions - broad tool
-access with little or no per-action approval - rather than a tightly sandboxed one. That changes
-nothing about the engineering judgment this file asks for: verify the offline build and tests the
-way this file describes, do not claim something works without having run it, and still treat
-destructive or hard-to-reverse actions (force-pushing, discarding uncommitted work, and the like)
-with the same caution as ever.
+access with little or no per-action approval, and outbound network access to the Maven
+repositories - rather than a tightly sandboxed one. **That means you can, and should, run the full
+Gradle build yourself, Minecraft and all** (see below); it is not something to leave for CI. None
+of this changes the engineering judgment this file asks for: do not claim something works without
+having run it, and still treat destructive or hard-to-reverse actions (force-pushing, discarding
+uncommitted work, and the like) with the same caution as ever.
 
 ---
 
@@ -22,14 +23,33 @@ with the same caution as ever.
 (`.github/workflows/build.yml`). Note the repo stores `gradlew` **without** the executable bit, so
 CI does `chmod +x ./gradlew` first; locally use `sh gradlew ...` if you hit "Permission denied".
 
-### Gradle needs network access, and often does not have it
+### Run the full build locally - it is expected
+
+You will normally have network access to `maven.minecraftforge.net`, Maven Central and the other
+repositories `build.gradle` names, and permission to run long commands. So the default is the real
+thing: **`sh gradlew build` before every push**, Minecraft classes included. It compiles every
+file - the Forge-facing half too - and runs the whole suite. The first run on a cold cache downloads
+and decompiles Minecraft and takes several minutes; that is the cost of the check, not a reason to
+skip it. Run it in the background if it helps, but run it. The toolchain is pinned to Java 17; if
+Gradle reports "No matching toolchains found", the container simply lacks one - install it
+(`apt-get install -y openjdk-17-jdk-headless`) rather than treating the build as unrunnable.
+The same applies to `sh gradlew runData` when you touch datagen, and to `runServer` when a change
+can only be seen in the game (a config file appearing, a world loading) - a dedicated server starts
+headless, once `run/eula.txt` says `eula=true`.
+
+Do not substitute the offline path below out of habit, and do not report a change to a
+Forge-facing class as verified because it `javac`s with only missing-symbol errors. That is a
+fallback for when Gradle genuinely cannot reach its repositories, not an equivalent.
+
+### Fallback: when Gradle cannot reach the network
 
 ForgeGradle resolves from `maven.minecraftforge.net` and decompiles Minecraft on a cold cache. In a
 sandbox with no route to that host, **`./gradlew` cannot run at all** - it fails at plugin
-resolution before compiling a single file.
+resolution before compiling a single file. Confirm that is actually what happened (the error names
+the host) before falling back.
 
-**Do not conclude the tests cannot be run.** The parts of this codebase that carry the interesting
-logic are deliberately Minecraft-free and compile with plain `javac`:
+Even then, **do not conclude the tests cannot be run.** The parts of this codebase that carry the
+interesting logic are deliberately Minecraft-free and compile with plain `javac`:
 
 ```sh
 SP=/tmp/soulhome-offline && mkdir -p $SP
@@ -47,7 +67,8 @@ java -jar $SP/junit.jar execute -cp "$SP/out:$SP/gson.jar:src/main/resources:src
 ```
 
 That runs the great majority of the suite (region detection, classification, form clauses, buff
-maths). What it does **not** cover, and what CI is therefore the first real compile of:
+maths). What it does **not** cover, and what CI is the first real compile of when you had to take
+this path (say so when you report the change):
 
 | Not covered offline | Why |
 | --- | --- |
@@ -103,7 +124,7 @@ The bridge is three small interfaces/records:
 
 | Package | What lives there |
 | --- | --- |
-| `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. |
+| `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. `structures/core/music` is the soul's composer and synth. |
 | `structures` | the game-facing half: snapshot, datapack loading, scan scheduling, saved data, codecs (`ArchetypeCodecs`, `FormCodecs`, `BondCodecs`) |
 | `config` | two `ForgeConfigSpec`s: the server's, read through an immutable `Snapshot`, and the client's, which holds only the cosmetic ambience knobs |
 | `buffs`, `buffs/effects` | the capability holding a player's magnitudes, and one class per buff type |
@@ -129,6 +150,36 @@ Our own moves are exempt because `TeleportHelper#teleportEntity` wraps them in
 `SoulTravel#asSoulTravel`. **Anything new that moves a player in or out of a soulhome has to go
 through `TeleportHelper`**, or it will be cancelled by our own guard. `dimension.restrict_travel`
 turns the rule off for a pack that wants its own way in.
+
+### The body you leave, and the souls you can see into (#181)
+
+Every way into a soul - a cushion, a key, a gaze - leaves a `SoulVesselEntity` where the player
+stood, spawned only through `VesselLifecycleService`. The rules, and what breaks if one is missed:
+
+- **One health pool, and it is the player's.** The vessel never loses health. `hurt()` forwards the
+  hit to its owner as `soulhome:soul_severed` (datapack JSON under `data/soulhome/damage_type/`,
+  looked up through `SoulSevered.KEY`), scaled by the vessel's fragility and gated by
+  `vessel.damage_transfer`. `CommonEvents#onLivingHurt` has exactly **one hole** in its blanket
+  cancel for that type. Close it and damage transfer silently does nothing while every test passes.
+- **`/kill` and the void are removals, not hits.** `LivingEntity#kill` routes through `hurt()` with
+  `Float.MAX_VALUE`; the vessel overrides `kill()` and `onBelowWorld()` so an operator never kills a
+  meditating player by accident. A removal the owner did not choose ejects them alive.
+- **Spectators are invulnerable, and a gazer's body is not.** `GazeService#hurtWhileGazing` lifts
+  `abilities.invulnerable` for one `hurt()` call. Do not "simplify" this by tagging soul_severed
+  `bypasses_invulnerability` - that tag also stops a totem of undying from working.
+- **The spill runs in death order.** A gazer is handed their game mode back in `LivingDeathEvent`
+  (spectators drop nothing), drops and experience move at `LOWEST` priority, and the body is
+  removed only after the drops are spawned. Vanilla writes the death position at the *end* of
+  `ServerPlayer#die`, so the body's position is applied in `PlayerEvent.Clone`, not the death event.
+- **Nobody is stranded as a spectator.** A gaze session is saved in the gazer's persistent NBT the
+  moment it starts, and `GazeService#onLogin` restores and closes any it finds. A gazer's dimension
+  change is flagged (`isGazeTravel`) so `StructureEvents` never rescans on their account.
+- **Suppression is gated on the server.** `SuppressionService` sends a precomputed
+  `SuppressionSettings.Signature`, never raw ranks, and only to an observer with an awarded room.
+  Their rank is the amount, yours the legibility - `SuppressionSettingsTest` asserts no two rank
+  pairs render alike. Every channel reads `ClientSuppression#visible`, which is line-of-sight only.
+- **A gaze always leaves a trace.** `GazeSettings#obviousnessFor` falls toward a floor validated
+  strictly above zero; `GazeSettingsTest` pins it at any magnitude.
 
 ---
 
@@ -362,6 +413,36 @@ consumes a classification that already existed. The rules, and what breaks if on
   soul would duck for every block placed - in a dimension whose whole purpose is placing blocks.
   A tail in flight is silenced by a hold rather than allowed to finish.
 
+- **Quiet is relative to the game, and it lives in the assets and the player's knobs** (#163). The
+  first playtest found the whole ambience quieter than Minecraft's music, because every layer had
+  added its own "if in doubt, quieter" ceiling on top of assets already mastered far down. The
+  assets are mastered by `tools/ambience` (one-shots -20 dBFS RMS, limited to -3 peak; bed -24;
+  character beds -28), and the Java ceilings only keep the layers in order relative to each other.
+  Do not add another attenuation stage; turn a mastering target or a default instead.
+- **The soul plays its own music, and vanilla's is held off by a mixin** (#163). `SoulSynth` and
+  `SoulComposer` (under `structures/core/music`, Minecraft-free) compose and render it live;
+  `SoulMusicPlayer` hands it to the sound engine through Forge's `SoundInstance#getStream`, and
+  `MusicManagerMixin` cancels `MusicManager#tick` while a soul's music is on - Forge 47.3.0 has no
+  `SelectMusicEvent`. A piece is composed from the brief when it starts and never changes under a
+  player; every note is in the piece's mode and no diminished chord is ever held, which
+  `SoulComposerTest` pins, and `SoulSynthTest` holds every voice between -28 and -16 dBFS at every
+  rank.
+- **Each mood has its own groove, and its room's foley is in the score** (#261). `MusicStyle.Groove`
+  picks a writer in `SoulComposer`; foley instruments (`Instrument#pitched` false) are placed on the
+  music's grid, never at random. The register rules live in one place, `Score#add`: nothing pitched
+  above `CEILING` (G5), nothing from `HIGH_NOTE` (C5) up held past `HIGH_NOTE_BEATS`. A writer that
+  voices from `chord.degree` into the lead's octave climbs out of the range - use `Chord#root()`.
+- **Never modulate a frequency by elapsed time.** `sin(2 pi f (1 + v(t)) t)` is a vibrato whose swing
+  grows for as long as the note is held; it is what made #261's "wobbly high note". Integrate the
+  instantaneous frequency into a phase instead. `SoulSynthTest#heldNotesHoldStill` pins it.
+- **Vanilla has eight streaming channels, total.** The bed's rank layers, its character layers and
+  the music all stream. `SoulAmbienceBed.MAX_CHARACTER_LAYERS` keeps only the loudest few character
+  layers alive; a stream that cannot get a channel is silently dropped, so anything new that streams
+  has to fit in that budget.
+- **The sky's horizon is the fog colour, read back** (`RenderSystem.getShaderFogColor`), never
+  recomputed, so terrain at the edge of sight fades into the sky without a seam. `SoulSky` decides
+  everything above it; its zenith has a floor of its own and the lightmap is still never touched.
+
 ### Attunement: which rooms a soul is actually carrying
 
 A soulhome grants only the rooms bound into its attunement slots (#151). Everything lives in
@@ -444,13 +525,22 @@ cosmetic. All server-side, read through an immutable `Snapshot` so a reload cann
 through a scan. Values that fail a settings record's validation fall back to the defaults with a log
 line rather than refusing to start - keep that property when adding a knob.
 
+A server config is **per world**: the live file is `<world>/serverconfig/soulhome-server.toml` and
+does not exist until that world has loaded once. It is never in the instance's `config/` folder, and
+"the config isn't generating" has been reported for exactly that reason. `SoulHomeConfig.register`
+therefore also keeps `defaultconfigs/soulhome-server.toml` in the instance folder, which Forge copies
+into each new world; it adds new keys to that template but never overwrites a value someone set.
+`1.21.1` does not have this problem - NeoForge keeps server configs in `config/` - so the template
+exists only on this line.
+
 `ScanSettings`, `ScoringSettings` and `BuffSettings` are records in `structures/core` and are the
 single source of truth for defaults; the config spec should reference their `DEFAULT_*` constants
 rather than repeating a number.
 
 `config/SoulHomeClientConfig` (`soulhome-client.toml`) is the client one, added by the Ambience epic
-(#163/#167), and holds exactly one section: whether and how strongly a soul answers its rank and its
-rooms. It exists because a server has no business deciding whether one player sees fog. Read
+(#163/#167). It holds two sections: whether and how strongly a soul answers its rank and its rooms,
+and whether suppression (#188) may warp this player's screen or hum at them. It exists because a
+server has no business deciding whether one player sees fog, or gets motion sick. Read
 straight rather than through a snapshot - nothing is being computed against it, so a value that
 changes between two frames is just a value that changed between two frames - and its defaults live
 on `AmbienceSettings` in `structures/core` like every other settings record. Nothing on the server

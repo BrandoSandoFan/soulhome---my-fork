@@ -46,10 +46,19 @@ of the benefit and stays auditable: the assets in the tree are exactly what a pl
 | `<voice>_1..3.ogg` | 30 one-shots, three variants for each of the ten `SoulVoice`s, so vanilla's own random pick out of `sounds.json` supplies the variety |
 | `bed_close.ogg`, `bed_open.ogg` | the two rank layers of the bed, 68-second seamless loops |
 | `SOURCES.md` | written by the generator: what each file is and the checksum of the samples behind it |
+| `../suppression/drone.ogg`, `throb.ogg` | suppression's field and one beat of its ring count (#188), with a `SOURCES.md` of their own - see `suppression.py` |
+
+`--set ambience` or `--set suppression` renders one set and leaves the other's files untouched.
 
 All mono (a positional sound in Minecraft has to be), 44.1 kHz, Vorbis. One-shots are mastered to
-−29 dBFS RMS and the beds to −38, so the mod's own volume knob is choosing how loud the soul sits
-against the game rather than making up for assets that disagree with each other.
+−20 dBFS RMS with their transients limited to −3 dBFS peak (`dsp.limit`), the rank beds to −24 and
+the character beds to −28, so the mod's own volume knob is choosing how loud the soul sits against
+the game rather than making up for assets that disagree with each other.
+
+They used to be −29, −38 and −46. That was chosen by measurement alone, and the first hour of real
+building with it (#163) found the whole ambience quieter than Minecraft's music - after the mod's
+knobs and four to eleven blocks of distance, the bed reached the ear around −58 dBFS. Quiet is a
+property to have relative to the game, not in absolute terms, and the knobs are where it is set.
 
 ## The files
 

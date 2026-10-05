@@ -28,6 +28,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * The interaction point for the ascension ritual (#83): right-click to see what a soulhome still
@@ -42,8 +43,9 @@ import java.util.Optional;
  * on its way past: a look at the anchor has never been meant to cost anything.
  *
  * <p>Rank lives in {@code SoulHomeBuffData}, not here - breaking this block with a stray pickaxe
- * swing must not cost a single rank of progress. {@link #setPlacedBy} only enforces that a
- * soulhome has at most one, and {@link #onRemove} only forgets where it was.
+ * swing must not cost a single rank of progress. {@link #setPlacedBy} only enforces that an anchor
+ * goes in its owner's own soul and that a soulhome has at most one, and {@link #onRemove} only
+ * forgets where it was.
  */
 public class SoulAnchorBlock extends Block
 {
@@ -87,41 +89,71 @@ public class SoulAnchorBlock extends Block
             return;
         }
 
+        final Optional<UUID> owner = DimensionHelper.soulOwner(serverLevel);
+
+        // an anchor only means anything inside a soul, and only for the soul it belongs to - placing
+        // it anywhere else would write soul data (the anchor position) to a dimension that is not one
+        // (#278)
+        if (owner.isEmpty())
+        {
+            refuse(serverLevel, pos, placer, Constants.StringKeys.ANCHOR_NOT_HERE);
+            return;
+        }
+
+        if (placer != null && !owner.get().equals(placer.getUUID()))
+        {
+            refuse(serverLevel, pos, placer, Constants.StringKeys.ANCHOR_NOT_YOURS);
+            return;
+        }
+
         final SoulHomeBuffData data = SoulHomeBuffData.get(serverLevel);
         final Optional<BlockPos> existing = data.anchorPos();
 
-        if (existing.isPresent() && !existing.get().equals(pos))
+        // a saved position only blocks a new anchor while a real one still stands there - anything
+        // that removed the old block without going through onRemove (WorldEdit, another mod, a
+        // hand-edited or restored world) would otherwise leave a stale position that no anchor can
+        // ever replace (#278). An unloaded position is trusted rather than loaded to check: at a
+        // high rank the old anchor can sit outside view distance, and a sync chunk load on a block
+        // placement is a stall for a case this rare.
+        if (existing.isPresent() && !existing.get().equals(pos)
+                && (!serverLevel.isLoaded(existing.get()) || serverLevel.getBlockState(existing.get()).is(this)))
         {
             // one per soulhome - refuse the second and hand the item back rather than leave a
             // block sitting there that setAnchorPos would never have pointed at
-            serverLevel.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-
-            if (placer instanceof ServerPlayer serverPlayer)
-            {
-                serverPlayer.sendSystemMessage(
-                        Component.translatable(Constants.StringKeys.ANCHOR_ALREADY_EXISTS).withStyle(ChatFormatting.RED));
-
-                if (!serverPlayer.getAbilities().instabuild)
-                {
-                    final ItemStack refund = new ItemStack(this);
-
-                    if (!serverPlayer.getInventory().add(refund))
-                    {
-                        serverPlayer.drop(refund, false);
-                    }
-                }
-            }
-
+            refuse(serverLevel, pos, placer, Constants.StringKeys.ANCHOR_ALREADY_EXISTS);
             return;
         }
 
         data.setAnchorPos(pos);
     }
 
+    private void refuse(ServerLevel serverLevel, BlockPos pos, @Nullable LivingEntity placer, String messageKey)
+    {
+        serverLevel.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+
+        if (placer instanceof ServerPlayer serverPlayer)
+        {
+            serverPlayer.sendSystemMessage(Component.translatable(messageKey).withStyle(ChatFormatting.RED));
+
+            if (!serverPlayer.getAbilities().instabuild)
+            {
+                final ItemStack refund = new ItemStack(this);
+
+                if (!serverPlayer.getInventory().add(refund))
+                {
+                    serverPlayer.drop(refund, false);
+                }
+            }
+        }
+    }
+
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston)
     {
-        if (state.getBlock() != newState.getBlock() && !level.isClientSide && level instanceof ServerLevel serverLevel)
+        // outside a soul there is no anchor position to forget, and asking for the soul data here
+        // would conjure it in a dimension that is not one
+        if (state.getBlock() != newState.getBlock() && !level.isClientSide && level instanceof ServerLevel serverLevel
+                && DimensionHelper.soulOwner(serverLevel).isPresent())
         {
             final SoulHomeBuffData data = SoulHomeBuffData.get(serverLevel);
 

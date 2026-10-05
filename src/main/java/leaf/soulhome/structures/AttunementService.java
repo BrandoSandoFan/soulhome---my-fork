@@ -5,13 +5,11 @@
 package leaf.soulhome.structures;
 
 import leaf.soulhome.config.SoulHomeConfig;
-import leaf.soulhome.constants.Constants;
 import leaf.soulhome.feedback.AttunementReport;
+import leaf.soulhome.network.SyncSoulAnchorMessage;
 import leaf.soulhome.structures.core.AttunementBook;
 import leaf.soulhome.structures.core.AttunementSettings;
 import leaf.soulhome.structures.core.RoomBinding;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -58,6 +56,13 @@ public final class AttunementService
             return;
         }
 
+        // the loadout is changed at the anchor and nowhere else; a modified client could otherwise
+        // swap it mid-fight (#276). Refused silently, as collectResidue does
+        if (!SoulAnchorService.atOwnAnchor(player))
+        {
+            return;
+        }
+
         final ServerLevel soulhome = StructureScanService.soulhomeOf(player);
 
         if (soulhome == null)
@@ -72,16 +77,13 @@ public final class AttunementService
                 bindings, data.awardedRooms(), ArchetypeManager.byId(), settings,
                 data.ascensionRank(), roomId, bind);
 
-        switch (result)
+        // reported on the anchor's screen rather than in chat, which is not drawn while it is open
+        // (#279). A forged or stale id, or a click on something already in the state it asked for,
+        // wrote nothing and says nothing
+        if (result == AttunementBook.BindResult.NO_SLOTS)
         {
-            case BOUND -> say(player, Constants.StringKeys.ATTUNE_BOUND, ChatFormatting.GREEN);
-            case UNBOUND -> say(player, Constants.StringKeys.ATTUNE_UNBOUND, ChatFormatting.GRAY);
-            case NO_SLOTS -> say(player, Constants.StringKeys.ATTUNE_NO_SLOTS, ChatFormatting.RED);
-            default ->
-            {
-                // a forged or stale id, or a click on something already in the state it asked for:
-                // nothing was written, so there is nothing to say and nothing to re-push
-            }
+            SoulAnchorService.refresh(soulhome, player, SyncSoulAnchorMessage.Notice.NO_SLOTS);
+            return;
         }
 
         if (result != AttunementBook.BindResult.BOUND && result != AttunementBook.BindResult.UNBOUND)
@@ -95,7 +97,8 @@ public final class AttunementService
         // the player something that was not yet true
         StructureScanService.refresh(player);
 
-        SoulAnchorService.refresh(soulhome, player);
+        SoulAnchorService.refresh(soulhome, player, result == AttunementBook.BindResult.BOUND
+                ? SyncSoulAnchorMessage.Notice.BOUND : SyncSoulAnchorMessage.Notice.UNBOUND);
     }
 
     /**
@@ -114,10 +117,5 @@ public final class AttunementService
                 data.awardedRooms(), data.attunements(), ArchetypeManager.byId(),
                 SoulHomeConfig.attunementSettings(), SoulHomeConfig.buffSettings(),
                 data.ascensionRank(), owner);
-    }
-
-    private static void say(ServerPlayer player, String key, ChatFormatting style)
-    {
-        player.sendSystemMessage(Component.translatable(key).withStyle(style));
     }
 }

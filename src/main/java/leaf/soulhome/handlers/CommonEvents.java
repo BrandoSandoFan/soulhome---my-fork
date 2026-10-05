@@ -8,6 +8,7 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.commands.SoulCommand;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.entity.SoulSevered;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncArchetypesMessage;
 import leaf.soulhome.structures.ArchetypeManager;
@@ -119,6 +120,16 @@ public class CommonEvents
             return;
         }
 
+
+        //the one hole in the blanket cancel below, and it is load-bearing (#185). A player away in
+        //a soul cannot be hurt by anything in it - but their body is still sitting out in the world,
+        //and a hit on it arrives here as soul_severed and nothing else. It looks like an oversight
+        //that the rule "nothing hurts a player in their soul" has an exception; it is not one.
+        //Close it, and damage transfer compiles, ships, passes every test and silently does nothing.
+        if (SoulSevered.is(event.getSource()))
+        {
+            return;
+        }
 
         if (entityLiving instanceof Player)
         {

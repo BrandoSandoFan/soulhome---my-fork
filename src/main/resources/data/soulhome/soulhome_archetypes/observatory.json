@@ -29,7 +29,8 @@
   ],
 
   "buffs": [
-    { "type": "soulhome:clear_sight", "per_tier": 1.0, "max": 3.0 }
+    { "type": "soulhome:clear_sight", "per_tier": 1.0, "max": 3.0 },
+    { "type": "soulhome:soulgaze",    "per_tier": 1.0, "max": 3.0 }
   ],
 
   "structures": [

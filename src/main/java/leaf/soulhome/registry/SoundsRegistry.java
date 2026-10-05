@@ -74,6 +74,24 @@ public final class SoundsRegistry
      */
     private static final Map<SoulVoice, RegistryObject<SoundEvent>> CHARACTER_BEDS = registerCharacterBeds();
 
+    /**
+     * Suppression's two channels of sound (#188): the field around a player who has ascended, and
+     * one beat of it per ring. Their own events for the reason this class exists at all - the drone
+     * used to be the ascension ritual's hum and the count the lens's chime, so a suppressed player
+     * sounded like a ritual in progress and a scan going off at once.
+     */
+    public static final RegistryObject<SoundEvent> SUPPRESSION_DRONE = register("suppression.drone");
+
+    public static final RegistryObject<SoundEvent> SUPPRESSION_THROB = register("suppression.throb");
+
+    /**
+     * The soul's own music (#163). One event, and the file behind it is a second of silence: the
+     * music is composed as it plays, and {@code SoulMusicPlayer} hands the sound engine a stream of
+     * its own in place of that file. The event exists so the music is under the Music slider and so
+     * a resource pack can point it at a real file, which is then played instead.
+     */
+    public static final RegistryObject<SoundEvent> SOUL_MUSIC = register("music.soul");
+
     private SoundsRegistry()
     {
     }

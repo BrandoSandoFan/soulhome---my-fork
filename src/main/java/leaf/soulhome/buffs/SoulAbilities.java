@@ -8,6 +8,7 @@ import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.constants.Constants;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncSoulAbilitiesMessage;
+import leaf.soulhome.structures.GazeService;
 import leaf.soulhome.structures.core.AbilityCharges;
 import leaf.soulhome.structures.core.ActiveAbilitySettings;
 import leaf.soulhome.utils.LogHelper;
@@ -87,13 +88,17 @@ public final class SoulAbilities
 
         List<String> owned = ownedBy(player);
 
-        if (owned.isEmpty())
-        {
-            return;
-        }
-
         player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held ->
         {
+            // before the early return below: a player who has unbound every ability room still has
+            // banks refilling, and a dormant bank is never shown, so nothing here needs a sync
+            held.tickDormant(owned);
+
+            if (owned.isEmpty())
+            {
+                return;
+            }
+
             boolean chargesChanged = false;
 
             for (String type : owned)
@@ -106,6 +111,8 @@ public final class SoulAbilities
                 final double magnitude = SoulBuffs.magnitude(player, type);
                 final int maxCharges = maxChargesOf(effect, magnitude);
                 final int cooldown = cooldownOf(effect, magnitude);
+
+                held.noteRate(type, maxCharges, cooldown);
 
                 // a newly granted ability arrives full: the player earned it by building the room,
                 // and making them wait out a cooldown for something they have never used reads as
@@ -150,6 +157,15 @@ public final class SoulAbilities
     {
         if (!accept(player))
         {
+            return;
+        }
+
+        // no ability fires from inside a gaze (#187): a spectator calling lightning down in someone
+        // else's soul is exactly the side effect a read-only visit must not have. A press is read
+        // as asking to come back instead, which is also how a gaze is ended early
+        if (GazeService.isGazing(player))
+        {
+            GazeService.end(player, GazeService.EndReason.RECALLED);
             return;
         }
 

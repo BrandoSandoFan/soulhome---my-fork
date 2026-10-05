@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "text",
-      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Clear Sight, growing with the tier, up to +3.$(p)Tiers begin at a score of 5."
+      "text": "Works as a room or as open ground. At least 27 blocks of space.$(p)Grants:$(li)Clear Sight, growing with the tier, up to +3.$(li)Soulgaze, growing with the tier, up to +3. Look into the soul of a player in sight, or of a body one left. Your own body stays where you cast it, as open to a blade as a meditator's - and they will feel you looking.$(p)Tiers begin at a score of 5."
     },
     {
       "type": "text",

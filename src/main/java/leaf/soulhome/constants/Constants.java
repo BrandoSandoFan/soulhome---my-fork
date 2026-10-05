@@ -24,6 +24,23 @@ public class Constants
         public static final String GUEST_RANK_REQUIRED = "message.soulhome.guest.rank_required";
         public static final String GUEST_LEFT_BEHIND = "message.soulhome.guest.left_behind";
 
+        //Soulgaze (#187) - the observatory's active, and the spectator session behind it
+        public static final String GAZE_DISABLED = "message.soulhome.gaze.disabled";
+        public static final String GAZE_FROM_OUTSIDE = "message.soulhome.gaze.from_outside";
+        public static final String GAZE_NO_TARGET = "message.soulhome.gaze.no_target";
+        public static final String GAZE_NO_SOUL = "message.soulhome.gaze.no_soul";
+        public static final String GAZE_BEGIN = "message.soulhome.gaze.begin";
+        public static final String GAZE_END_EXPIRED = "message.soulhome.gaze.end.expired";
+        public static final String GAZE_END_SOUL_CLOSED = "message.soulhome.gaze.end.soul_closed";
+        public static final String GAZE_END_RECALLED = "message.soulhome.gaze.end.recalled";
+
+        //Being gazed at (#189) - what the watched player perceives
+        public static final String GAZE_NOTICE_PRICKLE = "message.soulhome.gaze.notice.prickle";
+        public static final String GAZE_NOTICE_OBSERVATORY = "message.soulhome.gaze.notice.observatory";
+        public static final String GAZE_NOTICE_DIRECTION = "message.soulhome.gaze.notice.direction";
+        public static final String GAZE_NOTICE_ELSEWHERE = "message.soulhome.gaze.notice.elsewhere";
+        public static final String COMPASS_PREFIX = "direction.soulhome.";
+
         public static final String SOULHOME_ITEM_TOOLTIP = "tooltip.item.soulhome.%s";
 
         public static final String SHIFT_ITEM_TOOLTIP = "tooltip.item.info.shift";
@@ -169,6 +186,7 @@ public class Constants
         // The Soul Anchor and the ascension ritual (#83): the climb itself, rather than merely the
         // box it climbs against.
         public static final String ANCHOR_NOT_HERE = "message.soulhome.anchor.not_here";
+        public static final String ANCHOR_NOT_YOURS = "message.soulhome.anchor.not_yours";
         public static final String ANCHOR_ALREADY_EXISTS = "message.soulhome.anchor.already_exists";
         public static final String ANCHOR_RANK = "message.soulhome.anchor.rank";
         public static final String ANCHOR_MAXED = "message.soulhome.anchor.maxed";
@@ -187,6 +205,7 @@ public class Constants
         public static final String ANCHOR_RITUAL_STARTED = "message.soulhome.anchor.ritual_started";
         public static final String ANCHOR_RITUAL_ABORTED_MOVED = "message.soulhome.anchor.ritual_aborted_moved";
         public static final String ANCHOR_RITUAL_ABORTED_PILLAR = "message.soulhome.anchor.ritual_aborted_pillar";
+        public static final String ANCHOR_RITUAL_ABORTED_ESSENCE = "message.soulhome.anchor.ritual_aborted_essence";
         public static final String ANCHOR_RITUAL_SUCCESS = "message.soulhome.anchor.ritual_success";
 
         public static final String LENS_HIGHLIGHTED = "message.soulhome.lens.highlighted";
@@ -248,6 +267,24 @@ public class Constants
         public static final String AMBIENCE_SCREEN_VOLUME = "gui.soulhome.ambience.sound_volume";
         public static final String AMBIENCE_SCREEN_OFF = "gui.soulhome.ambience.off";
         public static final String AMBIENCE_SCREEN_COSMETIC = "gui.soulhome.ambience.cosmetic";
+
+        // The same screen's second column: suppression's client switches (#188, #190), which lived
+        // only in the toml until a player who gets motion sick had a screen to find them on.
+        public static final String AMBIENCE_SCREEN_SECTION_SOUL = "gui.soulhome.ambience.section.soul";
+        public static final String AMBIENCE_SCREEN_SECTION_SUPPRESSION = "gui.soulhome.ambience.section.suppression";
+        public static final String AMBIENCE_SCREEN_SUPPRESSION_DISTORTION = "gui.soulhome.ambience.suppression_distortion";
+        public static final String AMBIENCE_SCREEN_SUPPRESSION_DISTORTION_TIP = "gui.soulhome.ambience.suppression_distortion.tooltip";
+        public static final String AMBIENCE_SCREEN_SUPPRESSION_AUDIO = "gui.soulhome.ambience.suppression_audio";
+        public static final String AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP = "gui.soulhome.ambience.suppression_audio.tooltip";
+
+        // The soul's own music (#163), under a heading of its own in the same right-hand column
+        public static final String AMBIENCE_SCREEN_SECTION_MUSIC = "gui.soulhome.ambience.section.music";
+        public static final String AMBIENCE_SCREEN_MUSIC = "gui.soulhome.ambience.soul_music";
+        public static final String AMBIENCE_SCREEN_MUSIC_TIP = "gui.soulhome.ambience.soul_music.tooltip";
+
+        // Suppression's sounds (#188), for anyone reading the game through its subtitles
+        public static final String SUBTITLE_SUPPRESSION_DRONE = "subtitles.soulhome.suppression.drone";
+        public static final String SUBTITLE_SUPPRESSION_THROB = "subtitles.soulhome.suppression.throb";
 
         // The climb, on the same screen as the loadout (#83): the requirement lines themselves are
         // the message.soulhome.anchor.* ones the summary was printed with, reused rather than
@@ -312,6 +349,7 @@ public class Constants
         public static final String ABILITY_NAME_UPDRAFT = "ability.soulhome.updraft";
         public static final String ABILITY_NAME_LAST_STAND = "ability.soulhome.last_stand";
         public static final String ABILITY_NAME_CALMING_SMOKE = "ability.soulhome.calming_smoke";
+        public static final String ABILITY_NAME_SOULGAZE = "ability.soulhome.soulgaze";
     }
 
     public static class NBTKeys

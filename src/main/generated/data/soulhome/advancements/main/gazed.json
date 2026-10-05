@@ -1,0 +1,35 @@
+{
+  "parent": "soulhome:main/first_room",
+  "criteria": {
+    "moment": {
+      "conditions": {
+        "moment": "gazed"
+      },
+      "trigger": "soulhome:soul_moment"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.soulhome.gazed.description"
+    },
+    "frame": "task",
+    "hidden": false,
+    "icon": {
+      "item": "minecraft:ender_eye"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.soulhome.gazed.title"
+    }
+  },
+  "requirements": [
+    [
+      "moment"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

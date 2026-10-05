@@ -1,0 +1,35 @@
+{
+  "parent": "soulhome:main/entered_soul_dimension",
+  "criteria": {
+    "moment": {
+      "conditions": {
+        "moment": "guest"
+      },
+      "trigger": "soulhome:soul_moment"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.soulhome.guest.description"
+    },
+    "frame": "goal",
+    "hidden": false,
+    "icon": {
+      "item": "minecraft:iron_door"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.soulhome.guest.title"
+    }
+  },
+  "requirements": [
+    [
+      "moment"
+    ]
+  ],
+  "rewards": {
+    "experience": 10
+  },
+  "sends_telemetry_event": true
+}

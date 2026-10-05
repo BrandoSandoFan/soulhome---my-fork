@@ -91,7 +91,7 @@ public final class SoulAmbienceService
 
         final SoulHomeBuffData data = SoulHomeBuffData.get(level);
         final int rank = data.ascensionRank();
-        final SoulBounds bounds = SoulHomeConfig.soulBounds(rank);
+        final SoulBounds bounds = SoulHomeConfig.soulBounds(rank, data.islandFloorY());
 
         final SoulCharacter character = SoulHomeConfig.enabled()
                 ? SoulCharacter.of(data.awardedRooms(), ArchetypeManager.byId())

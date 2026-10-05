@@ -1,0 +1,21 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:basics",
+  "icon": "minecraft:iron_door",
+  "name": "Guests",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Walking into a soul that is not your own, in the flesh, is something only a soul that has climbed a long way can do: rank VI of the Ascent, of your own soul - never the one you are visiting.$(p)Use a Bound Soulkey below that and nothing happens. Stand beside someone using their key and you are left behind.",
+      "title": "Guests"
+    },
+    {
+      "type": "text",
+      "text": "A guest leaves a body behind like anyone else, back where they used the key, and it is theirs: die in a borrowed soul and your things spill where you left yourself, not at your host's feet.$(p)Looking into a soul is a different thing, with no rank needed - that is the observatory's."
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 9
+}

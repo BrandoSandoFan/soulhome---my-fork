@@ -21,6 +21,39 @@ public final class SoulAdvancements
 {
     public static ClassifiedRoomTrigger CLASSIFIED_ROOM;
     public static AscensionTrigger ASCENDED;
+    public static SoulMomentTrigger MOMENT;
+
+    /**
+     * The Meditation epic's firsts (#190). Each is an advancement of its own, and two of them gate a
+     * book page - see {@code PatchouliBasics}.
+     */
+    public enum Moment
+    {
+        /** A channel at a Meditation Cushion completed and took its player in. */
+        MEDITATED("meditated"),
+        /** A player died through their own body while away. The moment the new risk became real. */
+        VESSEL_DEATH("vessel_death"),
+        /** A player walked into a soul that is not their own - the rank gate cleared (#184). */
+        GUEST("guest"),
+        /** A player cast Soulgaze into someone else's soul (#187). */
+        GAZED("gazed"),
+        /** A player noticed someone looking into their soul (#189). */
+        GAZED_AT("gazed_at"),
+        /** A player first perceived another's ascension as suppression (#188). */
+        SUPPRESSION("suppression");
+
+        private final String id;
+
+        Moment(String id)
+        {
+            this.id = id;
+        }
+
+        public String id()
+        {
+            return this.id;
+        }
+    }
 
     private SoulAdvancements()
     {
@@ -37,6 +70,11 @@ public final class SoulAdvancements
         if (ASCENDED == null)
         {
             ASCENDED = CriteriaTriggers.register(new AscensionTrigger());
+        }
+
+        if (MOMENT == null)
+        {
+            MOMENT = CriteriaTriggers.register(new SoulMomentTrigger());
         }
     }
 
@@ -70,5 +108,16 @@ public final class SoulAdvancements
         }
 
         ASCENDED.trigger(player, newRank);
+    }
+
+    /** One of the Meditation epic's firsts happened to this player - see {@link Moment}. */
+    public static void onMoment(ServerPlayer player, Moment moment)
+    {
+        if (MOMENT == null || player == null)
+        {
+            return;
+        }
+
+        MOMENT.trigger(player, moment.id());
     }
 }

@@ -104,6 +104,17 @@ public class SoulHomeBuffData extends SavedData
     // breaking the anchor with a stray pickaxe swing must not cost four ranks of progress.
     private static final String KEY_ASCENSION_RANK = "AscensionRank";
 
+    // Where this soulhome's starter island actually placed its lowest solid block, in world Y
+    // (#236) - the configured ascent floor is a fixed datum that can sit above a template's own
+    // terrain, so SoulHomeConfig#soulBounds only ever lowers the box's floor to this value, never
+    // raises it. Written once, right after the island is placed
+    // (DimensionRegistry#createSoulDimension). Absent on any soulhome created before this fix, which
+    // reads back as NO_ISLAND_FLOOR - the same "no adjustment" the box always gave before.
+    private static final String KEY_ISLAND_FLOOR_Y = "IslandFloorY";
+
+    /** Sentinel for {@link #islandFloorY}: no soulhome-specific floor recorded, so nothing to lower to. */
+    public static final int NO_ISLAND_FLOOR = Integer.MAX_VALUE;
+
     // Terrain growth (#158): the rank the island's ground has actually been grown out to, which is
     // not the same question as what rank the soulhome holds. Growth is due whenever this trails
     // AscensionRank, whatever put it there - an ascension a moment ago, a soulhome that was already
@@ -154,6 +165,7 @@ public class SoulHomeBuffData extends SavedData
     private long lastResidueAccrualMillis;
     private BlockPos anchorPos;
     private Double willpowerOverride;
+    private int islandFloorY = NO_ISLAND_FLOOR;
 
     public SoulHomeBuffData()
     {
@@ -214,6 +226,9 @@ public class SoulHomeBuffData extends SavedData
         // absent on any save written before rank existed - reads back as 0, same as every soulhome
         // actually was before the ascension ritual (#83) could raise it
         data.ascensionRank = tag.getInt(KEY_ASCENSION_RANK);
+        // absent on any soulhome created before this fix - reads back as NO_ISLAND_FLOOR, exactly
+        // the "no adjustment" the box always gave before #236
+        data.islandFloorY = tag.contains(KEY_ISLAND_FLOOR_Y) ? tag.getInt(KEY_ISLAND_FLOOR_Y) : NO_ISLAND_FLOOR;
         // absent on any save written before terrain growth existed - reads back as 0, which is
         // exactly right: no soulhome had ever had a block of ground added to it, so every one of
         // them is owed every rank's worth of apron and will grow it the next time it is loaded
@@ -349,6 +364,12 @@ public class SoulHomeBuffData extends SavedData
         tag.putBoolean(KEY_SCANNED, this.scanned);
         tag.putInt(KEY_DATA_VERSION, this.dataVersion);
         tag.putInt(KEY_ASCENSION_RANK, this.ascensionRank);
+
+        if (this.islandFloorY != NO_ISLAND_FLOOR)
+        {
+            tag.putInt(KEY_ISLAND_FLOOR_Y, this.islandFloorY);
+        }
+
         tag.putInt(KEY_GROWN_RANK, this.grownRank);
         tag.putDouble(KEY_RESIDUE, this.residue);
         tag.putLong(KEY_LAST_RESIDUE_ACCRUAL_MILLIS, this.lastResidueAccrualMillis);
@@ -513,6 +534,36 @@ public class SoulHomeBuffData extends SavedData
         }
 
         this.ascensionRank = clamped;
+        setDirty();
+        return true;
+    }
+
+    /**
+     * Where this soulhome's starter island actually placed its lowest solid block, in world Y
+     * (#236), or {@link #NO_ISLAND_FLOOR} if this soulhome predates the fix or was never given one
+     * (the legacy-platform fallback in {@code DimensionRegistry} still sets it). Feed straight into
+     * {@link leaf.soulhome.config.SoulHomeConfig#soulBounds(int, int)}.
+     */
+    public int islandFloorY()
+    {
+        return this.islandFloorY;
+    }
+
+    /**
+     * Record {@link #islandFloorY()}. Called exactly once, right after the island is placed - see
+     * {@code DimensionRegistry#createSoulDimension} - never on a rescan, since the ground a
+     * soulhome's template placed does not move.
+     *
+     * @return whether this actually changed anything, and so whether it needs writing to disk
+     */
+    public boolean setIslandFloorY(int floorY)
+    {
+        if (floorY == this.islandFloorY)
+        {
+            return false;
+        }
+
+        this.islandFloorY = floorY;
         setDirty();
         return true;
     }

@@ -153,6 +153,38 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.GUEST_RANK_REQUIRED, "Your soul has not ascended far enough to enter someone else's - Rank %s or above is required.");
         add(Constants.StringKeys.GUEST_LEFT_BEHIND, "You were left behind - your soul has not ascended far enough to follow.");
 
+        //Damage transfer (#185): the one damage type that reaches a player inside their soul. The
+        //story is the body being killed, not the soul - a stranger shooting you in a field did not
+        //kill you "in your soul"
+        add("death.attack.soulhome.soul_severed", "%1$s's body was cut down while their soul was elsewhere");
+        add("death.attack.soulhome.soul_severed.player", "%1$s's body was cut down by %2$s while their soul was elsewhere");
+        add("death.attack.soulhome.soul_severed.item", "%1$s's body was cut down by %2$s using %3$s while their soul was elsewhere");
+
+        //Soulgaze (#187)
+        add(Constants.StringKeys.GAZE_DISABLED, "Soulgaze is switched off on this server.");
+        add(Constants.StringKeys.GAZE_FROM_OUTSIDE, "You cannot gaze into a soul from inside one.");
+        add(Constants.StringKeys.GAZE_NO_TARGET, "There is no one in your sight to look into.");
+        add(Constants.StringKeys.GAZE_NO_SOUL, "Their soul has never been opened. There is nothing there to see.");
+        add(Constants.StringKeys.GAZE_BEGIN, "You look into %s's soul. Your body stands where you left it - press an ability key to return.");
+        add(Constants.StringKeys.GAZE_END_EXPIRED, "The gaze fades, and you are back in your body.");
+        add(Constants.StringKeys.GAZE_END_SOUL_CLOSED, "The soul closes around its owner's departure, and you are back in your body.");
+        add(Constants.StringKeys.GAZE_END_RECALLED, "You draw your gaze back into your body.");
+
+        //Being gazed at (#189). The prickle says only that something is looking - where, and who,
+        //is the observatory's reward
+        add(Constants.StringKeys.GAZE_NOTICE_PRICKLE, "Something is looking into your soul.");
+        add(Constants.StringKeys.GAZE_NOTICE_OBSERVATORY, "%s is looking into your soul. Their body stands %s.");
+        add(Constants.StringKeys.GAZE_NOTICE_DIRECTION, "%s blocks to the %s");
+        add(Constants.StringKeys.GAZE_NOTICE_ELSEWHERE, "in another world");
+        add(Constants.StringKeys.COMPASS_PREFIX + "north", "north");
+        add(Constants.StringKeys.COMPASS_PREFIX + "north_east", "north-east");
+        add(Constants.StringKeys.COMPASS_PREFIX + "east", "east");
+        add(Constants.StringKeys.COMPASS_PREFIX + "south_east", "south-east");
+        add(Constants.StringKeys.COMPASS_PREFIX + "south", "south");
+        add(Constants.StringKeys.COMPASS_PREFIX + "south_west", "south-west");
+        add(Constants.StringKeys.COMPASS_PREFIX + "west", "west");
+        add(Constants.StringKeys.COMPASS_PREFIX + "north_west", "north-west");
+
         //Structure analysis
         //A fuzzy classifier that cannot say what it saw is indistinguishable from a broken one,
         //so these strings are load-bearing rather than decoration. Two rules they follow: never
@@ -268,7 +300,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ASCENT_GROUND, "Ground reaches %s blocks out; the walls are at %s.");
         add(Constants.StringKeys.ASCENT_GROUND_VERGE,
                 "The %s blocks of open verge past it are deliberate - somewhere to build outward into.");
-        add(Constants.StringKeys.ASCENT_GROUND_NEXT, "Ascending would add about %s blocks of ground, reaching %s.");
+        add(Constants.StringKeys.ASCENT_GROUND_NEXT,
+                "Your soul next grows outward at rank %s: about %s more blocks of ground, reaching %s, with the walls at %s.");
         add(Constants.StringKeys.ASCENT_GROUND_GROWING, "Ground is still arriving - about %s%% of the way.");
         add(Constants.StringKeys.ASCENT_GROUND_OFF, "Ground does not grow with rank on this server.");
         add(Constants.StringKeys.GROWTH_COMPLETE, "Your soul has grown: %s new columns of ground, out to %s blocks.");
@@ -281,6 +314,7 @@ public class EngLangGen extends LanguageProvider
 
         // The Soul Anchor and the ascension ritual (#83)
         add(Constants.StringKeys.ANCHOR_NOT_HERE, "The Soul Anchor only answers inside a soulhome.");
+        add(Constants.StringKeys.ANCHOR_NOT_YOURS, "You can only place a Soul Anchor in your own soulhome.");
         add(Constants.StringKeys.ANCHOR_ALREADY_EXISTS, "This soulhome already has a Soul Anchor. Break it first if you want to move it.");
         add(Constants.StringKeys.ANCHOR_RANK, "Rank: %s");
         add(Constants.StringKeys.ANCHOR_MAXED, "This soul has reached the highest rank this server allows.");
@@ -297,8 +331,9 @@ public class EngLangGen extends LanguageProvider
 
         add(Constants.StringKeys.ANCHOR_RITUAL_IN_PROGRESS, "Another ascension is already underway in this soulhome.");
         add(Constants.StringKeys.ANCHOR_RITUAL_STARTED, "The sky presses down. Hold your ground.");
-        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_MOVED, "You left the pillar's cap. The ritual fails, and your essence is returned.");
-        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_PILLAR, "The pillar gave way beneath the ritual. Your essence is returned.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_MOVED, "You left the pillar's cap. The ritual fails. Nothing was spent.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_PILLAR, "The pillar gave way beneath the ritual. Nothing was spent.");
+        add(Constants.StringKeys.ANCHOR_RITUAL_ABORTED_ESSENCE, "The essence left your keeping. The ritual fails. Nothing was spent.");
         add(Constants.StringKeys.ANCHOR_RITUAL_SUCCESS, "Your soul ascends to rank %s.");
 
         add(Constants.StringKeys.LENS_HIGHLIGHTED, "Use inside your soul to outline what was found");
@@ -328,7 +363,7 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
 
         // The Soul Anchor's loadout screen (#154)
-        add(Constants.StringKeys.AMBIENCE_SCREEN_TITLE, "How Your Soul Looks");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_TITLE, "How Souls Look to You");
         add(Constants.StringKeys.AMBIENCE_SCREEN_ENABLED, "Soul ambience");
         add(Constants.StringKeys.AMBIENCE_SCREEN_RANK, "Answer your rank");
         add(Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER, "Answer what you built");
@@ -337,7 +372,23 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.AMBIENCE_SCREEN_VOLUME, "Ambient volume: %s");
         add(Constants.StringKeys.AMBIENCE_SCREEN_OFF, "Off");
         add(Constants.StringKeys.AMBIENCE_SCREEN_COSMETIC,
-                "All of this is only how the place looks and sounds. Nothing here changes a room, a buff or a cost.");
+                "All of this is only how things look and sound to you. Nothing here changes a room, a buff or a cost.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SOUL, "Your soul");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SUPPRESSION, "Other souls");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION, "Screen warp");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION_TIP,
+                "Whether the air around a player who has ascended warps your screen. Turn it off if warping makes you uncomfortable: their rings still show how far they have climbed.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO, "Suppression sound");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP,
+                "Whether a player who has ascended carries a low drone, with a beat for each rank once you can read them.");
+
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_MUSIC, "Music");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_MUSIC, "Soul music");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_MUSIC_TIP,
+                "Inside a soul, play music composed from what is built there in place of Minecraft's own. Its mode and instruments come from your rooms, and its space from your rank. Uses the game's Music slider.");
+
+        add(Constants.StringKeys.SUBTITLE_SUPPRESSION_DRONE, "Suppression presses");
+        add(Constants.StringKeys.SUBTITLE_SUPPRESSION_THROB, "Suppression beats");
 
         add(Constants.StringKeys.ANCHOR_SCREEN_TITLE, "What Your Soul Carries");
         add(Constants.StringKeys.ANCHOR_SCREEN_SLOTS, "Rooms: %1$s / %2$s      Abilities: %3$s / %4$s");
@@ -438,6 +489,7 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_NAME_UPDRAFT, "Updraft");
         add(Constants.StringKeys.ABILITY_NAME_LAST_STAND, "Last Stand");
         add(Constants.StringKeys.ABILITY_NAME_CALMING_SMOKE, "Calming Smoke");
+        add(Constants.StringKeys.ABILITY_NAME_SOULGAZE, "Soulgaze");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -492,6 +544,20 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.aspect_taken.description", "Build a room of a kind that can be more than one thing. What you put in it decides which, and what it gives you.");
         add("advancements.soulhome.crowded_soul.title", "More Than You Can Carry");
         add("advancements.soulhome.crowded_soul.description", "Have eight rooms in your soul at once. You cannot carry all of them - choose at the Soul Anchor.");
+
+        //The Meditation epic's firsts (#190)
+        add("advancements.soulhome.meditated.title", "Sitting Still");
+        add("advancements.soulhome.meditated.description", "Meditate on a cushion you built, and leave your body sitting there while you go in.");
+        add("advancements.soulhome.vessel_death.title", "Nobody Home");
+        add("advancements.soulhome.vessel_death.description", "Die through your own body while your soul was elsewhere. Where did you leave it?");
+        add("advancements.soulhome.guest.title", "Guest of Honour");
+        add("advancements.soulhome.guest.description", "Walk into a soul that is not your own.");
+        add("advancements.soulhome.gazed.title", "Through the Glass");
+        add("advancements.soulhome.gazed.description", "Look into someone else's soul from your observatory. Your own body was standing there the whole time.");
+        add("advancements.soulhome.gazed_at.title", "Watched");
+        add("advancements.soulhome.gazed_at.description", "Feel someone looking into your soul.");
+        add("advancements.soulhome.suppression.title", "Pressure");
+        add("advancements.soulhome.suppression.description", "Sense how far another soul has climbed.");
 
         add("advancements.soulhome.farm.title", "Soul Food");
         add("advancements.soulhome.farm.description", "Grow enough in your soul that it counts as a farm.");

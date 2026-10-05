@@ -29,6 +29,7 @@ from dsp import (
     envelope,
     highpass,
     lfo,
+    limit,
     lowpass,
     normalise,
     onsets,
@@ -41,17 +42,23 @@ from dsp import (
     white,
 )
 
-#: One-shots are mastered well down. They are heard against a game that is otherwise silent, and
-#: the mod's own volume knob sits on top of this - see AmbienceSettings.DEFAULT_SOUND_VOLUME.
-ONE_SHOT_RMS_DB = -29.0
+#: One-shots, mastered to be heard. They were at -29 dBFS, then multiplied by the mod's own volume
+#: knobs and taken four to eleven blocks off, and the owner's first hour of building with them (#163)
+#: found them quieter than Minecraft's music - which is to say, not there. -20 with the transients
+#: limited to -3 puts the knob back in charge of how loud the soul sits against the game.
+ONE_SHOT_RMS_DB = -20.0
 
-#: And the beds lower still, because they are never not playing.
-BED_RMS_DB = -38.0
+#: Where a one-shot's transients are held, by ``dsp.limit`` rather than by turning the whole sound down.
+ONE_SHOT_PEAK_DB = -3.0
 
-#: The character layers (#214) lower again: nine of them can be live at once, under the rank bed
-#: rather than beside it, and ``SoulAmbience.characterBedMix`` bounds their combined power to what
-#: the rank bed is worth - this mastering level is the floor that bound is measured down from.
-CHARACTER_BED_RMS_DB = -46.0
+#: The beds a little under the one-shots, because they are never not playing - but only a little.
+#: The old -38 was quiet enough before the knobs and inaudible after them.
+BED_RMS_DB = -24.0
+
+#: The character layers (#214) under the rank bed: nine of them can be live at once, and
+#: ``SoulAmbience.characterBedMix`` bounds their combined power to what the rank bed is worth - this
+#: mastering level is the floor that bound is measured down from.
+CHARACTER_BED_RMS_DB = -28.0
 
 
 # --------------------------------------------------------------------------------------------
@@ -387,7 +394,10 @@ def render_voice(voice: str, rng: np.random.Generator, sample_rate: int) -> np.n
     # speakers most of this will be played through it is only distortion
     dry = spectral_shape(dry, sample_rate, highpass(45.0, order=3.0))
 
-    return normalise(edges(dry, sample_rate, fade=0.02), ONE_SHOT_RMS_DB)
+    # mastered past the peak ceiling on purpose, and then limited back under it - see dsp.limit
+    loud = normalise(edges(dry, sample_rate, fade=0.02), ONE_SHOT_RMS_DB, peak_ceiling_db=6.0)
+
+    return limit(loud, sample_rate, ceiling_db=ONE_SHOT_PEAK_DB)
 
 
 # --------------------------------------------------------------------------------------------

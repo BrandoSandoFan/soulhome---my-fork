@@ -4,8 +4,13 @@
 
 package leaf.soulhome.dimensions;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import leaf.soulhome.client.SoulSkyRenderer;
+import net.minecraft.client.Camera;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.DimensionSpecialEffects;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
 
 
 import net.minecraft.client.renderer.DimensionSpecialEffects.SkyType;
@@ -38,5 +43,17 @@ public class SoulDimensionRenderInfo extends DimensionSpecialEffects
     public boolean isFoggyAt(int p_230493_1_, int p_230493_2_)
     {
         return false;
+    }
+
+    /**
+     * The soul's own sky (#163), when the ambience has one to draw. The sky type stays {@code NONE},
+     * so with the ambience off - or in a soul this client has not been told about - vanilla draws
+     * nothing here, exactly as it always did.
+     */
+    @Override
+    public boolean renderSky(ClientLevel level, int ticks, float partialTick, PoseStack poseStack, Camera camera,
+                             Matrix4f projectionMatrix, boolean isFoggy, Runnable setupFog)
+    {
+        return SoulSkyRenderer.render(ticks, partialTick, poseStack, projectionMatrix);
     }
 }

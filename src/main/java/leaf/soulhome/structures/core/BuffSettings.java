@@ -96,6 +96,7 @@ public record BuffSettings(
                     Map.entry(SoulBuffTypes.UPDRAFT, 6.0d),
                     Map.entry(SoulBuffTypes.LAST_STAND, 9.0d),
                     Map.entry(SoulBuffTypes.CALMING_SMOKE, 3.0d),
+                    Map.entry(SoulBuffTypes.SOULGAZE, 3.0d),
 
                     // observatory's own passive - a flat unit, not a fraction, for the same
                     // reason as the block above

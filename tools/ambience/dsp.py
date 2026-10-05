@@ -338,6 +338,47 @@ def normalise(signal: np.ndarray, target_rms_db: float, peak_ceiling_db: float =
     return scaled
 
 
+def limit(signal: np.ndarray, sample_rate: int, ceiling_db: float = -3.0,
+          lookahead: float = 0.005, release: float = 0.08) -> np.ndarray:
+    """
+    Hold a one-shot's peaks under a ceiling without clipping them, so it can be mastered loud.
+
+    ``normalise`` alone could not: a grain-built one-shot carries twenty-odd dB between its RMS and
+    its sharpest transient, so any loudness target worth hearing ran it straight into the peak
+    ceiling, and the ceiling won. That is how the palette ended up at -29 dBFS and inaudible under
+    the game's own music. A limiter spends a few dB off the transients instead, which is also what
+    #209 asked of a one-shot anyway: nothing with an attack sharp enough to read as an event.
+
+    Lookahead rather than reactive: the gain has already come down by the time the peak arrives, so
+    nothing is ever clipped, and it is averaged over the lookahead so it never steps (a step in gain
+    is a click). One-shots only - a Python loop per sample is fine for a few seconds of audio, and
+    the beds have the crest headroom not to need it.
+    """
+    ceiling = 10.0 ** (ceiling_db / 20.0)
+    reach = max(1, int(lookahead * sample_rate))
+    needed = np.minimum(1.0, ceiling / np.maximum(np.abs(signal), 1e-12))
+
+    # the least gain any sample in the next 2 * reach needs...
+    padded = np.concatenate([needed, np.ones(2 * reach)])
+    ahead = np.lib.stride_tricks.sliding_window_view(padded, 2 * reach + 1)[: signal.size].min(axis=1)
+
+    # ...falling at once and recovering slowly, so the tail after a transient is not pumped...
+    recovery = float(np.exp(-1.0 / (release * sample_rate)))
+    held = np.empty_like(ahead)
+    level = 1.0
+
+    for index, want in enumerate(ahead):
+        level = min(want, level * recovery + (1.0 - recovery))
+        held[index] = level
+
+    # ...then averaged over the trailing reach. Every sample in that average saw this one inside
+    # its own lookahead window, so the average can never let a peak through
+    kernel = np.ones(reach) / reach
+    gain = np.convolve(np.concatenate([np.ones(reach - 1), held]), kernel, mode="valid")
+
+    return signal * gain
+
+
 def edges(signal: np.ndarray, sample_rate: int, fade: float = 0.01) -> np.ndarray:
     """Fade a one-shot's first and last few milliseconds, so no asset starts or ends on a click."""
     width = min(int(fade * sample_rate), signal.size // 2)

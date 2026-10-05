@@ -16,6 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
@@ -34,28 +35,43 @@ public class Network
     public static void init()
     {
         int id = 0;
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncDimensionListMessage.CODEC, SyncDimensionListMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncArchetypesMessage.CODEC, SyncArchetypesMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulBuffsMessage.CODEC, SyncSoulBuffsMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulRegionsMessage.CODEC, SyncSoulRegionsMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulLensReportMessage.CODEC, SyncSoulLensReportMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulLensBuffsMessage.CODEC, SyncSoulLensBuffsMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulBoundsMessage.CODEC, SyncSoulBoundsMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAbilitiesMessage.CODEC, SyncSoulAbilitiesMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSurveyedBlocksMessage.CODEC, SyncSurveyedBlocksMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAnchorMessage.CODEC, SyncSoulAnchorMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SyncSoulAmbienceMessage.CODEC, SyncSoulAmbienceMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, AmbienceHoldMessage.CODEC, AmbienceHoldMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncDimensionListMessage.CODEC, SyncDimensionListMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncArchetypesMessage.CODEC, SyncArchetypesMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSoulBuffsMessage.CODEC, SyncSoulBuffsMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSoulRegionsMessage.CODEC, SyncSoulRegionsMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSoulLensReportMessage.CODEC, SyncSoulLensReportMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSoulLensBuffsMessage.CODEC, SyncSoulLensBuffsMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSoulBoundsMessage.CODEC, SyncSoulBoundsMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSoulAbilitiesMessage.CODEC, SyncSoulAbilitiesMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSurveyedBlocksMessage.CODEC, SyncSurveyedBlocksMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSoulAnchorMessage.CODEC, SyncSoulAnchorMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSoulAmbienceMessage.CODEC, SyncSoulAmbienceMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, AmbienceHoldMessage.CODEC, AmbienceHoldMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, GazeNoticeMessage.CODEC, GazeNoticeMessage.INVALID);
+        toClient(id++, NETWORK_CHANNEL, SyncSuppressionMessage.CODEC, SyncSuppressionMessage.INVALID);
 
-        //the only four that travel client to server - see UseSoulAbilityMessage on why that matters
-        registerCodecPacket(id++, NETWORK_CHANNEL, UseSoulAbilityMessage.CODEC, UseSoulAbilityMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, CycleSoulAbilityMessage.CODEC, CycleSoulAbilityMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, SetAttunementMessage.CODEC, SetAttunementMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, CollectResidueMessage.CODEC, CollectResidueMessage.INVALID);
-        registerCodecPacket(id++, NETWORK_CHANNEL, MeditateMessage.CODEC, MeditateMessage.INVALID);
+        
+//the five that travel client to server - see UseSoulAbilityMessage on why that matters
+        toServer(id++, NETWORK_CHANNEL, UseSoulAbilityMessage.CODEC, UseSoulAbilityMessage.INVALID);
+        toServer(id++, NETWORK_CHANNEL, CycleSoulAbilityMessage.CODEC, CycleSoulAbilityMessage.INVALID);
+        toServer(id++, NETWORK_CHANNEL, SetAttunementMessage.CODEC, SetAttunementMessage.INVALID);
+        toServer(id++, NETWORK_CHANNEL, CollectResidueMessage.CODEC, CollectResidueMessage.INVALID);
+        toServer(id++, NETWORK_CHANNEL, MeditateMessage.CODEC, MeditateMessage.INVALID);
     }
 
-    public static <PACKET extends Consumer<NetworkEvent.Context>> void registerCodecPacket(int id, SimpleChannel channel, Codec<PACKET> codec, PACKET defaultPacket)
+    //the direction is part of every registration, so Forge drops a message that arrives the wrong way round. Left open, a
+    //LAN guest could send a clientbound message and have the host's server thread run its client-side handler
+    public static <PACKET extends Consumer<NetworkEvent.Context>> void toClient(int id, SimpleChannel channel, Codec<PACKET> codec, PACKET defaultPacket)
+    {
+        registerCodecPacket(id, channel, codec, defaultPacket, NetworkDirection.PLAY_TO_CLIENT);
+    }
+
+    public static <PACKET extends Consumer<NetworkEvent.Context>> void toServer(int id, SimpleChannel channel, Codec<PACKET> codec, PACKET defaultPacket)
+    {
+        registerCodecPacket(id, channel, codec, defaultPacket, NetworkDirection.PLAY_TO_SERVER);
+    }
+
+    private static <PACKET extends Consumer<NetworkEvent.Context>> void registerCodecPacket(int id, SimpleChannel channel, Codec<PACKET> codec, PACKET defaultPacket, NetworkDirection direction)
     {
         final BiConsumer<PACKET, FriendlyByteBuf> encoder = (packet, buffer) -> codec.encodeStart(NbtOps.INSTANCE, packet)
                 .result()
@@ -71,7 +87,7 @@ public class Network
 
         final Class<PACKET> packetClass = (Class<PACKET>) (defaultPacket.getClass());
 
-        channel.registerMessage(id, packetClass, encoder, decoder, handler);
+        channel.messageBuilder(packetClass, id, direction).encoder(encoder).decoder(decoder).consumerNetworkThread(handler).add();
     }
 
 

@@ -23,8 +23,13 @@ public record MeditationSettings(int cushionChannelTicks, int keyChannelTicks, b
     /** ~3 seconds at 20 ticks/second - #183's own figure for the cushion's channel. */
     public static final int DEFAULT_CUSHION_CHANNEL_TICKS = 60;
 
-    /** 80 ticks - the Soul Key's own duration, moved here rather than left as a local constant. */
-    public static final int DEFAULT_KEY_CHANNEL_TICKS = 80;
+    /**
+     * 120 ticks, twice the cushion's. The key held for 80 while it was the only way in; now that it
+     * is the fallback rather than the standard entry, it takes noticeably longer (#190) - long enough
+     * that a cushion is worth building, never so long that a player far from home cannot reach their
+     * own soul.
+     */
+    public static final int DEFAULT_KEY_CHANNEL_TICKS = 120;
 
     /**
      * Whether a cushion diagonally adjacent to the player (rather than only the four cardinal

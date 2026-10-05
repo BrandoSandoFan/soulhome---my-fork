@@ -1609,3 +1609,389 @@ every apron it grew.
   `soul_island1`, and 29% fewer on the snow island, `soul_island2` - where every column lost was
   one made of tree, not one made of ground.
 - Not yet ported to `1.21.1`.
+
+Your own island's ground could read as out of bounds
+
+The ascent box's floor is a fixed datum, the same for every soul - but the starter islands don't
+all place their own ground at exactly that height. Some of a template's terrain could sit well
+below it, so standing in the wrong corner of your own freshly-generated island, on ground you never
+touched, could tell you that you were outside your own soulhome.
+
+- A soulhome's floor is now anchored to the lowest solid block its own starter island actually
+  placed, not just the fixed datum every soul used to share - so standing anywhere on your own
+  island's terrain is always inside your box from the moment you arrive.
+- The ceiling and verge are untouched: lowering the floor only ever adds buildable room below where
+  it already reached, never shifts the box's height or narrows it.
+- A soulhome that already existed before this fix keeps the box it always had - nothing about an
+  existing soul's floor moves on its own.
+- A buff: no legally-placed block on your own island reads as out of bounds any more (#236).
+- Ported to `1.21.1`.
+
+The Meditation Cushion did nothing when you stood on it
+
+The cushion is a short block - a player kneeling on one still stands inside its own cell rather
+than the cell above it, the way they would on a full block. The channel-start check looked at the
+cell *below* the player instead, so the one thing the cushion exists for - standing on it and
+holding the bind - was never once recognised. Standing beside a cushion instead of on it happened
+to still work, which is what made the bug so easy to miss and so confusing to hit.
+
+- Standing on top of a Meditation Cushion now starts the channel, exactly as advertised.
+- Pressing the bind with no cushion in reach, and not already in your soul, tells you so instead
+  of silently doing nothing - it always did, but nobody who tried standing on the cushion itself
+  ever got far enough to see it.
+- A buff, not a nerf: nothing about the channel's length, its abort conditions or the cushion's
+  reduced fragility changed - the cushion simply works now.
+- Ported to `1.21.1`.
+
+Entering your soul used to be the safest thing you could do, and now it is one of the more dangerous
+
+Your body has stayed behind when you enter your soul since the Soul Vessel arrived, but a hit on it
+did nothing - it flinched, got shoved, and you never felt it. So the safest act in the game was
+still leaving the world: nothing in a soul can hurt you, and nothing outside one could reach you.
+
+- Hitting a Soul Vessel now hurts the player inside it, wherever they are. It is dealt to you as
+  `soulhome:soul_severed`, carrying whoever struck the blow, so your own armour, enchantments,
+  absorption and resistance all apply - it is still you being hit - and a death names your killer.
+- The cushion's body takes half of every hit; the key's takes all of it; a gazer's takes all of it.
+- This is the one kind of damage that reaches you inside a soul. Fall damage, mobs in there with
+  you and everything else are still cancelled exactly as before - only your body, from outside.
+- Thorns on your armour still answers whoever hit you: the body wears your armour, so it is the
+  body's armour that bites back.
+- `/kill` on a vessel, or the vessel falling into the void, is a removal rather than a hit: you are
+  drawn back into your body alive, with nothing dropped.
+- `vessel.damage_transfer` switches all of it off, and a soul is a safe room again. It ships on,
+  because it is the point. The fragilities, and how hard a spill scatters, are in the same section.
+- A nerf, and a deliberate one: a body left in the open is a body a griefer or a zombie will find.
+  Build your cushion somewhere you would want to be found asleep.
+- Ported to `1.21.1`.
+
+Dying in your soul spills your things where your body was
+
+With a body that can be killed, the next question was what happens to what you were carrying. A
+player killed through their body died inside a soul, so everything they had landed on the floor of
+a private dimension nobody else could reach - killing someone through their body won the killer
+nothing, and cost the victim nothing they could not walk back to.
+
+- Your items and experience now spill out of your body, in the world, where it was sitting - with a
+  small scatter, so it reads as a body's belongings rather than a neat pile - and never inside a
+  wall.
+- Your recovery compass points at your body, not at a coordinate in your soul where nothing is.
+- Your body goes with you, in a wisp of soul fire rather than blinking out.
+- Respawning is unchanged: bed, anchor or world spawn. `keepInventory`, Curse of Vanishing and any
+  soulbound enchantment still decide what drops; this only moves it.
+- A guest in someone else's soul spills at their own body, back where they used the key - never at
+  their host's.
+- Ported to `1.21.1`.
+
+The Soul Key takes longer, because it is the long way in now
+
+- The key's channel is 6 seconds, up from 4. It was the only way in when it was 4; with a
+  Meditation Cushion taking 3, the key is the one you use when you are nowhere near a cushion, and
+  it should feel like it. Still no cushion needed, and still never so long a player far from home
+  cannot reach their own soul.
+- A server that set `meditation.key_channel_ticks` by hand keeps its own number.
+- Ported to `1.21.1`.
+
+Guests need rank VI, not IV
+
+- Walking into a soul that is not your own now asks for rank VI of your own, of IX. IV was set when
+  the ladder topped out at V; with nine ranks it was not even halfway up.
+- `dimension.guest_rank_required` defaults to 6 in a fresh config. An existing config file keeps the
+  4 it was written with - change it by hand to follow the new default.
+- Ported to `1.21.1`.
+
+Soulgaze: the observatory looks into other souls, and it cuts both ways
+
+The observatory has a second buff, and it is an ability. Put a player in your sight - or the body
+one left sitting somewhere - press the ability key, and you are inside their soul as a spectator for
+a while. Their rooms are there to read, and through them, what they carry.
+
+- It leaves your own body standing where you cast it, exactly as a meditator's does: the same
+  damage transfer, the same spill if it is killed. Looking into someone else's soul is no safer than
+  going into your own, and against a target who is walking around, they can simply come and find
+  your body while you are busy reading their bookshelves. Gazing at someone who is away in their own
+  soul is the even trade, and a soul whose owner is home stays open a little longer.
+- A gaze is read-only. You cannot ride anything's camera, no ability fires while you look - pressing
+  one brings you back instead, which is also how to end a gaze early - and nothing you see triggers a
+  rescan of the soul you are in.
+- It ends when the time runs out, when the owner of an open soul leaves it, when your own body is
+  disturbed, or when you press an ability key. Log out mid-gaze, or have the server stop, and you are
+  put back in your own game mode at your own body the moment you return - nobody is left a spectator
+  in a stranger's soul.
+- No rank needed, only the room. Walking in physically is still guest passage.
+- `observatory.gaze.enabled` switches it off.
+- The observatory now counts as an ability room for attunement, since it grants one. An observatory
+  you already had bound stays bound - nothing is taken away - it simply sits in your ability slots
+  from now on, so a soul whose ability slots were already full may find one fewer free.
+- Ported to `1.21.1`.
+
+Being gazed at: you always know, and an observatory tells you who
+
+- Anyone gazed at feels it: a prickle at the edge of their vision, a sound, and a line saying
+  something is looking. A better observatory makes that fainter, never silent - even a tier 3 gaze
+  is noticeable. It points nowhere: where the watcher is stays hidden.
+- A player with an observatory of their own is told who is looking, and which way their body stands
+  - the telescope that lets you look also lets you notice being looked at.
+- If you are inside your soul when the gaze lands, the edge of your sight stays faintly dim until
+  the last watcher leaves.
+- Notices to one player are spaced out, so nobody can be strobed. `observatory.gaze.notify_owner`
+  silences all of it, for a server that wants gazes secret.
+- Ported to `1.21.1`.
+
+Suppression: you can feel how far another soul has climbed
+
+Ascension was the mod's deepest progression and completely invisible. Two players meeting could
+not tell a rank IX soul from one that had never climbed.
+
+- Once you have built at least one room, a player who has ascended warps the air around them, with a
+  low hum. Their rank decides how large and strong it is and how far off you notice it.
+- How well you can read it is your own rank. To an unascended player a great soul is a formless
+  smear that spoils their aim; as you climb, the same field settles into rings - one per rank they
+  hold, with a chime for each - and weakens enough to aim through. A strong opponent you can handle
+  and a weak one never look the same.
+- Anchored on them, and only in plain sight: it follows the player, never the middle of your screen,
+  and a wall hides it.
+- Screen warping makes some people sick. `suppression.distortion` in `soulhome-client.toml` turns it
+  off for you, and the server has its own switch; the rings and the hum still carry everything.
+- Unascended players are surrounded by nothing at all.
+- Ported to `1.21.1`.
+
+New advancements, and the book catches up
+
+- Six firsts: meditating on a cushion, dying through your body, walking into another's soul,
+  gazing, being gazed at, and feeling suppression.
+- The Soul Key pages now say that it leaves a body and that it is the long way in. New pages for
+  meditation, for the body you leave, for guests, and for suppression - that last one appears once
+  you have felt it, so it does not spoil it. The observatory's page describes Soulgaze from the
+  archetype data, including what it costs you.
+- Ported to `1.21.1`.
+
+The Meditation Cushion looked like a full block, and the texture was a placeholder
+
+The cushion has always sat 5/16 tall in collision - you could never actually stand inside one -
+but its model was still `cube_all`, so it rendered as an ordinary full-height block sitting flush
+with the ground, and the texture on it was an unshaded flat colour never meant to ship.
+
+- The cushion now renders as a low mat instead of a cube, carved to the same box its own hitbox
+  already used - what you see finally matches what you stand on.
+- A real top and side texture, replacing the placeholder: a stitched, quilted mat with a small
+  soul-purple tuft at its centre, in the same family of colour as the Soul Anchor.
+- A buff, not a nerf: nothing about placement, crafting or the channel changed - the cushion reads
+  correctly now.
+
+Suppression has a sound of its own
+
+The hum around a player who has ascended was the ascension ritual's own beacon hum, and the count
+of their rings was the amethyst chime the Soul Lens already rings on every scan. So a suppressed
+player walking past sounded like a ritual in progress and a scan going off at once - and a chime
+rings for most of a second, which at four to a second turned a rank IX into a smear rather than
+nine of anything.
+
+- The field now presses rather than hums: low tones beating slowly against each other under a swell
+  of breath, made for this and heard nowhere else.
+- Each ring is a short, low beat, over before the next begins, so the count can actually be counted.
+- Both carry to the edge of where you can perceive the player. They used to cut out at sixteen
+  blocks whatever their rank, well inside the fifty-two a rank IX is felt from.
+- Both have subtitles.
+- Cosmetic: nothing about suppression itself, or what it tells you, changed.
+- Ported to `1.21.1`.
+
+Suppression's switches are on the options screen
+
+`suppression.distortion` - the one switch in the mod that exists because of motion sickness - was
+only in `soulhome-client.toml`. A player who found the warp uncomfortable had to be told the file
+existed.
+
+- Mods -> SoulHome -> Config now has a second column, "Other souls", with the screen warp and the
+  suppression sound. Each says what turning it off costs you, which is nothing you would need.
+- The screen is now called "How Souls Look to You", since it is no longer only about your own.
+- Ported to `1.21.1`.
+
+A soul full of rooms now looks and sounds like one
+
+The first real hour of building under the Ambience epic (#163) found it wanting everywhere: a soul
+with a great many rooms in it looked and sounded like any other, its sounds were quieter than
+Minecraft's own music playing over them, the ascension ritual made a handful of specks, and the
+sky was one pale colour.
+
+- The sound was inaudible, by arithmetic rather than by taste: the bed was mastered 38 dB down and
+  then multiplied by three more ceilings, so it reached the ear around -58 dBFS against music at
+  about -20. The assets are re-mastered to be heard (one-shots at -20 dBFS, the bed at -24) and the
+  mod's own ceilings no longer stack on top. The default ambient volume is now 80% and the default
+  intensity 85%. If your `soulhome-client.toml` still held the old defaults (35% and 60%), they are
+  moved to the new ones once; anything you had set yourself is left alone.
+- Inside a soul, Minecraft's music gives way to the soul's own. It is composed as it plays, in the
+  soul's own key: the rooms choose its mode and its instruments - a hearth's piano, the cold's
+  bells, glass for the arcane, plucked strings for a workshop, marimba and flute where things grow,
+  a drone where the soul is hollow - and a soul built two ways at once is played as a third thing,
+  as its colour already was. Rank gives it room: slower, longer, wider and more reverberant as you
+  climb, and never louder. It rests between pieces, and it is under the game's own Music slider.
+  `soul_music` in `soulhome-client.toml`, or "Soul music" on the options screen, gives you
+  Minecraft's music back.
+- The sky is a sky. The soul dimension used to draw none, so the fog colour was all there was. Now a
+  dome rises from the horizon to a zenith of the soul's own colour, a slow veil of light hangs in
+  the colour of its second trait, a glow sits along the horizon, and stars come out as it climbs -
+  none at rank 0, a full field at the top. The colours are stronger, and a soul of many kinds of
+  room now reads as what it is mostly made of instead of averaging to grey.
+- The air carries what is built: embers in a soul of hearths, snow in a soul of ice, glyphs where
+  the arcane is, spores and petals where things grow, ash where the soul is hollow, and steam,
+  glowing motes or overgrowth where a soul is built both ways at once. In proportion, and never
+  more than light snowfall.
+- The firmament motes are specks you can see rather than a haze you could not.
+- The ascension ritual builds: strands of your soul's colour wind up the pillar, glyphs are drawn
+  in to the cap, a beam of light climbs toward the firmament, each quarter throws a ring of light
+  across the whole soul as the hum steps up, and the moment the rank arrives everything goes at
+  once. A higher rank is a bigger event.
+- Nothing flashes, nothing obscures a block, and the light you build by is unchanged. Everything is
+  still cosmetic and still off at zero intensity.
+- Ported to `1.21.1`.
+
+The server config is now in the instance folder too
+
+`soulhome-server.toml` is a Forge server config, and Forge keeps those per world - in
+`saves/<world>/serverconfig/` (or `world/serverconfig/` on a dedicated server), and only once that
+world has been loaded. Anyone looking in the instance's `config/` folder, where every other mod's
+file sits, found nothing and reasonably concluded it was never being generated.
+
+- The mod now also writes `defaultconfigs/soulhome-server.toml` in the instance folder at startup,
+  with every setting and its explanation. Forge copies it into every world created afterwards, so
+  it is the place to set defaults for a pack or for all your own worlds.
+- It is kept up to date: new settings are added to it on each launch, and nothing you have changed
+  in it is overwritten.
+- A world that already exists keeps its own file in its `serverconfig/` folder, and that is still
+  the one to edit for that world. The log says where it is each time a world loads.
+- Neither a buff nor a nerf: no setting or default changed.
+- Not ported to `1.21.1`, where NeoForge already keeps this file in the instance's `config/` folder.
+
+The soul's music matches its rooms, and comes down out of the rafters
+
+The first listen to the soul's own music found a workshop as chill as an ossuary, a high note held
+long enough to hear it wobble, and everything - the arcane most of all - pitched high enough to be
+piercing. It was: the leads sat two octaves over the tonic with their arpeggios a third octave up,
+reaching B7 in a cold or arcane soul, and every voice was written the same slow way with only the
+instruments changed. The wobble was a bug. The glass and the flute worked their vibrato out against
+the time a note had been held, so the longer one rang, the further off pitch it swung - about a third
+of its pitch either way four seconds in (#261).
+
+- Each kind of room now has music that moves its own way:
+  - A workshop is a hammer on the beat, an anvil on the backbeat, a ratchet ticking, and a plucked
+    bass driving eighths under a short riff.
+  - A hearth is quick notes in the middle of the range over a calm, held base, with the fire
+    crackling under it and popping now and then.
+  - Cold is a bell or two a bar with wind going past.
+  - The arcane is slow, low rolling arpeggios over a drone, breathed in by a swell at each chord.
+  - Growing things lilt in triplets under a flute, with birds and leaves.
+  - Emptied places toll a low bell over a drone, with water dripping.
+  - Steam, clockwork and overgrowth each have their own mix of these.
+- The sounds of the room are part of the music and land on its beat. A soul built two ways hears the
+  second's sounds too, more lightly - a hearth soul with a workshop in it hears the odd anvil.
+- Nothing pitched plays above G5, nothing from C5 up is held for more than a beat and a half, the
+  whole thing sits about an octave lower, and a gentle lowpass takes the edge off the top.
+- The wobble is gone: vibrato no longer grows with the note, the pad's saws are two cents apart
+  rather than half a percent, and the bell has lost the second carrier that beat against it.
+- Cosmetic only, still under the Music slider, still off with `soul_music`.
+- Ported to `1.21.1`.
+
+Your soul grows outward at ranks III, VI and IX, and upward at every rank
+
+Every rank used to push the walls out sixteen blocks and add twelve of coast, which at the size a
+soul reaches was a strip nobody noticed arriving. The ceiling still climbs at every rank, but the
+walls and the island now move only at III, VI and IX, and each of those moves three ranks' worth at
+once - forty-eight blocks of wall and about thirty-six of new coast. A widening is now an event.
+
+- Ranks III, VI and IX are exactly as wide as they always were: walls at 72, 120 and 168, ground
+  out to about 54, 90 and 126. Rank IX is unchanged.
+- Ranks I, II, IV, V, VII and VIII raise the ceiling only. `/soulhome ascent` now names the next
+  rank that widens your soul and what it will bring, rather than what the very next rank adds.
+- `outward_ranks` in the server config's `ascent` section lists the ranks that widen the soul,
+  `[3, 6, 9]` by default. List every rank to put back a widening at each, or any ranks you like -
+  each widening catches the walls up to where `verge_per_rank` would have had them by that rank.
+  The list is taken exactly as written, so the top rank widens only if it is on it.
+- A nerf for a soul sitting at one of the ranks between: its walls are pulled back to the last
+  outward rank's until it climbs to the next. Anything built past the new walls stays standing, but
+  cannot be added to, and a room out there stops being scanned until the walls reach it again.
+  Ground that has already grown is never taken away.
+- Ported to `1.21.1`.
+
+Network hardening (#282)
+
+- Fix: every network message is now registered with its direction, so a message that arrives the wrong
+  way round is dropped by Forge. Before, a guest on a LAN game could send a message meant for clients
+  and have the host's own game run its client-side handler. Nothing changes for anyone playing normally.
+Fixes: residue, the rank ceiling and the Soul Anchor
+
+- Soul residue was billed backwards at the score a scan had just found, across the whole time since
+  the scan before it. A soul left empty for a week and then given a strong room collected a week of
+  residue at the strong room's rate; tearing a room down just before a scan billed the week at the
+  lower one. Each interval is now billed at the score the soul actually held through it. A nerf to
+  the timing trick, neutral for anyone who never used it.
+- `max_rank` in the server config's `ascent` section accepted up to 20, but there are only nine
+  Sublime Essences, so a rank above IX could never be paid for - and the anchor still showed it as
+  the next goal. It is now capped at 9.
+- A Soul Anchor can only be placed in your own soul. Placed in the overworld or in a friend's soul, it
+  is handed back with a message instead of claiming that dimension's one anchor slot.
+- An anchor that vanished without being broken (WorldEdit, another mod, a restored backup) no longer
+  blocks every new anchor with "this soulhome already has a Soul Anchor". If nothing stands where the
+  old one was saved, the new one takes its place.
+- The leftover `/soulhome home sub` debug subcommand is gone.
+- Ported to `1.21.1`.
+
+Fix: unbinding an ability room no longer refills it
+
+Spending every charge of Barrage, Thunderclap or Soul Step, then unbinding the room at the anchor
+and binding it again, handed the ability back full - two clicks for a free recharge. An ability's
+charges now stay with you while its room is unbound or torn down, and go on refilling at the pace
+they had, so binding it again gives back exactly what time would have. A first grant still arrives
+full. A nerf to the trick only; an honest loadout swap loses nothing, since the bank keeps filling.
+- Ported to `1.21.1`.
+
+Fix: the loadout can only be changed at the Soul Anchor
+
+Binding and unbinding rooms was only ever meant to happen at the anchor, but the server never checked
+where the request came from, so a modified client could swap its whole loadout from the overworld
+mid-fight. The server now applies the same gate the anchor's residue button always had: you must be in
+your own soul, within reach of its anchor. Nothing changes for an unmodified client, which only sends
+the request from the anchor's screen. A nerf to cheating only.
+- Ported to `1.21.1`.
+
+Fix: a bound room can no longer smuggle in extra abilities by changing what it is (#277)
+
+A bound room keeps its binding when you rebuild it, even if the rebuild pays from the other pool - a
+bound library turned into a storm spire, say. The slot limit was only checked when you bound a room,
+so you could end up carrying more abilities than you had active slots, and the anchor read "active
+2/1". Bindings past their pool's limit are now suspended: the newest binding waits, you keep the
+older ones, and nothing is unbound or lost. The suspended room carries nothing until you free a
+slot (or gain one by ascending), then resumes by itself. A nerf to the exploit only; a loadout
+within its limits is untouched.
+- To be ported to `1.21.1`.
+
+Fix: a crash mid-ascension no longer eats your essence (#273)
+
+The ascension ritual took its essence the moment you stepped onto the pillar's cap and gave it back
+if the ritual was abandoned. A clean stop or a logout refunded it, but a crash or a killed server
+forgot the ritual and the essence with it - still the same rank, and the most expensive thing in the
+mod gone. The essence now stays in your inventory for the whole ritual and is taken only on the tick
+it completes. Dropping it mid-ritual ends the ritual, with a message, and nothing is spent. A buff
+only for the unlucky; nothing changes for a ritual that runs to the end.
+- Ported to `1.21.1`.
+
+Fix: attunement feedback is on the anchor's screen, not in chat behind it (#279)
+
+Clicking a room on the Soul Anchor's screen answered through chat - "Attuned", "Released", "No slot
+free for that" - and chat is not drawn while that screen is open. With every slot full, a click on a
+dormant room looked like it did nothing, so people clicked again. The server's answer now rides in
+the anchor's own packet and is drawn on the screen for a few seconds, in the hint's place: green for
+a bind, plain for a release, red for a refusal. The "not your soul" chat line a visitor got as the
+screen opened is gone as well; the screen already says so. Cosmetic only; nothing about what binds
+or what is refused has changed.
+- Ported to `1.21.1`.
+
+Fix: a soul that is only partly loaded is no longer scanned as if the rest were empty (#267)
+
+A scan copies the blocks it can see and read an unloaded chunk as open air. On a high-rank soul,
+whose box is wider than a server's view distance, walking to one end and leaving meant the far rooms
+were "not there" and a room on the loaded edge had an open side - so a library's buff could vanish
+until you walked back past it. A scan now needs every chunk of the box loaded; if any is missing it
+is treated as a scan that could not see, and your rooms and buffs are left exactly as they were. A
+buff for large souls; the only cost is that a scan waits until the whole box is loaded.
+- To be ported to `1.21.1`.

@@ -71,8 +71,9 @@ public class SoulHome
 
         Network.init();
 
-        // every number the structure buffs are tuned by; registered here so the file exists before
-        // a world is loaded
+        // every number the structure buffs are tuned by. The live file is per world, under
+        // <world>/serverconfig/, and only appears once a world loads; registering also keeps a
+        // template in defaultconfigs/, which Forge copies into every new world
         SoulHomeConfig.register();
 
         // and the one file that is the player's rather than the server's: how their own soul looks
