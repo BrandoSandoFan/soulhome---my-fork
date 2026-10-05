@@ -1961,3 +1961,13 @@ a bind, plain for a release, red for a refusal. The "not your soul" chat line a 
 screen opened is gone as well; the screen already says so. Cosmetic only; nothing about what binds
 or what is refused has changed.
 - Ported to `1.21.1`.
+
+Fix: a soul that is only partly loaded is no longer scanned as if the rest were empty (#267)
+
+A scan copies the blocks it can see and read an unloaded chunk as open air. On a high-rank soul,
+whose box is wider than a server's view distance, walking to one end and leaving meant the far rooms
+were "not there" and a room on the loaded edge had an open side - so a library's buff could vanish
+until you walked back past it. A scan now needs every chunk of the box loaded; if any is missing it
+is treated as a scan that could not see, and your rooms and buffs are left exactly as they were. A
+buff for large souls; the only cost is that a scan waits until the whole box is loaded.
+- Ported to `1.21.1`.
