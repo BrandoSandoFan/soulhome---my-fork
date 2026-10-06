@@ -18,6 +18,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.neoforge.event.level.PistonEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -155,6 +157,54 @@ public class StructureEvents
     @SubscribeEvent
     public static void onBlockBroken(BlockEvent.BreakEvent event)
     {
+        if (event.getLevel() instanceof Level level)
+        {
+            StructureScanService.markDirty(level);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onBlockToolModified(BlockEvent.BlockToolModificationEvent event)
+    {
+        // hoe, axe and shovel. Simulated calls are only asking "would this work?", and change nothing
+        if (!event.isSimulated() && event.getLevel() instanceof Level level)
+        {
+            StructureScanService.markDirty(level);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onFluidPlaced(BlockEvent.FluidPlaceBlockEvent event)
+    {
+        if (event.getLevel() instanceof Level level)
+        {
+            StructureScanService.markDirty(level);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPistonMoved(PistonEvent.Post event)
+    {
+        if (event.getLevel() instanceof Level level)
+        {
+            StructureScanService.markDirty(level);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onExploded(ExplosionEvent.Detonate event)
+    {
+        StructureScanService.markDirty(event.getLevel());
+    }
+
+    @SubscribeEvent
+    public static void onNeighbourNotified(BlockEvent.NeighborNotifyEvent event)
+    {
+        // The catch-all: this fires for almost every real block change in a level, including the
+        // ones no specific event covers - a bucket emptied (EntityPlaceEvent does not reliably fire
+        // for those on 1.20.1), crop and sapling growth, /setblock, /fill, and mods that write
+        // blocks directly. It is chatty, but markDirty is a map write for a soul and a no-op
+        // for every other level, and the debouncer absorbs the bursts.
         if (event.getLevel() instanceof Level level)
         {
             StructureScanService.markDirty(level);

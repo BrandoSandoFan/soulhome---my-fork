@@ -1971,3 +1971,13 @@ until you walked back past it. A scan now needs every chunk of the box loaded; i
 is treated as a scan that could not see, and your rooms and buffs are left exactly as they were. A
 buff for large souls; the only cost is that a scan waits until the whole box is loaded.
 - Ported to `1.21.1`.
+
+Fix: tilling, buckets, pistons, explosions and fluids now mark a soul dirty, so the lens is not stale (#271)
+
+Only placing and breaking a block told the mod a soul had changed. Tilling a field with a hoe,
+emptying a bucket, a piston shove, an explosion, spreading water, or a /fill left the lens and
+/soulhome analyse showing the soul as it was before - until you placed and broke a block to
+"refresh" it. Those events now mark the soul dirty, and so does any neighbour update in a soul,
+which covers crop growth, commands and other mods' block writes. The scan is still debounced, so a
+burst of changes costs one scan. A buff, in the sense that the lens now tells the truth.
+- Ported to `1.21.1`.
