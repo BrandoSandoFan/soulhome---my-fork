@@ -2004,4 +2004,4 @@ emptying a bucket, a piston shove, an explosion, spreading water, or a /fill lef
 "refresh" it. Those events now mark the soul dirty, and so does any neighbour update in a soul,
 which covers crop growth, commands and other mods' block writes. The scan is still debounced, so a
 burst of changes costs one scan. A buff, in the sense that the lens now tells the truth.
-- To be ported to `1.21.1`.
+- Ported to `1.21.1`.
