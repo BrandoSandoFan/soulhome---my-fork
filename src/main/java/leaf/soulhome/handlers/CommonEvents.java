@@ -12,6 +12,7 @@ import leaf.soulhome.entity.SoulSevered;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncArchetypesMessage;
 import leaf.soulhome.structures.ArchetypeManager;
+import leaf.soulhome.structures.GazeService;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.SoulTravel;
 import leaf.soulhome.utils.TextHelper;
@@ -138,6 +139,15 @@ public class CommonEvents
 
             if (event.getSource().is(DamageTypes.FELL_OUT_OF_WORLD))
             {
+                //a gazer is a spectator in somebody else's soul and can fly below it. FlipDimension would
+                //send them to their own last key trip and rescan the watched soul on a stranger's account;
+                //ending the gaze brings them home to their body the way every other exit does (#272)
+                if (entityLiving instanceof ServerPlayer gazer && GazeService.isGazing(gazer))
+                {
+                    GazeService.end(gazer, GazeService.EndReason.RECALLED);
+                    return;
+                }
+
                 DimensionHelper.FlipDimension((Player) entityLiving, entityLiving.getServer(), null, entityLiving.getUUID());
             }
 
