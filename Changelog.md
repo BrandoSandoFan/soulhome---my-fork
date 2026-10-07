@@ -2005,3 +2005,12 @@ emptying a bucket, a piston shove, an explosion, spreading water, or a /fill lef
 which covers crop growth, commands and other mods' block writes. The scan is still debounced, so a
 burst of changes costs one scan. A buff, in the sense that the lens now tells the truth.
 - Ported to `1.21.1`.
+
+Fix: a gazer who flies into the void of the soul they are watching is brought home, not thrown across the world (#272)
+
+A Soulgaze puts you in spectator mode in someone else's soul, and a spectator can fly below the
+island. Doing so flung the gazer to wherever their own last key trip ended, rescanned the soul they
+were watching on a stranger's account, and only then dragged them back to their body a tick later.
+Falling out of the world while gazing now simply ends the gaze, the way recalling it does: you wake
+in your body, and the watched soul is not touched. Neither a buff nor a nerf.
+- To be ported to `1.21.1`.
