@@ -2013,4 +2013,4 @@ island. Doing so flung the gazer to wherever their own last key trip ended, resc
 were watching on a stranger's account, and only then dragged them back to their body a tick later.
 Falling out of the world while gazing now simply ends the gaze, the way recalling it does: you wake
 in your body, and the watched soul is not touched. Neither a buff nor a nerf.
-- To be ported to `1.21.1`.
+- Ported to `1.21.1`.
