@@ -81,10 +81,25 @@ public final class VesselLifecycleService
 
     private static void spawn(ServerPlayer player, float fragility)
     {
-        if (ACTIVE.containsKey(player.getUUID()) || !(player.level() instanceof ServerLevel level))
+        if (!(player.level() instanceof ServerLevel level))
         {
-            // a player cannot already have a live vessel and still be outside their soul - this is
-            // a safety net against double-spawning, not a path anything is expected to take
+            return;
+        }
+
+        // a player outside their soul cannot have a live vessel: whatever is registered is left over
+        // from an exit that never reached removeForReturn. Discarded peacefully (no ejection, and no
+        // resync of the return position from where it stood) so it cannot silently stand in as the
+        // body for this trip and send them home to somewhere they left long ago (#265)
+        final SoulVesselEntity stale = ACTIVE.remove(player.getUUID());
+
+        if (stale != null && !stale.isGaze())
+        {
+            stale.markReturningPeacefully();
+            stale.discard();
+        }
+        else if (stale != null)
+        {
+            ACTIVE.put(player.getUUID(), stale);
             return;
         }
 

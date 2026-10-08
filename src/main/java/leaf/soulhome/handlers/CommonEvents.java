@@ -13,6 +13,7 @@ import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncArchetypesMessage;
 import leaf.soulhome.structures.ArchetypeManager;
 import leaf.soulhome.structures.GazeService;
+import leaf.soulhome.structures.VesselLifecycleService;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.SoulTravel;
 import leaf.soulhome.utils.TextHelper;
@@ -146,6 +147,12 @@ public class CommonEvents
                 {
                     GazeService.end(gazer, GazeService.EndReason.RECALLED);
                     return;
+                }
+
+                //the void is the ordinary way out of a soul, so it ends the body like the key does (#265)
+                if (entityLiving instanceof ServerPlayer faller)
+                {
+                    VesselLifecycleService.onKeyUse(faller, VesselLifecycleService.defaultKeyFragility());
                 }
 
                 DimensionHelper.FlipDimension((Player) entityLiving, entityLiving.getServer(), null, entityLiving.getUUID());
