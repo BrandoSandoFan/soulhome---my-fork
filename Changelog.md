@@ -1990,3 +1990,12 @@ were watching on a stranger's account, and only then dragged them back to their 
 Falling out of the world while gazing now simply ends the gaze, the way recalling it does: you wake
 in your body, and the watched soul is not touched. Neither a buff nor a nerf.
 - Ported to `1.21.1`.
+
+Fix: falling out of a soul, or `/soulhome home`, no longer leaves your body standing behind (#265)
+
+Walking off the edge of your island and into the void put you back in the world, but the Soul
+Vessel you entered with stayed where it was, invulnerable and holding its chunk loaded. Your next
+trip in then reused that old body instead of leaving a new one, and coming out of it sent you back
+to wherever you had fallen out on some earlier trip. The void exit and `/soulhome home` now go
+through the same vessel step as the key, and a leftover body found when you enter is cleared
+rather than reused. Neither a buff nor a nerf.
