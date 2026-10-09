@@ -61,6 +61,12 @@ public final class AscensionRitualService
 {
     private static final Map<ResourceKey<Level>, RitualState> ACTIVE = new HashMap<>();
 
+    /** A server stopped; a ritual in progress does not carry into the next world (#270). */
+    public static void reset()
+    {
+        ACTIVE.clear();
+    }
+
     /** Re-applied every tick so an aborted or completed ritual's effects lapse within a second. */
     private static final int EFFECT_REFRESH_TICKS = 25;
 

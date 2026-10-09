@@ -6,6 +6,7 @@ package leaf.soulhome.handlers;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.SoulBuffsProvider;
+import leaf.soulhome.structures.AscensionRitualService;
 import leaf.soulhome.structures.GazeService;
 import leaf.soulhome.structures.SoulAmbienceService;
 import leaf.soulhome.structures.StructureScanService;
@@ -26,6 +27,7 @@ import net.minecraftforge.event.level.PistonEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 /**
@@ -261,6 +263,14 @@ public class StructureEvents
             StructureScanService.forget(level);
             TerrainGrowthService.forget(level);
         }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event)
+    {
+        StructureScanService.reset();
+        TerrainGrowthService.reset();
+        AscensionRitualService.reset();
     }
 
     @SubscribeEvent

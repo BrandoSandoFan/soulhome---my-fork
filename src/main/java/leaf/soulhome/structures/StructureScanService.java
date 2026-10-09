@@ -95,6 +95,13 @@ public final class StructureScanService
 
     private static int tickCounter;
 
+    /**
+     * Bumped whenever a server stops. A scan remembers the generation it began in, and a result
+     * from an earlier one is dropped (#270): in singleplayer every world's soul has the same key,
+     * so a late result from the world just closed would otherwise be cached for the next.
+     */
+    private static int generation;
+
     private StructureScanService()
     {
     }
@@ -143,6 +150,20 @@ public final class StructureScanService
 
             beginScan(server, soulhome);
         });
+    }
+
+    /**
+     * A server stopped. Everything here is keyed by the soul's dimension, which in singleplayer is
+     * the same key in every world, and the integrated server's JVM outlives the world (#270).
+     * Unlike {@link #forget} this lets nothing finish: the level it would deliver to is gone.
+     */
+    public static void reset()
+    {
+        generation++;
+        debouncer = newDebouncer();
+        ANALYSES.clear();
+        WAITING.clear();
+        tickCounter = 0;
     }
 
     /** A soul dimension unloaded; stop tracking it. */
@@ -260,6 +281,7 @@ public final class StructureScanService
     private static void beginScan(MinecraftServer server, ServerLevel level)
     {
         final ResourceKey<Level> key = level.dimension();
+        final int startedIn = generation;
 
         if (!SoulHomeConfig.enabled())
         {
@@ -338,6 +360,11 @@ public final class StructureScanService
                 LogHelper.error("Structure scan of soulhome " + key.location() + " failed: " + e);
                 server.execute(() ->
                 {
+                    if (startedIn != generation)
+                    {
+                        return;
+                    }
+
                     debouncer.release(key);
                     deliver(key, currentOrEmpty(key));
                 });
@@ -358,6 +385,13 @@ public final class StructureScanService
             {
                 try
                 {
+                    if (startedIn != generation)
+                    {
+                        // the server this began on has stopped: nothing here belongs to the
+                        // world now running, so neither cache it nor wake its waiters (#270)
+                        return;
+                    }
+
                     finishScan(server, key, found, hash, headOwners);
                 }
                 finally

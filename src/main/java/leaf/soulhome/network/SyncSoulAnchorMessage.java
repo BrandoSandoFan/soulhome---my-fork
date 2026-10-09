@@ -122,6 +122,12 @@ public class SyncSoulAnchorMessage implements Consumer<NetworkEvent.Context>
         {
         }
 
+        /** Logging out: one world's anchor readout must not be drawn in the next (#270). */
+        public static void clear()
+        {
+            accept(Anchor.EMPTY);
+        }
+
         static void accept(Anchor state)
         {
             ClientAnchor.anchor = state;

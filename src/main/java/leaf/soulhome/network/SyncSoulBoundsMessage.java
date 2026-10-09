@@ -135,6 +135,12 @@ public class SyncSoulBoundsMessage implements Consumer<NetworkEvent.Context>
         {
         }
 
+        /** Logging out: a box from the world just left is not this world's (#270). */
+        public static void clear()
+        {
+            current = INVALID;
+        }
+
         static void accept(SyncSoulBoundsMessage message)
         {
             current = message;
