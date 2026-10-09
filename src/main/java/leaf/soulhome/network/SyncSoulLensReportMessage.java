@@ -95,6 +95,12 @@ public class SyncSoulLensReportMessage implements SoulPayload
         {
         }
 
+        /** Logging out: the next world's lens must not open on this one's rooms (#270). */
+        public static void clear()
+        {
+            accept(List.of(), -1);
+        }
+
         static void accept(List<LensRegionReport> regions, int standingIn)
         {
             ClientLensReport.regions = regions;

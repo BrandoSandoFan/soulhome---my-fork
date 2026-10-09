@@ -1999,3 +1999,14 @@ trip in then reused that old body instead of leaving a new one, and coming out o
 to wherever you had fallen out on some earlier trip. The void exit and `/soulhome home` now go
 through the same vessel step as the key, and a leftover body found when you enter is cleared
 rather than reused. Neither a buff nor a nerf.
+
+Fix: one singleplayer world's soul no longer answers for the next (#270)
+
+In singleplayer every world's soul has the same dimension key, and the game's server code survives
+from one world to the next, so a cached analysis, a half-finished terrain growth or a ritual in
+progress in the world you closed could still be there in the world you opened. It showed up as
+`/soulhome analyse` or the lens describing rooms that were not in this world, and as ground at the
+edge of a fresh soul matching some other world's island. Everything keyed by a soul is now cleared
+when a server stops, a scan that finishes after its server has gone is thrown away, and the
+client's lens, region, anchor and box caches are cleared on logout. Neither a buff nor a nerf.
+- Ported to `1.21.1`.

@@ -82,6 +82,13 @@ public class SyncSoulRegionsMessage implements SoulPayload
         {
         }
 
+        /** Logging out: every world's soul shares a dimension key in singleplayer (#270). */
+        public static void clear()
+        {
+            ClientSoulRegions.dimension = "";
+            ClientSoulRegions.regions = List.of();
+        }
+
         static void accept(String dimension, List<RegionHighlight> regions)
         {
             ClientSoulRegions.dimension = dimension;

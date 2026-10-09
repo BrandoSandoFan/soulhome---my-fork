@@ -186,6 +186,13 @@ public final class TerrainGrowthService
         return job == null ? Optional.empty() : Optional.of(job.progress());
     }
 
+    /** A server stopped; a running job's plan belongs to the world that has just closed (#270). */
+    public static void reset()
+    {
+        ACTIVE.clear();
+        SETTLED.clear();
+    }
+
     /** A soul dimension unloaded mid-job. Growth stays due and picks up where it left off. */
     public static void forget(Level level)
     {

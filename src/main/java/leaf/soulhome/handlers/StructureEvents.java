@@ -5,6 +5,7 @@
 package leaf.soulhome.handlers;
 
 import leaf.soulhome.SoulHome;
+import leaf.soulhome.structures.AscensionRitualService;
 import leaf.soulhome.structures.GazeService;
 import leaf.soulhome.structures.SoulAmbienceService;
 import leaf.soulhome.structures.StructureScanService;
@@ -23,6 +24,7 @@ import net.neoforged.neoforge.event.level.PistonEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -231,6 +233,14 @@ public class StructureEvents
             StructureScanService.forget(level);
             TerrainGrowthService.forget(level);
         }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event)
+    {
+        StructureScanService.reset();
+        TerrainGrowthService.reset();
+        AscensionRitualService.reset();
     }
 
     @SubscribeEvent

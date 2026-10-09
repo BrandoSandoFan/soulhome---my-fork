@@ -7,6 +7,10 @@ package leaf.soulhome.client;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.ClientSoulAbilities;
 import leaf.soulhome.buffs.ClientSoulBuffs;
+import leaf.soulhome.network.SyncSoulAnchorMessage;
+import leaf.soulhome.network.SyncSoulBoundsMessage;
+import leaf.soulhome.network.SyncSoulLensReportMessage;
+import leaf.soulhome.network.SyncSoulRegionsMessage;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -39,5 +43,12 @@ public final class ClientBuffEvents
         // that has never heard of this mod is worse than an empty corner
         ClientSoulAbilities.clear();
         SurveyedBlocks.clear();
+
+        // Singleplayer gives every world's soul the same dimension key (the owner's UUID), so a
+        // cache keyed by that string would otherwise answer for the world just left (#270)
+        SyncSoulRegionsMessage.ClientSoulRegions.clear();
+        SyncSoulLensReportMessage.ClientLensReport.clear();
+        SyncSoulAnchorMessage.ClientAnchor.clear();
+        SyncSoulBoundsMessage.ClientSoulBounds.clear();
     }
 }
