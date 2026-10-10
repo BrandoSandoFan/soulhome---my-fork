@@ -839,12 +839,14 @@ public final class StructureScanService
 
     /**
      * What is known about this soulhome right now. Used when a scan failed: the previous answer is
-     * stale but true, and is a better thing to show than a blank.
+     * stale but true, and is a better thing to show than a blank. With nothing cached the honest
+     * answer is "could not read", never "empty" (#268): after a restart the cache is bare while
+     * the saved rooms are still being carried.
      */
     private static SoulAnalysis currentOrEmpty(ResourceKey<Level> key)
     {
         final SoulAnalysis known = ANALYSES.get(key);
-        return known == null ? SoulAnalysis.empty(key, now()) : known;
+        return known == null ? SoulAnalysis.unreadable(key, now()) : known;
     }
 
     /** Hand a completed analysis to everyone who asked for one, and clear the queue. */

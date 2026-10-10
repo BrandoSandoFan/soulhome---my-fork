@@ -51,6 +51,8 @@ public class Constants
         //so these are the strings that make the whole feature usable rather than decoration.
         public static final String ANALYSE_HEADER = "message.soulhome.analyse.header";
         public static final String ANALYSE_NOTHING_FOUND = "message.soulhome.analyse.nothing_found";
+        public static final String ANALYSE_UNLOADED = "message.soulhome.analyse.unloaded";
+        public static final String ANALYSE_UNLOADED_ROOM = "message.soulhome.analyse.unloaded_room";
         public static final String ANALYSE_NO_ARCHETYPES = "message.soulhome.analyse.no_archetypes";
         public static final String ANALYSE_SCANNING = "message.soulhome.analyse.scanning";
         public static final String ANALYSE_DISABLED = "message.soulhome.analyse.disabled";

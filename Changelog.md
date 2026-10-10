@@ -2010,3 +2010,12 @@ edge of a fresh soul matching some other world's island. Everything keyed by a s
 when a server stops, a scan that finishes after its server has gone is thrown away, and the
 client's lens, region, anchor and box caches are cleared on logout. Neither a buff nor a nerf.
 - Ported to `1.21.1`.
+
+Fix: `/soulhome analyse` from outside your soul no longer says it is empty when it is only unloaded (#268)
+
+After a server restart, asking `/soulhome analyse` from the overworld got "Nothing in your soul reads
+as a room yet", while `/soulhome buffs` still listed the rooms you were carrying. Nothing had been
+wiped - the soul simply was not loaded, so nothing could be looked at, and the report mistook "could
+not look" for "found nothing". It now says the soul is not loaded and lists the rooms it held at its
+last scan, with their tier and score; step inside for the full breakdown. Neither a buff nor a nerf.
+- Ported to `1.21.1`.
