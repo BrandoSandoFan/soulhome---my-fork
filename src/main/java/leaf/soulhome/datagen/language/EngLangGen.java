@@ -192,6 +192,8 @@ public class EngLangGen extends LanguageProvider
         //its unit.
         add(Constants.StringKeys.ANALYSE_HEADER, "Your soul holds %s region(s), of which %s counts for something.");
         add(Constants.StringKeys.ANALYSE_NOTHING_FOUND, "Nothing in your soul reads as a room yet. Enclose a space, or gather enough of one kind of thing in one place.");
+        add(Constants.StringKeys.ANALYSE_UNLOADED, "Your soul isn't loaded right now, so it can't be looked through. Step inside for the full breakdown.");
+        add(Constants.StringKeys.ANALYSE_UNLOADED_ROOM, "As of its last scan it held: %s (tier %s, score %s)");
         add(Constants.StringKeys.ANALYSE_NO_ARCHETYPES, "No archetypes are loaded, so nothing here can ever count. Check the datapack.");
         add(Constants.StringKeys.ANALYSE_SCANNING, "Looking through your soul...");
         add(Constants.StringKeys.ANALYSE_DISABLED, "Soulhome structure buffs are switched off in the server config.");

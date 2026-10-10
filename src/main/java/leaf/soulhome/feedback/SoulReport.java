@@ -5,7 +5,9 @@
 package leaf.soulhome.feedback;
 
 import leaf.soulhome.constants.Constants;
+import leaf.soulhome.structures.ArchetypeManager;
 import leaf.soulhome.structures.SoulAnalysis;
+import leaf.soulhome.structures.core.ArchetypeDefinition;
 import leaf.soulhome.structures.core.ArchetypeScore;
 import leaf.soulhome.structures.core.AspectSelection;
 import leaf.soulhome.structures.core.AttunementSettings;
@@ -83,6 +85,11 @@ public final class SoulReport
     {
         List<Component> lines = new ArrayList<>();
 
+        if (analysis.unreadable())
+        {
+            return unloaded(awarded);
+        }
+
         if (analysis.isEmpty())
         {
             lines.add(translated(Constants.StringKeys.ANALYSE_NOTHING_FOUND).withStyle(ChatFormatting.GRAY));
@@ -115,6 +122,33 @@ public final class SoulReport
             }
 
             lines.addAll(region(result, index++, carrying));
+        }
+
+        return lines;
+    }
+
+    /**
+     * What to say when the soul could not be read (#268): the saved rooms, which are still being
+     * carried, and a pointer to where the detail is. Saying "nothing reads as a room" here would be
+     * a claim the scan never earned, and reads as the mod having wiped the soul.
+     */
+    static List<Component> unloaded(List<AwardedRoom> awarded)
+    {
+        List<Component> lines = new ArrayList<>();
+
+        lines.add(translated(Constants.StringKeys.ANALYSE_UNLOADED).withStyle(ChatFormatting.GRAY));
+
+        final var archetypes = ArchetypeManager.byId();
+
+        for (AwardedRoom room : awarded)
+        {
+            final ArchetypeDefinition archetype = archetypes.get(room.archetypeId());
+            final String name = archetype == null ? room.archetypeId() : archetype.displayName();
+
+            lines.add(translated(
+                    Constants.StringKeys.ANALYSE_UNLOADED_ROOM,
+                    name, room.tier(), String.format(Locale.ROOT, "%.1f", room.score()))
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
         }
 
         return lines;

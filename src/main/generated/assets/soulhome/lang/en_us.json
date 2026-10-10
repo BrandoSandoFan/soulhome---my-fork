@@ -308,6 +308,8 @@
   "message.soulhome.analyse.no_soulhome": "You have never opened your soul, so there is nothing in it to look at.",
   "message.soulhome.analyse.not_here": "Stand in the soul you want to look at first.",
   "message.soulhome.analyse.nothing_found": "Nothing in your soul reads as a room yet. Enclose a space, or gather enough of one kind of thing in one place.",
+  "message.soulhome.analyse.unloaded": "Your soul isn't loaded right now, so it can't be looked through. Step inside for the full breakdown.",
+  "message.soulhome.analyse.unloaded_room": "As of its last scan it held: %s (tier %s, score %s)",
   "message.soulhome.analyse.scanning": "Looking through your soul...",
   "message.soulhome.anchor.already_exists": "This soulhome already has a Soul Anchor. Break it first if you want to move it.",
   "message.soulhome.anchor.essence_missing": "Essence: %s / %s Sublime Essence %s - find or craft more first.",

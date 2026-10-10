@@ -26,16 +26,32 @@ import java.util.Optional;
 public record SoulAnalysis(
         ResourceKey<Level> dimension,
         List<ClassificationResult> results,
-        long scannedAtMillis)
+        long scannedAtMillis,
+        boolean unreadable)
 {
     public SoulAnalysis
     {
         results = List.copyOf(results);
     }
 
+    public SoulAnalysis(ResourceKey<Level> dimension, List<ClassificationResult> results, long scannedAtMillis)
+    {
+        this(dimension, results, scannedAtMillis, false);
+    }
+
+    /**
+     * "The scan could not see this soul", which is a different answer from {@link #empty}: nothing
+     * was found because nothing was looked at (#268). A report that treats the two alike tells a
+     * player whose rooms are still paying out that their soul holds nothing.
+     */
+    public static SoulAnalysis unreadable(ResourceKey<Level> dimension, long scannedAtMillis)
+    {
+        return new SoulAnalysis(dimension, List.of(), scannedAtMillis, true);
+    }
+
     public static SoulAnalysis empty(ResourceKey<Level> dimension, long scannedAtMillis)
     {
-        return new SoulAnalysis(dimension, List.of(), scannedAtMillis);
+        return new SoulAnalysis(dimension, List.of(), scannedAtMillis, false);
     }
 
     public boolean isEmpty()
