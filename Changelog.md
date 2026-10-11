@@ -2041,3 +2041,13 @@ as a room yet", while `/soulhome buffs` still listed the rooms you were carrying
 wiped - the soul simply was not loaded, so nothing could be looked at, and the report mistook "could
 not look" for "found nothing". It now says the soul is not loaded and lists the rooms it held at its
 last scan, with their tier and score; step inside for the full breakdown. Neither a buff nor a nerf.
+
+Fix: a crash no longer leaves a copy of you standing somewhere, loading its chunk forever (#274)
+
+Soul Vessel chunk tickets were all released at every server start, because the check ran before any
+entity had loaded and so found no vessel behind any of them. And a key or cushion body left behind
+by a crash was never cleaned up once its chunk loaded: it re-forced its chunk permanently, took hits
+as damage to you in your soul, and stood in for the real body on your next trip. Tickets now wait
+a minute for their vessel to load before an unclaimed one is released, and a key or cushion body
+whose owner is offline, or online but outside a soul, removes itself a second after it appears,
+as a gaze body already did. Neither a buff nor a nerf.

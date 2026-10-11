@@ -5,6 +5,7 @@
 package leaf.soulhome.entity;
 
 import leaf.soulhome.SoulHome;
+import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.registry.EntityRegistry;
 import leaf.soulhome.structures.GazeService;
 import leaf.soulhome.structures.VesselLifecycleService;
@@ -244,7 +245,24 @@ public class SoulVesselEntity extends LivingEntity
                 this.markReturningPeacefully();
                 this.discard();
             }
+            // the same for a key or cushion body (#274): onOwnerLoggedOut already removes these, so
+            // one whose owner is offline is left over from a crash by definition, and one whose
+            // owner is online but outside a soul is from a trip that ended without it
+            else if (!this.gaze && this.tickCount > 20 && this.isLeftOver(serverLevel))
+            {
+                this.markReturningPeacefully();
+                this.discard();
+            }
         }
+    }
+
+    private boolean isLeftOver(ServerLevel level)
+    {
+        final ServerPlayer owner = this.getOwnerId()
+                .map(id -> level.getServer().getPlayerList().getPlayer(id))
+                .orElse(null);
+
+        return owner == null || !DimensionHelper.isInSoulDimension(owner);
     }
 
     private boolean hasLiveGaze(ServerLevel level)

@@ -27,6 +27,7 @@ import net.minecraftforge.event.level.PistonEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import leaf.soulhome.structures.VesselLifecycleService;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
@@ -286,6 +287,7 @@ public class StructureEvents
         if (server != null)
         {
             StructureScanService.onServerTick(server);
+            VesselLifecycleService.sweepUnclaimedTickets(server);
 
             // every tick, unlike the scan service's own check interval: a growth job's whole
             // purpose is to spread its work thinly, and running it one tick in twenty would make
