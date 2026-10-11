@@ -439,26 +439,66 @@ public final class VesselLifecycleService
     }
 
     /**
-     * {@link #TICKET_CONTROLLER}'s validation callback, run once by NeoForge when a level reinstates
-     * its forced chunks. NeoForge persists a ticket across a restart even if the vessel that
-     * requested it never got the chance to release it - a crash mid-meditation is the ordinary way
-     * that happens - so a ticket whose owner is not a live {@link SoulVesselEntity} is dropped here
-     * rather than being held forever. {@code level.getEntity(UUID)} only finds an already-loaded
-     * entity; if the vessel's own chunk has not finished loading by the time this runs, that is
-     * indistinguishable from a genuine orphan and the ticket is dropped early. That has not been
-     * exercised against a live server in this change - if it turns out to fire before the vessel
-     * deserialises, this needs a delayed second look rather than a same-tick verdict.
+     * {@link #TICKET_CONTROLLER}'s validation callback.
+     * Forge calls this while the level is being prepared, before its entities have loaded, so
+     * {@code level.getEntity} finds nothing and a same-tick verdict would release every ticket on
+     * every boot (#274). Tickets are therefore kept and noted here; {@link #sweepUnclaimedTickets}
+     * releases the ones no vessel has claimed once entities have had time to load. A vessel that
+     * does load is judged by its own tick, which discards it if it is left over from a crash.
      */
     private static void validateTickets(ServerLevel level, TicketHelper helper)
     {
-        for (UUID ticketOwner : new ArrayList<>(helper.getEntityTickets().keySet()))
+        for (Map.Entry<UUID, net.neoforged.neoforge.common.world.chunk.TicketSet> entry : helper.getEntityTickets().entrySet())
         {
-            if (!(level.getEntity(ticketOwner) instanceof SoulVesselEntity))
+            final List<Long> chunks = new ArrayList<>();
+            chunks.addAll(entry.getValue().nonTicking());
+            chunks.addAll(entry.getValue().ticking());
+            UNCLAIMED_TICKETS.add(new PendingTicket(level.dimension(), entry.getKey(), chunks));
+        }
+
+        ticketGrace = TICKET_GRACE_TICKS;
+    }
+
+    private record PendingTicket(net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension,
+                                 UUID owner, List<Long> chunks)
+    {
+    }
+
+    /** Ticks after boot a ticket may wait for its vessel to load before it is called an orphan. */
+    private static final int TICKET_GRACE_TICKS = 1200;
+
+    private static final List<PendingTicket> UNCLAIMED_TICKETS = new ArrayList<>();
+
+    private static int ticketGrace;
+
+    /** Drops tickets whose vessel never appeared. Called every server tick; cheap when there is nothing pending. */
+    public static void sweepUnclaimedTickets(MinecraftServer server)
+    {
+        if (UNCLAIMED_TICKETS.isEmpty() || --ticketGrace > 0)
+        {
+            return;
+        }
+
+        for (PendingTicket ticket : UNCLAIMED_TICKETS)
+        {
+            final ServerLevel level = server.getLevel(ticket.dimension());
+
+            if (level == null || level.getEntity(ticket.owner()) instanceof SoulVesselEntity)
             {
-                LogHelper.warn("Releasing a stale soul vessel chunk ticket with no vessel behind it: " + ticketOwner);
-                helper.removeAllTickets(ticketOwner);
+                continue;
+            }
+
+            LogHelper.warn("Releasing a stale soul vessel chunk ticket with no vessel behind it: " + ticket.owner());
+
+            for (long chunk : ticket.chunks())
+            {
+                TICKET_CONTROLLER.forceChunk(level, ticket.owner(),
+                        net.minecraft.world.level.ChunkPos.getX(chunk), net.minecraft.world.level.ChunkPos.getZ(chunk),
+                        false, true);
             }
         }
+
+        UNCLAIMED_TICKETS.clear();
     }
 
     /** The Soul Key's fragility, from {@code vessel.key_fragility}. */

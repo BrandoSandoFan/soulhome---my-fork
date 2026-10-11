@@ -6,6 +6,7 @@ package leaf.soulhome.handlers;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.structures.AscensionRitualService;
+import leaf.soulhome.structures.VesselLifecycleService;
 import leaf.soulhome.structures.GazeService;
 import leaf.soulhome.structures.SoulAmbienceService;
 import leaf.soulhome.structures.StructureScanService;
@@ -251,6 +252,7 @@ public class StructureEvents
         if (server != null)
         {
             StructureScanService.onServerTick(server);
+            VesselLifecycleService.sweepUnclaimedTickets(server);
 
             // every tick, unlike the scan service's own check interval: a growth job's whole
             // purpose is to spread its work thinly, and running it one tick in twenty would make
