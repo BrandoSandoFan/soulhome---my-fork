@@ -17,6 +17,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.world.level.block.piston.PistonStructureResolver;
+import net.minecraft.world.level.entity.EntityTypeTest;
+import net.minecraftforge.event.TickEvent;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -55,11 +59,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * lets TNT set off against the inner face of a wall still hollow out everything on the soulhome's
  * own side of it.
  *
- * <p>What this does <b>not</b> cover: falling blocks, dispensers, and TNT-cannon movement. Those
- * paths write to the level directly rather than through an event Forge exposes generically, and
- * closing that gap needs either a mixin into block-placement internals or per-source hooks this
- * pass did not attempt. Worth a follow-up; the common case - a player's own placing, breaking,
- * buckets, pistons and explosions - is covered.
+ * <p>What this does <b>not</b> cover: dispensers, plain fluid flow over the edge, and tree, vine or
+ * kelp growth. Those paths write to the level directly rather than through an event Forge exposes
+ * generically, and closing them needs a mixin into block-placement internals (#283). Falling
+ * blocks are swept as entities, and a piston's whole chain is checked.
  *
  * <p>Entities are untouched on purpose. A player may walk, fly and fall outside the box; only a
  * block being placed or broken is refused, so creative flight into the empty void around a
@@ -70,6 +73,9 @@ public final class SoulBoundsEnforcement
 {
     /** How rarely a denied player is told, so holding right-click into a wall is not sixty messages a second. */
     private static final long DENIAL_MESSAGE_COOLDOWN_MILLIS = 2_000L;
+
+    /** A falling block covers a cell in a tick or two, so sweeping every few ticks still catches it outside the verge. */
+    private static final int FALLING_SWEEP_INTERVAL_TICKS = 2;
 
     private static final Map<UUID, Long> lastDeniedAtMillis = new ConcurrentHashMap<>();
 
@@ -193,11 +199,11 @@ public final class SoulBoundsEnforcement
     }
 
     /**
-     * Pistons: only the immediately-pushed cell is checked, not the whole chain a piston can push.
-     * A piston sitting inside the verge that pushes a short chain across it is caught; a piston
-     * deep inside the box pushing a chain long enough to reach past the wall is not. The full check
-     * needs the same structure resolution vanilla's own piston code does, which this pass did not
-     * attempt - see the class javadoc.
+     * Pistons: the whole chain is resolved with the same {@link PistonStructureResolver} vanilla
+     * uses, and every cell it would move is checked at its destination (#283). Checking only the
+     * first pushed cell let a piston deep inside the box shove a chain of up to twelve blocks across
+     * the wall. Refused whole rather than trimmed, because a piston that moves half its chain would
+     * tear a player's contraption apart.
      */
     @SubscribeEvent
     public static void onPistonExtend(PistonEvent.Pre event)
@@ -212,12 +218,85 @@ public final class SoulBoundsEnforcement
             return;
         }
 
-        final BlockPos destination = event.getPos().relative(event.getDirection(), 2);
+        final Direction direction = event.getDirection();
         final RegionBounds box = SnapshotBlockVolume.declaredBox(level);
 
-        if (!box.contains(destination.getX(), destination.getY(), destination.getZ()))
+        // the head itself lands one cell out, even when nothing is pushed
+        final BlockPos head = event.getPos().relative(direction);
+
+        if (!box.contains(head.getX(), head.getY(), head.getZ()))
         {
             event.setCanceled(true);
+            return;
+        }
+
+        final PistonStructureResolver resolver = event.getStructureHelper();
+
+        if (resolver == null || !resolver.resolve())
+        {
+            // vanilla will refuse the push itself
+            return;
+        }
+
+        for (BlockPos pushed : resolver.getToPush())
+        {
+            final BlockPos destination = pushed.relative(direction);
+
+            if (!box.contains(destination.getX(), destination.getY(), destination.getZ()))
+            {
+                event.setCanceled(true);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Blocks made by fluids meeting (lava over water becoming stone, and the like) are written by
+     * the fluid rather than placed by anyone (#283). Refused at the destination like every other
+     * route. Plain flow over the edge of the box has no event Forge exposes, so that is not covered.
+     */
+    @SubscribeEvent
+    public static void onFluidPlaceBlock(BlockEvent.FluidPlaceBlockEvent event)
+    {
+        if (!(event.getLevel() instanceof ServerLevel level) || !applies(level))
+        {
+            return;
+        }
+
+        final BlockPos pos = event.getPos();
+
+        if (!SnapshotBlockVolume.declaredBox(level).contains(pos.getX(), pos.getY(), pos.getZ()))
+        {
+            event.setCanceled(true);
+        }
+    }
+
+    /**
+     * Falling blocks write to the level themselves on landing, with no event, so the only place to
+     * stop one that has been pushed or dropped past the verge is while it is still an entity (#283).
+     * Discarded rather than dropped as an item: an item outside the box is as unreachable to the
+     * player as the block would have been, and this is a rare edge, not an economy.
+     */
+    @SubscribeEvent
+    public static void onLevelTick(TickEvent.LevelTickEvent event)
+    {
+        if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel level)
+                || (level.getGameTime() % FALLING_SWEEP_INTERVAL_TICKS) != 0 || !applies(level))
+        {
+            return;
+        }
+
+        final RegionBounds box = SnapshotBlockVolume.declaredBox(level);
+
+        for (FallingBlockEntity falling : level.getEntities(
+                EntityTypeTest.forClass(FallingBlockEntity.class), entity -> true))
+        {
+            final BlockPos at = falling.blockPosition();
+
+            if (!box.contains(at.getX(), at.getY(), at.getZ()))
+            {
+                falling.discard();
+            }
         }
     }
 
