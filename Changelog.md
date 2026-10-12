@@ -2030,3 +2030,14 @@ a minute for their vessel to load before an unclaimed one is released, and a key
 whose owner is offline, or online but outside a soul, removes itself a second after it appears,
 as a gaze body already did. Neither a buff nor a nerf.
 - Ported to `1.21.1`.
+
+Fix: a piston chain, a falling block or a fluid-made block can no longer cross the soul's box (#283)
+
+The box only checked the first block a piston pushed, so a piston deep inside your island could
+shove a chain of up to twelve blocks through the wall; sand, gravel and anvils pushed or dropped
+past the edge fell and landed outside; and stone formed where lava met water outside the box was
+written by the fluid, not by you. Each left something beyond the wall that you could see and could
+not break. The whole piston chain is now checked, a falling block outside the box is removed, and
+fluid-made blocks outside it are refused. Dispensers, plain fluid flow and tree, vine or kelp growth
+over the edge are still not covered. Neither a buff nor a nerf.
+- Ported to `1.21.1`.
