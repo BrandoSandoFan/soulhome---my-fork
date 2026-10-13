@@ -555,7 +555,9 @@ public class SoulLensScreen extends Screen
             return;
         }
 
-        out.addAll(wrap(Component.translatable(Constants.StringKeys.LENS_SCREEN_GRANTS_HEADER), 0, COLOR_HEADER, maxWidth));
+        out.addAll(wrap(Component.translatable(region.grantsCarried()
+                ? Constants.StringKeys.LENS_SCREEN_GRANTS_HEADER
+                : Constants.StringKeys.LENS_SCREEN_WOULD_GRANT_HEADER), 0, COLOR_HEADER, maxWidth));
 
         final int shown = Math.min(MAX_BUFFS_SHOWN, region.buffs().size());
 

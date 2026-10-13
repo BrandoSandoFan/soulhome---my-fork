@@ -354,6 +354,7 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_MISSING_HEADER, "What to add next");
         add(Constants.StringKeys.LENS_SCREEN_ARRANGEMENT_HEADER, "Arrangement");
         add(Constants.StringKeys.LENS_SCREEN_GRANTS_HEADER, "Grants");
+        add(Constants.StringKeys.LENS_SCREEN_WOULD_GRANT_HEADER, "Not carried - would grant if attuned");
         add(Constants.StringKeys.LENS_SCREEN_BONDS_HEADER, "Bonds with other rooms");
         add(Constants.StringKeys.LENS_SCREEN_ASPECT_HEADER, "What it is for");
         add(Constants.StringKeys.LENS_SCREEN_MORE, "...and %s more");

@@ -18,7 +18,6 @@ import leaf.soulhome.network.SyncSoulRegionsMessage;
 import leaf.soulhome.properties.PropTypes;
 import leaf.soulhome.structures.SoulAnalysis;
 import leaf.soulhome.structures.StructureScanService;
-import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.ClassificationResult;
 import leaf.soulhome.utils.DimensionHelper;
 import leaf.soulhome.utils.TextHelper;
@@ -146,13 +145,15 @@ public class SoulLensItem extends BaseItem
             return;
         }
 
-        final BuffBreakdown breakdown = StructureScanService.explainBuffs(player);
         final List<ClassificationResult> results = analysis.results();
         final int standingIn = results.indexOf(
                 analysis.regionAt(asked.getX(), asked.getY(), asked.getZ()).orElse(null));
 
         Network.sendTo(
-                new SyncSoulLensReportMessage(dimension, LensRegionReport.of(results, breakdown), standingIn),
+                new SyncSoulLensReportMessage(dimension, LensRegionReport.of(
+                        results,
+                        StructureScanService.lensGrants(
+                                level, analysis, DimensionHelper.soulOwner(level).filter(player.getUUID()::equals).isPresent())), standingIn),
                 player);
     }
 
