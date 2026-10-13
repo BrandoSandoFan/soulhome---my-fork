@@ -8,6 +8,7 @@ import leaf.soulhome.advancements.SoulAdvancements;
 import leaf.soulhome.buffs.SoulBuffs;
 import leaf.soulhome.config.SoulHomeConfig;
 import leaf.soulhome.feedback.AttunementReport;
+import leaf.soulhome.feedback.LensRegionReport;
 import leaf.soulhome.feedback.SoulReport;
 import leaf.soulhome.network.Network;
 import leaf.soulhome.network.SyncSoulBoundsMessage;
@@ -43,9 +44,11 @@ import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -757,6 +760,65 @@ public final class StructureScanService
         return BuffCalculator.explain(
                 carriedRooms(data), ArchetypeManager.archetypes(), SoulHomeConfig.buffSettings(),
                 data.ascensionRank());
+    }
+
+    /**
+     * What each region of {@code analysis} grants, for the Soul Lens (#280), parallel to its results.
+     *
+     * <p>Per room, from the soul being looked at: the n-th awarded result is the n-th saved room, as
+     * {@code SoulReport.analysis} relies on. A visitor gets nothing at all - the grants are the
+     * owner's, and showing them next to the host's rooms as if they were the viewer's own (or the
+     * viewer's own against the host's rooms, as this once did) is the lie this exists to stop. A
+     * stale save whose room count disagrees with the analysis gets nothing either.
+     */
+    public static List<List<LensRegionReport.BuffEntry>> lensGrants(
+            ServerLevel soulhome, SoulAnalysis analysis, boolean viewerIsOwner)
+    {
+        final List<List<LensRegionReport.BuffEntry>> out = new ArrayList<>();
+
+        if (!viewerIsOwner || !SoulHomeConfig.enabled())
+        {
+            return out;
+        }
+
+        final SoulHomeBuffData data = SoulHomeBuffData.get(soulhome);
+        final List<AwardedRoom> awarded = data.awardedRooms();
+
+        if (awarded.size() != analysis.classifiedCount())
+        {
+            return out;
+        }
+
+        final Set<Integer> carried = new HashSet<>();
+
+        for (AwardedRoom room : carriedRooms(data))
+        {
+            carried.add(room.roomId());
+        }
+
+        int next = 0;
+
+        for (ClassificationResult result : analysis.results())
+        {
+            List<LensRegionReport.BuffEntry> entries = new ArrayList<>();
+
+            if (result.awarded().isPresent())
+            {
+                final AwardedRoom room = awarded.get(next++);
+                final boolean isCarried = carried.contains(room.roomId());
+
+                for (Map.Entry<String, Double> grant : AttunementBook.wouldGrant(
+                        room, ArchetypeManager.byId().get(room.archetypeId()), SoulHomeConfig.buffSettings(),
+                        data.ascensionRank()).entrySet())
+                {
+                    entries.add(new LensRegionReport.BuffEntry(grant.getKey(), grant.getValue(), isCarried));
+                }
+            }
+
+            out.add(entries);
+        }
+
+        return out;
     }
 
     /**

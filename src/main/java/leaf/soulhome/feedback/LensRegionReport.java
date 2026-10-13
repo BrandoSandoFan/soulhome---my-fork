@@ -8,7 +8,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import leaf.soulhome.structures.core.ArchetypeScore;
 import leaf.soulhome.structures.core.AspectSelection;
-import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.ClassificationResult;
 
 import java.util.ArrayList;
@@ -182,6 +181,12 @@ public record LensRegionReport(
         return ClassificationResult.Status.AMBIGUOUS.name().equals(this.status);
     }
 
+    /** False only when this room's grants are a "would grant": it is awarded but not attuned (#280). */
+    public boolean grantsCarried()
+    {
+        return this.buffs.stream().allMatch(BuffEntry::carried);
+    }
+
     public boolean hasNextTier()
     {
         return this.scoreToNextTier != NO_NEXT_TIER;
@@ -192,19 +197,24 @@ public record LensRegionReport(
         return !this.runnerUpDisplayName.isBlank();
     }
 
-    public static List<LensRegionReport> of(List<ClassificationResult> results, BuffBreakdown breakdown)
+    /**
+     * @param grants what each region grants, parallel to {@code results}, or empty for none at all.
+     *               Per room rather than per archetype (#280): a breakdown source aggregates every
+     *               room of its archetype, so two libraries would each claim both libraries' grants
+     */
+    public static List<LensRegionReport> of(List<ClassificationResult> results, List<List<BuffEntry>> grants)
     {
         List<LensRegionReport> reports = new ArrayList<>(results.size());
 
         for (int i = 0; i < results.size(); i++)
         {
-            reports.add(of(results.get(i), i, breakdown));
+            reports.add(of(results.get(i), i, i < grants.size() ? grants.get(i) : List.of()));
         }
 
         return reports;
     }
 
-    public static LensRegionReport of(ClassificationResult result, int index, BuffBreakdown breakdown)
+    public static LensRegionReport of(ClassificationResult result, int index, List<BuffEntry> grants)
     {
         final ArchetypeScore best = result.best();
 
@@ -234,7 +244,7 @@ public record LensRegionReport(
                 signals(best.contributions()),
                 missing(best.missingSignals()),
                 forms(best),
-                classified ? buffsOf(best.archetypeId(), breakdown) : List.of(),
+                classified ? grants : List.of(),
                 bonds(best),
                 aspectOf(best));
     }
@@ -376,21 +386,6 @@ public record LensRegionReport(
         return into;
     }
 
-    private static List<BuffEntry> buffsOf(String archetypeId, BuffBreakdown breakdown)
-    {
-        List<BuffEntry> entries = new ArrayList<>();
-
-        for (BuffBreakdown.Source source : breakdown.sources())
-        {
-            if (source.archetypeId().equals(archetypeId))
-            {
-                entries.add(new BuffEntry(source.buffType(), source.magnitude()));
-            }
-        }
-
-        return entries;
-    }
-
     /** @param countedCount blocks that actually counted, after the signal's cap - see {@link #isCapped()} */
     public record Signal(String description, int count, int countedCount, double contribution)
     {
@@ -507,12 +502,23 @@ public record LensRegionReport(
         }
     }
 
-    public record BuffEntry(String buffType, double magnitude)
+    /**
+     * @param carried false for a room the soul is not carrying: the magnitude is then what it
+     *                would grant if attuned, and the screen must not word it as a grant (#280)
+     */
+    public record BuffEntry(String buffType, double magnitude, boolean carried)
     {
         public static final Codec<BuffEntry> CODEC = RecordCodecBuilder.create(instance -> instance
                 .group(
                         Codec.STRING.fieldOf("buff_type").forGetter(BuffEntry::buffType),
-                        Codec.DOUBLE.fieldOf("magnitude").forGetter(BuffEntry::magnitude))
+                        Codec.DOUBLE.fieldOf("magnitude").forGetter(BuffEntry::magnitude),
+                        // absent reads as carried, which is every report from before this field
+                        Codec.BOOL.optionalFieldOf("carried", true).forGetter(BuffEntry::carried))
                 .apply(instance, BuffEntry::new));
+
+        public BuffEntry(String buffType, double magnitude)
+        {
+            this(buffType, magnitude, true);
+        }
     }
 }

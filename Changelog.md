@@ -2061,3 +2061,12 @@ written by the fluid, not by you. Each left something beyond the wall that you c
 not break. The whole piston chain is now checked, a falling block outside the box is removed, and
 fluid-made blocks outside it are refused. Dispensers, plain fluid flow and tree, vine or kelp growth
 over the edge are still not covered. Neither a buff nor a nerf.
+
+Fix: Soul Lens cards credit buffs per room, and only in your own soul (#280)
+
+With two libraries, both cards listed the combined library grants, and an unattuned library's card
+listed what the attuned one grants, so a room you were not carrying looked like it paid. In a
+friend's soul the card showed your own library's numbers against their rooms. Each card now shows
+what that room alone would grant, headed "Not carried - would grant if attuned" when it is not
+bound, and a visitor sees no grants section at all, since those are the owner's. Neither a buff
+nor a nerf.

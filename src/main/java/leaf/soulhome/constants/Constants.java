@@ -228,6 +228,7 @@ public class Constants
         public static final String LENS_SCREEN_MISSING_HEADER = "gui.soulhome.lens.missing_header";
         public static final String LENS_SCREEN_ARRANGEMENT_HEADER = "gui.soulhome.lens.arrangement_header";
         public static final String LENS_SCREEN_GRANTS_HEADER = "gui.soulhome.lens.grants_header";
+        public static final String LENS_SCREEN_WOULD_GRANT_HEADER = "gui.soulhome.lens.would_grant_header";
         public static final String LENS_SCREEN_BONDS_HEADER = "gui.soulhome.lens.bonds_header";
         public static final String LENS_SCREEN_ASPECT_HEADER = "gui.soulhome.lens.aspect_header";
         public static final String LENS_SCREEN_MORE = "gui.soulhome.lens.more";

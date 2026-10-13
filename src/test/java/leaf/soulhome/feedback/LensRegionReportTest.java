@@ -8,11 +8,9 @@ import com.mojang.serialization.JsonOps;
 import leaf.soulhome.structures.core.ArchetypeScore;
 import leaf.soulhome.structures.core.AspectSelection;
 import leaf.soulhome.structures.core.BlockCounts;
-import leaf.soulhome.structures.core.BuffBreakdown;
 import leaf.soulhome.structures.core.ClassificationResult;
 import leaf.soulhome.structures.core.RegionBounds;
 import leaf.soulhome.structures.core.RegionType;
-import leaf.soulhome.structures.core.SoulBuffSet;
 import leaf.soulhome.structures.core.SoulRegion;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +32,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class LensRegionReportTest
 {
     @Test
+    @DisplayName("two rooms of one archetype each carry their own grants, and an unattuned one says so (#280)")
+    void grantsAreReportedPerRoom()
+    {
+        ArchetypeScore best = score("soulhome:library", 30d, 1);
+        ClassificationResult result = new ClassificationResult(
+                plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
+
+        List<LensRegionReport> reports = LensRegionReport.of(
+                List.of(result, result),
+                List.of(
+                        List.of(new LensRegionReport.BuffEntry("soulhome:xp_gain", 0.2d, true)),
+                        List.of(new LensRegionReport.BuffEntry("soulhome:xp_gain", 0.1d, false))));
+
+        assertEquals(0.2d, reports.get(0).buffs().get(0).magnitude());
+        assertTrue(reports.get(0).grantsCarried());
+        assertEquals(0.1d, reports.get(1).buffs().get(0).magnitude());
+        assertFalse(reports.get(1).grantsCarried());
+    }
+
+    @Test
     @DisplayName("a CLASSIFIED region carries its tier, its signals, and the buffs its archetype grants")
     void classifiedCarriesTheFullBreakdown()
     {
@@ -50,11 +68,9 @@ class LensRegionReportTest
         ClassificationResult result = new ClassificationResult(
                 plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
 
-        BuffBreakdown breakdown = new BuffBreakdown(
-                SoulBuffSet.of(java.util.Map.of("soulhome:xp_gain", 0.2d)),
-                List.of(new BuffBreakdown.Source("soulhome:xp_gain", "soulhome:library", "archetype.soulhome.library", 1, 2, 0.2d, 0d)));
+        List<LensRegionReport.BuffEntry> grants = List.of(new LensRegionReport.BuffEntry("soulhome:xp_gain", 0.2d));
 
-        LensRegionReport report = LensRegionReport.of(result, 0, breakdown);
+        LensRegionReport report = LensRegionReport.of(result, 0, grants);
 
         assertTrue(report.isClassified());
         assertFalse(report.isAmbiguous());
@@ -82,7 +98,7 @@ class LensRegionReportTest
         ClassificationResult result = new ClassificationResult(
                 plainRegion(), ClassificationResult.Status.AMBIGUOUS, best, runnerUp, List.of(best, runnerUp));
 
-        LensRegionReport report = LensRegionReport.of(result, 0, BuffBreakdown.EMPTY);
+        LensRegionReport report = LensRegionReport.of(result, 0, List.of());
 
         assertTrue(report.isAmbiguous());
         assertTrue(report.hasRunnerUp());
@@ -105,7 +121,7 @@ class LensRegionReportTest
         ClassificationResult result = new ClassificationResult(
                 plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
 
-        LensRegionReport report = LensRegionReport.of(result, 0, BuffBreakdown.EMPTY);
+        LensRegionReport report = LensRegionReport.of(result, 0, List.of());
 
         assertTrue(report.matched().get(0).isCapped());
         assertFalse(report.hasNextTier(), "no next tier means the sentinel, not a stray zero");
@@ -118,7 +134,7 @@ class LensRegionReportTest
         ClassificationResult result = new ClassificationResult(
                 plainRegion(), ClassificationResult.Status.UNCLASSIFIED, null, null, List.of());
 
-        LensRegionReport report = LensRegionReport.of(result, 0, BuffBreakdown.EMPTY);
+        LensRegionReport report = LensRegionReport.of(result, 0, List.of());
 
         assertTrue(report.noArchetypes());
         assertFalse(report.isClassified());
@@ -146,7 +162,7 @@ class LensRegionReportTest
         ClassificationResult result = new ClassificationResult(
                 plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
 
-        LensRegionReport report = LensRegionReport.of(result, 0, BuffBreakdown.EMPTY);
+        LensRegionReport report = LensRegionReport.of(result, 0, List.of());
 
         assertEquals(1, report.forms().size());
         LensRegionReport.Form form = report.forms().get(0);
@@ -178,7 +194,7 @@ class LensRegionReportTest
         ClassificationResult result = new ClassificationResult(
                 plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best));
 
-        LensRegionReport report = LensRegionReport.of(result, 0, BuffBreakdown.EMPTY);
+        LensRegionReport report = LensRegionReport.of(result, 0, List.of());
 
         assertEquals(2, report.bonds().size(), "the hit and the near miss; the quiet discord is left out");
         assertTrue(report.bonds().get(0).credited());
@@ -206,7 +222,7 @@ class LensRegionReportTest
 
         LensRegionReport report = LensRegionReport.of(
                 new ClassificationResult(plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best)),
-                0, BuffBreakdown.EMPTY);
+                0, List.of());
 
         assertTrue(report.hasAspect());
         assertEquals("scriptorium", report.aspect().aspectId());
@@ -232,7 +248,7 @@ class LensRegionReportTest
 
         LensRegionReport report = LensRegionReport.of(
                 new ClassificationResult(plainRegion(), ClassificationResult.Status.CLASSIFIED, best, null, List.of(best)),
-                0, BuffBreakdown.EMPTY);
+                0, List.of());
 
         assertFalse(report.hasAspect());
 
