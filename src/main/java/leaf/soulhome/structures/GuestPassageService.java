@@ -80,9 +80,8 @@ public final class GuestPassageService
      * one whose key or channel started this trip - is never filtered here: whichever gate applies
      * to them has already been checked by the caller before this sweep began.
      *
-     * <p>Non-player entities always come along ("bring your dog"), and a player entering their own
-     * soul (which happens whenever {@code targetSoulUUID} is their own UUID - the ordinary case for
-     * everyone but the guest being escorted in) is never gated either.
+     * <p>Non-player entities always come along ("bring your dog"). A player whose own soul it is
+     * is never swept in: they would arrive without the rank gate, the channel or a body (#266).
      */
     public static List<Entity> filterGuests(Player traveller, List<Entity> entitiesInRange, UUID targetSoulUUID)
     {
@@ -92,10 +91,16 @@ public final class GuestPassageService
         {
             if (entity == traveller
                     || !(entity instanceof ServerPlayer passenger)
-                    || targetSoulUUID.equals(passenger.getUUID())
-                    || canEnterGuestSoul(passenger))
+                    || canEnterGuestSoul(passenger) && !targetSoulUUID.equals(passenger.getUUID()))
             {
                 allowed.add(entity);
+                continue;
+            }
+
+            // the soul's own owner standing beside a visitor is not carried home: that would be an
+            // entry with no channel and no body left behind (#266). They go in by their own means
+            if (targetSoulUUID.equals(passenger.getUUID()))
+            {
                 continue;
             }
 

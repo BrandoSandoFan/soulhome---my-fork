@@ -2070,3 +2070,14 @@ friend's soul the card showed your own library's numbers against their rooms. Ea
 what that room alone would grant, headed "Not carried - would grant if attuned" when it is not
 bound, and a visitor sees no grants section at all, since those are the owner's. Neither a buff
 nor a nerf.
+
+Fix: players standing near a key user now enter with a body, and nobody is dragged out of a soul by someone else leaving (#266)
+
+A guest standing beside someone using a key was carried in with no Soul Vessel left behind, so
+nothing out in the world took their damage transfer. The soul's own owner standing beside a visitor
+was carried into their own soul with no channel, rank check or body. And a guest leaving by key took
+the owner with them, setting them down at the guest's base while their own body stayed at home.
+Guests who clear the rank gate now leave a vessel like the key user does, the owner is never swept
+in, and on the way out only the key user and their pets move. A nerf, in that the escape-by-key route
+is closed.
+- To be ported to `1.21.1`.

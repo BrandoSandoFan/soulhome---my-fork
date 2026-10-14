@@ -8,6 +8,7 @@ import leaf.soulhome.SoulHome;
 import leaf.soulhome.advancements.SoulAdvancements;
 import leaf.soulhome.registry.DimensionRegistry;
 import leaf.soulhome.structures.GuestPassageService;
+import leaf.soulhome.structures.VesselLifecycleService;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -78,6 +79,22 @@ public class DimensionHelper
         return type != null && type.equals(world.dimensionType());
     }
 
+    /** {@code entities} with every player but {@code traveller} removed; pets and passengers stay. */
+    private static List<Entity> withoutOtherPlayers(Player traveller, List<Entity> entities)
+    {
+        final List<Entity> kept = new ArrayList<>(entities.size());
+
+        for (Entity entity : entities)
+        {
+            if (entity == traveller || !(entity instanceof Player))
+            {
+                kept.add(entity);
+            }
+        }
+
+        return kept;
+    }
+
     // move the player to/from their soul dimension
     public static void FlipDimension(Player playerEntity, MinecraftServer server, List<Entity> entitiesInRange, UUID targetSoulUUID)
     {
@@ -118,6 +135,11 @@ public class DimensionHelper
             //leaving them stranded in their soulhome with an NPE on the way out.
             destination = server.getLevel(destinationKey);
 
+            // leaving is each player's own act (#266): the exit saved above is the traveller's, so
+            // a player swept along would be set down at somebody else's base, and the soul's owner
+            // dragged out by a departing guest would leave their own vessel standing at home
+            entitiesInRange = withoutOtherPlayers(playerEntity, entitiesInRange);
+
             if (destination == null)
             {
                 LogHelper.warn("Soulhome exit dimension " + destinationKey.location() + " no longer exists, falling back to overworld spawn.");
@@ -142,6 +164,17 @@ public class DimensionHelper
             // themselves is never filtered: whichever gate applies to *them* has already been
             // checked by the caller, before the vessel and before this sweep even started.
             entitiesInRange = GuestPassageService.filterGuests(playerEntity, entitiesInRange, targetSoulUUID);
+
+            // a guest carried in leaves a body behind exactly as the traveller did (#266). Without
+            // it nothing out in the world takes their damage transfer, which is the way to escape a
+            // fight that #181 exists to close
+            for (Entity ent : entitiesInRange)
+            {
+                if (ent != playerEntity && ent instanceof ServerPlayer guest)
+                {
+                    VesselLifecycleService.onKeyUse(guest, VesselLifecycleService.defaultKeyFragility());
+                }
+            }
         }
 
         //dimension location eg minecraft:overworld
