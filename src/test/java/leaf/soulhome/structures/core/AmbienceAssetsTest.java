@@ -10,6 +10,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import leaf.soulhome.structures.core.music.JorbisDecoder;
+import leaf.soulhome.structures.core.music.SoulSynth;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -19,6 +21,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -237,10 +241,123 @@ class AmbienceAssetsTest
 
             final String text = read(sources);
 
-            assertTrue(text.contains("tools/ambience/generate.py"),
-                    "the provenance record should name what produced these files");
             assertFalse(text.isBlank());
         }
+
+        // the ambience is mixed from recordings, so its record names the mixer and both libraries it
+        // took from, under the licence that makes it CC0 - and each library with the commit it was taken at
+        final String ambience = read(ASSETS.resolve("sounds").resolve("ambience").resolve("SOURCES.md"));
+
+        assertTrue(ambience.contains("tools/ambience/mix.py"),
+                "the ambience's provenance should name the script that mixed it, mix.py");
+        assertTrue(ambience.contains("CC0"), "the ambience's recordings are CC0, and the record should say so");
+        assertTrue(ambience.contains("VSCO-2"), "the ambience's record should name VSCO-2 Community Edition");
+        assertTrue(ambience.contains("VCSL"), "the ambience's record should name the Versilian Community Sample Library");
+        assertEquals(2, commitsIn(ambience), "each of the two libraries should be pinned to a commit");
+
+        // the suppression set is still rendered by its own script, and says so
+        final String suppression = read(ASSETS.resolve("sounds").resolve("suppression").resolve("SOURCES.md"));
+
+        assertTrue(suppression.contains("tools/ambience/generate.py"),
+                "the suppression set's provenance should name what produced it, generate.py");
+    }
+
+    @Test
+    @DisplayName("every recording in the ambience and the soul's music decodes, and is mono at the synth's rate (#163)")
+    void everyRecordingIsMonoAtTheSynthRate() throws IOException
+    {
+        final List<Path> files = recordings();
+
+        assertFalse(files.isEmpty(), "found no recordings to check - the paths have moved");
+
+        final List<String> problems = new ArrayList<>();
+
+        for (Path file : files)
+        {
+            final String where = file.toString();
+
+            try
+            {
+                final JorbisDecoder.Decoded decoded = JorbisDecoder.decode(file);
+
+                if (decoded.channels() != 1)
+                {
+                    problems.add(where + " has " + decoded.channels() + " channels");
+                }
+
+                if (decoded.sampleRate() != SoulSynth.SAMPLE_RATE)
+                {
+                    problems.add(where + " is at " + decoded.sampleRate() + " Hz");
+                }
+
+                if (decoded.samples().length == 0)
+                {
+                    problems.add(where + " decodes to nothing");
+                }
+            }
+            catch (IOException exception)
+            {
+                problems.add(where + " will not decode: " + exception.getMessage());
+            }
+        }
+
+        // vanilla only spatialises mono, and a stereo one-shot would play in the head rather than at its place
+        assertTrue(problems.isEmpty(), "recordings that are not mono at " + SoulSynth.SAMPLE_RATE + " Hz: " + problems);
+    }
+
+    @Test
+    @DisplayName("the beds and the character layers are between a minute and seventy seconds long, so they loop unheard")
+    void theBedsAreLongEnoughToLoop() throws IOException
+    {
+        final List<String> outside = new ArrayList<>();
+        int checked = 0;
+
+        for (Path file : recordings())
+        {
+            final String name = file.getFileName().toString();
+
+            if (!name.startsWith("bed_") && !name.startsWith("character_"))
+            {
+                continue;
+            }
+
+            final JorbisDecoder.Decoded decoded = JorbisDecoder.decode(file);
+            final double seconds = decoded.samples().length / (double) decoded.sampleRate();
+
+            checked++;
+
+            if (seconds < 60d || seconds > 70d)
+            {
+                outside.add(name + " is " + seconds + " s");
+            }
+        }
+
+        // two rank beds, and a character layer for every voice but the base one
+        assertEquals(2 + SoulVoice.values().length - 1, checked,
+                "expected two rank beds and a character layer for every non-base voice");
+        assertTrue(outside.isEmpty(), "beds and character layers outside 60-70 s: " + outside);
+    }
+
+    /** Every Ogg file the ambience and the soul's music ship, in path order. */
+    private static List<Path> recordings() throws IOException
+    {
+        final List<Path> files = new ArrayList<>();
+
+        for (Path root : List.of(ASSETS.resolve("sounds").resolve("ambience"), ASSETS.resolve("soul_music")))
+        {
+            try (Stream<Path> walk = Files.walk(root))
+            {
+                walk.filter(path -> path.getFileName().toString().endsWith(".ogg")).sorted().forEach(files::add);
+            }
+        }
+
+        return files;
+    }
+
+    /** How many full 40-digit git commit hashes a record names. */
+    private static int commitsIn(String text)
+    {
+        return (int) Pattern.compile("\\b[0-9a-f]{40}\\b").matcher(text).results().count();
     }
 
     private static List<String> namesIn(JsonObject sounds, String key)

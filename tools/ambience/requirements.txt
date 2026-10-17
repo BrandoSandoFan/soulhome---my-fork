@@ -1,4 +1,6 @@
-# The ambience generator's whole dependency list (#213). numpy does the arithmetic and soundfile
-# is the Vorbis encoder; nothing here is needed to build or run the mod.
+# The ambience mixer (#163) and suppression's cues (#188). mix.py imports tools/soul_music/audio.py, which
+# is where scipy comes in; generate.py needs only numpy and soundfile. mix.py also encodes through ffmpeg,
+# which has to be on PATH built with libvorbis. Nothing here is needed to build or run the mod.
 numpy>=1.24
+scipy>=1.10
 soundfile>=0.12

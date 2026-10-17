@@ -1,0 +1,6 @@
+# The sample bank's whole dependency list (#163). numpy and scipy do the arithmetic and the resampling,
+# soundfile reads the libraries' WAVs. Encoding goes through ffmpeg, which is not a pip package: it has
+# to be on PATH and built with libvorbis. Nothing here is needed to build or run the mod.
+numpy>=1.24
+scipy>=1.10
+soundfile>=0.12
