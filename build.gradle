@@ -123,6 +123,7 @@ dependencies {
     // classpath rather than being declared here, to avoid two copies on the test classpath.
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.jcraft:jorbis:0.0.17'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -145,6 +146,19 @@ test {
     testLogging {
         events 'passed', 'skipped', 'failed'
     }
+}
+
+// A listening aid for the sample bank's mix: renders the soul's music to build/music-preview and prints
+// its levels. Deliberately not wired into build or test - it writes hundreds of megabytes and takes minutes.
+// Arguments come from -PpreviewArgs, e.g. -PpreviewArgs="--only stems --no-wav"; split on spaces.
+tasks.register('musicPreview', JavaExec) {
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'leaf.soulhome.structures.core.music.MusicPreview'
+    workingDir = projectDir
+    dependsOn testClasses
+
+    def previewArgs = (project.findProperty('previewArgs') ?: '').toString().trim()
+    args = previewArgs.isEmpty() ? [] : previewArgs.split(/\s+/) as List
 }
 
 // Example for how to get properties into the manifest for reading at runtime.

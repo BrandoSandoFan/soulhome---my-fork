@@ -1,106 +1,99 @@
-# The ambience generator
+# The ambience
 
-Renders every `.ogg` under `src/main/resources/assets/soulhome/sounds/ambience` — the soul's
-one-shots (#209) and the two rank layers of its ambient bed (#210). The output is committed and is
-what ships; the game never runs any of this.
+Mixes every `.ogg` under `src/main/resources/assets/soulhome/sounds/ambience` - the soul's one-shots, the
+two rank beds and the nine character beds - out of recordings of real instruments. The output is
+committed and is what ships; the game never runs any of this.
 
 ```sh
 python3 -m pip install -r tools/ambience/requirements.txt
-python3 tools/ambience/generate.py
+python3 tools/soul_music/fetch_sources.py /path/to/sources   # the same two CC0 libraries as the bank
+python3 tools/ambience/mix.py --sources /path/to/sources
 ```
 
-Twenty seconds, and it overwrites the assets in place. `git status` after a re-render with an
-unchanged script and seed is empty — see **Determinism** below, which is a property this is built
-to have rather than a hope.
+It overwrites the assets in place, and rewrites `SOURCES.md` beside them. `git status` after a re-run
+with unchanged sources and an unchanged script is empty - see **Determinism** below.
 
-## Why there is a generator at all
+The suppression cues (#188) are the one sound this directory still synthesises, and `generate.py` renders
+them into their own folder. See **Suppression** below.
 
-#213's argument, which is the right one: a soul's sound is a blend of continuous quantities — a rank
-fraction, three axis leanings, three tensions. Recorded audio gives one file per voice, and a blend
-then has to be faked by picking between files. A generator takes the quantities as parameters and
-renders the sound *for* that blend, which is the same thing `SoulAxis` does for colour and for the
-same reason: a soul that is warm and cold at once is steam, and steam is not the average of a
-crackle and a chime.
-
-It also means the next person tuning this changes one number and re-renders the set, consistently,
-instead of hunting for thirty new recordings that sit together.
-
-The starting point was the procedural-audio chapter of *Procedural Generation in Video Games*
-(Short & Adams, eds.) rather than a synthesiser tutorial, and the one piece of its advice that
-shaped this most is negative: the failure mode of procedural ambience is not that it sounds cheap,
-it is that it sounds *periodic*. Everything here that looks fussy — Poisson-distributed grain
-onsets, LFO rates chosen to share no small whole-number ratio, a crossfade folded back over the
-loop's own head — is that one warning being taken seriously.
-
-## Why offline and not at runtime
-
-Synthesising into OpenAL buffers on the fly would buy a sound unique to each soul, at the price of
-a pipeline nobody can listen to before it ships. The whole open question on #166 is *taste*, and
-taste is judged by playing a file. Rendering offline to a grid of parameter values keeps almost all
-of the benefit and stays auditable: the assets in the tree are exactly what a player hears.
-
-## What it renders
+## What it mixes
 
 | | |
 | --- | --- |
 | `<voice>_1..3.ogg` | 30 one-shots, three variants for each of the ten `SoulVoice`s, so vanilla's own random pick out of `sounds.json` supplies the variety |
 | `bed_close.ogg`, `bed_open.ogg` | the two rank layers of the bed, 68-second seamless loops |
-| `SOURCES.md` | written by the generator: what each file is and the checksum of the samples behind it |
-| `../suppression/drone.ogg`, `throb.ogg` | suppression's field and one beat of its ring count (#188), with a `SOURCES.md` of their own - see `suppression.py` |
+| `character_<voice>.ogg` | nine character layers, one per non-`base` voice, streamed continuously under the rank layers |
+| `SOURCES.md` | written by `mix.py`: which library each file was built from, its length, levels and a checksum of its samples |
 
-`--set ambience` or `--set suppression` renders one set and leaves the other's files untouched.
+Every file is a mix of recordings: a bowed vibraphone for `base`, a horn over a frame drum for `warm`, an
+anvil over a timpani for `wrought`, and so on. `mix.py`'s `DESCRIPTIONS` and `CHARACTER_DESCRIPTIONS`
+say what each one is made of, and `SOURCES.md` says which recordings went into it. The choices of
+recording, placement and room are the mod's own; the recordings are CC0.
 
-All mono (a positional sound in Minecraft has to be), 44.1 kHz, Vorbis. One-shots are mastered to
-−20 dBFS RMS with their transients limited to −3 dBFS peak (`dsp.limit`), the rank beds to −24 and
-the character beds to −28, so the mod's own volume knob is choosing how loud the soul sits against
-the game rather than making up for assets that disagree with each other.
+`--only warm_2,bed_close` re-mixes just those files and leaves `SOURCES.md` alone, which is how to hear
+one change without a full run.
 
-They used to be −29, −38 and −46. That was chosen by measurement alone, and the first hour of real
-building with it (#163) found the whole ambience quieter than Minecraft's music - after the mod's
-knobs and four to eleven blocks of distance, the bed reached the ear around −58 dBFS. Quiet is a
-property to have relative to the game, not in absolute terms, and the knobs are where it is set.
+All mono (a positional sound in Minecraft has to be), 44.1 kHz, Ogg Vorbis at quality 5, encoded by ffmpeg
+with libvorbis. Mastered to the same targets the Java was balanced against:
 
-## The files
+- one-shots to −20 dBFS RMS, transients held under −3 dBFS peak (`level`, which limits and re-levels
+  twice, so the delivered RMS is the target and not "the target minus whatever the loudest strike cost")
+- rank beds to −24 dBFS RMS, peaks under −8
+- character beds to −28 dBFS RMS
 
-- `dsp.py` — the signal-processing vocabulary. Knows nothing about souls.
-- `voices.py` — what each voice is *made of*. This is the file to read, and the file to change if
-  something sounds wrong.
-- `generate.py` — the driver: seeds, lengths, encoding, `SOURCES.md`.
+Turn a target here rather than adding a gain stage in the game. The first real hour of building under
+#163 found the whole ambience quieter than Minecraft's own music: the bed had been mastered 38 dB down and
+then multiplied by three more ceilings in Java, so it reached the ear around −58 dBFS against music at
+about −20. Quiet is a property to have relative to the game, and these numbers are where it is set.
 
-The rule `voices.py` exists to keep is the one in its own docstring: **the contested voices are
-built from both poles' generators, not from a mix of their outputs.** Steam is not warm plus cold —
-the warm generator's grain envelope is what opens the hiss, and the cold generator's partials are
-damped down to the ring inside it. Break that and the sound starts saying "this soul cannot make up
-its mind", which is the one thing the mod never says about a soul.
+## Why recordings, and why the synthesis went
+
+#213 rendered the ambience from parameters, so that a soul's blend could be a sound rather than a pick
+between files. That was the right instinct and the wrong medium. The synthesised sounds sounded synthesised, and
+the question the whole epic turns on - does it sound like a
+soul - is only answered by listening. A recording does not have to be made to sound real, which is most
+of the case for it.
+
+The rule that survived the change is the one from #213's voices: a contested voice is one sound built
+from both poles, not a mix of two finished sounds. Steam is a wine glass's ring cut short by breaths of
+cabasa, and not a glass and a cabasa played together. Break that and the sound says "this soul cannot
+make up its mind", which is the one thing the mod never says about a soul.
 
 ## Determinism
 
-Each asset draws from a generator seeded by the master seed **and its own name**, so adding an
-eleventh voice re-renders one file and leaves the other thirty-one byte-identical.
+The one-shots are deterministic functions of their recordings. The beds and character layers draw their
+random placement from the master seed **and their own name**, so changing one leaves the others
+byte-identical. Each file is encoded through ffmpeg in
+bit-exact mode, and its checksum in `SOURCES.md` is of the 16-bit PCM handed to the encoder, rounded the
+same way `build_bank.py` rounds its own. The checksum is the guarantee that would catch a real change; the
+`.ogg` bytes are whatever one libvorbis makes of those samples.
 
-Two things had to be dealt with to make "byte-identical" true rather than nearly true:
+## Suppression
 
-- **The encoder is handed integers, not floats.** `generate.py` rounds to 16-bit PCM itself, so
-  "the same samples" means the same integers on every machine.
-- **libvorbis stamps a random stream serial into every Ogg page.** `canonicalise` rewrites it to a
-  fixed value and recomputes each page's CRC. Without it, two renders of identical audio are two
-  different files, and the promise would be false for a reason that has nothing to do with sound.
+`generate.py` renders suppression's two cues (#188) and nothing else:
 
-What survives a change of libsndfile version is the PCM, and that is what `SOURCES.md` records a
-checksum of. The `.ogg` bytes are whatever libvorbis makes of those samples.
+```sh
+python3 tools/ambience/generate.py                              # writes sounds/suppression
+python3 tools/ambience/generate.py --suppression-out /tmp/check # writes somewhere else
+```
 
-## Two things found the hard way
+- `drone.ogg` - the field around a suppressed player, a seamless loop. Their rank.
+- `throb.ogg` - one beat of the ring count. Your legibility.
 
-- **libsndfile's Vorbis encoder segfaults** on a single write much past thirty seconds. No Python
-  traceback, just a dead process — so the writes here are blocked at five seconds. The next person
-  to lengthen a bed would otherwise go looking for it in the synthesis.
-- **Ogg's CRC32 is not `zlib`'s.** Same polynomial, but unreflected and without the initial and
-  final inversions. Reaching for the familiar one produces files every player rejects.
+What they are made of, and why neither is an ambience voice, is in `suppression.py`. `dsp.py` is the small
+signal vocabulary it uses. `--set ambience` and `--set all` are refused with an error: the ambience is
+`mix.py`'s, and a second writer under the same file names would decide the result by whichever ran last.
+
+`generate.py` writes `.ogg` with libsndfile, and `canonicalise` rewrites each page's stream serial and CRC
+so that re-rendering is a diff of nothing. Ogg's CRC32 is not `zlib`'s - same polynomial, but unreflected
+and with no initial or final inversion - and reaching for the familiar one produces files every player
+rejects. The Vorbis encoder also segfaults on a single write much past thirty seconds, with no Python
+traceback, so writes are blocked at five seconds.
 
 ## Re-rendering is not checked by CI
 
-`runData` is checked on every build because ForgeGradle is already set up by then and the check is
-free. This is not: it would mean numpy and libsndfile in the build image for a directory that
-changes once a year. What CI does check is the half that actually goes wrong — `AmbienceAssetsTest`
-fails the build if a `SoulVoice` has no sound event, or an event names a file that is not in the
-tree. An unshipped asset fails the build rather than the player's ears.
+`runData` is checked on every build because ForgeGradle is already set up by then and the check is free.
+This is not: it would mean numpy, scipy and ffmpeg in the build image for a directory that changes a few
+times a year. What CI does check is the half that actually goes wrong - `AmbienceAssetsTest` fails the
+build if a `SoulVoice` has no sound event, or an event names a file that is not in the tree. An unshipped
+asset fails the build rather than the player's ears.

@@ -33,6 +33,13 @@ public final class SoulMusicStream implements AudioStream
     private float[] left = new float[0];
     private float[] right = new float[0];
 
+    /**
+     * Reused from one read to the next. The sound engine copies a buffer into OpenAL the moment it is
+     * returned (see {@code SoundBuffer}, which calls {@code alBufferData} straight away) and keeps no
+     * reference to it, so one buffer can serve the whole stream rather than a fresh allocation a second.
+     */
+    private ByteBuffer out;
+
     public SoulMusicStream(SoulSynth synth)
     {
         this.synth = synth;
@@ -57,18 +64,25 @@ public final class SoulMusicStream implements AudioStream
 
         this.synth.render(this.left, this.right, frames);
 
-        // direct and native-ordered, because OpenAL is handed the address rather than the array
-        final ByteBuffer buffer = BufferUtils.createByteBuffer(frames * BYTES_PER_FRAME).order(ByteOrder.LITTLE_ENDIAN);
+        final int bytes = frames * BYTES_PER_FRAME;
+
+        // direct, because OpenAL is handed the address rather than the array
+        if (this.out == null || this.out.capacity() < bytes)
+        {
+            this.out = BufferUtils.createByteBuffer(bytes).order(ByteOrder.LITTLE_ENDIAN);
+        }
+
+        this.out.clear();
 
         for (int frame = 0; frame < frames; frame++)
         {
-            buffer.putShort(toPcm(this.left[frame]));
-            buffer.putShort(toPcm(this.right[frame]));
+            this.out.putShort(toPcm(this.left[frame]));
+            this.out.putShort(toPcm(this.right[frame]));
         }
 
-        buffer.flip();
+        this.out.flip();
 
-        return buffer;
+        return this.out;
     }
 
     @Override
