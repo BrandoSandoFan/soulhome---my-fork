@@ -452,7 +452,7 @@ def freesound_rows() -> list[str]:
     out = []
     for sid in sorted(USED):
         meta = json.loads((SRC / 'freesound' / f'{sid}.json').read_text())
-        title = meta['title'].removeprefix('Freesound - ').replace('|', '/')
+        title = meta['title'].removeprefix('Freesound - ').replace('|', '/').removesuffix(f" by {meta['user']}")
         out.append(f"| [{sid}](https://freesound.org/s/{sid}/) | {meta['user']} | {title} |")
     return out
 
@@ -522,10 +522,10 @@ def main() -> None:
             write(name, x, rows, f'one-shot, {voice}, variant {v + 1}: {DESCRIPTIONS[voice]}')
     if not only or 'bed_close' in only:
         write('bed_close', bed(bed_close, BED_RMS), rows,
-              'rank bed, close: dark ocean drum and a rubbed bass drum skin, seamless loop')
+              'rank bed, close: a gentle breeze, darkened, with crickets far off (Freesound), seamless loop')
     if not only or 'bed_open' in only:
         write('bed_open', bed(bed_open, BED_RMS), rows,
-              'rank bed, open: lifted ocean drum, distant cymbal roll and gong roll, very wet, seamless loop')
+              'rank bed, open: wind singing across a mountain top at night (Freesound), seamless loop')
     for voice, make in CHARACTERS.items():
         name = f'character_{voice}'
         if only and name not in only:

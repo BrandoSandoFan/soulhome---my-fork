@@ -1,12 +1,13 @@
 # The ambience
 
 Mixes every `.ogg` under `src/main/resources/assets/soulhome/sounds/ambience` - the soul's one-shots, the
-two rank beds and the nine character beds - out of recordings of real instruments. The output is
-committed and is what ships; the game never runs any of this.
+two rank beds and the nine character beds - out of recordings: field recordings of places and sound effects
+from Freesound, and the instruments of two CC0 libraries. The output is committed and is what ships; the
+game never runs any of this.
 
 ```sh
 python3 -m pip install -r tools/ambience/requirements.txt
-python3 tools/soul_music/fetch_sources.py /path/to/sources   # the same two CC0 libraries as the bank
+python3 tools/soul_music/fetch_sources.py /path/to/sources   # the same fetch as the bank: two CC0 libraries and Freesound
 python3 tools/ambience/mix.py --sources /path/to/sources
 ```
 
@@ -25,10 +26,14 @@ them into their own folder. See **Suppression** below.
 | `character_<voice>.ogg` | nine character layers, one per non-`base` voice, streamed continuously under the rank layers |
 | `SOURCES.md` | written by `mix.py`: which library each file was built from, its length, levels and a checksum of its samples |
 
-Every file is a mix of recordings: a bowed vibraphone for `base`, a horn over a frame drum for `warm`, an
-anvil over a timpani for `wrought`, and so on. `mix.py`'s `DESCRIPTIONS` and `CHARACTER_DESCRIPTIONS`
-say what each one is made of, and `SOURCES.md` says which recordings went into it. The choices of
-recording, placement and room are the mod's own; the recordings are CC0.
+Every file is built from a recording of the thing it is. The rank beds are places - a still night with a
+breeze and crickets for `bed_close`, mountain wind at night for `bed_open` - and each character layer is one
+place: a wood stove, arctic wind, a hot spring, a blacksmith's, a pendulum clock, a dawn wood, a dripping
+cave, frogs at night. The one-shots are sound effects: a flame catching, ice cracking, a hammer on an anvil,
+a clock being wound. The one thing that is played is `arcane`, which ends in a soft harp figure, because
+nothing records enchantment. `mix.py`'s `DESCRIPTIONS` and `CHARACTER_DESCRIPTIONS` say what each one is made
+of, and `SOURCES.md` says which recordings went into it. The choices of recording, placement and room are the
+mod's own; the recordings are CC0.
 
 `--only warm_2,bed_close` re-mixes just those files and leaves `SOURCES.md` alone, which is how to hear
 one change without a full run.
@@ -54,10 +59,25 @@ the question the whole epic turns on - does it sound like a
 soul - is only answered by listening. A recording does not have to be made to sound real, which is most
 of the case for it.
 
-The rule that survived the change is the one from #213's voices: a contested voice is one sound built
-from both poles, not a mix of two finished sounds. Steam is a wine glass's ring cut short by breaths of
-cabasa, and not a glass and a cabasa played together. Break that and the sound says "this soul cannot
-make up its mind", which is the one thing the mod never says about a soul.
+Real things are recorded, not imitated. A fire, an anvil, a clock or a bird is a Freesound recording of that
+thing: a fire assembled from clave strikes sounded like claves, which is what the first attempt at `warm` did.
+Only enchantment, which nothing records, is played.
+
+The rule that survived the change is the one from #213's voices: a contested voice is one sound, not two
+finished sounds played together. Steam's one-shot is a single recording of a valve letting go, and its
+character layer is a hot spring, not a warm sound and a cold one under each other. Break that and the sound
+says "this soul cannot make up its mind", which is the one thing the mod never says about a soul.
+
+## Freesound
+
+Most of the recordings are Freesound sounds, read by id (`fs(<id>)` in `mix.py`) from
+`<sources>/freesound/<id>.ogg`. `fetch_sources.py` fetches each one's HQ preview from its own page, and
+refuses any page whose licence link is not CC0 (`creativecommons.org/publicdomain/zero/`); `FREESOUND_IDS`
+lists them, and the run checks that every id `mix.py` and `build_bank.py` read is in that list before it
+downloads anything. `SOURCES.md` credits each author from the sound's `.json`, and lists the recordings by id.
+
+Previews are what is fetched, not the originals, and they are not pinned the way the libraries are. A sound
+Freesound re-encodes is a different ambience, and `git status` after the rebuild is where that shows.
 
 ## Determinism
 

@@ -15,46 +15,47 @@ own page when it was fetched (`fetch_sources.py` refuses any that is not):
 
 | Freesound | Author | Recording |
 | --- | --- | --- |
-| [9523](https://freesound.org/s/9523/) | burnttoys | cymbal-reversed-glassy-resonance.wav by burnttoys |
-| [32655](https://freesound.org/s/32655/) | greysound | FrogsAndCrickets_ExcerptB_JMA_24Bit_48k.wav by greysound |
-| [106114](https://freesound.org/s/106114/) | j1987 | bushmovement.wav by j1987 |
-| [110218](https://freesound.org/s/110218/) | genocidalguitar | reverse crash.wav by genocidalguitar |
-| [117136](https://freesound.org/s/117136/) | cobratronik | Wind__Artic__Cold.wav by cobratronik |
-| [137836](https://freesound.org/s/137836/) | thefilmbakery | Blacksmith Workshop.WAV by thefilmbakery |
-| [165526](https://freesound.org/s/165526/) | felix.blume | Wind singing in the mountain, some night cricket in background by felix.blume |
-| [166325](https://freesound.org/s/166325/) | deleted_user_2104797 | Water_drop_9.wav by deleted_user_2104797 |
-| [174718](https://freesound.org/s/174718/) | paespedro | Single Water Drop by paespedro |
-| [177958](https://freesound.org/s/177958/) | Sclolex | Water Dripping in Cave.wav by Sclolex |
-| [181252](https://freesound.org/s/181252/) | mario1298 | a gentle breeze, wind 3 by mario1298 |
-| [233254](https://freesound.org/s/233254/) | alegemaate | Single Bird Chirp 2 by alegemaate |
-| [233255](https://freesound.org/s/233255/) | alegemaate | Single Bird Chirp by alegemaate |
-| [234782](https://freesound.org/s/234782/) | wubitog | Steam/hiss by wubitog |
-| [270588](https://freesound.org/s/270588/) | michorvath | Anvil Hit 2 by michorvath |
-| [270589](https://freesound.org/s/270589/) | michorvath | Anvil Hit 1 by michorvath |
-| [329744](https://freesound.org/s/329744/) | humanoide9000 | Ice break by humanoide9000 |
-| [342546](https://freesound.org/s/342546/) | timbreknight | Ice cracking by timbreknight |
-| [353311](https://freesound.org/s/353311/) | J.Zazvurek | Early summer, czech wood outside the camp, early morning ambiance by J.Zazvurek |
-| [365071](https://freesound.org/s/365071/) | sniperous | Steam.wav by sniperous |
-| [377552](https://freesound.org/s/377552/) | Mafon2 | Wooden Creak by Mafon2 |
-| [383903](https://freesound.org/s/383903/) | deleted_user_7146007 | Reverse Crash Cymbal Projection by deleted_user_7146007 |
-| [398077](https://freesound.org/s/398077/) | SukritSen | Steam.wav by SukritSen |
-| [398684](https://freesound.org/s/398684/) | Dominik_W | Water boiler by Dominik_W |
-| [414260](https://freesound.org/s/414260/) | tenkism | windingOldAlarmClock.wav by tenkism |
-| [414762](https://freesound.org/s/414762/) | tammarpokk | Bubbling Hot Spring by tammarpokk |
-| [414767](https://freesound.org/s/414767/) | samarobryn | Crackling Fire by samarobryn |
-| [422623](https://freesound.org/s/422623/) | Aurelon | Crack and Crunch by Aurelon |
-| [437356](https://freesound.org/s/437356/) | giddster | Rustling leaves by giddster |
-| [443065](https://freesound.org/s/443065/) | AmberdeMeillon | Leaves_Rustling_Edited.wav by AmberdeMeillon |
-| [502507](https://freesound.org/s/502507/) | Rudmer_Rotteveel | Creaking Wood 4 Steps by Rudmer_Rotteveel |
-| [521972](https://freesound.org/s/521972/) | Kastenfrosch | Blacksmith Hammer by Kastenfrosch |
-| [530161](https://freesound.org/s/530161/) | Flamiffer | Dungeon Air by Flamiffer |
-| [532191](https://freesound.org/s/532191/) | mcmikai | Fire in the stove by mcmikai |
-| [533146](https://freesound.org/s/533146/) | mattfinarelli | Drop - Water by mattfinarelli |
-| [586150](https://freesound.org/s/586150/) | ChemiCatz | clockwork.wav by ChemiCatz |
-| [657255](https://freesound.org/s/657255/) | Tom_Kaszuba | Old Clock Pendulum by Tom_Kaszuba |
-| [734580](https://freesound.org/s/734580/) | horraceradishh | Single Medium-Length Wind-up by horraceradishh |
-| [812033](https://freesound.org/s/812033/) | qubodup | Excited Bird Chirp by qubodup |
-| [828434](https://freesound.org/s/828434/) | Saladsounds | Sudden Burst of Small Flame by Saladsounds |
+| [9523](https://freesound.org/s/9523/) | burnttoys | cymbal-reversed-glassy-resonance.wav |
+| [32655](https://freesound.org/s/32655/) | greysound | FrogsAndCrickets_ExcerptB_JMA_24Bit_48k.wav |
+| [106114](https://freesound.org/s/106114/) | j1987 | bushmovement.wav |
+| [110218](https://freesound.org/s/110218/) | genocidalguitar | reverse crash.wav |
+| [117136](https://freesound.org/s/117136/) | cobratronik | Wind__Artic__Cold.wav |
+| [137836](https://freesound.org/s/137836/) | thefilmbakery | Blacksmith Workshop.WAV |
+| [165526](https://freesound.org/s/165526/) | felix.blume | Wind singing in the mountain, some night cricket in background |
+| [166325](https://freesound.org/s/166325/) | deleted_user_2104797 | Water_drop_9.wav |
+| [174718](https://freesound.org/s/174718/) | paespedro | Single Water Drop |
+| [177958](https://freesound.org/s/177958/) | Sclolex | Water Dripping in Cave.wav |
+| [181252](https://freesound.org/s/181252/) | mario1298 | a gentle breeze, wind 3 |
+| [233254](https://freesound.org/s/233254/) | alegemaate | Single Bird Chirp 2 |
+| [233255](https://freesound.org/s/233255/) | alegemaate | Single Bird Chirp |
+| [234782](https://freesound.org/s/234782/) | wubitog | Steam/hiss |
+| [270588](https://freesound.org/s/270588/) | michorvath | Anvil Hit 2 |
+| [270589](https://freesound.org/s/270589/) | michorvath | Anvil Hit 1 |
+| [329744](https://freesound.org/s/329744/) | humanoide9000 | Ice break |
+| [333221](https://freesound.org/s/333221/) | hdfreema | Night Crickets Back Porch.aiff |
+| [342546](https://freesound.org/s/342546/) | timbreknight | Ice cracking |
+| [353311](https://freesound.org/s/353311/) | J.Zazvurek | Early summer, czech wood outside the camp, early morning ambiance |
+| [365071](https://freesound.org/s/365071/) | sniperous | Steam.wav |
+| [377552](https://freesound.org/s/377552/) | Mafon2 | Wooden Creak |
+| [383903](https://freesound.org/s/383903/) | deleted_user_7146007 | Reverse Crash Cymbal Projection |
+| [398077](https://freesound.org/s/398077/) | SukritSen | Steam.wav |
+| [398684](https://freesound.org/s/398684/) | Dominik_W | Water boiler |
+| [414260](https://freesound.org/s/414260/) | tenkism | windingOldAlarmClock.wav |
+| [414762](https://freesound.org/s/414762/) | tammarpokk | Bubbling Hot Spring |
+| [414767](https://freesound.org/s/414767/) | samarobryn | Crackling Fire |
+| [422623](https://freesound.org/s/422623/) | Aurelon | Crack and Crunch |
+| [437356](https://freesound.org/s/437356/) | giddster | Rustling leaves |
+| [443065](https://freesound.org/s/443065/) | AmberdeMeillon | Leaves_Rustling_Edited.wav |
+| [502507](https://freesound.org/s/502507/) | Rudmer_Rotteveel | Creaking Wood 4 Steps |
+| [521972](https://freesound.org/s/521972/) | Kastenfrosch | Blacksmith Hammer |
+| [530161](https://freesound.org/s/530161/) | Flamiffer | Dungeon Air |
+| [532191](https://freesound.org/s/532191/) | mcmikai | Fire in the stove |
+| [533146](https://freesound.org/s/533146/) | mattfinarelli | Drop - Water |
+| [586150](https://freesound.org/s/586150/) | ChemiCatz | clockwork.wav |
+| [657255](https://freesound.org/s/657255/) | Tom_Kaszuba | Old Clock Pendulum |
+| [734580](https://freesound.org/s/734580/) | horraceradishh | Single Medium-Length Wind-up |
+| [812033](https://freesound.org/s/812033/) | qubodup | Excited Bird Chirp |
+| [828434](https://freesound.org/s/828434/) | Saladsounds | Sudden Burst of Small Flame |
 
 #209 asks that provenance be recorded because "CC0" and "CC-BY" are different promises.
 This set makes the CC0 one. The mixes themselves (the choice of recordings, edits,
@@ -100,8 +101,8 @@ handed to the encoder, not of the `.ogg` container.
 | `overgrown_1.ogg` | one-shot, overgrown, variant 1: rustling leaves and a water drop (Freesound) | 4.00s | -20.1 dB | -3.0 dB | `cadfbe176e532419…` |
 | `overgrown_2.ogg` | one-shot, overgrown, variant 2: rustling leaves and a water drop (Freesound) | 4.00s | -20.2 dB | -3.0 dB | `574aeadd6e79a9a3…` |
 | `overgrown_3.ogg` | one-shot, overgrown, variant 3: rustling leaves and a water drop (Freesound) | 4.00s | -20.1 dB | -3.0 dB | `8d7d5410f6739b0c…` |
-| `bed_close.ogg` | rank bed, close: dark ocean drum and a rubbed bass drum skin, seamless loop | 68.00s | -24.1 dB | -8.0 dB | `faeff45bd0922e0e…` |
-| `bed_open.ogg` | rank bed, open: lifted ocean drum, distant cymbal roll and gong roll, very wet, seamless loop | 68.00s | -24.0 dB | -9.5 dB | `f8dacf1824d75288…` |
+| `bed_close.ogg` | rank bed, close: a gentle breeze, darkened, with crickets far off (Freesound), seamless loop | 68.00s | -24.1 dB | -8.0 dB | `fa9b4d565e93571a…` |
+| `bed_open.ogg` | rank bed, open: wind singing across a mountain top at night (Freesound), seamless loop | 68.00s | -24.0 dB | -9.5 dB | `f8dacf1824d75288…` |
 | `character_warm.ogg` | character layer, warm: a wood stove close by and a second fire further off (Freesound) | 68.00s | -28.2 dB | -8.0 dB | `24a48f2e6c88dbb2…` |
 | `character_cold.ogg` | character layer, cold: arctic wind (Freesound) | 68.00s | -28.0 dB | -12.6 dB | `82f02077d4265091…` |
 | `character_steam.ogg` | character layer, steam: a bubbling hot spring over a water boiler (Freesound) | 68.00s | -28.0 dB | -8.0 dB | `ae9c48aa347bb905…` |
