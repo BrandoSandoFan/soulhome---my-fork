@@ -2081,3 +2081,32 @@ Guests who clear the rank gate now leave a vessel like the key user does, the ow
 in, and on the way out only the key user and their pets move. A nerf, in that the escape-by-key route
 is closed.
 - To be ported to `1.21.1`.
+
+The Soul Lens, Soul Anchor and ambience options fit their windows
+
+Small windows broke the screens that explain a soul. Text ran under the scrollbar and off the edge,
+the footer buttons could land on top of one another, and the scrollbar could not be dragged, so a
+long page was hard to get through. The lens's box summaries covered its region list, an empty soul
+showed a blank screen, and the "*" capped marker was never explained. The lens's buff list had the
+same trouble. The anchor's attunement rows were bare text with nothing to show which rooms were
+attuned, its notices ran off the edge and never faded, and they did not appear at all without a
+loadout. The ambience options ignored a narrow or short window, and nothing said what a control did.
+
+Now the content sits on a backing plate so it reads over the world, and the footer buttons are
+measured to their labels and shrink before they would collide. The scrollbar can be dragged, and
+trackpads scroll. On the lens, the box summaries no longer cover the region list, Up and Down pick a
+region, an empty soul says that it is empty, the "*" capped marker is explained on screen, and
+discord bonds are marked "!" as well as red. The anchor draws its attunement checkboxes, and rows
+highlight on hover with a tooltip saying what a click does. A room that was demolished but is still
+bound can be released, and the screen says why it cannot be attuned again. Notices wrap, fade out,
+and show with or without a loadout, and the residue button explains itself. The ambience options
+fold into one column on a narrow or short window, grey out the options that depend on the master
+switch or on intensity, carry a tooltip each, and have a Reset to defaults button.
+
+The ability HUD stacks above the hearts and armour instead of over them, and fades in and out. A
+spent charge is outlined rather than drawn faint. Soul Lens world labels take the colour of their
+outline and stop short of the boss bar instead of running under it. The gaze's linger tint fades
+out rather than cutting off.
+
+Neither a buff nor a nerf.
+- To be ported to `1.21.1`.

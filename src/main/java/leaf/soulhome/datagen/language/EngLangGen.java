@@ -363,6 +363,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_FROM, "%s (%s room(s), best tier %s)");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_FROM_ASPECT, "%1$s as %2$s (%3$s room(s), best tier %4$s)");
         add(Constants.StringKeys.LENS_SCREEN_BUFFS_RANK_BONUS, "of which %s is from your soul's rank");
+        add(Constants.StringKeys.LENS_SCREEN_BUFFS_CAPPED_LEGEND, "* held at the cap: more rooms of this add nothing");
+        add(Constants.StringKeys.LENS_SCREEN_BUFFS_ATTUNEMENT_HEADER, "Attunement");
         add(Constants.StringKeys.LENS_SCREEN_CLOSE, "Close");
 
         // The Soul Anchor's loadout screen (#154)
@@ -371,11 +373,26 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.AMBIENCE_SCREEN_RANK, "Answer your rank");
         add(Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER, "Answer what you built");
         add(Constants.StringKeys.AMBIENCE_SCREEN_SOUND, "Ambient sound");
-        add(Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY, "Intensity: %s");
-        add(Constants.StringKeys.AMBIENCE_SCREEN_VOLUME, "Ambient volume: %s");
         add(Constants.StringKeys.AMBIENCE_SCREEN_OFF, "Off");
         add(Constants.StringKeys.AMBIENCE_SCREEN_COSMETIC,
                 "All of this is only how things look and sound to you. Nothing here changes a room, a buff or a cost.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY_LABEL, "Intensity");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_VOLUME_LABEL, "Ambient volume");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_ENABLED_TIP,
+                "Whether a soul answers your rank and your rooms at all. Off turns off everything that depends on it, including the soul's music, and gives you the flat sky the mod shipped with.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_RANK_TIP,
+                "Whether the sky opens and the firmament drifts further off as your soul ascends. It never darkens anything, and never brings fog inside the box you may build in.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER_TIP,
+                "Whether the colour of your soul answers what you have built: warm for hearths and forges, cold for ice and water, and a third colour where you have built both. Nothing is ever named to you.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_SOUND_TIP,
+                "Whether a quiet ambient bed plays in your soul, with occasional distant sounds from the rooms that earned them. It steps aside for the ascension hum, an ability or a soul key.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY_TIP,
+                "How strongly all of the ambience is expressed. Zero switches off every part of it at once, which is the quickest way to turn it all off.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_VOLUME_TIP,
+                "How loud the ambient bed and its distant sounds are, on top of your own Ambient/Environment slider. Turning the soul down without also turning down cave sounds and weather means this slider.");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_RESET, "Reset to defaults");
+        add(Constants.StringKeys.AMBIENCE_SCREEN_RESET_TIP,
+                "Put every setting on this screen back to its default. Nothing else in your options is changed.");
         add(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SOUL, "Your soul");
         add(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SUPPRESSION, "Other souls");
         add(Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION, "Screen warp");
@@ -409,11 +426,19 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ANCHOR_SCREEN_VISITOR, "Someone else's soul - you can look, but not change it.");
         add(Constants.StringKeys.ANCHOR_SCREEN_NOT_LOST,
                 "Rooms you have not attuned still count toward residue and toward the climb.");
+        add(Constants.StringKeys.ANCHOR_SCREEN_ATTUNE_TIP, "Click to attune");
+        add(Constants.StringKeys.ANCHOR_SCREEN_RELEASE_TIP, "Click to release");
+        add(Constants.StringKeys.ANCHOR_SCREEN_GHOST_TIP,
+                "Click to release. The room is no longer standing, so it cannot be attuned again until it is rebuilt.");
         add(Constants.StringKeys.ANCHOR_SCREEN_ASCENSION, "The climb");
         add(Constants.StringKeys.ANCHOR_SCREEN_RESIDUE, "Residue: %1$s banked - enough for %2$s Essence I.");
         add(Constants.StringKeys.ANCHOR_SCREEN_RESIDUE_SHORT, "Residue: %s banked - not yet a whole Essence I.");
         add(Constants.StringKeys.ANCHOR_SCREEN_COLLECT, "Take %s Essence");
         add(Constants.StringKeys.ANCHOR_SCREEN_COLLECT_NONE, "Nothing to take");
+        add(Constants.StringKeys.ANCHOR_SCREEN_COLLECT_TIP,
+                "Converts the residue you have banked into whole Essence I, which the climb spends. Any remainder stays banked.");
+        add(Constants.StringKeys.ANCHOR_SCREEN_COLLECT_NONE_TIP,
+                "Nothing to take yet: the banked residue is not a whole Essence I. This lights up once it is.");
 
         add(Constants.StringKeys.LENS_SCREEN_BOX_HEADER, "Your soul's reach");
         add(Constants.StringKeys.LENS_SCREEN_BOX_LAYERS, "%s build layers (floor y=%s to ceiling y=%s)");
@@ -422,6 +447,14 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.LENS_SCREEN_BOX_LEGACY, "Your soul predates this limit and also reaches %s");
         add(Constants.StringKeys.LENS_SCREEN_BOX_GROUND, "ground reaches %s");
         add(Constants.StringKeys.LENS_SCREEN_BOX_GROWING, "(still growing)");
+        add(Constants.StringKeys.LENS_LABEL_TIER, "%s T%s");
+        add(Constants.StringKeys.LENS_LABEL_NEARLY, "%s (nearly %s)");
+        add(Constants.StringKeys.LENS_LABEL_UNKNOWN, "%s ?");
+        add(Constants.StringKeys.LENS_LABEL_STANDING_IN, "> %s");
+        add(Constants.StringKeys.LENS_SCREEN_BOX_LEGACY_BOUNDS, "x %s..%s, y %s..%s, z %s..%s");
+        add(Constants.StringKeys.LENS_SCREEN_NO_REGIONS, "Nothing scanned here yet. Build something enclosed, then look again.");
+        add(Constants.StringKeys.LENS_SCREEN_CAPPED_LEGEND, "* capped: more of this block adds nothing");
+        add(Constants.StringKeys.LENS_SCREEN_SIGNAL_LINE, "%s x%s (%s)");
 
         //Buff types. Named rather than shown as ids, since a player reads these and a log does not.
         //The table is shared with the guide book, so the name a room page promises and the name
