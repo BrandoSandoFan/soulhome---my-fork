@@ -4,18 +4,21 @@
 
 package leaf.soulhome.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.buffs.ClientSoulAbilities;
 import leaf.soulhome.network.SyncSoulAbilitiesMessage;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
-import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
 /**
  * The selected ability, its charges, and how far along its recharge is (#87).
@@ -25,9 +28,15 @@ import net.neoforged.fml.common.EventBusSubscriber;
  * off a toggle. The mod adds no furniture to the screen until the player has built something that
  * earns it.
  *
- * <p>Drawn above the hotbar and offset left of centre so it clears the vanilla health and hunger
- * rows. Charges are pips rather than a number because a glance has to answer "can I press it" -
- * counting to three is slower than seeing three.
+ * <p>Drawn on the left status stack, above the health and armour rows. The stack's height is
+ * the Gui's own running total for the frame (`leftHeight`, which NeoForge patches onto vanilla's
+ * Gui), so the HUD clears whatever is actually there - a second row of hearts, or no armour at all.
+ * Having placed itself, the HUD adds its height to that total, so anything drawn after it on the same
+ * side stacks above it rather than over it. Charges are pips rather than a number because a glance has
+ * to answer "can I press it" - counting to three is slower than seeing three.
+ *
+ * <p>It fades in and out rather than popping, because it appears when a soul is entered or a room is
+ * attuned, and a block of text that switches on at the edge of the hotbar reads as a glitch.
  */
 @EventBusSubscriber(value = Dist.CLIENT, modid = SoulHome.MODID, bus = EventBusSubscriber.Bus.GAME)
 public final class AbilityHudRenderer
@@ -35,80 +44,203 @@ public final class AbilityHudRenderer
     private static final int PIP_SIZE = 5;
     private static final int PIP_GAP = 2;
 
-    /** Clear of the hotbar and of the health row above it. */
-    private static final int BOTTOM_MARGIN = 62;
+    /** Half the vanilla hotbar, which is 182 px wide. The HUD is anchored on the same centre line. */
+    private static final int HOTBAR_HALF_WIDTH = 91;
+
+    /** The name is the top line of the block; the pips start this far below it. */
+    private static final int PIPS_BELOW_NAME = 11;
+    private static final int BAR_GAP = 3;
+    private static final int BAR_WIDTH = 60;
+    private static final int BAR_HEIGHT = 2;
+
+    /**
+     * The whole block, recharge bar included, is reserved on the stack even when no bar is drawn. A
+     * stack that changes height every time a recharge starts or finishes would make everything above
+     * it jump.
+     */
+    private static final int BLOCK_HEIGHT = PIPS_BELOW_NAME + PIP_SIZE + BAR_GAP + BAR_HEIGHT;
+
+    /** A pixel of air between this block and the row it sits above, so the two do not read as one. */
+    private static final int STACK_GAP = 1;
+
+    /** Ticks for the HUD to fade fully in, or fully out. */
+    private static final int FADE_TICKS = 5;
+
+    /**
+     * The faintest alpha drawn. Font reads a text colour whose alpha is under 4 as opaque, so a fade
+     * allowed to get that faint would flash solid text at the end rather than trail off.
+     */
+    private static final int MIN_ALPHA = 4;
 
     private static final int READY_COLOUR = 0xFFB98CE8;
-    private static final int SPENT_COLOUR = 0x66FFFFFF;
+
+    /**
+     * A spent pip is its outline in the ready colour at this share of its alpha. Same hue, so ready
+     * and spent differ in shape - a player who cannot tell the two colours apart still can.
+     */
+    private static final float SPENT_ALPHA = 0.5f;
+
     private static final int TRACK_COLOUR = 0x66000000;
     private static final int PROGRESS_COLOUR = 0xFF7A54A0;
     private static final int TEXT_COLOUR = 0xFFE6D8F5;
 
-    private static final int BAR_WIDTH = 60;
-    private static final int BAR_HEIGHT = 2;
+    private static int fadeTicks;
+    private static int previousFadeTicks;
+
+    /**
+     * The ability last drawn. Leaving a soul empties {@link ClientSoulAbilities} at once, but the HUD
+     * should still fade out over the ticks that follow, and a fade has to have something to draw.
+     */
+    private static String shownAbility;
+    private static SyncSoulAbilitiesMessage.State shownState;
 
     private AbilityHudRenderer()
     {
     }
 
     @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event)
+    {
+        // stepped once per tick, not once per frame, so the fade lasts FADE_TICKS whatever the frame
+        // rate is
+        previousFadeTicks = fadeTicks;
+
+        if (wantsShown(Minecraft.getInstance()))
+        {
+            fadeTicks = Math.min(FADE_TICKS, fadeTicks + 1);
+        }
+        else
+        {
+            fadeTicks = Math.max(0, fadeTicks - 1);
+        }
+    }
+
+    @SubscribeEvent
     public static void onRenderOverlay(RenderGuiLayerEvent.Post event)
     {
-        if (!event.getName().equals(VanillaGuiLayers.HOTBAR))
+        // health is drawn first on the left and armour second, and nothing else on the left grows the
+        // stack, so after ARMOR_LEVEL the stack is final. Food, air and mount health are all on the
+        // right, which is why they do not need counting here. NeoForge posts the armour layer's event
+        // even in creative, where the layer draws nothing, so the HUD sits at its base height there
+        // as it does on 1.20.1 rather than vanishing.
+        if (!event.getName().equals(VanillaGuiLayers.ARMOR_LEVEL))
         {
             return;
         }
 
         final Minecraft minecraft = Minecraft.getInstance();
-        final LocalPlayer player = minecraft.player;
 
-        if (player == null || minecraft.options.hideGui || ClientSoulAbilities.isEmpty())
+        if (minecraft.player == null || minecraft.options.hideGui)
         {
             return;
         }
 
         final String selected = ClientSoulAbilities.selected();
-        final SyncSoulAbilitiesMessage.State state = ClientSoulAbilities.stateOf(selected);
+        final SyncSoulAbilitiesMessage.State live = ClientSoulAbilities.stateOf(selected);
 
-        if (state == null)
+        if (live != null)
+        {
+            shownAbility = selected;
+            shownState = live;
+        }
+
+        final float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
+        final float opacity = Mth.lerp(partialTick, previousFadeTicks, fadeTicks) / FADE_TICKS;
+
+        if (shownState == null || Math.round(opacity * 255f) < MIN_ALPHA)
         {
             return;
         }
 
         final GuiGraphics graphics = event.getGuiGraphics();
-        final int screenWidth = graphics.guiWidth();
-        final int screenHeight = graphics.guiHeight();
+        final Gui gui = minecraft.gui;
 
-        final int left = screenWidth / 2 - 91;
-        final int bottom = screenHeight - BOTTOM_MARGIN;
+        final SyncSoulAbilitiesMessage.State state = shownState;
 
-        final Component name = Component.translatable(nameKeyOf(selected));
+        final int left = graphics.guiWidth() / 2 - HOTBAR_HALF_WIDTH;
+        final int top = graphics.guiHeight() - gui.leftHeight - BLOCK_HEIGHT;
 
-        graphics.drawString(minecraft.font, name, left, bottom, TEXT_COLOUR, true);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
+        graphics.drawString(
+                minecraft.font,
+                Component.translatable(nameKeyOf(shownAbility)),
+                left,
+                top,
+                withAlpha(TEXT_COLOUR, opacity),
+                true);
+
+        final int pipTop = top + PIPS_BELOW_NAME;
 
         // one pip per possible charge, filled for the ones actually banked - the empty pips are
         // what tell a player their ceiling went up when a room's tier did
-        final int pipTop = bottom + 11;
-
         for (int i = 0; i < state.maxCharges(); i++)
         {
             final int x = left + i * (PIP_SIZE + PIP_GAP);
-            graphics.fill(x, pipTop, x + PIP_SIZE, pipTop + PIP_SIZE,
-                    i < state.charges() ? READY_COLOUR : SPENT_COLOUR);
+
+            if (i < state.charges())
+            {
+                graphics.fill(x, pipTop, x + PIP_SIZE, pipTop + PIP_SIZE, withAlpha(READY_COLOUR, opacity));
+            }
+            else
+            {
+                spentOutline(graphics, x, pipTop, withAlpha(READY_COLOUR, opacity * SPENT_ALPHA));
+            }
         }
 
         // the recharge bar is drawn only while something is actually pending, so a player at full
         // charges is not shown an empty progress bar to wonder about
         if (state.charges() < state.maxCharges() && state.ticksToNext() > 0 && state.cooldownTicks() > 0)
         {
-            final int barTop = pipTop + PIP_SIZE + 3;
+            final int barTop = pipTop + PIP_SIZE + BAR_GAP;
             final double progress =
                     Math.max(0d, Math.min(1d, 1d - ((double) state.ticksToNext() / state.cooldownTicks())));
 
-            graphics.fill(left, barTop, left + BAR_WIDTH, barTop + BAR_HEIGHT, TRACK_COLOUR);
+            graphics.fill(left, barTop, left + BAR_WIDTH, barTop + BAR_HEIGHT,
+                    withAlpha(TRACK_COLOUR, opacity));
             graphics.fill(left, barTop, left + (int) Math.round(BAR_WIDTH * progress), barTop + BAR_HEIGHT,
-                    PROGRESS_COLOUR);
+                    withAlpha(PROGRESS_COLOUR, opacity));
         }
+
+        RenderSystem.disableBlend();
+
+        gui.leftHeight += BLOCK_HEIGHT + STACK_GAP;
+    }
+
+    /**
+     * The HUD is wanted whenever a player is in a world with an ability to show and the GUI is not
+     * hidden. Read per tick, so the fade is driven by the same condition the frame is drawn under.
+     */
+    private static boolean wantsShown(Minecraft minecraft)
+    {
+        return minecraft.player != null
+                && !minecraft.options.hideGui
+                && !ClientSoulAbilities.isEmpty()
+                && ClientSoulAbilities.stateOf(ClientSoulAbilities.selected()) != null;
+    }
+
+    /** A spent pip is drawn as its outline only, one pixel wide, so it reads as empty rather than dim. */
+    private static void spentOutline(GuiGraphics graphics, int x, int y, int colour)
+    {
+        final int right = x + PIP_SIZE;
+        final int bottom = y + PIP_SIZE;
+
+        graphics.fill(x, y, right, y + 1, colour);
+        graphics.fill(x, bottom - 1, right, bottom, colour);
+        graphics.fill(x, y + 1, x + 1, bottom - 1, colour);
+        graphics.fill(right - 1, y + 1, right, bottom - 1, colour);
+    }
+
+    /**
+     * The colour with its alpha scaled by the opacity. A fade changes how much of the HUD shows and
+     * never its colour, so a fading pip is the same red or purple as a settled one.
+     */
+    private static int withAlpha(int argb, float opacity)
+    {
+        final int alpha = Math.round(((argb >>> 24) & 0xFF) * opacity);
+
+        return alpha << 24 | argb & 0xFFFFFF;
     }
 
     /**

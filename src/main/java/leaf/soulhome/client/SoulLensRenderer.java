@@ -13,13 +13,13 @@ import leaf.soulhome.network.SyncSoulLensReportMessage;
 import leaf.soulhome.network.SyncSoulRegionsMessage;
 import leaf.soulhome.registry.ItemsRegistry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -62,6 +62,25 @@ public final class SoulLensRenderer
     private static final int LABEL_LEFT = 6;
     private static final int LABEL_TOP = 6;
     private static final int LABEL_LINE_HEIGHT = 10;
+
+    /**
+     * A label is cut to a third of the screen, but never below this, so a short screen still has room
+     * for a name. Cut rather than wrapped: a wrapped label would run into the slot of the label under
+     * it, since the lines are spaced for one line each.
+     */
+    private static final int MIN_LABEL_WIDTH = 120;
+    private static final String ELLIPSIS = "...";
+
+    /**
+     * One colour per region state, read by both the outlines and the labels. Two lists kept by hand
+     * are how a label drifts away from its box, so the outline floats are derived from these ints
+     * rather than stored beside them.
+     */
+    private static final int COLOUR_CLASSIFIED = 0x59FF73;
+    private static final int COLOUR_AMBIGUOUS = 0xFFD940;
+    private static final int COLOUR_UNCLASSIFIED = 0xA6A6B2;
+    private static final int COLOUR_BONDED = 0x4DE6FF;
+    private static final int COLOUR_SELECTED = 0xFFFFFF;
 
     private SoulLensRenderer()
     {
@@ -110,23 +129,15 @@ public final class SoulLensRenderer
 
             if (i == selected)
             {
-                LevelRenderer.renderLineBox(pose, lines, box, 1.0f, 1.0f, 1.0f, LINE_ALPHA);
+                drawOutline(pose, lines, box, COLOUR_SELECTED);
             }
             else if (bonded.contains(i))
             {
-                LevelRenderer.renderLineBox(pose, lines, box, 0.3f, 0.9f, 1.0f, LINE_ALPHA);
-            }
-            else if (region.isClassified())
-            {
-                LevelRenderer.renderLineBox(pose, lines, box, 0.35f, 1.0f, 0.45f, LINE_ALPHA);
-            }
-            else if (region.isAmbiguous())
-            {
-                LevelRenderer.renderLineBox(pose, lines, box, 1.0f, 0.85f, 0.25f, LINE_ALPHA);
+                drawOutline(pose, lines, box, COLOUR_BONDED);
             }
             else
             {
-                LevelRenderer.renderLineBox(pose, lines, box, 0.65f, 0.65f, 0.7f, LINE_ALPHA);
+                drawOutline(pose, lines, box, colourOf(region));
             }
         }
 
@@ -166,6 +177,8 @@ public final class SoulLensRenderer
         final GuiGraphics graphics = event.getGuiGraphics();
         final Vec3 position = player.position();
 
+        final int maxWidth = Math.max(MIN_LABEL_WIDTH, graphics.guiWidth() / 3);
+
         int line = 0;
 
         for (RegionHighlight region : forLabels(regions))
@@ -179,7 +192,7 @@ public final class SoulLensRenderer
 
             graphics.drawString(
                     minecraft.font,
-                    label(region, standingIn),
+                    fit(minecraft.font, label(region, standingIn), maxWidth),
                     LABEL_LEFT,
                     LABEL_TOP + line * LABEL_LINE_HEIGHT,
                     colourOf(region),
@@ -217,38 +230,65 @@ public final class SoulLensRenderer
                 ? Component.translatable(Constants.StringKeys.REGION_UNCLASSIFIED)
                 : Component.translatable(region.displayName());
 
-        MutableComponent body = Component.literal("").append(name);
+        final Component body;
 
         if (region.isClassified())
         {
             //a tier for a room that earned one
-            body = body.append(Component.literal(" T" + region.tier()));
+            body = Component.translatable(Constants.StringKeys.LENS_LABEL_TIER, name, region.tier());
         }
         else if (region.hasNearMiss())
         {
             //a near miss is worth naming, but never as this region's title (#46) - it trails
             //"Not anything yet" as a parenthetical instead of replacing it
-            body = body.append(Component.literal(" (nearly "))
-                    .append(Component.translatable(region.nearMissName()))
-                    .append(Component.literal(")"));
+            body = Component.translatable(Constants.StringKeys.LENS_LABEL_NEARLY, name,
+                    Component.translatable(region.nearMissName()));
         }
         else
         {
-            body = body.append(Component.literal(" ?"));
+            body = Component.translatable(Constants.StringKeys.LENS_LABEL_UNKNOWN, name);
         }
 
-        return standingIn ? Component.literal("> ").append(body) : body;
+        return standingIn
+                ? Component.translatable(Constants.StringKeys.LENS_LABEL_STANDING_IN, body)
+                : body;
     }
 
-    /** The same three colours as the outlines, so a label and its box read as one thing. */
+    /**
+     * Cuts a label that is too wide to the given width, ending it in an ellipsis. The cut is on the
+     * rendered text rather than the component, since a label carries no styling of its own to keep.
+     */
+    private static Component fit(Font font, Component label, int maxWidth)
+    {
+        if (font.width(label) <= maxWidth)
+        {
+            return label;
+        }
+
+        final String kept = font.substrByWidth(label, maxWidth - font.width(ELLIPSIS)).getString();
+
+        return Component.literal(kept + ELLIPSIS);
+    }
+
+    /** Labels and outlines read the same ints, so a label and its box are one colour by construction. */
     private static int colourOf(RegionHighlight region)
     {
         if (region.isClassified())
         {
-            return 0x55FF55;
+            return COLOUR_CLASSIFIED;
         }
 
-        return region.isAmbiguous() ? 0xFFFF55 : 0xAAAAAA;
+        return region.isAmbiguous() ? COLOUR_AMBIGUOUS : COLOUR_UNCLASSIFIED;
+    }
+
+    /** The floats come straight out of the RGB int, so the colour table is the only place a colour is written. */
+    private static void drawOutline(PoseStack pose, VertexConsumer lines, AABB box, int rgb)
+    {
+        LevelRenderer.renderLineBox(pose, lines, box,
+                (rgb >> 16 & 0xFF) / 255f,
+                (rgb >> 8 & 0xFF) / 255f,
+                (rgb & 0xFF) / 255f,
+                LINE_ALPHA);
     }
 
     private static boolean isHoldingLens(LocalPlayer player)

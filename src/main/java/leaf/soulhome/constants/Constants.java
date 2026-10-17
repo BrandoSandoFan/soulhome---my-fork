@@ -237,6 +237,8 @@ public class Constants
         public static final String LENS_SCREEN_BUFFS_FROM = "gui.soulhome.lens.buffs_from";
         public static final String LENS_SCREEN_BUFFS_FROM_ASPECT = "gui.soulhome.lens.buffs_from_aspect";
         public static final String LENS_SCREEN_BUFFS_RANK_BONUS = "gui.soulhome.lens.buffs_rank_bonus";
+        public static final String LENS_SCREEN_BUFFS_CAPPED_LEGEND = "gui.soulhome.lens.buffs_capped_legend";
+        public static final String LENS_SCREEN_BUFFS_ATTUNEMENT_HEADER = "gui.soulhome.lens.buffs_attunement_header";
         public static final String LENS_SCREEN_CLOSE = "gui.soulhome.lens.close";
 
         // The Soul Anchor's attunement screen (#154). Binding lives here rather than on the lens
@@ -258,6 +260,9 @@ public class Constants
         public static final String ANCHOR_SCREEN_HINT = "gui.soulhome.anchor.hint";
         public static final String ANCHOR_SCREEN_VISITOR = "gui.soulhome.anchor.visitor";
         public static final String ANCHOR_SCREEN_NOT_LOST = "gui.soulhome.anchor.not_lost";
+        public static final String ANCHOR_SCREEN_ATTUNE_TIP = "gui.soulhome.anchor.attune_tip";
+        public static final String ANCHOR_SCREEN_RELEASE_TIP = "gui.soulhome.anchor.release_tip";
+        public static final String ANCHOR_SCREEN_GHOST_TIP = "gui.soulhome.anchor.ghost_tip";
 
         // The ambience options screen (#163/#167). Client-side settings rather than server ones, and
         // so the only screen in the mod that changes nothing about anybody's game but the looker's.
@@ -266,10 +271,18 @@ public class Constants
         public static final String AMBIENCE_SCREEN_RANK = "gui.soulhome.ambience.rank_visuals";
         public static final String AMBIENCE_SCREEN_CHARACTER = "gui.soulhome.ambience.character_colour";
         public static final String AMBIENCE_SCREEN_SOUND = "gui.soulhome.ambience.ambient_sound";
-        public static final String AMBIENCE_SCREEN_INTENSITY = "gui.soulhome.ambience.intensity";
-        public static final String AMBIENCE_SCREEN_VOLUME = "gui.soulhome.ambience.sound_volume";
         public static final String AMBIENCE_SCREEN_OFF = "gui.soulhome.ambience.off";
         public static final String AMBIENCE_SCREEN_COSMETIC = "gui.soulhome.ambience.cosmetic";
+        public static final String AMBIENCE_SCREEN_INTENSITY_LABEL = "gui.soulhome.ambience.intensity.label";
+        public static final String AMBIENCE_SCREEN_VOLUME_LABEL = "gui.soulhome.ambience.sound_volume.label";
+        public static final String AMBIENCE_SCREEN_ENABLED_TIP = "gui.soulhome.ambience.enabled.tooltip";
+        public static final String AMBIENCE_SCREEN_RANK_TIP = "gui.soulhome.ambience.rank_visuals.tooltip";
+        public static final String AMBIENCE_SCREEN_CHARACTER_TIP = "gui.soulhome.ambience.character_colour.tooltip";
+        public static final String AMBIENCE_SCREEN_SOUND_TIP = "gui.soulhome.ambience.ambient_sound.tooltip";
+        public static final String AMBIENCE_SCREEN_INTENSITY_TIP = "gui.soulhome.ambience.intensity.tooltip";
+        public static final String AMBIENCE_SCREEN_VOLUME_TIP = "gui.soulhome.ambience.sound_volume.tooltip";
+        public static final String AMBIENCE_SCREEN_RESET = "gui.soulhome.ambience.reset";
+        public static final String AMBIENCE_SCREEN_RESET_TIP = "gui.soulhome.ambience.reset.tooltip";
 
         // The same screen's second column: suppression's client switches (#188, #190), which lived
         // only in the toml until a player who gets motion sick had a screen to find them on.
@@ -298,6 +311,8 @@ public class Constants
         public static final String ANCHOR_SCREEN_RESIDUE_SHORT = "gui.soulhome.anchor.residue_short";
         public static final String ANCHOR_SCREEN_COLLECT = "gui.soulhome.anchor.collect";
         public static final String ANCHOR_SCREEN_COLLECT_NONE = "gui.soulhome.anchor.collect_none";
+        public static final String ANCHOR_SCREEN_COLLECT_TIP = "gui.soulhome.anchor.collect_tip";
+        public static final String ANCHOR_SCREEN_COLLECT_NONE_TIP = "gui.soulhome.anchor.collect_none_tip";
 
         // The box (#78/#79/#81): scarcity has to be legible, so the lens says what it is as
         // plainly as it says what a room scored.
@@ -308,6 +323,14 @@ public class Constants
         public static final String LENS_SCREEN_BOX_LEGACY = "gui.soulhome.lens.box_legacy";
         public static final String LENS_SCREEN_BOX_GROUND = "gui.soulhome.lens.box_ground";
         public static final String LENS_SCREEN_BOX_GROWING = "gui.soulhome.lens.box_growing";
+        public static final String LENS_LABEL_TIER = "gui.soulhome.lens.label.tier";
+        public static final String LENS_LABEL_NEARLY = "gui.soulhome.lens.label.nearly";
+        public static final String LENS_LABEL_UNKNOWN = "gui.soulhome.lens.label.unknown";
+        public static final String LENS_LABEL_STANDING_IN = "gui.soulhome.lens.label.standing_in";
+        public static final String LENS_SCREEN_BOX_LEGACY_BOUNDS = "gui.soulhome.lens.box_legacy_bounds";
+        public static final String LENS_SCREEN_NO_REGIONS = "gui.soulhome.lens.no_regions";
+        public static final String LENS_SCREEN_CAPPED_LEGEND = "gui.soulhome.lens.capped_legend";
+        public static final String LENS_SCREEN_SIGNAL_LINE = "gui.soulhome.lens.signal_line";
 
         // Active abilities (#87): the two binds, the HUD, and what an ability says when it
         // refuses. A refusal has to name its reason - "nothing happened" is the single most
