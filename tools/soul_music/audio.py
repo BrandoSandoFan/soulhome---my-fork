@@ -1,8 +1,8 @@
 """Sample handling shared by the music bank and the ambience mixes (#163).
 
 Nothing here makes a sound. Every function takes a recording of a real instrument and trims, tunes,
-loops, levels or places it - the synthesis this replaced is what the first playtests heard as
-"a phone game", and a recorded harp does not have that problem to solve.
+loops, levels or places it. The synthesis this replaced sounded like oscillators because it was
+oscillators, and a recorded harp does not have that problem to solve.
 """
 from __future__ import annotations
 

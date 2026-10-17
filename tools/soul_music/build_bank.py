@@ -3,19 +3,26 @@
     python3 tools/soul_music/fetch_sources.py /path/to/sources     # sparse clones, ~3 GB
     python3 tools/soul_music/build_bank.py --sources /path/to/sources
 
-writes src/main/resources/assets/soulhome/soul_music/{bank.json,<instrument>/*.ogg}. The manifest's
-contract is the javadoc on SampleBank; this script is the only thing that writes it.
+writes src/main/resources/assets/soulhome/soul_music/{bank.json,<instrument>/*.ogg,SOURCES.md}. The
+manifest's contract is the javadoc on SampleBank; this script is the only thing that writes it, and
+it is the only thing that should be changed to change the bank - bank.json is output, not source.
+
+SOURCES.md is written by the same run, from the same decisions: which recording each zone came from,
+its root, its checksum, and the commits the libraries were pinned at (in fetch_sources.py). A rebuild
+from the same commits is byte-identical, including SOURCES.md, so `git status` after one is the check.
 
 What this file decides, instrument by instrument, is which recording plays a note and how loud it
 sits beside the others. The composer still writes every note; nothing here composes, and nothing
-here synthesises - the one thing the playtests asked for was that the soul stop sounding like an
+here synthesises - the point of the whole bank is that the soul stop sounding like an
 oscillator.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
+import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -23,6 +30,7 @@ import numpy as np
 
 import audio
 from audio import RATE
+from fetch_sources import LIBRARIES
 
 REPO = Path(__file__).resolve().parents[2]
 OUT = REPO / 'src/main/resources/assets/soulhome/soul_music'
@@ -84,7 +92,6 @@ class Spec:
     tune: bool = True
     shape: callable = None                           # optional extra processing of the trimmed note
     rr: bool = False                                 # sources are round-robins of one zone
-    notes: str = ''
 
 
 def vs(group: str, names: list[str], octave: int = 12, **kw) -> list[Source]:
@@ -204,11 +211,13 @@ SPECS: list[Spec] = [
          track_pitch=False, rr=True, level=0.28, tone=(2000.0, 9000.0), max_seconds=0.35, body=(0.0, 0.05),
          tune=False),
     # crackle, chirp and the swells are assembled below from several recordings each.
+    # A cabasa is far brighter than the band of noise it replaces, so it is rolled off until a vent
+    # breathes rather than sizzles - SoulSynthTest#nothingPiercingRecorded caught the first cut.
     Spec('hiss',
          vc('Idiophones/Struck Idiophones/Cabasa',
             ['Cabasa1_Rub_v2_rr1_Mid.wav', 'Cabasa1_Rub_v2_rr2_Mid.wav', 'Cabasa1_Rub_v1_rr2_Mid.wav'], root=72),
-         envelope='swell', track_pitch=False, rr=True, level=2.0, max_seconds=0.9, body=(0.0, 0.4),
-         highpass=900.0, tune=False),
+         envelope='swell', track_pitch=False, rr=True, level=1.8, tone=(2000.0, 4500.0), max_seconds=0.9,
+         body=(0.0, 0.4), highpass=900.0, lowpass=6000.0, tune=False),
     Spec('wind',
          vc('Membranophones/Other Membranophones/Ocean Drum',
             ['OceanDrum_Sus_1_Mid.wav', 'OceanDrum_Sus_2_Mid.wav'], root=60),
@@ -233,26 +242,33 @@ SPECS: list[Spec] = [
 
 # --- assembled foley ------------------------------------------------------------------------------
 
+CRACKLE_GRAINS = (
+    'Idiophones/Struck Idiophones/Claves/Claves1_Hit_v1_rr1_Mid.wav',
+    'Idiophones/Struck Idiophones/Claves/Claves2_Hit_v1_rr1_Mid.wav',
+    'Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr1.wav',
+    'Idiophones/Struck Idiophones/Woodblock/wood_click_mp.wav',
+    'Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr1_Mid.wav',
+    'Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr2_Mid.wav',
+    'Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr1.wav',
+    'Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr2.wav',
+)
+CRACKLE_BED = 'Membranophones/Other Membranophones/Ocean Drum/OceanDrum_Sus_3_Mid.wav'
+
+
 def assemble_crackle(src: Path) -> list[tuple[np.ndarray, dict]]:
     """A fire from percussion: the first few milliseconds of claves, woodblock, cabasa and shaker
     strikes, scattered with power-law sizes the way a fire's pops are, over the hush of an ocean
     drum barely moving. Each grain is a real strike; only the arrangement is the fire.
     """
     grains = []
-    for rel in ['Idiophones/Struck Idiophones/Claves/Claves1_Hit_v1_rr1_Mid.wav',
-                'Idiophones/Struck Idiophones/Claves/Claves2_Hit_v1_rr1_Mid.wav',
-                'Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr1.wav',
-                'Idiophones/Struck Idiophones/Woodblock/wood_click_mp.wav',
-                'Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr1_Mid.wav',
-                'Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr2_Mid.wav',
-                'Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr1.wav',
-                'Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr2.wav']:
+    sources = tuple(f'{VCSL}/{rel}' for rel in (*CRACKLE_GRAINS, CRACKLE_BED))
+    for rel in CRACKLE_GRAINS:
         x = audio.trim_head(audio.load(src / VCSL / rel))
         for length in (0.004, 0.008, 0.016):
             g = x[: int(length * RATE)].copy()
             g *= np.hanning(len(g) * 2)[len(g):] ** 0.5
             grains.append(audio.highpass(g / audio.peak(g), 700.0, 2))
-    roar_src = audio.load(src / VCSL / 'Membranophones/Other Membranophones/Ocean Drum/OceanDrum_Sus_3_Mid.wav')
+    roar_src = audio.load(src / VCSL / CRACKLE_BED)
     roar_src = audio.lowpass(audio.highpass(roar_src, 60.0), 380.0, 3)
     rng = np.random.default_rng(0x0F17E)
 
@@ -278,7 +294,7 @@ def assemble_crackle(src: Path) -> list[tuple[np.ndarray, dict]]:
     # The bed: eleven pops a second over a low hush, folded into a loop the sampler can hold.
     bed = scatter(9.0, 11.0, -6.0)
     bed, a, b = audio.make_loop(bed, 1.0, 8.6, 0.8)
-    out.append((bed, dict(root=60, min_duration=0.2, loop=(a, b))))
+    out.append((bed, dict(root=60, min_duration=0.2, loop=(a, b), sources=sources)))
     # Struck: one pop and a short trail of smaller ones, three ways.
     for _ in range(3):
         y = np.zeros(int(0.6 * RATE))
@@ -290,7 +306,7 @@ def assemble_crackle(src: Path) -> list[tuple[np.ndarray, dict]]:
             h = audio.shift(grains[rng.integers(len(grains))], rng.uniform(-3.0, 6.0)) * rng.uniform(0.15, 0.45)
             at = int(t * RATE)
             y[at:at + len(h)] += h[: len(y) - at]
-        out.append((audio.trim_tail(y, 0.6, fade=0.05), dict(root=60, max_duration=0.2)))
+        out.append((audio.trim_tail(y, 0.6, fade=0.05), dict(root=60, max_duration=0.2, sources=sources)))
     return out
 
 
@@ -300,6 +316,7 @@ def assemble_chirp(src: Path) -> list[tuple[np.ndarray, dict]]:
     """
     names = ['LDFlute_stac_E5_v1_rr1.wav', 'LDFlute_stac_E5_v1_rr2.wav', 'LDFlute_stac_A5_v1_rr1.wav',
              'LDFlute_stac_C6_v1_rr1.wav']
+    sources = tuple(f'{VSCO}/Woodwinds/Flute/stac/{n}' for n in names)
     notes = []
     for n in names:
         x = audio.trim_head(audio.load(src / VSCO / 'Woodwinds/Flute/stac' / n))
@@ -320,7 +337,7 @@ def assemble_chirp(src: Path) -> list[tuple[np.ndarray, dict]]:
             at = int(t * RATE)
             y[at:at + len(k)] += k[: len(y) - at]
             t += rng.uniform(0.09, 0.14)
-        out.append((audio.trim_tail(audio.highpass(y, 1200.0), 0.9, fade=0.05), dict(root=88)))
+        out.append((audio.trim_tail(audio.highpass(y, 1200.0), 0.9, fade=0.05), dict(root=88, sources=sources)))
     return out
 
 
@@ -329,6 +346,140 @@ ASSEMBLED = {
                                        track_pitch=False, body=(0.0, 0.6))),
     'chirp': (assemble_chirp, dict(envelope='struck', level=0.63, track_pitch=True, body=(0.0, 0.3))),
 }
+
+
+# --- what each instrument is for -----------------------------------------------------------------
+
+# One line per instrument, for SOURCES.md. The composer is the authority on what an instrument is
+# asked to play; these say what recording stands in for it, which is what a reader of the bank needs.
+NOTES = {
+    'pad': 'Strings: a cello section below middle C and a violin section above it, at their softest '
+           'recorded dynamic. Sustained and crossfade-looped; the section\'s own vibrato is the movement '
+           'the old pad\'s filter sweep stood in for.',
+    'epiano': 'Felt-soft upright piano, two velocity layers, so a soft note is a different strike rather '
+              'than a quieter copy of a hard one.',
+    'bell': 'Hand chimes: struck aluminium tubes with almost no strike noise.',
+    'glass': 'Vibraphone with soft mallets and the motor off.',
+    'pluck': 'Concert harp.',
+    'mallet': 'Marimba, medium strikes.',
+    'drone': 'Quiet organ pedal flue, looped: a note held for as long as a whole piece needs.',
+    'flute': 'Flute without vibrato, looped, so a held note holds still.',
+    'thump': 'Foley: a frame drum, muted, round-robin.',
+    'clank': 'Foley: an anvil, two velocity layers, round-robin.',
+    'tick': 'Foley: woodblock and claves, round-robin.',
+    'hiss': 'Foley: a cabasa rub, high-passed and swelled.',
+    'wind': 'Foley: an ocean drum swell, low-passed and looped.',
+    'drip': 'Foley: glockenspiel bars damped to their first half-second, a drop landing on something tuned.',
+    'rustle': 'Foley: a small shaker roll, looped.',
+    'swell': 'Foley: a suspended cymbal roll, looped.',
+    'crackle': 'A fire assembled from percussion: the first milliseconds of claves, woodblock, cabasa and '
+               'shaker strikes, scattered with power-law sizes over the hush of an ocean drum. One looped '
+               'bed and three struck pops; each grain is a real strike, only the arrangement is the fire.',
+    'chirp': 'Birdsong from flute staccato: two or three clipped high notes in a falling-then-rising '
+             'contour.',
+}
+
+LIBRARY_TITLES = {
+    'VSCO-2-CE': 'VSCO-2 Community Edition, Versilian Studios',
+    'VCSL': 'Versilian Community Sample Library (VCSL), Versilian Studios and contributors',
+}
+
+
+def midi_name(number: int) -> str:
+    """Scientific pitch, C4 = 60 - the convention note_of reads the file names in."""
+    names = ('C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B')
+    return f'{names[number % 12]}{number // 12 - 1}'
+
+
+def write_sources(sections: list[tuple[str, dict, list[dict]]]) -> None:
+    """
+    SOURCES.md: where every file in this directory came from, and how to check it.
+
+    No date in it, on purpose. A rebuild from the same commits must leave this file as well as the
+    .ogg files untouched, and a "last built" line would make that false on every run.
+    """
+    lines = [
+        '# Where these sounds came from',
+        '',
+        'Every `.ogg` in this directory is made from recordings of real instruments, cut, tuned, looped '
+        'and levelled by `tools/soul_music/build_bank.py` (#163). The recordings come from two libraries, '
+        'both released under **CC0 1.0** (public domain dedication), so nothing here carries an '
+        'attribution requirement. The credit below is given because it is owed, not because it is '
+        'required:',
+        '',
+    ]
+
+    for library in LIBRARIES:
+        url = library.url.removesuffix('.git')
+        lines.append(f'* **{LIBRARY_TITLES[library.name]}** - <{url}>, commit `{library.commit}`')
+
+    lines += [
+        '',
+        '#209 asks that provenance be recorded because "CC0" and "CC-BY" are different promises. This '
+        'bank makes the CC0 one, and it does so by construction: only CC0 libraries are read, each is '
+        'pinned to a commit in `tools/soul_music/fetch_sources.py`, and every file says which recording '
+        'it came from. A new source has to be CC0, and is recorded in both places before it is used.',
+        '',
+        '## Rebuilding',
+        '',
+        '```',
+        'python3 tools/soul_music/fetch_sources.py /path/to/sources',
+        'python3 tools/soul_music/build_bank.py --sources /path/to/sources',
+        '```',
+        '',
+        'The second command rewrites `bank.json`, these files and this one. Run it on a clean tree and '
+        '`git status` should show nothing; if it does not, the sources have moved or the scripts have, '
+        'and that is worth finding out before a build ships. Needs numpy, scipy and soundfile, and an '
+        '`ffmpeg` built with libvorbis - see `tools/soul_music/requirements.txt`.',
+        '',
+        '## Format and levels',
+        '',
+        'Pitches are scientific pitch with middle C = C4 = MIDI 60, whatever a library calls the same '
+        'note in its file names (VSCO and VCSL do not agree with each other on that).',
+        '',
+        'Mono, 44100 Hz, Ogg Vorbis at libvorbis quality 5, encoded through ffmpeg in bit-exact mode so '
+        'a rebuild is byte-identical. The checksum is of the samples as 16-bit PCM, and it is the same '
+        'rounding `mix.py` uses for its own checksums; it is not a checksum of the `.ogg` file.',
+        '',
+        'Each instrument\'s `level` was first set so its stem, rendered by `MusicPreview` '
+        '(`sh gradlew musicPreview -PpreviewArgs="--only stems --no-wav"`), measured what the oscillator '
+        'it replaced measured, and then moved by ear. Each zone\'s `gain` brings its loudest 50 ms to one '
+        'reference, so `level` is the one number per instrument a tuner changes. Do not edit `bank.json` '
+        'or the `.ogg` files: change the script, and rebuild.',
+        '',
+        '## Instruments',
+        '',
+    ]
+
+    for name, fields, rows in sections:
+        pitched = 'pitched' if fields['track_pitch'] else 'unpitched'
+        tone = f", tone {fields['tone'][0]:.0f}-{fields['tone'][1]:.0f} Hz" if fields.get('tone') else ''
+        lines += [
+            f'### {name}',
+            '',
+            NOTES[name],
+            '',
+            f'`level` {fields["level"]}, {fields["envelope"]} envelope, {pitched}{tone}.',
+            '',
+            '| File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |',
+            '| --- | --- | --- | --- | --- | --- | --- |',
+        ]
+
+        for row in rows:
+            keys = 'all' if (row['lo'], row['hi']) == (0, 127) else (
+                f"{midi_name(row['lo'])}+" if row['hi'] == 127 else
+                f"-{midi_name(row['hi'])}" if row['lo'] == 0 else
+                f"{midi_name(row['lo'])}-{midi_name(row['hi'])}")
+            vel = 'all' if row['vel'] == (0.0, 1.0) else f"{row['vel'][0]:.1f}-{row['vel'][1]:.1f}"
+            source = '; '.join(f'`{path}`' for path in row['sources'])
+            lines.append(
+                f"| `{Path(row['file']).name}` | {midi_name(row['root'])} ({row['root']}) | {keys} | {vel} | "
+                f"{row['gain']:.3f} | `{row['sha'][:16]}…` | {source} |")
+
+        lines.append('')
+
+    lines += ['', '_Written by `build_bank.py`; see the note on rebuilding above._', '']
+    (OUT / 'SOURCES.md').write_text('\n'.join(lines), encoding='utf-8')
 
 
 # --- building -----------------------------------------------------------------------------------
@@ -345,6 +496,7 @@ class Zone:
     lo: int = 0
     hi: int = 127
     report: dict = field(default_factory=dict)
+    sources: tuple[str, ...] = ()                    # library-relative paths, from the library's root
 
 
 def loudness_db(x: np.ndarray, body: tuple[float, float]) -> float:
@@ -392,7 +544,8 @@ def prepare(spec: Spec, s: Source, src: Path) -> Zone:
     scale = STORE_PEAK / max(audio.peak(x), 1e-9)
     x = x * scale
     gain = matched_gain(x, spec.body, s.gain_db)
-    return Zone(file='', root=root, audio=x, vel=s.vel, dur=s.dur, loop=loop, gain=gain, report=report)
+    return Zone(file='', root=root, audio=x, vel=s.vel, dur=s.dur, loop=loop, gain=gain, report=report,
+                sources=(s.path,))
 
 
 def key_ranges(zones: list[Zone], rr: bool) -> None:
@@ -405,8 +558,14 @@ def key_ranges(zones: list[Zone], rr: bool) -> None:
         z.hi = 127 if i == len(roots) - 1 else (z.root + roots[i + 1]) // 2
 
 
-def write_instrument(name: str, zones: list[Zone], fields: dict) -> dict:
+def pcm_sha256(x: np.ndarray) -> str:
+    """The checksum SOURCES.md gives: the samples as 16-bit PCM, rounded the way mix.py rounds them."""
+    return hashlib.sha256(np.round(np.clip(x, -1.0, 1.0) * 32767.0).astype('<i2').tobytes()).hexdigest()
+
+
+def write_instrument(name: str, zones: list[Zone], fields: dict) -> tuple[dict, list[dict]]:
     entries = []
+    rows = []
     for i, z in enumerate(sorted(zones, key=lambda z: (z.root, z.vel, z.dur))):
         rel = f'{name}/{name}_{i:02d}.ogg'
         path = OUT / rel
@@ -426,39 +585,71 @@ def write_instrument(name: str, zones: list[Zone], fields: dict) -> dict:
                 raise SystemExit(f'{rel}: loop end {b} past decoded length {frames}')
             entry.update(loop_start=int(a), loop_end=int(b))
         entries.append(entry)
+        rows.append(dict(file=rel, root=z.root, lo=z.lo, hi=z.hi, vel=z.vel, gain=z.gain,
+                         sha=pcm_sha256(z.audio), sources=z.sources))
         print(f'  {rel:28s} root={z.root:3d} {z.lo:3d}-{z.hi:<3d} {len(z.audio) / RATE:5.2f}s '
               f'gain={z.gain:6.3f} {z.report}')
     out = {k: v for k, v in fields.items() if v is not None}
     out['zones'] = entries
-    return out
+    return out, rows
+
+
+def check_pins(src: Path) -> None:
+    """
+    A bank cut from a different commit is a different bank, and SOURCES.md would name the wrong one.
+
+    A checkout made by fetch_sources.py is checked. An unpacked archive has no history to check, so it
+    is taken on trust and SOURCES.md still names the pinned commit - which is the commit it must be.
+    """
+    for library in LIBRARIES:
+        checkout = src / library.name
+
+        if not (checkout / '.git').exists():
+            print(f'{library.name}: not a git checkout, so its commit is taken on trust')
+            continue
+
+        head = subprocess.run(['git', '-C', str(checkout), 'rev-parse', 'HEAD'], capture_output=True,
+                              text=True, check=True).stdout.strip()
+
+        if head != library.commit:
+            raise SystemExit(f'{checkout} is at {head}, not the pinned {library.commit}; check the pinned '
+                             'commit out, or re-pin it in fetch_sources.py')
 
 
 def build(src: Path) -> None:
+    check_pins(src)
+
     for old in OUT.glob('*/*.ogg'):
         old.unlink()
     instruments = {}
+    sections = []
     for spec in SPECS:
         print(spec.name)
         zones = [prepare(spec, s, src) for s in spec.sources]
         key_ranges(zones, spec.rr)
-        instruments[spec.name] = write_instrument(spec.name, zones, dict(
+        fields = dict(
             level=spec.level, envelope=spec.envelope, attack=spec.attack, release=spec.release,
-            track_pitch=spec.track_pitch, tone=list(spec.tone) if spec.tone else None))
+            track_pitch=spec.track_pitch, tone=list(spec.tone) if spec.tone else None)
+        instruments[spec.name], rows = write_instrument(spec.name, zones, fields)
+        sections.append((spec.name, fields, rows))
     for name, (make, f) in ASSEMBLED.items():
         print(name)
         body = f.pop('body')
         zones = []
         for x, meta in make(src):
             x = x * (STORE_PEAK / max(audio.peak(x), 1e-9))
-            z = Zone(file='', root=meta['root'], audio=x, gain=matched_gain(x, body, 0.0))
+            z = Zone(file='', root=meta['root'], audio=x, gain=matched_gain(x, body, 0.0),
+                     sources=meta['sources'])
             if 'loop' in meta:
                 z.loop = meta['loop']
             z.dur = (meta.get('min_duration', 0.0), meta.get('max_duration', 1e6))
             zones.append(z)
-        instruments[name] = write_instrument(name, zones, f)
+        instruments[name], rows = write_instrument(name, zones, f)
+        sections.append((name, dict(f), rows))
         f['body'] = body
     manifest = {'format': 1, 'sample_rate': RATE, 'instruments': instruments}
     (OUT / 'bank.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    write_sources(sections)
     total = sum(audio.decoded_length(p) for p in OUT.glob('*/*.ogg')) / RATE
     size = sum(p.stat().st_size for p in OUT.glob('*/*.ogg')) / 1e6
     print(f'{total:.1f} s of audio, {size:.2f} MB on disk')

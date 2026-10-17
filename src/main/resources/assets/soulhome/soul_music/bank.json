@@ -858,26 +858,30 @@
       ]
     },
     "hiss": {
-      "level": 2.0,
+      "level": 1.8,
       "envelope": "swell",
       "attack": 0.0,
       "release": 0.25,
       "track_pitch": false,
+      "tone": [
+        2000.0,
+        4500.0
+      ],
       "zones": [
         {
           "file": "hiss/hiss_00.ogg",
           "root": 72,
-          "gain": 2.5493
+          "gain": 2.5221
         },
         {
           "file": "hiss/hiss_01.ogg",
           "root": 72,
-          "gain": 2.9557
+          "gain": 3.525
         },
         {
           "file": "hiss/hiss_02.ogg",
           "root": 72,
-          "gain": 3.1555
+          "gain": 2.7906
         }
       ]
     },

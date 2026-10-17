@@ -8,6 +8,28 @@ The initial build for 1.18.1 Minecraft, with basic patchouli, advancements, and 
 
 SoulHome - For 1.20.1 Minecraft
 
+The soul's music and ambience sound like instruments, not oscillators
+
+The soul's music was synthesised note by note from sine waves and filter sweeps, and its ambience was
+synthesised the same way. Both sounded like what they were made of. A bowed vibraphone, a harp, a wine glass rubbed until it sings: a sine wave
+cannot be made to be any of those, and the soul is the one place in the mod that is meant to sound as
+if it has a voice of its own.
+
+- The music is played from recorded instruments: cello and violin sections for the pad, an upright piano
+  for a hearth, hand chimes, a vibraphone, a harp, a marimba, a flute and an organ pedal, with a frame
+  drum, an anvil, claves and a fire of percussion grains for the foley.
+- The ambience is recordings too: an ocean drum and cymbal rolls under the rank beds, a horn over a
+  frame drum for a hearth, an anvil over a timpani for a forge. The file names and sound events are
+  the same as before, so nothing that plays them had to change.
+- The recordings come from two CC0 libraries, VSCO-2 Community Edition and the Versilian Community
+  Sample Library. They are credited in `soul_music/SOURCES.md` and `ambience/SOURCES.md`, and both are
+  built by scripts in the repository, so where any note or breath came from can be checked.
+- Neither is a buff nor a nerf. Nothing a room is worth or pays has changed. The music still composes
+  itself for each soul, in its own key, from its rooms and its rank, and a soul built two ways at once
+  is still played as a third thing. A resource pack that replaces `soulhome:music/soul` or the
+  ambience sounds still does.
+- If the samples fail to load, the soul plays its old oscillators rather than going quiet.
+
 Soul rooms
 
 What you build inside your soul now changes what you can do outside it. Build a room, and if it

@@ -152,7 +152,6 @@ BASSDRUM = f'{VCSL}/Membranophones/Struck Membranophones/Bass Drum 2'
 GONG = f'{VSCO}/VSCO 1 Percussion/varMetal/Gong'
 CYMBAL = f'{VCSL}/Idiophones/Struck Idiophones/Suspended Cymbal 1'
 TRIANGLE = f'{VCSL}/Idiophones/Struck Idiophones/Triangles'
-MARK_TREES = f'{VCSL}/Idiophones/Struck Idiophones/Mark Trees/Legacy'
 
 
 def base(v: int) -> np.ndarray:

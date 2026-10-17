@@ -44,8 +44,10 @@ public final class SoulSynth
 
     /**
      * The whole mix is multiplied by this before the limiter. Found by measuring rather than
-     * derived: it puts every voice's pieces between about -19 and -24 dBFS RMS at every rank, which
-     * is where Minecraft's own tracks sit, and {@code SoulSynthTest} holds it there.
+     * derived: it puts every voice's pieces between about -19 and -25 dBFS RMS, which is where
+     * Minecraft's own tracks sit. {@code SoulSynthTest} holds every voice between -28 and -16 at the
+     * lowest and highest rank, for the recorded bank and the oscillator fallback alike, and the bank's
+     * instrument levels were matched to the oscillators so this one number serves both.
      */
     static final float MASTER = 1.2f;
 
