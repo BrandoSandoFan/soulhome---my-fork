@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * averaged to mono, as the {@link SampleBank.Decoder} contract asks, but the source's channel count
  * and rate are kept so a test can assert the shipped files are what the manifest says they are.
  */
-final class JorbisDecoder implements SampleBank.Decoder
+public final class JorbisDecoder implements SampleBank.Decoder
 {
     static final Path ROOT = Path.of("src", "main", "resources", "assets", "soulhome", "soul_music");
 
@@ -39,7 +39,7 @@ final class JorbisDecoder implements SampleBank.Decoder
     private static SampleBank shipped;
 
     /** Mono samples in [-1, 1], plus what the file itself said it was. */
-    record Decoded(float[] samples, int sampleRate, int channels)
+    public record Decoded(float[] samples, int sampleRate, int channels)
     {
     }
 
@@ -59,7 +59,7 @@ final class JorbisDecoder implements SampleBank.Decoder
             return cached;
         }
 
-        final Decoded decoded = read(ROOT.resolve(file));
+        final Decoded decoded = decode(ROOT.resolve(file));
 
         CACHE.put(file, decoded);
 
@@ -80,7 +80,11 @@ final class JorbisDecoder implements SampleBank.Decoder
         return shipped;
     }
 
-    private static Decoded read(Path path) throws IOException
+    /**
+     * Any Ogg Vorbis file, decoded in full and not remembered. Used by the asset checks, which walk
+     * every recording in the tree and would otherwise keep all of them in memory at once.
+     */
+    public static Decoded decode(Path path) throws IOException
     {
         final byte[] bytes = Files.readAllBytes(path);
 

@@ -37,6 +37,12 @@ final class SampleVoice extends SoulSynth.Voice
     private double position;
     private double tone;
 
+    /**
+     * Whether the read has come round the loop at least once. Frames before loopStart are the intro,
+     * which plays once; only after a wrap is the frame before loopStart the loop's own last frame.
+     */
+    private boolean wrapped;
+
     private SampleVoice(NoteEvent event, SampleBank.Kit kit, SampleBank.Zone zone)
     {
         // the oscillator constructor sets the pan; its level is not used, since amplitude below is
@@ -82,7 +88,9 @@ final class SampleVoice extends SoulSynth.Voice
             return 0f;
         }
 
-        double value = read(this.position) * this.amplitude * SCALE * envelope(seconds);
+        final boolean looping = wraps(seconds);
+
+        double value = read(this.position, looping) * this.amplitude * SCALE * envelope(seconds);
 
         if (this.filtered)
         {
@@ -92,12 +100,14 @@ final class SampleVoice extends SoulSynth.Voice
 
         this.position += this.step;
 
-        if (wraps(seconds) && this.position >= this.loopEnd)
+        if (looping && this.position >= this.loopEnd)
         {
-            // the loop is crossfaded in the asset, so a plain wrap is seamless
+            // the loop is a cycle, and read() takes its taps from the same cycle, so the wrap is seamless
+            // for the interpolation as well as for the read position
             final double length = this.loopEnd - this.loopStart;
 
             this.position = this.loopStart + (this.position - this.loopStart) % length;
+            this.wrapped = true;
         }
 
         return (float) value;
@@ -123,9 +133,12 @@ final class SampleVoice extends SoulSynth.Voice
 
     /**
      * Whether the read position wraps at this moment. A struck note plays to the end of the recording
-     * whatever its zone says. A held note loops only for as long as it is held, so its release is
-     * heard over the recording's tail rather than over a loop that never ends. A swell loops for its
-     * whole life, since its envelope is what ends it.
+     * whatever its zone says. A held note loops for its duration and through its release. The loop is
+     * all there is of a held note in the asset - the build tool cuts a looped recording at loop_end, so
+     * there is no recorded tail to release over - and the release is the sampler's envelope, not the
+     * recording's. Stopping the loop at the end of the hold would run the read off the end of the file
+     * and end the voice at once, which is a click. Only the release ends a held note. A swell loops for
+     * its whole life, since its envelope is what ends it.
      */
     private boolean wraps(double seconds)
     {
@@ -137,7 +150,7 @@ final class SampleVoice extends SoulSynth.Voice
         return switch (this.envelope)
         {
             case STRUCK -> false;
-            case SUSTAIN -> seconds < this.duration;
+            case SUSTAIN -> seconds < this.duration + this.release;
             case SWELL -> true;
         };
     }
@@ -192,25 +205,47 @@ final class SampleVoice extends SoulSynth.Voice
     }
 
     /**
-     * Four-point cubic Hermite interpolation, reading past either end as silence. The taps are the
-     * recording's own frames, so a read that straddles the loop point simply reads the frames beyond
-     * the loop, which the asset has been crossfaded to expect.
+     * Four-point cubic Hermite interpolation, reading past either end of the recording as silence. A
+     * tap is the frame the voice hears at that index: while the voice loops, the loop is a cycle, so a
+     * tap past loopEnd is the frame after loopStart and a tap before it is the frame before loopEnd.
+     * Without that, the last frames of every loop interpolate toward the silence past the end of the
+     * array, and each wrap is a dip.
      */
-    private float read(double position)
+    private float read(double position, boolean looping)
     {
         final int index = (int) Math.floor(position);
         final double t = position - index;
 
-        final double x0 = at(index - 1);
-        final double x1 = at(index);
-        final double x2 = at(index + 1);
-        final double x3 = at(index + 2);
+        final double x0 = tap(index - 1, looping);
+        final double x1 = tap(index, looping);
+        final double x2 = tap(index + 1, looping);
+        final double x3 = tap(index + 2, looping);
 
         final double c1 = 0.5d * (x2 - x0);
         final double c2 = x0 - 2.5d * x1 + 2d * x2 - 0.5d * x3;
         final double c3 = 0.5d * (x3 - x0) + 1.5d * (x1 - x2);
 
         return (float) (((c3 * t + c2) * t + c1) * t + x1);
+    }
+
+    /**
+     * The frame at {@code index} as the voice hears it. Outside a loop, or inside it, this is the
+     * recording itself. Past loopEnd while looping, the index is folded back into the loop, so the
+     * taps at the seam are the frames the wrap is about to play. Below loopStart it is folded only once
+     * the voice has wrapped: before that, those frames are the intro and are heard as they are.
+     */
+    private double tap(int index, boolean looping)
+    {
+        final boolean inLoop = index >= this.loopStart && index < this.loopEnd;
+
+        if (!looping || inLoop || index < this.loopStart && !this.wrapped)
+        {
+            return at(index);
+        }
+
+        final int length = this.loopEnd - this.loopStart;
+
+        return at(this.loopStart + Math.floorMod(index - this.loopStart, length));
     }
 
     private double at(int index)
