@@ -10,6 +10,7 @@ import leaf.soulhome.network.SyncSoulAmbienceMessage;
 import leaf.soulhome.registry.SoundsRegistry;
 import leaf.soulhome.structures.core.AmbienceSettings;
 import leaf.soulhome.structures.core.SoulCharacter;
+import leaf.soulhome.structures.core.music.SampleBank;
 import leaf.soulhome.structures.core.music.SoulComposer;
 import leaf.soulhome.structures.core.music.SoulMusicBrief;
 import leaf.soulhome.structures.core.music.SoulSynth;
@@ -165,12 +166,23 @@ public final class SoulMusicPlayer
                 return;
             }
 
+            // the recordings are still decoding - after a reload, or at start-up. The music waits for them
+            // rather than starting on oscillators and switching mid-visit. Nothing is audible meanwhile, so
+            // the fade starts from silence, the same as it does on arrival.
+            final SampleBank bank = SoulSampleBankLoader.current();
+
+            if (bank == null)
+            {
+                level = 0f;
+                return;
+            }
+
             if (playing != null)
             {
                 manager.stop(playing);
             }
 
-            playing = new Instance();
+            playing = new Instance(bank);
             manager.play(playing);
         }
 
@@ -195,11 +207,16 @@ public final class SoulMusicPlayer
      */
     private static final class Instance extends AbstractTickableSoundInstance
     {
+        private final SampleBank bank;
         private int age;
 
-        private Instance()
+        private Instance(SampleBank bank)
         {
             super(SoundsRegistry.SOUL_MUSIC.get(), SoundSource.MUSIC, RandomSource.create());
+
+            // captured when the instance starts, so a reload mid-visit cannot change the recordings under a
+            // piece that is already playing
+            this.bank = bank;
 
             this.looping = false;
             this.delay = 0;
@@ -250,7 +267,7 @@ public final class SoulMusicPlayer
                 final SoulMusicBrief now = brief();
 
                 return SoulComposer.compose(now, now.pieceSeed(offset + index));
-            }, offset);
+            }, offset, this.bank);
 
             return CompletableFuture.completedFuture(new SoulMusicStream(synth));
         }
