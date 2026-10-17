@@ -8,15 +8,21 @@ import leaf.soulhome.config.SoulHomeClientConfig;
 import leaf.soulhome.constants.Constants;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeConfigSpec;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The switches for the Ambience epic (#167), reachable from Mods -> SoulHome -> Config.
@@ -26,38 +32,60 @@ import net.minecraftforge.common.ForgeConfigSpec;
  * are different claims, and the second is the one the issue asks for - somebody who finds the fog
  * uncomfortable should not have to be told there is a toml file.
  *
- * <p>Two columns. The left is the soul's own ambience: six controls, and the first of them turns off
- * the other five. {@code Intensity} reaches zero through the same slider it is set by, which is
- * deliberately the one control that does everything: a player sensitive to motion or contrast has one
- * thing to find rather than four.
+ * <p>Two columns when the window is wide enough for them, one stacked column when it is not. The left
+ * is the soul's own ambience: six controls, and the first of them, {@code Soul ambience}, switches off
+ * everything that depends on it - the other five, and the soul's music in the right-hand column. Those
+ * are greyed out while it is off, so a player can see why they do nothing. {@code Intensity} reaches
+ * zero through the same slider it is set by, which is deliberately the one control that does everything:
+ * a player sensitive to motion or contrast has one thing to find rather than four.
  *
  * <p>The right is suppression (#188): the screen warp around a player who has ascended, and its
  * sound. Both were in the toml from the start, and the warp is the one control in the mod that
  * exists because of motion sickness - which made it the one most in need of a screen, and it had
  * none. It sits here rather than on a screen of its own because this is where a player who has
- * already turned the fog off will look for the next thing that bothers them. Columns rather than
- * two more rows, because two more rows push the last of them under the footer at the smallest window
- * the game allows. The soul's own music (#163) sits under it, under a heading of its own, for the
- * same reason.
+ * already turned the fog off will look for the next thing that bothers them. Suppression is not
+ * greyed by the master switch: it reads its own config, and turning the soul's ambience off does not
+ * turn off how other players are shown to you. The soul's own music (#163) sits under it, under a
+ * heading of its own. Columns rather than two more rows, because two more rows push the last of them
+ * under the footer at the smallest window the game allows.
  */
 @OnlyIn(Dist.CLIENT)
 public class SoulAmbienceOptionsScreen extends Screen
 {
-    private static final int ROW_HEIGHT = 24;
+    /** The vanilla formats a slider is written in, so a translation that already has them is used as it is. */
+    private static final String PERCENT_VALUE = "options.percent_value";
+    private static final String GENERIC_VALUE = "options.generic_value";
+
     private static final int WIDTH = 150;
     private static final int GUTTER = 10;
-    private static final int HEADING_Y = 34;
-    private static final int FIRST_ROW_Y = 46;
+    /** The width two columns need. Below it the rows stack in one column, which is the only way they fit. */
+    private static final int TWO_COLUMN_WIDTH = 2 * WIDTH + GUTTER + 2 * SoulGuiStyle.MARGIN;
+
+    /** Clears the title. */
+    private static final int ROWS_TOP = SoulGuiStyle.TITLE_Y + SoulGuiStyle.LINE_HEIGHT + 6;
+    /** A heading's own line, and the gap that keeps its first row off the text. */
+    private static final int HEADING_HEIGHT = SoulGuiStyle.LINE_HEIGHT + 3;
+    private static final int FOOTER_SPACING = 8;
 
     /**
-     * The soul's music (#163) sits under the suppression pair with a heading of its own: it is about
-     * your soul rather than other people's, but a seventh row on the left would put the intensity
-     * slider's neighbour under the footer at the smallest window the game allows.
+     * Tried in order until the stack clears the footer. A control is always {@link SoulGuiStyle#BUTTON_HEIGHT}
+     * tall, so the step is the space between rows. The group gap is what is given up after it.
      */
-    private static final int MUSIC_HEADING_Y = FIRST_ROW_Y + 2 * ROW_HEIGHT + 8;
-    private static final int MUSIC_ROW_Y = MUSIC_HEADING_Y + 12;
+    private static final Spacing[] SPACINGS = {
+            new Spacing(24, 8),
+            new Spacing(22, 8),
+            new Spacing(20, 8),
+            new Spacing(20, 4)
+    };
 
     private final Screen parent;
+
+    /** The controls that do nothing while the soul is switched off. Rebuilt with the layout each time. */
+    private final List<AbstractWidget> gated = new ArrayList<>();
+    private final List<Heading> headings = new ArrayList<>();
+
+    private List<FormattedCharSequence> note = List.of();
+    private int noteTop;
 
     public SoulAmbienceOptionsScreen(Screen parent)
     {
@@ -68,86 +96,107 @@ public class SoulAmbienceOptionsScreen extends Screen
     @Override
     protected void init()
     {
-        final SoulHomeClientConfig.Client config = SoulHomeClientConfig.CLIENT;
-        final int left = leftColumn();
-        final int right = rightColumn();
+        final boolean twoColumns = this.width >= TWO_COLUMN_WIDTH;
+        final int limit = SoulGuiStyle.footerTop(this.height) - SoulGuiStyle.FOOTER_GAP;
 
-        int y = FIRST_ROW_Y;
+        int bottom = 0;
 
-        addToggle(left, y, Constants.StringKeys.AMBIENCE_SCREEN_ENABLED, config.ambienceEnabled);
-        y += ROW_HEIGHT;
+        // The tightest spacing is kept even when it still reaches the footer. There is no smaller layout to
+        // fall back to, and a row drawn under the footer is a control a player can still see and use.
+        for (Spacing spacing : SPACINGS)
+        {
+            this.clearWidgets();
+            bottom = stack(twoColumns, spacing);
 
-        addToggle(left, y, Constants.StringKeys.AMBIENCE_SCREEN_RANK, config.rankVisuals);
-        y += ROW_HEIGHT;
+            if (bottom <= limit)
+            {
+                break;
+            }
+        }
 
-        addToggle(left, y, Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER, config.characterColour);
-        y += ROW_HEIGHT;
+        // The note is dropped rather than drawn over a control when the stack leaves it no room. A missing
+        // line costs less than a line a player cannot read.
+        final List<FormattedCharSequence> lines = this.font.split(
+                Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_COSMETIC), this.width - 2 * SoulGuiStyle.MARGIN);
 
-        addToggle(left, y, Constants.StringKeys.AMBIENCE_SCREEN_SOUND, config.ambientSound);
-        y += ROW_HEIGHT;
+        this.noteTop = limit - lines.size() * SoulGuiStyle.LINE_HEIGHT;
+        this.note = bottom <= this.noteTop ? lines : List.of();
 
-        addSlider(left, y, Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY, config.intensity);
-        y += ROW_HEIGHT;
+        final int footerY = SoulGuiStyle.footerTop(this.height);
 
-        addSlider(left, y, Constants.StringKeys.AMBIENCE_SCREEN_VOLUME, config.soundVolume);
+        final Component done = CommonComponents.GUI_DONE;
+        final int doneWidth = SoulGuiStyle.buttonWidth(this.font, done);
 
-        y = FIRST_ROW_Y;
+        this.addRenderableWidget(Button.builder(done, button -> onClose())
+                .bounds(this.width - SoulGuiStyle.MARGIN - doneWidth, footerY, doneWidth, SoulGuiStyle.BUTTON_HEIGHT)
+                .build());
 
-        addToggle(right, y, Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION,
-                Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION_TIP, config.suppressionDistortion);
-        y += ROW_HEIGHT;
+        final Component reset = Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_RESET);
+        final int resetWidth = Math.min(SoulGuiStyle.buttonWidth(this.font, reset),
+                this.width - 2 * SoulGuiStyle.MARGIN - doneWidth - FOOTER_SPACING);
 
-        addToggle(right, y, Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO,
-                Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP, config.suppressionAudio);
-
-        addToggle(right, MUSIC_ROW_Y, Constants.StringKeys.AMBIENCE_SCREEN_MUSIC,
-                Constants.StringKeys.AMBIENCE_SCREEN_MUSIC_TIP, config.soulMusic);
-
-        addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
-                .bounds(this.width / 2 - 100, this.height - 30, 200, 20)
+        this.addRenderableWidget(Button.builder(
+                        SoulGuiStyle.truncate(this.font, reset, resetWidth - SoulGuiStyle.BUTTON_PAD),
+                        button -> resetToDefaults())
+                .bounds(SoulGuiStyle.MARGIN, footerY, resetWidth, SoulGuiStyle.BUTTON_HEIGHT)
+                .tooltip(Tooltip.create(Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_RESET_TIP)))
                 .build());
     }
 
-    private int leftColumn()
-    {
-        return this.width / 2 - WIDTH - GUTTER / 2;
-    }
-
-    private int rightColumn()
-    {
-        return this.width / 2 + GUTTER / 2;
-    }
-
-    private void addToggle(int x, int y, String key, ForgeConfigSpec.BooleanValue value)
-    {
-        addRenderableWidget(CycleButton.onOffBuilder(value.get())
-                .create(x, y, WIDTH, 20, Component.translatable(key), (button, set) ->
-                {
-                    write(value, set);
-                    flush();
-                }));
-    }
-
     /**
-     * A toggle whose name alone does not say enough. "Screen warp" is two words; what a player
-     * turning it off needs to know is that they lose nothing they would need, and that is a sentence.
+     * Lays out every heading and control at one spacing, and returns the lowest pixel a control reaches.
+     * Two columns put the soul's ambience on the left and suppression with music on the right. One column
+     * stacks the same three groups in that order, on one cursor.
      */
-    private void addToggle(int x, int y, String key, String tooltipKey, ForgeConfigSpec.BooleanValue value)
+    private int stack(boolean twoColumns, Spacing spacing)
     {
-        final Tooltip tooltip = Tooltip.create(Component.translatable(tooltipKey));
+        this.gated.clear();
+        this.headings.clear();
 
-        addRenderableWidget(CycleButton.onOffBuilder(value.get())
-                .withTooltip(set -> tooltip)
-                .create(x, y, WIDTH, 20, Component.translatable(key), (button, set) ->
-                {
-                    write(value, set);
-                    flush();
-                }));
+        final SoulHomeClientConfig.Client config = SoulHomeClientConfig.CLIENT;
+        final int leftX = twoColumns ? this.width / 2 - GUTTER / 2 - WIDTH : (this.width - WIDTH) / 2;
+        final int rightX = twoColumns ? this.width / 2 + GUTTER / 2 : leftX;
+
+        final Column left = new Column(leftX, spacing);
+        final Column right = twoColumns ? new Column(rightX, spacing) : left;
+
+        heading(left, Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SOUL);
+
+        // The master is not gated itself. Every control below it tests AmbienceSettings#active first, which
+        // is false while the master is off, so each one is a dial for nothing until it is turned back on.
+        addToggle(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_ENABLED,
+                Constants.StringKeys.AMBIENCE_SCREEN_ENABLED_TIP, config.ambienceEnabled);
+        this.gated.add(addToggle(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_RANK,
+                Constants.StringKeys.AMBIENCE_SCREEN_RANK_TIP, config.rankVisuals));
+        this.gated.add(addToggle(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER,
+                Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER_TIP, config.characterColour));
+        this.gated.add(addToggle(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_SOUND,
+                Constants.StringKeys.AMBIENCE_SCREEN_SOUND_TIP, config.ambientSound));
+        this.gated.add(addSlider(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY_LABEL,
+                Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY_TIP, config.intensity));
+        this.gated.add(addSlider(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_VOLUME_LABEL,
+                Constants.StringKeys.AMBIENCE_SCREEN_VOLUME_TIP, config.soundVolume));
+
+        heading(right, Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SUPPRESSION);
+
+        addToggle(right.x, right.row(), Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION,
+                Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION_TIP, config.suppressionDistortion);
+        addToggle(right.x, right.row(), Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO,
+                Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP, config.suppressionAudio);
+
+        heading(right, Constants.StringKeys.AMBIENCE_SCREEN_SECTION_MUSIC);
+
+        this.gated.add(addToggle(right.x, right.row(), Constants.StringKeys.AMBIENCE_SCREEN_MUSIC,
+                Constants.StringKeys.AMBIENCE_SCREEN_MUSIC_TIP, config.soulMusic));
+
+        refreshGated();
+
+        return Math.max(left.bottom(), right.bottom());
     }
 
-    private void addSlider(int x, int y, String key, ForgeConfigSpec.DoubleValue value)
+    private void heading(Column column, String key)
     {
-        addRenderableWidget(new PercentSlider(x, y, key, value));
+        this.headings.add(new Heading(column.x + WIDTH / 2, column.heading(), Component.translatable(key)));
     }
 
     /**
@@ -170,6 +219,90 @@ public class SoulAmbienceOptionsScreen extends Screen
         SoulHomeClientConfig.SPEC.save();
     }
 
+    /**
+     * Greys the controls that do nothing while the soul is off. It reads the config back rather than the
+     * switch just pressed, so the greying always agrees with what is saved.
+     */
+    private void refreshGated()
+    {
+        final boolean on = SoulHomeClientConfig.CLIENT.ambienceEnabled.get();
+
+        for (AbstractWidget widget : this.gated)
+        {
+            widget.active = on;
+        }
+    }
+
+    /**
+     * Every control says what it does, not only the ones whose label is ambiguous. A player wary of a
+     * setting should not have to work out its consequences from a two-word label.
+     *
+     * <p>The tooltip is built once and handed back for every value, since the toggle asks for it again
+     * whenever it cycles.
+     */
+    private CycleButton<Boolean> addToggle(int x, int y, String key, @Nullable String tipKey,
+                                           ForgeConfigSpec.BooleanValue value)
+    {
+        CycleButton.Builder<Boolean> builder = CycleButton.onOffBuilder(value.get());
+
+        if (tipKey != null)
+        {
+            final Tooltip tooltip = Tooltip.create(Component.translatable(tipKey));
+
+            builder = builder.withTooltip(set -> tooltip);
+        }
+
+        return addRenderableWidget(builder.create(x, y, WIDTH, SoulGuiStyle.BUTTON_HEIGHT, Component.translatable(key),
+                (button, set) ->
+                {
+                    write(value, set);
+                    flush();
+                    refreshGated();
+                }));
+    }
+
+    private PercentSlider addSlider(int x, int y, String labelKey, @Nullable String tipKey,
+                                    ForgeConfigSpec.DoubleValue value)
+    {
+        final PercentSlider slider = addRenderableWidget(new PercentSlider(x, y, Component.translatable(labelKey), value));
+
+        if (tipKey != null)
+        {
+            slider.setTooltip(Tooltip.create(Component.translatable(tipKey)));
+        }
+
+        return slider;
+    }
+
+    /**
+     * Puts back every value this screen writes, then rebuilds the controls so they show the defaults. Each
+     * default is read from the spec, not repeated here, so a default changed in SoulHomeClientConfig reaches
+     * this button with no second edit. {@code config_version} is bookkeeping, not a setting, and is left alone.
+     */
+    private void resetToDefaults()
+    {
+        final SoulHomeClientConfig.Client config = SoulHomeClientConfig.CLIENT;
+
+        reset(config.ambienceEnabled);
+        reset(config.rankVisuals);
+        reset(config.characterColour);
+        reset(config.ambientSound);
+        reset(config.intensity);
+        reset(config.soundVolume);
+        reset(config.soulMusic);
+        reset(config.suppressionDistortion);
+        reset(config.suppressionAudio);
+
+        flush();
+
+        this.rebuildWidgets();
+    }
+
+    private static <T> void reset(ForgeConfigSpec.ConfigValue<T> value)
+    {
+        value.set(value.getDefault());
+    }
+
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick)
     {
@@ -177,23 +310,21 @@ public class SoulAmbienceOptionsScreen extends Screen
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 16, 0xE0E0FF);
+        graphics.drawCenteredString(this.font, this.title, this.width / 2, SoulGuiStyle.TITLE_Y, SoulGuiStyle.TITLE);
 
-        graphics.drawCenteredString(
-                this.font, Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SOUL),
-                leftColumn() + WIDTH / 2, HEADING_Y, 0xC0C0C0);
-        graphics.drawCenteredString(
-                this.font, Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SUPPRESSION),
-                rightColumn() + WIDTH / 2, HEADING_Y, 0xC0C0C0);
-        graphics.drawCenteredString(
-                this.font, Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_SECTION_MUSIC),
-                rightColumn() + WIDTH / 2, MUSIC_HEADING_Y, 0xC0C0C0);
+        for (Heading heading : this.headings)
+        {
+            graphics.drawCenteredString(this.font, heading.text(), heading.centreX(), heading.y(), SoulGuiStyle.HEADER);
+        }
 
-        // said on the screen itself, because "cosmetic" is the one thing a player needs to know
-        // before deciding, and a config comment is not where they will be looking
-        graphics.drawCenteredString(
-                this.font, Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_COSMETIC),
-                this.width / 2, this.height - 46, 0xA0A0A0);
+        int y = this.noteTop;
+
+        for (FormattedCharSequence line : this.note)
+        {
+            graphics.drawString(this.font, line, (this.width - this.font.width(line)) / 2, y, SoulGuiStyle.MUTED);
+
+            y += SoulGuiStyle.LINE_HEIGHT;
+        }
     }
 
     @Override
@@ -204,16 +335,73 @@ public class SoulAmbienceOptionsScreen extends Screen
         this.minecraft.setScreen(this.parent);
     }
 
+    /** One column's place on the stack: a cursor that moves down past each heading and row. */
+    private static final class Column
+    {
+        private final int x;
+        private final Spacing spacing;
+
+        private int y = ROWS_TOP;
+        private int bottom;
+        private boolean started;
+
+        Column(int x, Spacing spacing)
+        {
+            this.x = x;
+            this.spacing = spacing;
+        }
+
+        /** The heading's y. A group after the first in this column is set off by the group gap. */
+        int heading()
+        {
+            if (this.started)
+            {
+                this.y += this.spacing.groupGap();
+            }
+
+            this.started = true;
+
+            final int at = this.y;
+
+            this.y += HEADING_HEIGHT;
+
+            return at;
+        }
+
+        int row()
+        {
+            final int at = this.y;
+
+            this.y += this.spacing.step();
+            this.bottom = at + SoulGuiStyle.BUTTON_HEIGHT;
+
+            return at;
+        }
+
+        int bottom()
+        {
+            return this.bottom;
+        }
+    }
+
+    private record Spacing(int step, int groupGap)
+    {
+    }
+
+    private record Heading(int centreX, int y, Component text)
+    {
+    }
+
     /** A 0-100% slider over one of the config's doubles, showing "Off" rather than "0%" at zero. */
     private static final class PercentSlider extends AbstractSliderButton
     {
-        private final String key;
+        private final Component label;
         private final ForgeConfigSpec.DoubleValue config;
 
-        PercentSlider(int x, int y, String key, ForgeConfigSpec.DoubleValue config)
+        PercentSlider(int x, int y, Component label, ForgeConfigSpec.DoubleValue config)
         {
-            super(x, y, WIDTH, 20, Component.empty(), config.get());
-            this.key = key;
+            super(x, y, WIDTH, SoulGuiStyle.BUTTON_HEIGHT, Component.empty(), config.get());
+            this.label = label;
             this.config = config;
             updateMessage();
         }
@@ -221,11 +409,11 @@ public class SoulAmbienceOptionsScreen extends Screen
         @Override
         protected void updateMessage()
         {
-            final Component amount = this.value <= 0d
-                    ? Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_OFF)
-                    : Component.literal(Math.round(this.value * 100d) + "%");
-
-            setMessage(Component.translatable(this.key, amount));
+            // "Off" goes through the generic format, because the percent format would make it "Off%".
+            setMessage(this.value <= 0d
+                    ? Component.translatable(GENERIC_VALUE, this.label,
+                            Component.translatable(Constants.StringKeys.AMBIENCE_SCREEN_OFF))
+                    : Component.translatable(PERCENT_VALUE, this.label, Math.round(this.value * 100d)));
         }
 
         @Override
