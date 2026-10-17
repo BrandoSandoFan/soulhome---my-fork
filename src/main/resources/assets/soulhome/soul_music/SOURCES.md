@@ -1,9 +1,35 @@
 # Where these sounds came from
 
-Every `.ogg` in this directory is made from recordings of real instruments, cut, tuned, looped and levelled by `tools/soul_music/build_bank.py` (#163). The recordings come from two libraries, both released under **CC0 1.0** (public domain dedication), so nothing here carries an attribution requirement. The credit below is given because it is owed, not because it is required:
+Every `.ogg` in this directory is made from real recordings, cut, tuned, looped and levelled by `tools/soul_music/build_bank.py` (#163). Every recording is released under **CC0 1.0** (public domain dedication), so nothing here carries an attribution requirement. The credit below is given because it is owed, not because it is required. The instruments come from two libraries:
 
 * **VSCO-2 Community Edition, Versilian Studios** - <https://github.com/sgossner/VSCO-2-CE>, commit `440300901dfe9275fd84e0b7763af1f8443ae62e`
 * **Versilian Community Sample Library (VCSL), Versilian Studios and contributors** - <https://github.com/sgossner/VCSL>, commit `c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e`
+
+and the foley from Freesound recordings, each checked as CC0 on its own page when it was fetched (`fetch_sources.py` refuses one that is not):
+
+| Freesound | Author | Recording |
+| --- | --- | --- |
+| [103071](https://freesound.org/s/103071/) | alan3809 | Anvil Strikes_5.wav |
+| [106114](https://freesound.org/s/106114/) | j1987 | bushmovement.wav |
+| [117136](https://freesound.org/s/117136/) | cobratronik | Wind__Artic__Cold.wav |
+| [166325](https://freesound.org/s/166325/) | deleted_user_2104797 | Water_drop_9.wav |
+| [174718](https://freesound.org/s/174718/) | paespedro | Single Water Drop |
+| [181252](https://freesound.org/s/181252/) | mario1298 | a gentle breeze, wind 3 |
+| [233254](https://freesound.org/s/233254/) | alegemaate | Single Bird Chirp 2 |
+| [233255](https://freesound.org/s/233255/) | alegemaate | Single Bird Chirp |
+| [234782](https://freesound.org/s/234782/) | wubitog | Steam/hiss |
+| [270588](https://freesound.org/s/270588/) | michorvath | Anvil Hit 2 |
+| [270589](https://freesound.org/s/270589/) | michorvath | Anvil Hit 1 |
+| [363169](https://freesound.org/s/363169/) | SamsterBirdies | Hammering on Anvil |
+| [365071](https://freesound.org/s/365071/) | sniperous | Steam.wav |
+| [380782](https://freesound.org/s/380782/) | BonnyOrbit | Clock ticks close to mic.wav |
+| [398077](https://freesound.org/s/398077/) | SukritSen | Steam.wav |
+| [414767](https://freesound.org/s/414767/) | samarobryn | Crackling Fire |
+| [437356](https://freesound.org/s/437356/) | giddster | Rustling leaves |
+| [443065](https://freesound.org/s/443065/) | AmberdeMeillon | Leaves_Rustling_Edited.wav |
+| [521972](https://freesound.org/s/521972/) | Kastenfrosch | Blacksmith Hammer |
+| [532191](https://freesound.org/s/532191/) | mcmikai | Fire in the stove |
+| [812033](https://freesound.org/s/812033/) | qubodup | Excited Bird Chirp |
 
 #209 asks that provenance be recorded because "CC0" and "CC-BY" are different promises. This bank makes the CC0 one, and it does so by construction: only CC0 libraries are read, each is pinned to a commit in `tools/soul_music/fetch_sources.py`, and every file says which recording it came from. A new source has to be CC0, and is recorded in both places before it is used.
 
@@ -78,36 +104,43 @@ Felt-soft upright piano, two velocity layers, so a soft note is a different stri
 
 ### bell
 
-Hand chimes: struck aluminium tubes with almost no strike noise.
+Clarinet long tones at its softest dynamic, looped: the bell's part with nothing struck, because a lead line of chimes dinged.
 
-`level` 0.226, struck envelope, pitched, tone 2500-9000 Hz.
+`level` 0.284, sustain envelope, pitched, tone 1500-7000 Hz.
 
 | File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
 | --- | --- | --- | --- | --- | --- | --- |
-| `bell_00.ogg` | C4 (60) | -D4 | all | 1.294 | `f0ac3c066725921e…` | `VCSL/Idiophones/Struck Idiophones/Hand Chimes/sus_C3_r01_main.wav` |
-| `bell_01.ogg` | E4 (64) | D#4-F#4 | all | 1.465 | `d584a5b3df39e833…` | `VCSL/Idiophones/Struck Idiophones/Hand Chimes/sus_E3_r01_main.wav` |
-| `bell_02.ogg` | G#4 (68) | G4-A#4 | all | 1.432 | `442c07db2551dbb6…` | `VCSL/Idiophones/Struck Idiophones/Hand Chimes/sus_G#3_r01_main.wav` |
-| `bell_03.ogg` | C5 (72) | B4-D5 | all | 1.169 | `ec94c0da22e4f253…` | `VCSL/Idiophones/Struck Idiophones/Hand Chimes/sus_C4_r01_main.wav` |
-| `bell_04.ogg` | E5 (76) | D#5-F#5 | all | 1.397 | `d9b9563b63b6b3e9…` | `VCSL/Idiophones/Struck Idiophones/Hand Chimes/sus_E4_r01_main.wav` |
-| `bell_05.ogg` | G#5 (80) | G5-A#5 | all | 2.121 | `0b0451abd350b286…` | `VCSL/Idiophones/Struck Idiophones/Hand Chimes/sus_G#4_r01_main.wav` |
-| `bell_06.ogg` | C6 (84) | B5+ | all | 1.816 | `dfe2c74364558911…` | `VCSL/Idiophones/Struck Idiophones/Hand Chimes/sus_C5_r01_main.wav` |
+| `bell_00.ogg` | D3 (50) | -D#3 | all | 1.976 | `f6e915e44de05b55…` | `VSCO-2-CE/Woodwinds/Clarinet/susLong/DCClar_susLong_D2_v1_rr1_sum.wav` |
+| `bell_01.ogg` | F3 (53) | E3-G3 | all | 2.141 | `374c76ed81f3f615…` | `VSCO-2-CE/Woodwinds/Clarinet/susLong/DCClar_susLong_F2_v1_rr1_sum.wav` |
+| `bell_02.ogg` | A#3 (58) | G#3-C4 | all | 1.492 | `19064901b0a0deb2…` | `VSCO-2-CE/Woodwinds/Clarinet/susLong/DCClar_susLong_A#2_v1_rr1_sum.wav` |
+| `bell_03.ogg` | D4 (62) | C#4-D#4 | all | 1.368 | `4851f3d0c095184f…` | `VSCO-2-CE/Woodwinds/Clarinet/susLong/DCClar_susLong_D3_v1_rr1_sum.wav` |
+| `bell_04.ogg` | F4 (65) | E4-G4 | all | 1.499 | `139de489545e915b…` | `VSCO-2-CE/Woodwinds/Clarinet/susLong/DCClar_susLong_F3_v1_rr1_sum.wav` |
+| `bell_05.ogg` | A#4 (70) | G#4-C5 | all | 1.218 | `b97a3c14725fe66c…` | `VSCO-2-CE/Woodwinds/Clarinet/susLong/DCClar_susLong_A#3_v1_rr1_sum.wav` |
+| `bell_06.ogg` | D5 (74) | C#5-D#5 | all | 1.445 | `e4135bcad8737d1b…` | `VSCO-2-CE/Woodwinds/Clarinet/susLong/DCClar_susLong_D4_v1_rr1_sum.wav` |
+| `bell_07.ogg` | F5 (77) | E5+ | all | 1.748 | `1200c83f9182d058…` | `VSCO-2-CE/Woodwinds/Clarinet/susLong/DCClar_susLong_F4_v1_rr1_sum.wav` |
 
 ### glass
 
-Vibraphone with soft mallets and the motor off.
+A bowed vibraphone for held notes, and the soft-mallet vibraphone, 4 dB down, only for quick ones.
 
-`level` 0.155, struck envelope, pitched, tone 2200-8000 Hz.
+`level` 0.267, sustain envelope, pitched, tone 1600-5000 Hz.
 
 | File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
 | --- | --- | --- | --- | --- | --- | --- |
-| `glass_00.ogg` | F3 (53) | -G3 | all | 1.392 | `a573234cf029e4e3…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_F2_v2_rr1_Main.wav` |
-| `glass_01.ogg` | A3 (57) | G#3-A#3 | all | 1.368 | `ca21f1f6bdc3a6be…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_A2_v2_rr1_Main.wav` |
-| `glass_02.ogg` | C4 (60) | B3-D4 | all | 1.774 | `1c1233f81367381d…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_C3_v2_rr1_Main.wav` |
-| `glass_03.ogg` | E4 (64) | D#4-F4 | all | 1.365 | `9d74db9d4c58a93f…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_E3_v2_rr1_Main.wav` |
-| `glass_04.ogg` | G4 (67) | F#4-A4 | all | 1.286 | `fd74fad2e6690bc2…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_G3_v2_rr1_Main.wav` |
-| `glass_05.ogg` | B4 (71) | A#4-C5 | all | 1.469 | `a2963e700b2a624b…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_B3_v2_rr1_Main.wav` |
-| `glass_06.ogg` | D5 (74) | C#5-D#5 | all | 1.378 | `f145f86981887940…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_D4_v2_rr1_Main.wav` |
-| `glass_07.ogg` | F5 (77) | E5+ | all | 1.218 | `862ffa58d22e0635…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_F4_v2_rr1_Main.wav` |
+| `glass_00.ogg` | F3 (53) | -G3 | all | 0.879 | `b271be76eaf14684…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_F2_v2_rr1_Main.wav` |
+| `glass_01.ogg` | A3 (57) | G#3-A#3 | all | 0.863 | `e8f36b8abddbb123…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_A2_v2_rr1_Main.wav` |
+| `glass_02.ogg` | A3 (57) | -C4 | all | 1.581 | `aaa38272ffb13dab…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Bowed/Vibes_bowed_A2_rr1_Main.wav` |
+| `glass_03.ogg` | C4 (60) | B3-D4 | all | 1.119 | `3e13e13f6136e670…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_C3_v2_rr1_Main.wav` |
+| `glass_04.ogg` | E4 (64) | D#4-F4 | all | 0.861 | `d22da6c246306c5d…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_E3_v2_rr1_Main.wav` |
+| `glass_05.ogg` | E4 (64) | C#4-F4 | all | 1.413 | `c4a9b31deee76980…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Bowed/Vibes_bowed_E3_rr1_Main.wav` |
+| `glass_06.ogg` | G4 (67) | F#4-A4 | all | 0.811 | `82c5aee09afeab32…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_G3_v2_rr1_Main.wav` |
+| `glass_07.ogg` | G4 (67) | F#4-A#4 | all | 1.443 | `55355dfdda1e3529…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Bowed/Vibes_bowed_G3_rr1_Main.wav` |
+| `glass_08.ogg` | B4 (71) | A#4-C5 | all | 0.927 | `528a5d385697c70b…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_B3_v2_rr1_Main.wav` |
+| `glass_09.ogg` | D5 (74) | C#5-D#5 | all | 0.869 | `a78bd18c62e01dc4…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_D4_v2_rr1_Main.wav` |
+| `glass_10.ogg` | D5 (74) | B4-F5 | all | 1.443 | `2e8bb8935cb4893b…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Bowed/Vibes_bowed_D4_rr1_Main.wav` |
+| `glass_11.ogg` | F5 (77) | E5+ | all | 0.768 | `2f02f25956f9940b…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Soft Mallets/Vibes_soft_F4_v2_rr1_Main.wav` |
+| `glass_12.ogg` | A5 (81) | F#5-C6 | all | 1.432 | `4751098231db357b…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Bowed/Vibes_bowed_A4_rr1_Main.wav` |
+| `glass_13.ogg` | E6 (88) | C#6+ | all | 1.227 | `81ed7e838d6dcbb2…` | `VCSL/Idiophones/Struck Idiophones/Vibraphone/Bowed/Vibes_bowed_E5_rr1_Main.wav` |
 
 ### pluck
 
@@ -191,77 +224,89 @@ Foley: a frame drum, muted, round-robin.
 
 ### clank
 
-Foley: an anvil, two velocity layers, round-robin.
+Foley: a hammer on an anvil, recorded by smiths on Freesound, round-robin.
 
-`level` 0.77, struck envelope, unpitched, tone 2500-6000 Hz.
+`level` 0.665, struck envelope, unpitched, tone 2000-6000 Hz.
 
 | File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
 | --- | --- | --- | --- | --- | --- | --- |
-| `clank_00.ogg` | C5 (72) | all | 0.0-0.6 | 2.877 | `a72726fefe44119f…` | `VCSL/Idiophones/Struck Idiophones/Anvil/Anvil_Hit1_v1_rr1_Mid.wav` |
-| `clank_01.ogg` | C5 (72) | all | 0.0-0.6 | 3.422 | `faf7c168c74c8a9c…` | `VCSL/Idiophones/Struck Idiophones/Anvil/Anvil_Hit2_v1_rr1_Mid.wav` |
-| `clank_02.ogg` | C5 (72) | all | 0.0-0.6 | 3.015 | `f9b83cf341ea448e…` | `VCSL/Idiophones/Struck Idiophones/Anvil/Anvil_Hit3_v1_rr1_Mid.wav` |
-| `clank_03.ogg` | C5 (72) | all | 0.6-1.0 | 2.801 | `a5f3626ad09f01fd…` | `VCSL/Idiophones/Struck Idiophones/Anvil/Anvil_Hit1_v2_rr1_Mid.wav` |
-| `clank_04.ogg` | C5 (72) | all | 0.6-1.0 | 2.896 | `e57d83f585eb342e…` | `VCSL/Idiophones/Struck Idiophones/Anvil/Anvil_Hit2_v2_rr1_Mid.wav` |
-| `clank_05.ogg` | C5 (72) | all | 0.6-1.0 | 3.120 | `7338da32f3b9e3ba…` | `VCSL/Idiophones/Struck Idiophones/Anvil/Anvil_Hit3_v2_rr1_Mid.wav` |
+| `clank_00.ogg` | C5 (72) | all | all | 1.478 | `6da5db6d41a3b020…` | Freesound [270588](https://freesound.org/s/270588/) by michorvath |
+| `clank_01.ogg` | C5 (72) | all | all | 2.496 | `bbb5deecb604f722…` | Freesound [270589](https://freesound.org/s/270589/) by michorvath |
+| `clank_02.ogg` | C5 (72) | all | all | 6.186 | `438f81259e18786f…` | Freesound [521972](https://freesound.org/s/521972/) by Kastenfrosch |
+| `clank_03.ogg` | C5 (72) | all | all | 1.014 | `332e9782ab29ffb2…` | Freesound [363169](https://freesound.org/s/363169/) by SamsterBirdies |
+| `clank_04.ogg` | C5 (72) | all | all | 1.024 | `83aabedcdc748fec…` | Freesound [363169](https://freesound.org/s/363169/) by SamsterBirdies |
+| `clank_05.ogg` | C5 (72) | all | all | 3.807 | `3d3b9a2d45652329…` | Freesound [103071](https://freesound.org/s/103071/) by alan3809 |
 
 ### tick
 
-Foley: woodblock and claves, round-robin.
+Foley: a clock's own ticks, cut from a close-miked take, round-robin.
 
-`level` 0.28, struck envelope, unpitched, tone 2000-9000 Hz.
+`level` 0.27, struck envelope, unpitched, tone 2000-8000 Hz.
 
 | File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
 | --- | --- | --- | --- | --- | --- | --- |
-| `tick_00.ogg` | C6 (84) | all | all | 3.751 | `a31877d0a134050b…` | `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr1.wav` |
-| `tick_01.ogg` | C6 (84) | all | all | 3.777 | `63e5a453ea9d9442…` | `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr2.wav` |
-| `tick_02.ogg` | C6 (84) | all | all | 3.991 | `0b15fc65af1f8615…` | `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr3.wav` |
-| `tick_03.ogg` | C6 (84) | all | all | 3.064 | `0ccdedf65ee4d830…` | `VCSL/Idiophones/Struck Idiophones/Claves/Claves1_Hit_v1_rr1_Mid.wav` |
+| `tick_00.ogg` | C6 (84) | all | all | 2.814 | `965134cfa082600e…` | Freesound [380782](https://freesound.org/s/380782/) by BonnyOrbit |
+| `tick_01.ogg` | C6 (84) | all | all | 2.593 | `3bd3653f67a8266e…` | Freesound [380782](https://freesound.org/s/380782/) by BonnyOrbit |
+| `tick_02.ogg` | C6 (84) | all | all | 2.619 | `686a2cf208281c0b…` | Freesound [380782](https://freesound.org/s/380782/) by BonnyOrbit |
+| `tick_03.ogg` | C6 (84) | all | all | 2.807 | `8c9b3195977e9dd3…` | Freesound [380782](https://freesound.org/s/380782/) by BonnyOrbit |
 
 ### hiss
 
-Foley: a cabasa rub, high-passed and swelled.
+Foley: bursts of steam, rolled off above 6 kHz so a vent breathes rather than sizzles.
 
-`level` 1.8, swell envelope, unpitched, tone 2000-4500 Hz.
+`level` 0.986, swell envelope, unpitched, tone 2000-4500 Hz.
 
 | File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
 | --- | --- | --- | --- | --- | --- | --- |
-| `hiss_00.ogg` | C5 (72) | all | all | 2.522 | `c282632b85f1e339…` | `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Rub_v2_rr1_Mid.wav` |
-| `hiss_01.ogg` | C5 (72) | all | all | 3.525 | `6932306dc864cce1…` | `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Rub_v2_rr2_Mid.wav` |
-| `hiss_02.ogg` | C5 (72) | all | all | 2.791 | `315cb21893dbb378…` | `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Rub_v1_rr2_Mid.wav` |
+| `hiss_00.ogg` | C5 (72) | all | all | 3.238 | `14122029f03ff94e…` | Freesound [365071](https://freesound.org/s/365071/) by sniperous |
+| `hiss_01.ogg` | C5 (72) | all | all | 5.303 | `2ebffd2fd43ec663…` | Freesound [234782](https://freesound.org/s/234782/) by wubitog |
+| `hiss_02.ogg` | C5 (72) | all | all | 3.161 | `7af50a6d2ec8c909…` | Freesound [398077](https://freesound.org/s/398077/) by SukritSen |
 
 ### wind
 
-Foley: an ocean drum swell, low-passed and looped.
+Foley: arctic wind and a gentle breeze, low-passed and looped.
 
-`level` 0.4, swell envelope, unpitched, tone 700-2600 Hz.
+`level` 0.347, swell envelope, unpitched, tone 700-2600 Hz.
 
 | File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
 | --- | --- | --- | --- | --- | --- | --- |
-| `wind_00.ogg` | C4 (60) | all | all | 4.737 | `d77ee5f99b1438c4…` | `VCSL/Membranophones/Other Membranophones/Ocean Drum/OceanDrum_Sus_1_Mid.wav` |
-| `wind_01.ogg` | C4 (60) | all | all | 2.890 | `98692c18bc9cbeb2…` | `VCSL/Membranophones/Other Membranophones/Ocean Drum/OceanDrum_Sus_2_Mid.wav` |
+| `wind_00.ogg` | C4 (60) | all | all | 3.152 | `2e14a17adcc44c93…` | Freesound [117136](https://freesound.org/s/117136/) by cobratronik |
+| `wind_01.ogg` | C4 (60) | all | all | 2.077 | `7faaf5075013ca4c…` | Freesound [181252](https://freesound.org/s/181252/) by mario1298 |
 
 ### drip
 
-Foley: glockenspiel bars damped to their first half-second, a drop landing on something tuned.
+Foley: single water drops.
 
-`level` 0.61, struck envelope, pitched.
+`level` 0.296, struck envelope, unpitched.
 
 | File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
 | --- | --- | --- | --- | --- | --- | --- |
-| `drip_00.ogg` | C5 (72) | -D#5 | all | 2.633 | `4d534c59ef120ac1…` | `VSCO-2-CE/Percussion/Glock/glock_medium_C5.wav` |
-| `drip_01.ogg` | G5 (79) | E5-A5 | all | 2.804 | `df30090a34e6933c…` | `VSCO-2-CE/Percussion/Glock/glock_medium_G5.wav` |
-| `drip_02.ogg` | C6 (84) | A#5+ | all | 2.837 | `0d743440837bfeb3…` | `VSCO-2-CE/Percussion/Glock/glock_medium_C6.wav` |
+| `drip_00.ogg` | E5 (76) | all | all | 3.512 | `55dc944ba6363d61…` | Freesound [174718](https://freesound.org/s/174718/) by paespedro |
+| `drip_01.ogg` | E5 (76) | all | all | 4.531 | `567f3000f51ea136…` | Freesound [166325](https://freesound.org/s/166325/) by deleted_user_2104797 |
+
+### chirp
+
+Single bird chirps.
+
+`level` 0.207, struck envelope, unpitched.
+
+| File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
+| --- | --- | --- | --- | --- | --- | --- |
+| `chirp_00.ogg` | E6 (88) | all | all | 2.652 | `b0c0fe8a861ced09…` | Freesound [233255](https://freesound.org/s/233255/) by alegemaate |
+| `chirp_01.ogg` | E6 (88) | all | all | 8.283 | `96722ae698507cf1…` | Freesound [233254](https://freesound.org/s/233254/) by alegemaate |
+| `chirp_02.ogg` | E6 (88) | all | all | 3.055 | `7f37c2f07e5ba021…` | Freesound [812033](https://freesound.org/s/812033/) by qubodup |
 
 ### rustle
 
-Foley: a small shaker roll, looped.
+Foley: rustling leaves.
 
-`level` 0.8, swell envelope, unpitched, tone 1200-6000 Hz.
+`level` 0.408, swell envelope, unpitched, tone 1200-6000 Hz.
 
 | File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
 | --- | --- | --- | --- | --- | --- | --- |
-| `rustle_00.ogg` | C5 (72) | all | all | 4.511 | `3b83af870d3df205…` | `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Roll_Fast_rr1.wav` |
-| `rustle_01.ogg` | C5 (72) | all | all | 6.016 | `4e47162002749547…` | `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Roll_Fast_rr2.wav` |
+| `rustle_00.ogg` | C5 (72) | all | all | 4.407 | `01ca544b155fcf1b…` | Freesound [437356](https://freesound.org/s/437356/) by giddster |
+| `rustle_01.ogg` | C5 (72) | all | all | 5.234 | `6a9dd2f4dd08de58…` | Freesound [443065](https://freesound.org/s/443065/) by AmberdeMeillon |
+| `rustle_02.ogg` | C5 (72) | all | all | 7.984 | `3c2aa23b1ff20538…` | Freesound [106114](https://freesound.org/s/106114/) by j1987 |
 
 ### swell
 
@@ -275,28 +320,16 @@ Foley: a suspended cymbal roll, looped.
 
 ### crackle
 
-A fire assembled from percussion: the first milliseconds of claves, woodblock, cabasa and shaker strikes, scattered with power-law sizes over the hush of an ocean drum. One looped bed and three struck pops; each grain is a real strike, only the arrangement is the fire.
+A real fire: a wood stove close by with a second fire under it, one looped bed and three of its own pops.
 
 `level` 0.17, sustain envelope, unpitched, tone 1500-5000 Hz.
 
 | File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
 | --- | --- | --- | --- | --- | --- | --- |
-| `crackle_00.ogg` | C4 (60) | all | all | 7.309 | `d4a70678099134b3…` | `VCSL/Idiophones/Struck Idiophones/Claves/Claves1_Hit_v1_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Claves/Claves2_Hit_v1_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr1.wav`; `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_mp.wav`; `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr2_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr1.wav`; `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr2.wav`; `VCSL/Membranophones/Other Membranophones/Ocean Drum/OceanDrum_Sus_3_Mid.wav` |
-| `crackle_01.ogg` | C4 (60) | all | all | 9.066 | `f8326b7824ab1348…` | `VCSL/Idiophones/Struck Idiophones/Claves/Claves1_Hit_v1_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Claves/Claves2_Hit_v1_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr1.wav`; `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_mp.wav`; `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr2_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr1.wav`; `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr2.wav`; `VCSL/Membranophones/Other Membranophones/Ocean Drum/OceanDrum_Sus_3_Mid.wav` |
-| `crackle_02.ogg` | C4 (60) | all | all | 5.566 | `2cd158cef6d59928…` | `VCSL/Idiophones/Struck Idiophones/Claves/Claves1_Hit_v1_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Claves/Claves2_Hit_v1_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr1.wav`; `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_mp.wav`; `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr2_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr1.wav`; `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr2.wav`; `VCSL/Membranophones/Other Membranophones/Ocean Drum/OceanDrum_Sus_3_Mid.wav` |
-| `crackle_03.ogg` | C4 (60) | all | all | 15.205 | `63ae226eba30854f…` | `VCSL/Idiophones/Struck Idiophones/Claves/Claves1_Hit_v1_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Claves/Claves2_Hit_v1_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr1.wav`; `VCSL/Idiophones/Struck Idiophones/Woodblock/wood_click_mp.wav`; `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr1_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr2_Mid.wav`; `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr1.wav`; `VCSL/Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr2.wav`; `VCSL/Membranophones/Other Membranophones/Ocean Drum/OceanDrum_Sus_3_Mid.wav` |
-
-### chirp
-
-Birdsong from flute staccato: two or three clipped high notes in a falling-then-rising contour.
-
-`level` 0.63, struck envelope, pitched.
-
-| File | Root | Keys | Velocity | Gain | PCM sha256 | Source recording |
-| --- | --- | --- | --- | --- | --- | --- |
-| `chirp_00.ogg` | E6 (88) | all | all | 2.100 | `89040dc9a62bdc15…` | `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_E5_v1_rr1.wav`; `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_E5_v1_rr2.wav`; `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_A5_v1_rr1.wav`; `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_C6_v1_rr1.wav` |
-| `chirp_01.ogg` | E6 (88) | all | all | 1.854 | `a3a256dfa3d1b54b…` | `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_E5_v1_rr1.wav`; `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_E5_v1_rr2.wav`; `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_A5_v1_rr1.wav`; `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_C6_v1_rr1.wav` |
-| `chirp_02.ogg` | E6 (88) | all | all | 3.034 | `8a329e62943305a6…` | `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_E5_v1_rr1.wav`; `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_E5_v1_rr2.wav`; `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_A5_v1_rr1.wav`; `VSCO-2-CE/Woodwinds/Flute/stac/LDFlute_stac_C6_v1_rr1.wav` |
+| `crackle_00.ogg` | C4 (60) | all | all | 8.960 | `ebce3333855d5326…` | Freesound [414767](https://freesound.org/s/414767/) by samarobryn |
+| `crackle_01.ogg` | C4 (60) | all | all | 9.380 | `63cf832d3e099c9e…` | Freesound [414767](https://freesound.org/s/414767/) by samarobryn |
+| `crackle_02.ogg` | C4 (60) | all | all | 12.193 | `044465899d15c840…` | Freesound [414767](https://freesound.org/s/414767/) by samarobryn |
+| `crackle_03.ogg` | C4 (60) | all | all | 29.252 | `1fe1b9a1315e5602…` | Freesound [532191](https://freesound.org/s/532191/) by mcmikai; Freesound [414767](https://freesound.org/s/414767/) by samarobryn |
 
 
 _Written by `build_bank.py`; see the note on rebuilding above._
