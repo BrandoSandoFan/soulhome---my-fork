@@ -148,6 +148,9 @@ public class SoulLensScreen extends Screen
     {
         this.clearWidgets();
 
+        // clearWidgets does not clear focus, so a row that had it would still take Enter after it was removed.
+        this.setFocused(null);
+
         final int last = Math.min(this.regions.size(), this.listOffset + visibleRows());
 
         for (int i = this.listOffset; i < last; i++)

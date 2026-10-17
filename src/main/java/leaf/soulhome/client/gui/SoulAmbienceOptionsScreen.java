@@ -56,10 +56,11 @@ public class SoulAmbienceOptionsScreen extends Screen
     private static final String PERCENT_VALUE = "options.percent_value";
     private static final String GENERIC_VALUE = "options.generic_value";
 
+    /** A control is never wider than this; a narrower window gives each column less. */
     private static final int WIDTH = 150;
     private static final int GUTTER = 10;
-    /** The width two columns need. Below it the rows stack in one column, which is the only way they fit. */
-    private static final int TWO_COLUMN_WIDTH = 2 * WIDTH + GUTTER + 2 * SoulGuiStyle.MARGIN;
+    /** Below this a column is too narrow to read comfortably, and the rows stack in one column instead. */
+    private static final int MIN_COLUMN_WIDTH = 120;
 
     /** Clears the title. */
     private static final int ROWS_TOP = SoulGuiStyle.TITLE_Y + SoulGuiStyle.LINE_HEIGHT + 6;
@@ -96,17 +97,23 @@ public class SoulAmbienceOptionsScreen extends Screen
     @Override
     protected void init()
     {
-        final boolean twoColumns = this.width >= TWO_COLUMN_WIDTH;
+        // Each column takes what the window leaves for it, up to WIDTH. Vanilla scrolls a label too long for its
+        // button rather than cutting it off, so a narrower button still reads; a fixed width is what left the
+        // Music toggle under the footer at 320 px.
+        final int twoColumnWidth = (this.width - 2 * SoulGuiStyle.MARGIN - GUTTER) / 2;
+        final boolean twoColumns = twoColumnWidth >= MIN_COLUMN_WIDTH;
+        final int columnWidth = Math.min(WIDTH, twoColumns ? twoColumnWidth : this.width - 2 * SoulGuiStyle.MARGIN);
         final int limit = SoulGuiStyle.footerTop(this.height) - SoulGuiStyle.FOOTER_GAP;
 
         int bottom = 0;
 
-        // The tightest spacing is kept even when it still reaches the footer. There is no smaller layout to
-        // fall back to, and a row drawn under the footer is a control a player can still see and use.
+        // The tightest spacing is kept even when it still reaches the footer, because there is no smaller layout
+        // to fall back to. A control drawn under the footer cannot be clicked, so this is a last resort for a
+        // window shorter than the stack needs, not a layout to aim for.
         for (Spacing spacing : SPACINGS)
         {
             this.clearWidgets();
-            bottom = stack(twoColumns, spacing);
+            bottom = stack(twoColumns, columnWidth, spacing);
 
             if (bottom <= limit)
             {
@@ -148,45 +155,45 @@ public class SoulAmbienceOptionsScreen extends Screen
      * Two columns put the soul's ambience on the left and suppression with music on the right. One column
      * stacks the same three groups in that order, on one cursor.
      */
-    private int stack(boolean twoColumns, Spacing spacing)
+    private int stack(boolean twoColumns, int columnWidth, Spacing spacing)
     {
         this.gated.clear();
         this.headings.clear();
 
         final SoulHomeClientConfig.Client config = SoulHomeClientConfig.CLIENT;
-        final int leftX = twoColumns ? this.width / 2 - GUTTER / 2 - WIDTH : (this.width - WIDTH) / 2;
+        final int leftX = twoColumns ? this.width / 2 - GUTTER / 2 - columnWidth : (this.width - columnWidth) / 2;
         final int rightX = twoColumns ? this.width / 2 + GUTTER / 2 : leftX;
 
-        final Column left = new Column(leftX, spacing);
-        final Column right = twoColumns ? new Column(rightX, spacing) : left;
+        final Column left = new Column(leftX, columnWidth, spacing);
+        final Column right = twoColumns ? new Column(rightX, columnWidth, spacing) : left;
 
         heading(left, Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SOUL);
 
         // The master is not gated itself. Every control below it tests AmbienceSettings#active first, which
         // is false while the master is off, so each one is a dial for nothing until it is turned back on.
-        addToggle(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_ENABLED,
+        addToggle(left.x, left.row(), left.width, Constants.StringKeys.AMBIENCE_SCREEN_ENABLED,
                 Constants.StringKeys.AMBIENCE_SCREEN_ENABLED_TIP, config.ambienceEnabled);
-        this.gated.add(addToggle(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_RANK,
+        this.gated.add(addToggle(left.x, left.row(), left.width, Constants.StringKeys.AMBIENCE_SCREEN_RANK,
                 Constants.StringKeys.AMBIENCE_SCREEN_RANK_TIP, config.rankVisuals));
-        this.gated.add(addToggle(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER,
+        this.gated.add(addToggle(left.x, left.row(), left.width, Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER,
                 Constants.StringKeys.AMBIENCE_SCREEN_CHARACTER_TIP, config.characterColour));
-        this.gated.add(addToggle(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_SOUND,
+        this.gated.add(addToggle(left.x, left.row(), left.width, Constants.StringKeys.AMBIENCE_SCREEN_SOUND,
                 Constants.StringKeys.AMBIENCE_SCREEN_SOUND_TIP, config.ambientSound));
-        this.gated.add(addSlider(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY_LABEL,
+        this.gated.add(addSlider(left.x, left.row(), left.width, Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY_LABEL,
                 Constants.StringKeys.AMBIENCE_SCREEN_INTENSITY_TIP, config.intensity));
-        this.gated.add(addSlider(left.x, left.row(), Constants.StringKeys.AMBIENCE_SCREEN_VOLUME_LABEL,
+        this.gated.add(addSlider(left.x, left.row(), left.width, Constants.StringKeys.AMBIENCE_SCREEN_VOLUME_LABEL,
                 Constants.StringKeys.AMBIENCE_SCREEN_VOLUME_TIP, config.soundVolume));
 
         heading(right, Constants.StringKeys.AMBIENCE_SCREEN_SECTION_SUPPRESSION);
 
-        addToggle(right.x, right.row(), Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION,
+        addToggle(right.x, right.row(), right.width, Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION,
                 Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_DISTORTION_TIP, config.suppressionDistortion);
-        addToggle(right.x, right.row(), Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO,
+        addToggle(right.x, right.row(), right.width, Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO,
                 Constants.StringKeys.AMBIENCE_SCREEN_SUPPRESSION_AUDIO_TIP, config.suppressionAudio);
 
         heading(right, Constants.StringKeys.AMBIENCE_SCREEN_SECTION_MUSIC);
 
-        this.gated.add(addToggle(right.x, right.row(), Constants.StringKeys.AMBIENCE_SCREEN_MUSIC,
+        this.gated.add(addToggle(right.x, right.row(), right.width, Constants.StringKeys.AMBIENCE_SCREEN_MUSIC,
                 Constants.StringKeys.AMBIENCE_SCREEN_MUSIC_TIP, config.soulMusic));
 
         refreshGated();
@@ -196,7 +203,7 @@ public class SoulAmbienceOptionsScreen extends Screen
 
     private void heading(Column column, String key)
     {
-        this.headings.add(new Heading(column.x + WIDTH / 2, column.heading(), Component.translatable(key)));
+        this.headings.add(new Heading(column.x + column.width / 2, column.heading(), Component.translatable(key)));
     }
 
     /**
@@ -240,7 +247,7 @@ public class SoulAmbienceOptionsScreen extends Screen
      * <p>The tooltip is built once and handed back for every value, since the toggle asks for it again
      * whenever it cycles.
      */
-    private CycleButton<Boolean> addToggle(int x, int y, String key, @Nullable String tipKey,
+    private CycleButton<Boolean> addToggle(int x, int y, int controlWidth, String key, @Nullable String tipKey,
                                            ForgeConfigSpec.BooleanValue value)
     {
         CycleButton.Builder<Boolean> builder = CycleButton.onOffBuilder(value.get());
@@ -252,7 +259,7 @@ public class SoulAmbienceOptionsScreen extends Screen
             builder = builder.withTooltip(set -> tooltip);
         }
 
-        return addRenderableWidget(builder.create(x, y, WIDTH, SoulGuiStyle.BUTTON_HEIGHT, Component.translatable(key),
+        return addRenderableWidget(builder.create(x, y, controlWidth, SoulGuiStyle.BUTTON_HEIGHT, Component.translatable(key),
                 (button, set) ->
                 {
                     write(value, set);
@@ -261,10 +268,11 @@ public class SoulAmbienceOptionsScreen extends Screen
                 }));
     }
 
-    private PercentSlider addSlider(int x, int y, String labelKey, @Nullable String tipKey,
+    private PercentSlider addSlider(int x, int y, int controlWidth, String labelKey, @Nullable String tipKey,
                                     ForgeConfigSpec.DoubleValue value)
     {
-        final PercentSlider slider = addRenderableWidget(new PercentSlider(x, y, Component.translatable(labelKey), value));
+        final PercentSlider slider = addRenderableWidget(
+                new PercentSlider(x, y, controlWidth, Component.translatable(labelKey), value));
 
         if (tipKey != null)
         {
@@ -339,15 +347,17 @@ public class SoulAmbienceOptionsScreen extends Screen
     private static final class Column
     {
         private final int x;
+        private final int width;
         private final Spacing spacing;
 
         private int y = ROWS_TOP;
         private int bottom;
         private boolean started;
 
-        Column(int x, Spacing spacing)
+        Column(int x, int width, Spacing spacing)
         {
             this.x = x;
+            this.width = width;
             this.spacing = spacing;
         }
 
@@ -398,9 +408,9 @@ public class SoulAmbienceOptionsScreen extends Screen
         private final Component label;
         private final ForgeConfigSpec.DoubleValue config;
 
-        PercentSlider(int x, int y, Component label, ForgeConfigSpec.DoubleValue config)
+        PercentSlider(int x, int y, int controlWidth, Component label, ForgeConfigSpec.DoubleValue config)
         {
-            super(x, y, WIDTH, SoulGuiStyle.BUTTON_HEIGHT, Component.empty(), config.get());
+            super(x, y, controlWidth, SoulGuiStyle.BUTTON_HEIGHT, Component.empty(), config.get());
             this.label = label;
             this.config = config;
             updateMessage();

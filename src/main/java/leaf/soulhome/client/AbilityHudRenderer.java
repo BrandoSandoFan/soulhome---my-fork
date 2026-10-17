@@ -155,7 +155,13 @@ public final class AbilityHudRenderer
         }
 
         final GuiGraphics graphics = event.getGuiGraphics();
-        final ForgeGui gui = (ForgeGui) minecraft.gui;
+        // Forge installs its own Gui, which the leftHeight stacking below relies on. Another mod that swaps in a
+        // plain one should cost this overlay, not a ClassCastException on every frame.
+        if (!(minecraft.gui instanceof ForgeGui gui))
+        {
+            return;
+        }
+
         final SyncSoulAbilitiesMessage.State state = shownState;
 
         final int left = graphics.guiWidth() / 2 - HOTBAR_HALF_WIDTH;
@@ -203,6 +209,8 @@ public final class AbilityHudRenderer
             graphics.fill(left, barTop, left + (int) Math.round(BAR_WIDTH * progress), barTop + BAR_HEIGHT,
                     withAlpha(PROGRESS_COLOUR, opacity));
         }
+
+        RenderSystem.disableBlend();
 
         gui.leftHeight += BLOCK_HEIGHT + STACK_GAP;
     }
