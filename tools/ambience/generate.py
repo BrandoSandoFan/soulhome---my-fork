@@ -1,38 +1,32 @@
 # File created ~ 17 - 9 - 2026
 """
-Renders the soul's ambience assets (#213).
-
-Run it, commit what it writes, and the game plays the committed files. The generator is never on
-the runtime path - see ``README.md`` for why offline beat runtime synthesis, and ``voices.py`` for
-what each sound is actually made of.
+Renders the suppression cues (#188) - the only sound this script still makes.
 
     python3 tools/ambience/generate.py
 
-What comes out, under ``src/main/resources/assets/soulhome/sounds/ambience``:
+writes two files and a ``SOURCES.md`` under ``src/main/resources/assets/soulhome/sounds/suppression``:
 
-* ``<voice>_1..3.ogg`` - one-shots, three variants for each of the ten ``SoulVoice``s, so vanilla's
-  own random pick out of ``sounds.json`` supplies the variety the code used to get from a coin flip
-  between two vanilla events (#209).
-* ``bed_close.ogg`` and ``bed_open.ogg`` - the two rank layers of the ambient bed (#210), each a
-  seamless minute-and-a-bit loop.
-* ``character_<voice>.ogg`` - the nine character layers of the bed (#214), one per non-``base``
-  voice, mixed continuously under the rank layers rather than rolled for one at a time.
-* ``SOURCES.md`` - what every file is, what made it, and the checksum of the samples that went into
-  the encoder. That is this repo's answer to #209's licence question: nothing was downloaded, so
-  there is no third-party licence to honour, and the provenance is a script in the tree.
+* ``drone.ogg`` - the field around a suppressed player, a seamless loop. Their rank.
+* ``throb.ogg`` - one beat of the ring count. Your legibility.
 
-And under ``src/main/resources/assets/soulhome/sounds/suppression``, suppression's two sounds
-(#188) - see ``suppression.py``. They are not ambience, and are rendered to a directory of their
-own with a ``SOURCES.md`` of their own, so that re-rendering one set never touches the other's
-files: ``--set ambience`` or ``--set suppression`` renders only that one.
+What they are made of, and why neither is an ambience voice, is in ``suppression.py``.
+
+The soul's ambience used to be rendered here too, from ``voices.py`` (#213). It is not any more. It
+is recorded and mixed by ``tools/ambience/mix.py`` (#163) from two CC0 sample libraries, and that
+script writes the same file names this one used to. Both writing the ambience would be a race
+between two sets of files under one name, and the one that ran last would win silently - so this
+script refuses ``--set ambience`` and ``--set all`` rather than rendering anything. The mixes are
+under ``tools/ambience/README.md``.
+
+``--set suppression`` is the default and the only set; ``--suppression-out`` sends the files
+somewhere other than the mod's own assets, which is how to check a re-render without touching them.
 
 On determinism
 --------------
 
 Each asset draws from a generator seeded by the master seed *and its own name*, so the bytes of
-``warm_2.ogg`` do not depend on how many voices were rendered before it. Adding an eleventh voice
-re-renders one file and leaves the other thirty-one identical, which is what makes a re-render a
-diff of nothing.
+``throb.ogg`` do not depend on whether ``drone.ogg`` was rendered first. Changing one cue re-renders
+one file and leaves the other byte-identical, which is what makes a re-render a diff of nothing.
 
 The PCM this script produces is bit-identical across runs and machines for a given seed, and that
 is what ``SOURCES.md`` records a checksum of. The ``.ogg`` bytes are one step further out: they are
@@ -54,21 +48,11 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import suppression as suppression_lib  # noqa: E402
-import voices as voice_lib  # noqa: E402  (after the path fix-up, on purpose)
 from dsp import SAMPLE_RATE  # noqa: E402
 
 #: The one number the whole palette hangs off. Changing it re-renders every asset.
 DEFAULT_SEED = 0x50_4C_4B_21
 
-#: Variants per voice. Three is enough that a player building for an evening never hears a repeat
-#: at these gaps, and small enough that the whole palette is under a megabyte.
-VARIANTS = 3
-
-#: Loop length and the crossfade folded back over its head - see ``dsp.seamless``.
-BED_SECONDS = 68.0
-BED_OVERLAP = 6.0
-
-DEFAULT_OUTPUT = Path("src/main/resources/assets/soulhome/sounds/ambience")
 SUPPRESSION_OUTPUT = Path("src/main/resources/assets/soulhome/sounds/suppression")
 
 
@@ -183,36 +167,6 @@ def _ogg_crc(page: bytes) -> int:
     return crc
 
 
-def render(output: Path, seed: int, sample_rate: int) -> list[dict]:
-    rendered: list[dict] = []
-
-    for voice in voice_lib.VOICES:
-        for variant in range(1, VARIANTS + 1):
-            name = f"{voice}_{variant}"
-            samples = voice_lib.render_voice(voice, asset_rng(seed, name), sample_rate)
-            rendered.append(_emit(output, name, samples, sample_rate,
-                                  f"one-shot, {voice} voice, variant {variant}"))
-
-    for kind in ("close", "open"):
-        name = f"bed_{kind}"
-        samples = voice_lib.render_bed(kind, asset_rng(seed, name), sample_rate,
-                                       BED_SECONDS, BED_OVERLAP)
-        rendered.append(_emit(output, name, samples, sample_rate,
-                              f"ambient bed, {kind} rank layer, seamless loop"))
-
-    for voice in voice_lib.VOICES:
-        if voice == "base":
-            continue
-
-        name = f"character_{voice}"
-        samples = voice_lib.render_character_bed(voice, asset_rng(seed, name), sample_rate,
-                                                  BED_SECONDS, BED_OVERLAP)
-        rendered.append(_emit(output, name, samples, sample_rate,
-                              f"ambient bed, {voice} character layer, seamless loop"))
-
-    return rendered
-
-
 def render_suppression(output: Path, seed: int, sample_rate: int) -> list[dict]:
     """
     Suppression's drone and throb (#188). One throb, not three variants: it is a count, and a count
@@ -280,33 +234,27 @@ def write_sources(output: Path, rendered: list[dict], seed: int, sample_rate: in
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Render the soul's ambience assets (#213).")
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUTPUT,
-                        help="where the .ogg files go (default: the mod's own assets directory)")
+    parser = argparse.ArgumentParser(description="Render suppression's cues (#188).")
     parser.add_argument("--seed", type=lambda value: int(value, 0), default=DEFAULT_SEED,
                         help="master seed; every asset's own seed is derived from this and its name")
     parser.add_argument("--sample-rate", type=int, default=SAMPLE_RATE)
-    parser.add_argument("--set", choices=("all", "ambience", "suppression"), default="all",
-                        help="which set of assets to render (default: both)")
+    parser.add_argument("--set", choices=("suppression", "ambience", "all"), default="suppression",
+                        help="which set to render; only suppression is still rendered here")
     parser.add_argument("--suppression-out", type=Path, default=SUPPRESSION_OUTPUT,
                         help="where suppression's .ogg files go")
 
     arguments = parser.parse_args()
 
-    if arguments.set in ("all", "ambience"):
-        print(f"Rendering the soul's ambience to {arguments.out} (seed 0x{arguments.seed:X})")
+    if arguments.set != "suppression":
+        parser.error("the ambience is no longer rendered here: tools/ambience/mix.py mixes it from "
+                     "recordings (#163). This script renders --set suppression, which is the default.")
 
-        rendered = render(arguments.out, arguments.seed, arguments.sample_rate)
-        write_sources(arguments.out, rendered, arguments.seed, arguments.sample_rate)
-        _report(arguments.out, rendered)
+    print(f"Rendering suppression to {arguments.suppression_out} (seed 0x{arguments.seed:X})")
 
-    if arguments.set in ("all", "suppression"):
-        print(f"Rendering suppression to {arguments.suppression_out} (seed 0x{arguments.seed:X})")
-
-        rendered = render_suppression(arguments.suppression_out, arguments.seed, arguments.sample_rate)
-        write_sources(arguments.suppression_out, rendered, arguments.seed, arguments.sample_rate,
-                      origin="(#188, on the same machinery as #213)")
-        _report(arguments.suppression_out, rendered)
+    rendered = render_suppression(arguments.suppression_out, arguments.seed, arguments.sample_rate)
+    write_sources(arguments.suppression_out, rendered, arguments.seed, arguments.sample_rate,
+                  origin="(#188, on the same machinery as #213)")
+    _report(arguments.suppression_out, rendered)
 
     return 0
 

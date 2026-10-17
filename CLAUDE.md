@@ -108,6 +108,12 @@ All three compile cleanly and fail at runtime, so the server boot above is what 
 
 There is no formatter or linter in the build.
 
+The offline asset tools live under `tools/` and are run by hand, never by the build or CI:
+`tools/soul_music/fetch_sources.py` and `build_bank.py` (the instrument bank), and
+`tools/ambience/mix.py` (the ambience) and `tools/ambience/generate.py` (suppression). Their output is
+committed and each folder has a README with the rebuild and its Python requirements. A rebuild of the
+bank or the ambience from the pinned sources should leave `git status` empty.
+
 ---
 
 ## Architecture
@@ -148,7 +154,7 @@ The bridge is three small interfaces/records:
 
 | Package | What lives there |
 | --- | --- |
-| `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. `structures/core/music` is the soul's composer and synth. |
+| `structures/core` | region detection, archetype definitions, scoring, form clauses, buff maths. Minecraft-free. `structures/core/music` is the soul's composer, synth and sample bank. |
 | `structures` | the game-facing half: snapshot, datapack loading, scan scheduling, saved data, codecs (`ArchetypeCodecs`, `FormCodecs`, `BondCodecs`) |
 | `config` | two `ModConfigSpec`s: the server's, read through an immutable `Snapshot`, and the client's, which holds only the cosmetic ambience knobs |
 | `buffs`, `buffs/effects` | the capability holding a player's magnitudes, and one class per buff type |
@@ -440,18 +446,50 @@ consumes a classification that already existed. The rules, and what breaks if on
 
 - **Quiet is relative to the game, and it lives in the assets and the player's knobs** (#163). The
   first playtest found the whole ambience quieter than Minecraft's music, because every layer had
-  added its own "if in doubt, quieter" ceiling on top of assets already mastered far down. The
-  assets are mastered by `tools/ambience` (one-shots -20 dBFS RMS, limited to -3 peak; bed -24;
-  character beds -28), and the Java ceilings only keep the layers in order relative to each other.
-  Do not add another attenuation stage; turn a mastering target or a default instead.
-- **The soul plays its own music, and vanilla's is held off** (#163). `SoulSynth` and
-  `SoulComposer` (under `structures/core/music`, Minecraft-free) compose and render it live;
-  `SoulMusicPlayer` hands it to the sound engine through NeoForge's `SoundInstance#getStream`, and
-  answers `SelectMusicEvent` with no music while a soul's music is on. (`1.20.1` needs a mixin on
-  `MusicManager#tick` for the same thing, since Forge 47.3.0 has no such event.) A piece is composed from the brief when it starts and never changes under a
-  player; every note is in the piece's mode and no diminished chord is ever held, which
-  `SoulComposerTest` pins, and `SoulSynthTest` holds every voice between -28 and -16 dBFS at every
-  rank.
+  added its own "if in doubt, quieter" ceiling on top of assets already mastered far down. The assets
+  are mixed by `tools/ambience/mix.py` from recordings - instruments from two CC0 libraries, and field
+  recordings and sound effects from Freesound - and mastered to the targets the Java was balanced against (one-shots -20 dBFS RMS, limited to -3 peak; bed -24;
+  character beds -28). The Java ceilings only keep the layers in order relative to each other. Do not
+  add another attenuation stage; turn a mastering target or a default instead. `generate.py` renders
+  only suppression's cues now, and refuses to write the ambience, so it cannot overwrite `mix.py`'s.
+- **Beds are places, not textures.** The rank beds and character layers are field recordings of a place:
+  a still night with a breeze and crickets, mountain wind, a wood stove, arctic wind, a hot spring, a
+  blacksmith's, a pendulum clock, a dawn wood, a dripping cave, frogs at night. A place has events in it
+  (a log shifting, a drip, a bird), not only a sound. A bed carries no melodic instrument, because each
+  soul's key is its own (`SoulMusicBrief`): a bed with a note in it would be out of tune with half the
+  souls that played it. And a wash of instrument noise reads as white noise - the first beds were ocean
+  drums and cymbals - which is why they are recordings of places.
+- **Real things are recorded, not imitated.** A fire, an anvil, a clock or a bird is a Freesound
+  recording of that thing, not an instrument played to sound like it: a fire built from clave strikes
+  sounded like claves. Only enchantment, which nothing records, is played (a harp).
+- **The soul plays its own music, and vanilla's is held off** (#163). `SoulComposer` writes each piece
+  (Minecraft-free, under `structures/core/music`) and `SoulSynth` plays it. Where the sample bank has an
+  instrument, its notes are recorded samples: `SampleBank` reads `soul_music/bank.json`, and the decoded
+  files come from `SoulSampleBankLoader`, which decodes each `.ogg` with the game's own
+  `JOrbisAudioStream` once per resource reload. Where it does not, the oscillator recipe in
+  `SoulSynth.Voice#of` plays, and a bank that fails to load is `SampleBank.EMPTY`, so the soul falls
+  back to oscillators rather than going silent. `SoulMusicPlayer` hands it to the sound engine through
+  NeoForge's `SoundInstance#getStream`, and answers `SelectMusicEvent` with no music while a soul's music
+  is on. (`1.20.1` needs a mixin on `MusicManager#tick` for the same thing, since Forge 47.3.0 has no
+  such event.) A piece is composed from the brief when it starts and never changes under a player; every
+  note is in the piece's mode and no diminished chord is ever held, which `SoulComposerTest` pins, and
+  `SoulSynthTest` holds every voice between -28 and -16 dBFS at the lowest and highest rank, recorded and
+  oscillator alike.
+- **The bank is data, and it is built, never edited** (#163). `soul_music/bank.json`, its `.ogg` zones
+  and its `SOURCES.md` are written by `tools/soul_music/build_bank.py` from two CC0 libraries, VSCO-2-CE
+  and VCSL, pinned in `fetch_sources.py`. To change the bank, change the script and rebuild; never
+  hand-edit `bank.json`, a zone or `SOURCES.md`. The build is byte-deterministic, so `git status` after
+  one is the check.
+- **Only CC0 sources go in the bank.** A recording from another library, or from Freesound, is added only
+  if it is CC0. `fetch_sources.py` checks each Freesound sound's own page for a CC0 licence link and refuses
+  a page that does not have one, and it refuses any id the two scripts read that is not in `FREESOUND_IDS`.
+  A library is pinned in `fetch_sources.py`; every recording is written into `SOURCES.md` by the build, with
+  its author. CC-BY is a different promise with an attribution the mod would owe, and it does not go in.
+- **Levels are calibrated against the oscillators, then by ear.** Each instrument's `level` was first
+  matched to the oscillator it replaced, on its stem from `MusicPreview` (`sh gradlew musicPreview
+  -PpreviewArgs="--only stems --no-wav"`), which keeps the balance `SoulSynthTest` was written against.
+  Tune the instrument's `level` and rebuild; a zone's `gain` is set from its recording and is not the
+  knob.
 - **Each mood has its own groove, and its room's foley is in the score** (#261). `MusicStyle.Groove`
   picks a writer in `SoulComposer`; foley instruments (`Instrument#pitched` false) are placed on the
   music's grid, never at random. The register rules live in one place, `Score#add`: nothing pitched

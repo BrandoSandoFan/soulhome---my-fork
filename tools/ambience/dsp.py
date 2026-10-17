@@ -1,22 +1,19 @@
 # File created ~ 17 - 9 - 2026
 """
-The small signal-processing vocabulary the ambience generator is written in (#213).
+The signal-processing vocabulary the suppression cues are written in (#188).
 
-Kept apart from ``generate.py`` so that the file describing *what a soul sounds like* reads as a
-description rather than as arithmetic. Nothing here knows about souls, voices or Minecraft.
+Kept apart from ``suppression.py`` so that the file describing what suppression sounds like reads as
+a description rather than as arithmetic. Nothing here knows about souls or Minecraft.
 
-Two decisions worth stating, because the obvious alternative is worse in both cases:
+The soul's ambience used to be written in this vocabulary too (#213). It is recorded and mixed now
+by ``mix.py``, which has its own helpers in ``tools/soul_music/audio.py``; nothing there is shared
+with this file, so changing one does not re-render the other.
 
-* **Filtering is done in the spectrum, not with a running IIR.** A one-pole lowpass over a
-  sixty-second buffer is a Python loop over two and a half million samples, and the usual escape
-  (scipy) is a dependency this repo would then owe to a script that renders a handful of files. An
-  FFT magnitude shape is exact, takes a fraction of a second, and - the part that actually matters -
-  is trivially deterministic, which a numerically-accumulating recursion is not.
-
-* **Delay lines are run a block at a time.** A comb or allpass whose delay is D samples cannot see
-  its own output until D samples later, so a whole block of D samples can be computed at once and
-  the loop runs once per block instead of once per sample. That is what makes the reverb here cheap
-  enough to be spectral filtering's neighbour rather than the reason a render takes a minute.
+One decision worth stating, because the obvious alternative is worse: filtering is done in the
+spectrum, not with a running IIR. A one-pole lowpass over a long buffer is a Python loop over every
+sample, and the usual escape (scipy) is a dependency this script would then owe for a handful of
+files. An FFT magnitude shape is exact, takes a fraction of a second, and - the part that actually
+matters - is deterministic, which a numerically-accumulating recursion is not.
 """
 
 from __future__ import annotations
@@ -47,20 +44,6 @@ def spectral_shape(signal: np.ndarray, sample_rate: int, shape) -> np.ndarray:
     return np.fft.irfft(spectrum * gains, n=signal.size)
 
 
-def tilt(exponent: float, reference: float = 1_000.0):
-    """
-    A ``1 / f**exponent`` slope through unity at ``reference``.
-
-    Pink is 0.5, brown is 1.0. Both are here because white noise is the one noise colour nothing in
-    an ambience should ever be: its energy climbs with frequency the way nothing in a room does.
-    """
-
-    def shape(frequencies: np.ndarray) -> np.ndarray:
-        return (reference / frequencies) ** exponent
-
-    return shape
-
-
 def band(low: float, high: float, edge: float = 0.35, slope: float = 0.0):
     """
     A soft-edged band. ``edge`` is the width of each skirt as a share of the corner frequency, so
@@ -86,16 +69,6 @@ def lowpass(cutoff: float, order: float = 2.0):
 
     def shape(frequencies: np.ndarray) -> np.ndarray:
         return 1.0 / (1.0 + (frequencies / cutoff) ** (2.0 * order)) ** 0.5
-
-    return shape
-
-
-def highpass(cutoff: float, order: float = 2.0):
-    """The same, below."""
-
-    def shape(frequencies: np.ndarray) -> np.ndarray:
-        ratio = (cutoff / frequencies) ** (2.0 * order)
-        return 1.0 / (1.0 + ratio) ** 0.5
 
     return shape
 
@@ -136,97 +109,6 @@ def lfo(count: int, sample_rate: int, rate: float, phase: float, low: float, hig
     return centre + swing * np.sin(2.0 * np.pi * rate * t + phase)
 
 
-def comb(
-    signal: np.ndarray,
-    sample_rate: int,
-    delay: int,
-    feedback: float,
-    damping_hz: float = 0.0,
-) -> np.ndarray:
-    """
-    A feedback comb, run a block at a time.
-
-    ``damping_hz`` is where the top comes off each repeat: air absorbs the high end of a reflection,
-    and without that a tail keeps its brightness all the way down and reads as a delay effect rather
-    than as a room. It is applied once per block, and a block here *is* one trip round the delay
-    line, so once per block is once per repeat - which is what damping means.
-    """
-    out = np.zeros_like(signal)
-    previous = np.zeros(delay)
-    seconds = 0.0 if damping_hz <= 0.0 else 1.0 / (2.0 * np.pi * damping_hz)
-
-    for start in range(0, signal.size, delay):
-        stop = min(start + delay, signal.size)
-        width = stop - start
-
-        block = previous[:width]
-
-        if seconds > 0.0:
-            block = smooth(block, sample_rate, seconds)
-
-        out[start:stop] = signal[start:stop] + feedback * block
-        previous = np.zeros(delay)
-        previous[:width] = out[start:stop]
-
-    return out
-
-
-def allpass(signal: np.ndarray, delay: int, gain: float) -> np.ndarray:
-    """A Schroeder allpass, same blockwise trick - it thickens a tail without colouring it."""
-    out = np.zeros_like(signal)
-    delayed_in = np.zeros(delay)
-    delayed_out = np.zeros(delay)
-
-    for start in range(0, signal.size, delay):
-        stop = min(start + delay, signal.size)
-        width = stop - start
-
-        block = -gain * signal[start:stop] + delayed_in[:width] + gain * delayed_out[:width]
-        out[start:stop] = block
-
-        delayed_in = np.zeros(delay)
-        delayed_in[:width] = signal[start:stop]
-        delayed_out = np.zeros(delay)
-        delayed_out[:width] = block
-
-    return out
-
-
-# Prime-ish comb lengths in samples at 44.1 kHz. Coprime on purpose: shared factors put the
-# repeats of different combs on top of each other and the tail acquires a pitch.
-_COMB_DELAYS = (1_557, 1_617, 1_691, 1_781, 1_867, 1_949)
-_ALLPASS_DELAYS = (557, 441, 341)
-
-
-def reverb(
-    signal: np.ndarray,
-    sample_rate: int,
-    size: float = 1.0,
-    decay: float = 0.84,
-    damping_hz: float = 3_000.0,
-    combs: int = 4,
-) -> np.ndarray:
-    """
-    A small Schroeder network: parallel combs into a chain of allpasses.
-
-    Not a good reverb. It is a *cheap* one, and the thing it is asked to do here - make one bed
-    sound like a larger space than another - it does honestly. Anything better would be a second
-    project inside this one.
-    """
-    wet = np.zeros_like(signal)
-
-    for index in range(combs):
-        delay = max(2, int(round(_COMB_DELAYS[index % len(_COMB_DELAYS)] * size)))
-        wet += comb(signal, sample_rate, delay, decay, damping_hz)
-
-    wet /= combs
-
-    for delay in _ALLPASS_DELAYS:
-        wet = allpass(wet, max(2, int(round(delay * size))), 0.5)
-
-    return wet
-
-
 def seamless(signal: np.ndarray, length: int, overlap: int) -> np.ndarray:
     """
     Fold a rendered buffer's tail back over its own head so the loop has no seam.
@@ -245,70 +127,6 @@ def seamless(signal: np.ndarray, length: int, overlap: int) -> np.ndarray:
     loop[:overlap] = loop[:overlap] * np.sin(ramp) + signal[length : length + overlap] * np.cos(ramp)
 
     return loop
-
-
-def envelope(count: int, sample_rate: int, attack: float, decay: float, curve: float = 2.0) -> np.ndarray:
-    """
-    A one-shot's shape: a soft rise and an exponential fall.
-
-    The rise is never allowed to be instant. #166's rule is that nothing in this palette may have an
-    attack sharp enough to read as an event, and an attack is the one thing a listener notices
-    across a room full of other sound.
-    """
-    t = np.arange(count) / sample_rate
-
-    attack = max(attack, 1.0 / sample_rate)
-    rise = np.clip(t / attack, 0.0, 1.0) ** curve
-    fall = np.exp(-np.maximum(t - attack, 0.0) / max(decay, 1e-4))
-
-    return rise * fall
-
-
-def partial(count: int, sample_rate: int, frequency: float, decay: float, phase: float = 0.0) -> np.ndarray:
-    """One exponentially-damped sinusoid - a mode of something that was struck."""
-    t = np.arange(count) / sample_rate
-
-    return np.sin(2.0 * np.pi * frequency * t + phase) * np.exp(-t / max(decay, 1e-4))
-
-
-def onsets(
-    rng: np.random.Generator,
-    count: int,
-    sample_rate: int,
-    mean_gap: float,
-    jitter: float = 0.9,
-    start: float = 0.0,
-) -> list[int]:
-    """
-    Sample indices for a run of grains, with the gap between them drawn afresh each time.
-
-    Exponentially-distributed gaps rather than a fixed rate with a wobble on it: the literature's
-    standing complaint about procedural ambience is that it sounds metronomic even when it is not
-    meant to, and a Poisson process is the one arrival pattern a listener cannot hear a rate in.
-    """
-    positions: list[int] = []
-    cursor = start * sample_rate
-
-    while cursor < count:
-        positions.append(int(cursor))
-        gap = mean_gap * (1.0 - jitter + jitter * 2.0 * rng.random()) if jitter < 1.0 else rng.exponential(mean_gap)
-        cursor += max(gap, 1.0 / sample_rate) * sample_rate
-
-    return positions
-
-
-def place(target: np.ndarray, grain: np.ndarray, at: int, gain: float = 1.0) -> None:
-    """Add a grain into a buffer at a sample index, clipped to what fits. In place."""
-    if at >= target.size:
-        return
-
-    start = max(0, at)
-    width = min(grain.size, target.size - start)
-
-    if width <= 0:
-        return
-
-    target[start : start + width] += gain * grain[:width]
 
 
 def rms(signal: np.ndarray) -> float:
@@ -336,47 +154,6 @@ def normalise(signal: np.ndarray, target_rms_db: float, peak_ceiling_db: float =
         scaled *= ceiling / peak
 
     return scaled
-
-
-def limit(signal: np.ndarray, sample_rate: int, ceiling_db: float = -3.0,
-          lookahead: float = 0.005, release: float = 0.08) -> np.ndarray:
-    """
-    Hold a one-shot's peaks under a ceiling without clipping them, so it can be mastered loud.
-
-    ``normalise`` alone could not: a grain-built one-shot carries twenty-odd dB between its RMS and
-    its sharpest transient, so any loudness target worth hearing ran it straight into the peak
-    ceiling, and the ceiling won. That is how the palette ended up at -29 dBFS and inaudible under
-    the game's own music. A limiter spends a few dB off the transients instead, which is also what
-    #209 asked of a one-shot anyway: nothing with an attack sharp enough to read as an event.
-
-    Lookahead rather than reactive: the gain has already come down by the time the peak arrives, so
-    nothing is ever clipped, and it is averaged over the lookahead so it never steps (a step in gain
-    is a click). One-shots only - a Python loop per sample is fine for a few seconds of audio, and
-    the beds have the crest headroom not to need it.
-    """
-    ceiling = 10.0 ** (ceiling_db / 20.0)
-    reach = max(1, int(lookahead * sample_rate))
-    needed = np.minimum(1.0, ceiling / np.maximum(np.abs(signal), 1e-12))
-
-    # the least gain any sample in the next 2 * reach needs...
-    padded = np.concatenate([needed, np.ones(2 * reach)])
-    ahead = np.lib.stride_tricks.sliding_window_view(padded, 2 * reach + 1)[: signal.size].min(axis=1)
-
-    # ...falling at once and recovering slowly, so the tail after a transient is not pumped...
-    recovery = float(np.exp(-1.0 / (release * sample_rate)))
-    held = np.empty_like(ahead)
-    level = 1.0
-
-    for index, want in enumerate(ahead):
-        level = min(want, level * recovery + (1.0 - recovery))
-        held[index] = level
-
-    # ...then averaged over the trailing reach. Every sample in that average saw this one inside
-    # its own lookahead window, so the average can never let a peak through
-    kernel = np.ones(reach) / reach
-    gain = np.convolve(np.concatenate([np.ones(reach - 1), held]), kernel, mode="valid")
-
-    return signal * gain
 
 
 def edges(signal: np.ndarray, sample_rate: int, fade: float = 0.01) -> np.ndarray:

@@ -6,6 +6,7 @@ package leaf.soulhome.registry;
 
 import leaf.soulhome.SoulHome;
 import leaf.soulhome.client.SoulKeybinds;
+import leaf.soulhome.client.SoulSampleBankLoader;
 import leaf.soulhome.client.gui.SoulAmbienceOptionsScreen;
 import leaf.soulhome.client.render.SoulBarrageShotModel;
 import leaf.soulhome.client.render.SoulBarrageShotRenderer;
@@ -16,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModLoadingContext;
@@ -70,6 +72,16 @@ public class ClientRegistry
         event.register(SoulKeybinds.USE_ABILITY);
         event.register(SoulKeybinds.CYCLE_ABILITY);
         event.register(SoulKeybinds.MEDITATE);
+    }
+
+    /**
+     * The soul's recorded instruments (#163). Registered here with the other client mod-bus events, so
+     * a reload - including F3+T and a pack change - reloads the samples the soul is played from.
+     */
+    @SubscribeEvent
+    public static void registerReloadListeners(RegisterClientReloadListenersEvent event)
+    {
+        event.registerReloadListener(SoulSampleBankLoader.LISTENER);
     }
 
     /** Barrage's shell (#194) - see {@link SoulBarrageShotRenderer}. */
