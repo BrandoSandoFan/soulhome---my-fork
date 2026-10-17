@@ -1,6 +1,6 @@
 # File created ~ 17 - 10 - 2026
 """
-Mixes the soul's ambience out of recorded instruments (#163, replacing the synthesis of #213).
+Mixes the soul's ambience out of real recordings (#163, replacing the synthesis of #213).
 
     python3 tools/soul_music/fetch_sources.py /path/to/sources
     python3 tools/ambience/mix.py --sources /path/to/sources
@@ -8,16 +8,18 @@ Mixes the soul's ambience out of recorded instruments (#163, replacing the synth
 writes the same files ``generate.py`` used to, under the same names, so ``sounds.json`` and every
 line of Java that plays them are untouched:
 
-* ``<voice>_1..3.ogg`` - one-shots. Each is two or three real strikes placed in a room: an anvil
-  under a timpani for ``wrought``, a horn breathing over a hand on a frame drum for ``warm``.
-* ``bed_close.ogg``, ``bed_open.ogg`` - the rank layers, built from instruments that have no pitch
-  to speak of (an ocean drum, a bass drum's skin being rubbed, a cymbal under a soft roll). A soul's
-  key is its own (``SoulMusicBrief``), and a bed with a note in it would be out of tune with half
-  the souls that played it.
-* ``character_<voice>.ogg`` - the nine character layers, the same rule: texture, not harmony. Where
-  something pitched does appear (a triangle, a bell tree) it is sparse, distant and inharmonic.
+* ``<voice>_1..3.ogg`` - one-shots: recorded sound effects (a flame catching, ice cracking, a
+  hammer on an anvil, a clock being wound), placed in a room. Sound effects, not instruments
+  imitating them - a fire assembled from clave strikes was the first attempt, and sounded like claves.
+* ``bed_close.ogg``, ``bed_open.ogg`` - the rank layers: field recordings of a still breeze and of
+  wind across a mountain at night. Places, not textures - the first beds were washes of ocean drum
+  and cymbal, and a minute of that is white noise.
+* ``character_<voice>.ogg`` - the nine character layers, one place each: a wood stove, arctic wind,
+  a hot spring, a blacksmith's, a pendulum clock, a dawn wood, a dripping cave, frogs at night.
 
-The suppression set is still ``generate.py --set suppression``; nothing here touches it.
+The field recordings and effects are CC0 sounds from Freesound, each checked as CC0 on its own page
+when fetched and credited in ``SOURCES.md``; the harp, timpani and bass drum are from VSCO-2 and
+VCSL. The suppression set is still ``generate.py --set suppression``; nothing here touches it.
 
 Everything is mono, because vanilla only places mono sounds in the world, and mastered to the
 targets the Java was balanced against (#163's playtest): one-shots -20 dBFS RMS with peaks under
@@ -62,12 +64,15 @@ def rng_for(name: str) -> np.random.Generator:
 
 
 _cache: dict[str, np.ndarray] = {}
+USED: set[int] = set()
 
 
 def rec(rel: str) -> np.ndarray:
     """One recording, mono, with its leading silence cut. Cached: the beds reuse a handful a lot."""
     if rel not in _cache:
         _cache[rel] = audio.trim_head(audio.highpass(audio.load(SRC / rel), 30.0))
+    if rel.startswith('freesound/'):
+        USED.add(int(Path(rel).stem))
     return _cache[rel]
 
 
@@ -122,234 +127,183 @@ def level(x: np.ndarray, rms_target: float, peak_db: float) -> np.ndarray:
     target and not "the target minus whatever the loudest strike cost", which is how the synthesised
     wrought one-shots ended up 2.5 dB short."""
     y = x
-    for _ in range(3):
+    for _ in range(6):
+        if abs(audio.rms_db(y) - rms_target) < 0.25:
+            break
         y = y * audio.undb(rms_target - audio.rms_db(y))
-        y = audio.limit(y, peak_db, release=0.12)
+        # A fast release on the later passes is light compression, which is what a clock's ticks or
+        # a fire's pops need to reach the same loudness as a sustained sound without a louder peak.
+        y = audio.limit(y, peak_db, release=0.12 if _ == 0 else 0.04)
     return y
 
 
 # --- one-shots --------------------------------------------------------------------------------
 
-VIBES_BOWED = f'{VCSL}/Idiophones/Struck Idiophones/Vibraphone/Bowed'
-GLOCK = f'{VSCO}/Percussion/Glock'
-GLASSES = f'{VCSL}/Idiophones/Friction Idiophones/Wine Glasses'
-HORN = f'{VSCO}/Brass/F Horn/sus'
-FRAME = f'{VCSL}/Membranophones/Struck Membranophones/Frame Drum'
-ANVIL = f'{VCSL}/Idiophones/Struck Idiophones/Anvil'
-TIMPANI = f'{VCSL}/Membranophones/Struck Membranophones/Timpani 1/Hit'
-CHIMES = f'{VCSL}/Idiophones/Struck Idiophones/Hand Chimes'
-TUBULAR = f'{VCSL}/Idiophones/Struck Idiophones/Tubular Bells 1'
 HARP = f'{VSCO}/Strings/Harp'
-BELLTREE = f'{VCSL}/Idiophones/Struck Idiophones/Bell Tree'
-WOOD = f'{VCSL}/Idiophones/Struck Idiophones/Woodblock'
-CLAVES = f'{VCSL}/Idiophones/Struck Idiophones/Claves'
-FLUTE_STAC = f'{VSCO}/Woodwinds/Flute/stac'
-MARIMBA = f'{VCSL}/Idiophones/Struck Idiophones/Marimba'
-SHAKER = f'{VCSL}/Idiophones/Struck Idiophones/Shaker, Small'
-CABASA = f'{VCSL}/Idiophones/Struck Idiophones/Cabasa'
-OCEAN = f'{VCSL}/Membranophones/Other Membranophones/Ocean Drum'
+TIMPANI = f'{VCSL}/Membranophones/Struck Membranophones/Timpani 1/Hit'
 BASSDRUM = f'{VCSL}/Membranophones/Struck Membranophones/Bass Drum 2'
-GONG = f'{VSCO}/VSCO 1 Percussion/varMetal/Gong'
-CYMBAL = f'{VCSL}/Idiophones/Struck Idiophones/Suspended Cymbal 1'
-TRIANGLE = f'{VCSL}/Idiophones/Struck Idiophones/Triangles'
 
+
+def fs(sound_id: int) -> str:
+    """A Freesound recording, by id. Every one is CC0, checked on its page when fetched, and listed
+    with its author in SOURCES.md."""
+    return f'freesound/{sound_id}.ogg'
+
+
+def loudest(x: np.ndarray, length: float, lead: float = 0.15, skip: float = 0.0, nth: int = 0) -> np.ndarray:
+    """The `length` seconds of a recording around its nth-loudest transient, starting `lead` before it.
+
+    How a pop, a crack or a strike is found inside a long take: by the take's own envelope, so a
+    re-fetch of the same recording picks the same moment.
+    """
+    env = audio.envelope_db(audio.highpass(x, 300.0), 0.01)
+    env[: int(skip * RATE)] = -200.0
+    env[len(env) - int(length * RATE):] = -200.0
+    for _ in range(nth):
+        k = int(np.argmax(env))
+        env[max(0, k - int(0.5 * RATE)): k + int(0.5 * RATE)] = -200.0
+    k = int(np.argmax(env))
+    a = max(0, k - int(lead * RATE))
+    return x[a:a + int(length * RATE)].copy()
+
+
+def clip(rel: str, length: float, gain_db: float = 0.0, fade: float = 0.3, at: float | None = None,
+         nth: int = 0, lead: float = 0.15, semis: float = 0.0) -> np.ndarray:
+    """A piece of a recording: from `at` seconds, or around its nth-loudest moment."""
+    x = rec(rel)
+    if semis:
+        x = audio.shift(x, semis)
+    if at is None:
+        y = loudest(x, length, lead=lead, nth=nth)
+    else:
+        y = x[int(at * RATE): int((at + length) * RATE)].copy()
+    y = audio.fade_in(y, 0.005)
+    n = min(int(fade * RATE), len(y) // 2)
+    if n:
+        y[-n:] *= 0.5 * (1.0 + np.cos(np.linspace(0.0, np.pi, n)))
+    return y / max(audio.peak(y), 1e-9) * audio.undb(gain_db)
+
+
+# --- one-shots --------------------------------------------------------------------------------
+#
+# Recorded sound effects, not instruments imitating them: the first version built a fire out of
+# clave transients and a forge out of an anvil sample under a timpani, and a fire built from claves
+# sounds like claves. Only arcane keeps a played instrument, because nothing in the world records
+# the sound of enchantment and a soft harp figure is the closest an orchestra comes.
 
 def base(v: int) -> np.ndarray:
-    # The soul itself: a bowed vibraphone bar, which swells rather than strikes, over the faintest
-    # touch of a gong. Nothing in it says fire or ice; it is the sound of the place being there.
-    bar = ['Vibes_bowed_E3_rr1_Main.wav', 'Vibes_bowed_G3_rr1_Main.wav', 'Vibes_bowed_D4_rr1_Main.wav'][v]
-    gong = ['gong_hit_pppp.wav', 'gong_hit_ppp.wav', 'gong_hit_pp.wav'][v]
-    x = place(4.5, (0.0, note(f'{VIBES_BOWED}/{bar}', -12.0 if v == 2 else 0.0, 4.2, fade=1.6)),
-              (0.25, audio.lowpass(note(f'{GONG}/{gong}', -5.0, 4.2, -15.0, fade=1.5), 900.0)))
-    return room(x, 'hall', 0.45, 4.5)
+    # The place breathing: one gust of mountain wind, taken from a different minute of the take each
+    # time, in a room large enough that it arrives rather than blows.
+    take = [fs(165526), fs(181252), fs(165526)][v]
+    gust = audio.lowpass(clip(take, 4.3, -2.0, fade=1.6, nth=[2, 1, 6][v], lead=1.6), 3500.0)
+    return room(audio.fade_in(gust, 1.2), 'hall', 0.4, 4.5)
 
 
 def warm(v: int) -> np.ndarray:
-    # A hearth: a horn breathing low and soft, a hand on a frame drum, and one pop from the fire.
-    horn = ['MOHorn_sus_F2_v1_1.wav', 'MOHorn_sus_D2_v1_1.wav', 'MOHorn_sus_A#1_v1_1.wav'][v]
-    hand = ['HDrumL_Hand_rr1_Sum.wav', 'HDrumS_Hand_v1_rr1_Sum.wav', 'HDrumL_HitMuted_v2_rr1_Sum.wav'][v]
-    x = place(3.0, (0.0, audio.fade_in(note(f'{HORN}/{horn}', 0.0, 2.7, -4.0, fade=1.2), 0.35)),
-              (0.08 + 0.05 * v, audio.lowpass(note(f'{FRAME}/{hand}', 0.0, 0.8, -6.0), 2500.0)),
-              (0.9 + 0.3 * v, audio.highpass(note(f'{CLAVES}/Claves1_Hit_v1_rr1_Mid.wav', 7.0 - 3 * v, 0.03,
-                                                  -14.0, fade=0.01), 900.0)))
-    return room(x, 'near', 0.3, 3.0)
+    # A fire catching, or a log settling in it: a flame's burst, and two pops out of real fires.
+    if v == 0:
+        x = audio.fade_in(clip(fs(828434), 2.9, -1.0, fade=1.0, at=0.0), 0.08)
+    else:
+        x = clip([fs(532191), fs(414767)][v - 1], 2.9, -1.0, fade=1.2, nth=[0, 1][v - 1], lead=0.25)
+        x = audio.lowpass(x, 7000.0)
+    return room(x, 'near', 0.2, 3.0)
 
 
 def cold(v: int) -> np.ndarray:
-    # Ice: a glockenspiel bar struck once, then a wine glass rubbed until it sings, which is the
-    # nearest thing an orchestra has to the sound of thin air.
-    bar = ['glock_medium_G5.wav', 'glock_medium_C6.wav', 'glock_medium_G6.wav'][v]
-    glass = ['glass1_D#4_Slow_1_Main.wav', 'glass3_A#4_Slow_1_Main.wav', 'glass4_D5_Slow_2_Main.wav'][v]
-    sing = audio.fade_in(note(f'{GLASSES}/Sustains/Slow/{glass}', 0.0, 3.2, -9.0, fade=1.4), 0.9)
-    x = place(4.0, (0.0, note(f'{GLOCK}/{bar}', 0.0, 3.0, -3.0, fade=1.5)), (0.4, sing))
-    return room(x, 'hall', 0.5, 4.0)
+    # Ice giving way, in a large, cold room.
+    take = [fs(342546), fs(329744), fs(422623)][v]
+    x = audio.lowpass(clip(take, 3.4, -1.0, fade=1.2, lead=0.2), 8000.0)
+    return room(x, 'hall', 0.4, 4.0)
 
 
 def steam(v: int) -> np.ndarray:
-    # Warm and cold at once is a third thing (SoulAxis): a glass's ring cut short by a breath of
-    # cabasa, the way a hot iron hisses when it meets cold water.
-    glass = ['glass2_F#4_Fast_1_Decay.wav', 'glass3_A#4_Fast_1_Decay.wav', 'glass1_D#4_Fast_1_Decay.wav'][v]
-    rub = ['Cabasa1_Rub_v2_rr1_Mid.wav', 'Cabasa1_Rub_v2_rr2_Mid.wav', 'Cabasa1_Rub_v1_rr2_Mid.wav'][v]
-    hiss = audio.bandpass(note(f'{CABASA}/{rub}', -3.0, 0.9, -7.0, fade=0.5), 1200.0, 6000.0)
-    hiss2 = audio.bandpass(note(f'{CABASA}/{rub}', -5.0, 0.9, -13.0, fade=0.5), 1200.0, 6000.0)
-    x = place(3.4, (0.0, note(f'{GLASSES}/Releases/Fast/{glass}', 0.0, 1.6, -4.0, fade=0.8)),
-              (0.18, hiss), (0.55 + 0.1 * v, hiss2))
-    return room(x, 'near', 0.35, 3.4)
+    # A valve letting go.
+    take = [fs(365071), fs(234782), fs(398077)][v]
+    x = audio.bandpass(clip(take, 2.9, -1.0, fade=1.0, lead=0.05), 250.0, 6500.0)
+    return room(x, 'near', 0.25, 3.4)
 
 
 def arcane(v: int) -> np.ndarray:
-    # Something arriving: a hand chime played backwards swells into a quick harp figure in lydian
-    # (its raised fourth is the "not quite of this world" the music's arcane mode uses too).
-    chime = ['sus_C4_r01_main.wav', 'sus_E4_r01_main.wav', 'sus_D4_r01_main.wav'][v]
-    swell = note(f'{CHIMES}/{chime}', 0.0, 1.6, -6.0, fade=0.2, reverse=True)
-    figures = [['KSHarp_C5_mf.wav', 'KSHarp_E5_mf.wav', 'KSHarp_G5_mf.wav'],
-               ['KSHarp_D4_mf.wav', 'KSHarp_A4_mf.wav', 'KSHarp_E5_mf.wav'],
-               ['KSHarp_G3_mf.wav', 'KSHarp_D4_mf.wav', 'KSHarp_B3_mf.wav']][v]
-    # The raised fourth: one harp note in each figure is lifted a semitone off its natural.
-    lift = [0.0, 1.0, 0.0]
+    # Something arriving: a cymbal played backwards swells into a short harp figure. The chime and
+    # bell tree the first version had are gone - a soul should not ding at its owner.
+    take = [fs(383903), fs(110218), fs(9523)][v]
+    swell = audio.lowpass(clip(take, 2.0, -5.0, fade=0.15, nth=0, lead=1.85), 6000.0)
+    swell = audio.fade_in(swell, 0.6)
+    figures = [['KSHarp_C3_mf.wav', 'KSHarp_E3_mf.wav', 'KSHarp_G3_mf.wav'],
+               ['KSHarp_C3_mf.wav', 'KSHarp_G3_mf.wav', 'KSHarp_D4_mf.wav'],
+               ['KSHarp_A2_mf.wav', 'KSHarp_E3_mf.wav', 'KSHarp_B3_mf.wav']][v]
     parts = [(0.0, swell)]
     for i, f in enumerate(figures):
-        parts.append((1.55 + 0.11 * i, note(f'{HARP}/{f}', lift[i] if v != 2 else 0.0, 2.4, -5.0 - 2 * i, fade=1.0)))
-    parts.append((1.6, audio.highpass(note(f'{BELLTREE}/Stroke/BellTree_Stroke_{[1, 3, 6][v]}_Mid.wav',
-                                            0.0, 2.0, -16.0, fade=1.0), 2500.0)))
-    return room(place(4.2, *parts), 'vast', 0.55, 4.2)
+        parts.append((1.9 + 0.13 * i, audio.lowpass(note(f'{HARP}/{f}', 0.0, 2.2, -7.0 - 2 * i, fade=1.0), 4500.0)))
+    return room(place(4.2, *parts), 'vast', 0.5, 4.2)
 
 
 def wrought(v: int) -> np.ndarray:
-    # Worked metal and stone: an anvil, softly, with a timpani's weight under it as the stone.
-    anvil = ['Anvil_Hit1_v1_rr1_Mid.wav', 'Anvil_Hit2_v1_rr1_Mid.wav', 'Anvil_Hit3_v2_rr1_Mid.wav'][v]
+    # A hammer on an anvil, with a timpani's weight under it as the stone it stands on.
+    take = [fs(270588), fs(270589), fs(521972)][v]
+    hit = clip(take, 1.6, -1.0, fade=0.6, lead=0.01)
     timp = ['Timpani1_Hit_v2_rr1_Sum.wav', 'Timpani3_Hit_v2_rr1_Sum.wav', 'Timpani5_Hit_v2_rr1_Sum.wav'][v]
-    x = place(3.2, (0.0, note(f'{ANVIL}/{anvil}', -2.0, 1.6, -2.0, fade=0.8)),
-              (0.004, audio.lowpass(note(f'{TIMPANI}/{timp}', -3.0, 2.8, -6.0, fade=1.2), 700.0)))
-    if v == 1:
-        x += place(3.2, (0.42, note(f'{ANVIL}/Anvil_Hit1_v1_rr1_Mid.wav', 1.0, 1.2, -12.0, fade=0.6)))
+    x = place(3.2, (0.0, hit), (0.0, audio.lowpass(note(f'{TIMPANI}/{timp}', -3.0, 2.8, -10.0, fade=1.2), 500.0)))
     return room(x, 'near', 0.25, 3.2)
 
 
 def quickened(v: int) -> np.ndarray:
-    # A mechanism waking: wood ticks that hurry, then a glockenspiel bar and a tap of the anvil as
-    # it catches. Arcane and wrought at once - the enchanted mechanism SoulAxis names.
-    ticks = []
-    t = 0.0
-    gap = [0.34, 0.28, 0.4][v]
-    for i in range(5 + v):
-        w = [f'{WOOD}/wood_click_pp_rr1.wav', f'{WOOD}/wood_click_pp_rr2.wav', f'{WOOD}/wood_click_pp_rr3.wav'][i % 3]
-        ticks.append((t, audio.lowpass(note(w, 2.0 * (i % 2), 0.2, -8.0 + i * 0.8, fade=0.05), 3500.0)))
-        t += gap
-        gap *= 0.78
-    bar = ['glock_medium_G5.wav', 'glock_medium_C5.wav', 'glock_medium_G4.wav'][v]
-    ticks.append((t + 0.05, note(f'{GLOCK}/{bar}', 0.0, 2.6, -3.0, fade=1.2)))
-    ticks.append((t + 0.05, audio.lowpass(note(f'{ANVIL}/Anvil_Hit2_v1_rr1_Mid.wav', 3.0, 1.0, -11.0, fade=0.5),
-                                          4500.0)))
-    return audio.lowpass(room(place(4.0, *ticks), 'hall', 0.4, 4.0), 7000.0)
+    # A mechanism being wound.
+    take = [fs(414260), fs(734580), fs(586150)][v]
+    x = clip(take, 3.6, -1.0, fade=1.0, at=[0.0, 0.0, None][v], lead=0.4)
+    return room(audio.lowpass(x, 7000.0), 'near', 0.3, 4.0)
 
 
 def verdant(v: int) -> np.ndarray:
-    # Growing things: a flautist's two-note call, the shape of a small bird, over a soft marimba
-    # and a shake of seeds.
-    calls = [[('LDFlute_stac_E5_v1_rr1.wav', 0.0), ('LDFlute_stac_A5_v1_rr1.wav', 0.0)],
-             [('LDFlute_stac_C6_v1_rr1.wav', 0.0), ('LDFlute_stac_A5_v1_rr2.wav', 0.0),
-              ('LDFlute_stac_C6_v1_rr2.wav', 0.0)],
-             [('LDFlute_stac_A5_v1_rr1.wav', -2.0), ('LDFlute_stac_E5_v1_rr2.wav', 0.0)]][v]
-    parts = []
-    t = 0.35
-    for name, semis in calls:
-        parts.append((t, note(f'{FLUTE_STAC}/{name}', semis, 0.5, -5.0, fade=0.2)))
-        t += 0.16
-    mar = ['Marimba_hit_Outrigger_G4_soft_01.wav', 'Marimba_hit_Outrigger_C4_soft_01.wav',
-           'Marimba_hit_Outrigger_F3_soft_01.wav'][v]
-    parts.append((0.0, note(f'{MARIMBA}/{mar}', 0.0, 2.0, -6.0, fade=0.8)))
-    parts.append((0.05, audio.highpass(note(f'{SHAKER}/Mid_ShakerDouble_{["Up", "Down", "Up"][v]}_rr{1 + v % 2}.wav',
-                                            0.0, 0.6, -14.0, fade=0.3), 2000.0)))
-    return room(place(3.4, *parts), 'near', 0.3, 3.4)
+    # A bird somewhere in the soul, and the leaves it left.
+    bird = [fs(233255), fs(233254), fs(812033)][v]
+    leaves = [fs(437356), fs(106114), fs(443065)][v]
+    x = place(3.4, (0.3, clip(bird, 1.0, -3.0, fade=0.3, lead=0.02)),
+              (0.0, audio.lowpass(clip(leaves, 2.8, -9.0, fade=1.0, lead=0.3), 6000.0)))
+    return room(x, 'near', 0.3, 3.4)
 
 
 def hollow(v: int) -> np.ndarray:
-    # Bone and dust: one heartbeat on a bass drum, and a tubular bell a long way off, tuned down
-    # until it is more weight than pitch.
-    drum = ['bassdrum_hit_pp1.wav', 'bassdrum_hit_pp2.wav', 'bassdrum_hit_mp1.wav'][v]
-    bell = ['chimes_C3_f_rr1.wav', 'chimes_E3_pp_rr1.wav', 'chimes_D3_pp_rr3.wav'][v]
-    x = place(4.2, (0.0, note(f'{BASSDRUM}/{drum}', 0.0, 2.4, -1.0, fade=1.0)),
-              (0.12, audio.lowpass(note(f'{TUBULAR}/{bell}', -7.0, 4.0, -9.0, fade=1.8), 2200.0)))
-    if v == 0:
-        x += place(4.2, (0.55, note(f'{BASSDRUM}/bassdrum_hit_pp2.wav', 0.0, 2.0, -9.0, fade=0.8)))
-    return audio.lowpass(room(x, 'vast', 0.55, 4.2), 4000.0)
+    # Old wood taking a weight, a long way off, and one heartbeat under it.
+    creak = [fs(377552), fs(502507), fs(502507)][v]
+    drum = ['bassdrum_hit_pp1.wav', 'bassdrum_hit_pp2.wav', 'bassdrum_hit_pp1.wav'][v]
+    x = place(4.2, (0.0, audio.lowpass(clip(creak, 2.6, -2.0, fade=1.0, nth=[0, 0, 2][v], lead=0.1), 4000.0)),
+              (0.6, note(f'{BASSDRUM}/{drum}', 0.0, 2.4, -8.0, fade=1.0)))
+    return room(x, 'vast', 0.5, 4.2)
 
 
 def overgrown(v: int) -> np.ndarray:
-    # Verdant and hollow at once: something growing through something dead. A low, soft marimba,
-    # leaves, and one drop of water from somewhere above.
-    mar = ['Marimba_hit_Outrigger_C2_soft_01.wav', 'Marimba_hit_Outrigger_G2_soft_01.wav',
-           'Marimba_hit_Outrigger_F1_soft_01.wav'][v]
-    rustle = audio.highpass(note(f'{SHAKER}/Mid_Shaker_Roll_Fast_rr{1 + v % 2}.wav', -3.0, 1.8, -10.0,
-                                 fade=0.9), 1200.0)
-    drop = note(f'{GLOCK}/{["glock_medium_C6.wav", "glock_medium_G5.wav", "glock_medium_C6.wav"][v]}', 0.0, 0.3,
-                -12.0, fade=0.22)
-    x = place(4.0, (0.0, note(f'{MARIMBA}/{mar}', 0.0, 3.4, -3.0, fade=1.4)), (0.3, audio.fade_in(rustle, 0.5)),
-              (1.6 + 0.3 * v, drop))
-    return audio.lowpass(room(x, 'hall', 0.4, 4.0), 5500.0)
+    # Something growing through something dead: leaves moving, and water finding its way down.
+    leaves = [fs(106114), fs(437356), fs(443065)][v]
+    drop = [fs(174718), fs(166325), fs(533146)][v]
+    x = place(4.0, (0.0, audio.lowpass(clip(leaves, 3.0, -4.0, fade=1.2, lead=0.3), 5000.0)),
+              (1.2 + 0.3 * v, clip(drop, 0.8, -6.0, fade=0.3, lead=0.02)))
+    return room(x, 'hall', 0.35, 4.0)
 
 
 VOICES = {'base': base, 'warm': warm, 'cold': cold, 'steam': steam, 'arcane': arcane, 'wrought': wrought,
           'quickened': quickened, 'verdant': verdant, 'hollow': hollow, 'overgrown': overgrown}
 
 DESCRIPTIONS = {
-    'base': 'bowed vibraphone over a barely-touched gong (VCSL, VSCO-2)',
-    'warm': 'low F horn, a hand on a frame drum, one clave pop (VSCO-2, VCSL)',
-    'cold': 'glockenspiel strike into a rubbed wine glass (VSCO-2, VCSL)',
-    'steam': 'wine-glass ring cut short by cabasa breaths (VCSL)',
-    'arcane': 'reversed hand chime into a lydian harp figure and bell tree (VCSL, VSCO-2)',
-    'wrought': 'anvil over a lowpassed timpani (VCSL)',
-    'quickened': 'accelerating woodblock into glockenspiel and anvil (VCSL, VSCO-2)',
-    'verdant': 'flute staccato call over soft marimba and shaker (VSCO-2, VCSL)',
-    'hollow': 'bass drum heartbeat and a tubular bell tuned down, far off (VCSL)',
-    'overgrown': 'low soft marimba, shaker leaves, a damped glockenspiel drop (VCSL, VSCO-2)',
+    'base': 'a gust of mountain wind (Freesound)',
+    'warm': 'a flame bursting, or a pop out of a real fire (Freesound)',
+    'cold': 'ice cracking (Freesound)',
+    'steam': 'a burst of steam (Freesound)',
+    'arcane': 'a reversed cymbal (Freesound) into a soft harp figure (VSCO-2)',
+    'wrought': 'a hammer on an anvil (Freesound) over a lowpassed timpani (VCSL)',
+    'quickened': 'a clockwork mechanism being wound (Freesound)',
+    'verdant': 'a bird chirp and rustling leaves (Freesound)',
+    'hollow': 'creaking wood far off (Freesound) and a soft bass drum (VCSL)',
+    'overgrown': 'rustling leaves and a water drop (Freesound)',
 }
 
 
 # --- beds -------------------------------------------------------------------------------------
-
-def scatter(seconds: float, rng: np.random.Generator, every: tuple[float, float],
-            make, start: float = 0.0) -> np.ndarray:
-    """Events at irregular intervals, as a texture rather than a rhythm."""
-    y = np.zeros(int(seconds * RATE) + 10 * RATE)
-    t = start + rng.uniform(*every) * rng.random()
-    while t < seconds:
-        x = make(rng)
-        a = int(t * RATE)
-        y[a:a + len(x)] += x[: len(y) - a]
-        t += rng.uniform(*every)
-    return y[: int(seconds * RATE)]
-
-
-def wash(seconds: float, rng: np.random.Generator, files: list[str], piece: tuple[float, float],
-         xfade: float, semis: tuple[float, float] = (0.0, 0.0), gains: tuple[float, float] = (-4.0, 0.0)) -> np.ndarray:
-    """A continuous texture from overlapping pieces of sustained recordings, each one faded in and
-    out over `xfade`, so the bed breathes the way the synthesised one's LFOs pretended to."""
-    y = np.zeros(int(seconds * RATE) + 12 * RATE)
-    t = 0.0
-    while t < seconds:
-        f = files[rng.integers(len(files))]
-        x = rec(f)
-        if semis != (0.0, 0.0):
-            x = audio.shift(x, rng.uniform(*semis))
-        length = rng.uniform(*piece)
-        usable = max(0, len(x) - int(length * RATE) - 1)
-        off = int(rng.uniform(0.15, 0.85) * usable)
-        seg = x[off:off + int(length * RATE)].copy()
-        if len(seg) < int(2 * xfade * RATE):
-            t += 0.5
-            continue
-        n = int(xfade * RATE)
-        env = np.ones(len(seg))
-        env[:n] = np.sin(np.linspace(0, np.pi / 2, n)) ** 2
-        env[-n:] = np.cos(np.linspace(0, np.pi / 2, n)) ** 2
-        seg *= env / (np.sqrt(np.mean(seg ** 2)) + 1e-12) * audio.undb(rng.uniform(*gains))
-        a = int(t * RATE)
-        y[a:a + len(seg)] += seg[: len(y) - a]
-        t += len(seg) / RATE - xfade
-    return y[: int(seconds * RATE)]
-
+#
+# Each bed is a field recording of a real place, not a texture assembled from instrument noise:
+# the first version washed ocean-drum and cymbal recordings into one another, and what that
+# sounds like for a minute at a time is white noise. A place has events in it - a log shifting, a
+# drip, a bird, a gust - and that is what makes it a place.
 
 def seamless(x: np.ndarray, seconds: float, overlap: float) -> np.ndarray:
     """Fold the tail past the loop point back over the head, equal power, so the loop has no seam.
@@ -361,6 +315,38 @@ def seamless(x: np.ndarray, seconds: float, overlap: float) -> np.ndarray:
     return y
 
 
+def take(rel: str, seconds: float, start: float = 4.0) -> np.ndarray:
+    """`seconds` of one recording. A take shorter than that is joined to a later stretch of itself
+    with a long crossfade, rather than looped on itself mid-event."""
+    x = rec(rel)
+    n = int(seconds * RATE)
+    a = int(start * RATE)
+    if len(x) - a >= n:
+        return x[a:a + n].copy()
+    xfade = int(3.0 * RATE)
+    out = x[a:].copy()
+    pos = int(0.5 * len(x))
+    while len(out) < n:
+        nxt = x[pos:].copy()
+        t = np.linspace(0.0, np.pi / 2.0, xfade)
+        head = out[-xfade:] * np.cos(t) + nxt[:xfade] * np.sin(t)
+        out = np.concatenate([out[:-xfade], head, nxt[xfade:]])
+        pos = int(0.25 * len(x)) if pos != int(0.25 * len(x)) else int(0.5 * len(x))
+    return out[:n]
+
+
+def scatter(seconds: float, rng: np.random.Generator, every: tuple[float, float], make) -> np.ndarray:
+    """Occasional events at irregular intervals, as a place has them."""
+    y = np.zeros(int(seconds * RATE) + 10 * RATE)
+    t = rng.uniform(*every) * rng.random()
+    while t < seconds:
+        x = make(rng)
+        a = int(t * RATE)
+        y[a:a + len(x)] += x[: len(y) - a]
+        t += rng.uniform(*every)
+    return y[: int(seconds * RATE)]
+
+
 def bed(make, rms: float) -> np.ndarray:
     total = BED_SECONDS + BED_OVERLAP
     x = make(total)[: int(total * RATE)]
@@ -369,158 +355,68 @@ def bed(make, rms: float) -> np.ndarray:
 
 
 def bed_close(seconds: float) -> np.ndarray:
-    # Close: the room you are standing in. An ocean drum barely tilting, a bass drum's skin being
-    # rubbed under it, both dark.
-    rng = rng_for('bed_close')
-    ocean = audio.lowpass(wash(seconds, rng, [f'{OCEAN}/OceanDrum_Sus_{i}_Mid.wav' for i in (1, 2, 3)],
-                               (7.0, 12.0), 3.0, (-5.0, -2.0)), 900.0, 3)
-    rub = audio.lowpass(wash(seconds, rng, [f'{BASSDRUM}/bassdrum_rub{i}.wav' for i in (2, 7, 10, 12)],
-                             (4.0, 7.0), 1.8, (-3.0, 0.0), (-10.0, -5.0)), 500.0, 3)
-    return room(ocean + rub, 'near', 0.35, seconds)
+    # Close: a small place on a still night. A gentle breeze, darkened until it is felt more than
+    # heard, and crickets somewhere past the edge of the island so it is never only weather.
+    breeze = audio.lowpass(take(fs(181252), seconds, 6.0), 1800.0, 2)
+    crickets = audio.lowpass(take(fs(333221), seconds, 12.0), 6000.0)
+    crickets *= audio.undb(audio.rms_db(breeze) - audio.rms_db(crickets) - 9.0)
+    return breeze + crickets
 
 
 def bed_open(seconds: float) -> np.ndarray:
-    # Open: the soul gone huge. The same ocean drum lifted out of the floor, a cymbal under a soft
-    # roll a long way away, and a gong rolled so gently it is felt as air moving.
-    rng = rng_for('bed_open')
-    air = audio.highpass(wash(seconds, rng, [f'{OCEAN}/OceanDrum_Sus_{i}_Mid.wav' for i in (1, 2, 3)],
-                              (8.0, 13.0), 3.5), 280.0, 2)
-    shimmer = audio.lowpass(wash(seconds, rng, [f'{CYMBAL}/susCymb1_roll_mp1_nloop.wav'], (5.0, 8.0), 2.5,
-                                 (-12.0, -7.0), (-14.0, -9.0)), 5000.0)
-    gong = audio.lowpass(wash(seconds, rng, [f'{GONG}/gong_roll_long_f.wav', f'{GONG}/gong_roll_medium_f.wav'],
-                              (6.0, 10.0), 3.0, (-7.0, -4.0), (-16.0, -11.0)), 1200.0)
-    return room(air + shimmer + gong, 'vast', 0.85, seconds)
-
-
-def grain_fire(seconds: float, rng: np.random.Generator, rate: float) -> np.ndarray:
-    grains = []
-    for rel in [f'{CLAVES}/Claves1_Hit_v1_rr1_Mid.wav', f'{CLAVES}/Claves2_Hit_v1_rr1_Mid.wav',
-                f'{WOOD}/wood_click_pp_rr1.wav', f'{CABASA}/Cabasa1_Hit_rr1_Mid.wav',
-                f'{SHAKER}/Mid_Shaker_Slap_rr1.wav']:
-        x = rec(rel)
-        for length in (0.004, 0.009, 0.018):
-            g = x[: int(length * RATE)].copy()
-            g *= np.hanning(len(g) * 2)[len(g):] ** 0.5
-            grains.append(audio.highpass(g / audio.peak(g), 700.0))
-    y = np.zeros(int(seconds * RATE) + RATE)
-    t = 0.0
-    while t < seconds:
-        t += rng.exponential(1.0 / rate)
-        g = audio.shift(grains[rng.integers(len(grains))], rng.uniform(-5.0, 7.0))
-        size = min(0.5, 0.08 * rng.pareto(3.0) + 0.05)
-        a = int(t * RATE)
-        y[a:a + len(g)] += g[: len(y) - a] * size
-    return y[: int(seconds * RATE)]
+    # Open: the soul gone huge. Wind singing across a mountain top at night, with crickets a long way
+    # below - felix.blume's recording, which is a place rather than a weather.
+    return audio.lowpass(room(take(fs(165526), seconds, 20.0), 'vast', 0.35, seconds), 6000.0)
 
 
 def character_warm(seconds):
-    rng = rng_for('character_warm')
-    roar = audio.lowpass(wash(seconds, rng, [f'{OCEAN}/OceanDrum_Sus_3_Mid.wav'], (6.0, 10.0), 2.5,
-                              (-9.0, -6.0), (-9.0, -5.0)), 380.0, 3)
-    fire = grain_fire(seconds, rng, 9.0)
-    return room(fire + roar[: len(fire)] * 0.6, 'near', 0.3, seconds)
+    # A wood stove, close, with a second fire further off filling in between its pops.
+    near = take(fs(532191), seconds)
+    far = audio.lowpass(take(fs(414767), seconds), 4000.0)
+    return near + far * 0.35
 
 
 def character_cold(seconds):
-    rng = rng_for('character_cold')
-    wind = audio.bandpass(wash(seconds, rng, [f'{OCEAN}/OceanDrum_Sus_{i}_Mid.wav' for i in (1, 2)],
-                               (8.0, 12.0), 3.5, (3.0, 6.0)), 1600.0, 6500.0)
-    soft = ['Legacy/1/triangle1_hit_pp.wav', 'Legacy/2/triangle2_hit_p.wav', 'Legacy/2/triangle2_hit_p_2.wav',
-            'Legacy/3/triangle3_hit_p.wav', 'Legacy/3/triangle3_hit_pp.wav']
-    tings = scatter(seconds, rng, (4.0, 9.0), lambda r: note(
-        f'{TRIANGLE}/{soft[r.integers(len(soft))]}', 0.0, 2.5, r.uniform(-16.0, -10.0), fade=1.2))
-    return room(wind + tings[: len(wind)], 'hall', 0.55, seconds)
+    return audio.lowpass(take(fs(117136), seconds), 5000.0)
 
 
 def character_steam(seconds):
-    rng = rng_for('character_steam')
-    hiss = audio.bandpass(wash(seconds, rng, [f'{SHAKER}/Mid_Shaker_Roll_Fast_rr1.wav',
-                                              f'{SHAKER}/Mid_Shaker_Roll_Fast_rr2.wav'], (1.2, 2.2), 0.5,
-                               (-7.0, -3.0), (-14.0, -4.0)), 1000.0, 4500.0) * 0.5
-    rings = scatter(seconds, rng, (6.0, 12.0), lambda r: note(
-        f'{GLASSES}/Releases/Fast/{["glass1_D#4_Fast_1_Decay.wav", "glass2_F#4_Fast_1_Decay.wav"][r.integers(2)]}',
-        0.0, 1.4, r.uniform(-14.0, -9.0), fade=0.7))
-    fire = audio.lowpass(grain_fire(seconds, rng, 3.0), 5000.0)
-    return room(hiss + rings[: len(hiss)] * 1.5 + fire[: len(hiss)] * 1.2, 'near', 0.35, seconds)
+    # A hot spring bubbling, with a boiler's rumble under it.
+    spring = take(fs(414762), seconds, 30.0)
+    boil = audio.lowpass(take(fs(398684), seconds), 2500.0)
+    return spring + boil * 0.3
 
 
 def character_arcane(seconds):
+    # The air of a stone room nobody uses, and now and then a cymbal swelling backwards out of it.
     rng = rng_for('character_arcane')
-    bowed = audio.highpass(wash(seconds, rng, [f'{CYMBAL}/susCymb1_bow_{i}.wav' for i in (7, 13, 17, 20)],
-                                (4.0, 7.0), 2.0, (-2.0, 0.0), (-8.0, -3.0)), 600.0)
-    strokes = scatter(seconds, rng, (7.0, 14.0), lambda r: audio.highpass(note(
-        f'{BELLTREE}/Stroke/BellTree_Stroke_{[1, 3, 4, 6, 10][r.integers(5)]}_Mid.wav', 0.0, 3.0,
-        r.uniform(-18.0, -12.0), fade=1.4), 2500.0))
-    return room(bowed + strokes[: len(bowed)], 'vast', 0.7, seconds)
+    air = take(fs(530161), seconds, 10.0)
+    swells = scatter(seconds, rng, (9.0, 16.0), lambda r: audio.lowpass(audio.fade_in(clip(
+        [fs(383903), fs(110218), fs(9523)][r.integers(3)], 2.5, r.uniform(-18.0, -12.0), fade=0.4, lead=2.2),
+        1.0), 5000.0))
+    return room(air + swells, 'vast', 0.4, seconds)
 
 
 def character_wrought(seconds):
-    rng = rng_for('character_wrought')
-    rumble = audio.lowpass(wash(seconds, rng, [f'{BASSDRUM}/bassdrum_roll_pp.wav', f'{BASSDRUM}/bassdrum_roll_mp.wav'],
-                                (5.0, 9.0), 2.0, (-3.0, 0.0), (-6.0, -2.0)), 260.0, 3)
-    strikes = scatter(seconds, rng, (3.0, 8.0), lambda r: audio.lowpass(note(
-        f'{ANVIL}/Anvil_Hit{r.integers(1, 4)}_v1_rr1_Mid.wav', r.uniform(-4.0, 0.0), 1.2,
-        r.uniform(-20.0, -13.0), fade=0.6), 3500.0))
-    return room(rumble + strikes[: len(rumble)], 'hall', 0.5, seconds)
+    return audio.lowpass(take(fs(137836), seconds, 8.0), 7000.0)
 
 
 def character_quickened(seconds):
-    rng = rng_for('character_quickened')
-
-    def burst(r):
-        k = int(r.integers(3, 8))
-        gap = r.uniform(0.16, 0.3)
-        parts = [(i * gap, note(f'{WOOD}/wood_click_pp_rr{1 + i % 3}.wav', 2.0 * (i % 2), 0.15,
-                                r.uniform(-20.0, -14.0), fade=0.05)) for i in range(k)]
-        return audio.lowpass(place(k * gap + 0.3, *parts), 3200.0)
-
-    ticks = scatter(seconds, rng, (2.0, 5.0), burst)
-    metal = scatter(seconds, rng, (8.0, 15.0), lambda r: audio.lowpass(note(
-        f'{TRIANGLE}/Legacy/1/triangle1_hit_mp_muted{r.integers(1, 4)}.wav', 0.0, 0.8, r.uniform(-20.0, -14.0),
-        fade=0.4), 5000.0))
-    n = int(seconds * RATE)
-    return room(ticks[:n] + metal[:n], 'hall', 0.4, seconds)
+    # A pendulum clock in the next room.
+    return audio.lowpass(room(take(fs(657255), seconds), 'near', 0.3, seconds), 6000.0)
 
 
 def character_verdant(seconds):
-    rng = rng_for('character_verdant')
-    leaves = audio.bandpass(wash(seconds, rng, [f'{SHAKER}/Mid_Shaker_Roll_Fast_rr1.wav',
-                                                f'{SHAKER}/Mid_Shaker_Roll_Fast_rr2.wav'], (1.5, 3.0), 0.8,
-                                 (-8.0, -4.0), (-14.0, -4.0)), 900.0, 3800.0)
-
-    def call(r):
-        names = ['LDFlute_stac_E5_v1_rr1.wav', 'LDFlute_stac_A5_v1_rr1.wav', 'LDFlute_stac_C6_v1_rr1.wav']
-        parts = [(i * 0.13, note(f'{FLUTE_STAC}/{names[r.integers(3)]}', r.uniform(-1.0, 3.0), 0.12, -4.0,
-                                 fade=0.06)) for i in range(int(r.integers(2, 4)))]
-        return audio.highpass(place(0.6, *parts), 1500.0) * audio.undb(r.uniform(-22.0, -15.0))
-
-    birds = scatter(seconds, rng, (5.0, 12.0), call)
-    return room(leaves + birds[: len(leaves)], 'hall', 0.45, seconds)
+    return audio.lowpass(take(fs(353311), seconds), 9000.0)
 
 
 def character_hollow(seconds):
-    rng = rng_for('character_hollow')
-    low = audio.lowpass(wash(seconds, rng, [f'{OCEAN}/OceanDrum_Sus_{i}_Mid.wav' for i in (1, 3)], (8.0, 12.0),
-                             3.5, (-10.0, -7.0), (-8.0, -4.0)), 450.0, 3)
-    beats = scatter(seconds, rng, (4.0, 9.0), lambda r: note(
-        f'{BASSDRUM}/bassdrum_hit_pp{r.integers(1, 3)}.wav', 0.0, 2.0, r.uniform(-12.0, -7.0), fade=0.9))
-    gong = scatter(seconds, rng, (14.0, 24.0), lambda r: audio.lowpass(note(
-        f'{GONG}/gong_hit_pppp.wav', r.uniform(-8.0, -5.0), 6.0, -16.0, fade=3.0), 800.0))
-    n = len(low)
-    return room(low + beats[:n] + gong[:n], 'vast', 0.6, seconds)
+    return take(fs(177958), seconds, 2.0)
 
 
 def character_overgrown(seconds):
-    rng = rng_for('character_overgrown')
-    leaves = audio.lowpass(wash(seconds, rng, [f'{SHAKER}/Mid_Shaker_Roll_Fast_rr1.wav'], (1.5, 3.0), 0.8,
-                                (-9.0, -5.0), (-16.0, -6.0)), 4000.0)
-    damp = audio.lowpass(wash(seconds, rng, [f'{OCEAN}/OceanDrum_Sus_2_Mid.wav'], (8.0, 12.0), 3.0,
-                              (-8.0, -5.0), (-10.0, -6.0)), 600.0)
-    drips = scatter(seconds, rng, (2.5, 7.0), lambda r: note(
-        f'{GLOCK}/{["glock_medium_C6.wav", "glock_medium_G5.wav", "glock_medium_C5.wav"][r.integers(3)]}',
-        r.uniform(-0.3, 0.3), 0.25, r.uniform(-24.0, -16.0), fade=0.2))
-    n = len(leaves)
-    return room(leaves + damp[:n] + drips[:n], 'hall', 0.45, seconds)
+    # Frogs and crickets in a wet place at night.
+    return audio.lowpass(take(fs(32655), seconds), 7000.0)
 
 
 CHARACTERS = {'warm': character_warm, 'cold': character_cold, 'steam': character_steam,
@@ -528,15 +424,15 @@ CHARACTERS = {'warm': character_warm, 'cold': character_cold, 'steam': character
               'verdant': character_verdant, 'hollow': character_hollow, 'overgrown': character_overgrown}
 
 CHARACTER_DESCRIPTIONS = {
-    'warm': 'fire built from claves, woodblock, cabasa and shaker transients over a low ocean drum',
-    'cold': 'high-passed ocean drum for thin wind, sparse distant triangle',
-    'steam': 'shaker hiss in gusts, sparse wine-glass rings, a few embers',
-    'arcane': 'bowed cymbal shimmer, sparse bell tree strokes, a very large room',
-    'wrought': 'pp bass drum roll for the forge floor, distant lowpassed anvil',
-    'quickened': 'bursts of woodblock ticking, a muted triangle now and then',
-    'verdant': 'shaker leaves and far-off flute-staccato birds',
-    'hollow': 'low ocean drum, slow bass drum heartbeats, a gong tuned down to a pressure change',
-    'overgrown': 'dark shaker leaves, damp ocean drum, damped glockenspiel drips',
+    'warm': 'a wood stove close by and a second fire further off (Freesound)',
+    'cold': 'arctic wind (Freesound)',
+    'steam': 'a bubbling hot spring over a water boiler (Freesound)',
+    'arcane': 'dungeon air with the occasional reversed cymbal swell (Freesound)',
+    'wrought': 'a blacksmith\'s workshop (Freesound)',
+    'quickened': 'a pendulum clock in the next room (Freesound)',
+    'verdant': 'an early-summer wood at dawn (Freesound)',
+    'hollow': 'water dripping in a cave (Freesound)',
+    'overgrown': 'frogs and crickets at night (Freesound)',
 }
 
 
@@ -551,19 +447,36 @@ def write(name: str, x: np.ndarray, rows: list[tuple], what: str) -> None:
     print(f'  {path.name:22s} {len(x) / RATE:6.2f}s rms {audio.rms_db(x):6.1f} peak {audio.db(audio.peak(x)):5.1f}')
 
 
+def freesound_rows() -> list[str]:
+    import json
+    out = []
+    for sid in sorted(USED):
+        meta = json.loads((SRC / 'freesound' / f'{sid}.json').read_text())
+        title = meta['title'].removeprefix('Freesound - ').replace('|', '/').removesuffix(f" by {meta['user']}")
+        out.append(f"| [{sid}](https://freesound.org/s/{sid}/) | {meta['user']} | {title} |")
+    return out
+
+
 def sources_md(rows: list[tuple]) -> str:
     lines = [
         '# Where these sounds came from',
         '',
-        'Every file in this directory is a mix of recordings of real instruments, made by',
-        '`tools/ambience/mix.py` (#163). The recordings come from two libraries, both released',
-        'under **CC0 1.0** (public domain dedication), so nothing here carries an attribution',
-        'requirement - the credit below is given because it is owed, not because it is required:',
+        'Every file in this directory is a mix of real recordings, made by `tools/ambience/mix.py`',
+        '(#163). Every recording is released under **CC0 1.0** (public domain dedication), so',
+        'nothing here carries an attribution requirement - the credit below is given because it is',
+        'owed, not because it is required. Instruments come from two libraries:',
         '',
         '* **VSCO-2 Community Edition**, Versilian Studios -',
         '  <https://github.com/sgossner/VSCO-2-CE>, commit `440300901dfe9275fd84e0b7763af1f8443ae62e`',
         '* **Versilian Community Sample Library (VCSL)**, Versilian Studios and contributors -',
         '  <https://github.com/sgossner/VCSL>, commit `c1ea7bcc3c7309650ab0da9d15c9cd1fbc4a4c7e`',
+        '',
+        'and the field recordings and sound effects from Freesound, each one checked as CC0 on its',
+        'own page when it was fetched (`fetch_sources.py` refuses any that is not):',
+        '',
+        '| Freesound | Author | Recording |',
+        '| --- | --- | --- |',
+        *freesound_rows(),
         '',
         '#209 asks that provenance be recorded because "CC0" and "CC-BY" are different promises.',
         'This set makes the CC0 one. The mixes themselves (the choice of recordings, edits,',
@@ -609,10 +522,10 @@ def main() -> None:
             write(name, x, rows, f'one-shot, {voice}, variant {v + 1}: {DESCRIPTIONS[voice]}')
     if not only or 'bed_close' in only:
         write('bed_close', bed(bed_close, BED_RMS), rows,
-              'rank bed, close: dark ocean drum and a rubbed bass drum skin, seamless loop')
+              'rank bed, close: a gentle breeze, darkened, with crickets far off (Freesound), seamless loop')
     if not only or 'bed_open' in only:
         write('bed_open', bed(bed_open, BED_RMS), rows,
-              'rank bed, open: lifted ocean drum, distant cymbal roll and gong roll, very wet, seamless loop')
+              'rank bed, open: wind singing across a mountain top at night (Freesound), seamless loop')
     for voice, make in CHARACTERS.items():
         name = f'character_{voice}'
         if only and name not in only:

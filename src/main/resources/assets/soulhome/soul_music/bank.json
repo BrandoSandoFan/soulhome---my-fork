@@ -317,76 +317,99 @@
       ]
     },
     "bell": {
-      "level": 0.226,
-      "envelope": "struck",
-      "attack": 0.0,
-      "release": 0.25,
+      "level": 0.284,
+      "envelope": "sustain",
+      "attack": 0.08,
+      "release": 0.9,
       "track_pitch": true,
       "tone": [
-        2500.0,
-        9000.0
+        1500.0,
+        7000.0
       ],
       "zones": [
         {
           "file": "bell/bell_00.ogg",
-          "root": 60,
+          "root": 50,
           "lo": 0,
-          "hi": 62,
-          "gain": 1.2936
+          "hi": 51,
+          "gain": 1.9757,
+          "loop_start": 52896,
+          "loop_end": 167587
         },
         {
           "file": "bell/bell_01.ogg",
-          "root": 64,
-          "lo": 63,
-          "hi": 66,
-          "gain": 1.4648
+          "root": 53,
+          "lo": 52,
+          "hi": 55,
+          "gain": 2.1408,
+          "loop_start": 52921,
+          "loop_end": 167538
         },
         {
           "file": "bell/bell_02.ogg",
-          "root": 68,
-          "lo": 67,
-          "hi": 70,
-          "gain": 1.4321
+          "root": 58,
+          "lo": 56,
+          "hi": 60,
+          "gain": 1.4916,
+          "loop_start": 52908,
+          "loop_end": 167580
         },
         {
           "file": "bell/bell_03.ogg",
-          "root": 72,
-          "lo": 71,
-          "hi": 74,
-          "gain": 1.1694
+          "root": 62,
+          "lo": 61,
+          "hi": 63,
+          "gain": 1.3679,
+          "loop_start": 52965,
+          "loop_end": 167656
         },
         {
           "file": "bell/bell_04.ogg",
-          "root": 76,
-          "lo": 75,
-          "hi": 78,
-          "gain": 1.397
+          "root": 65,
+          "lo": 64,
+          "hi": 67,
+          "gain": 1.4994,
+          "loop_start": 52859,
+          "loop_end": 167531
         },
         {
           "file": "bell/bell_05.ogg",
-          "root": 80,
-          "lo": 79,
-          "hi": 82,
-          "gain": 2.121
+          "root": 70,
+          "lo": 68,
+          "hi": 72,
+          "gain": 1.2179,
+          "loop_start": 52887,
+          "loop_end": 167545
         },
         {
           "file": "bell/bell_06.ogg",
-          "root": 84,
-          "lo": 83,
+          "root": 74,
+          "lo": 73,
+          "hi": 75,
+          "gain": 1.4449,
+          "loop_start": 52917,
+          "loop_end": 167551
+        },
+        {
+          "file": "bell/bell_07.ogg",
+          "root": 77,
+          "lo": 76,
           "hi": 127,
-          "gain": 1.816
+          "gain": 1.7485,
+          "loop_start": 52937,
+          "loop_end": 167573
         }
       ]
     },
     "glass": {
-      "level": 0.155,
-      "envelope": "struck",
+      "level": 0.267,
+      "envelope": "sustain",
       "attack": 0.0,
-      "release": 0.25,
+      "release": 1.0,
       "track_pitch": true,
       "tone": [
-        2200.0,
-        8000.0
+        1600.0,
+        5000.0
       ],
       "zones": [
         {
@@ -394,56 +417,138 @@
           "root": 53,
           "lo": 0,
           "hi": 55,
-          "gain": 1.3924
+          "min_duration": 0.0,
+          "max_duration": 1.2,
+          "gain": 0.8786
         },
         {
           "file": "glass/glass_01.ogg",
           "root": 57,
           "lo": 56,
           "hi": 58,
-          "gain": 1.3684
+          "min_duration": 0.0,
+          "max_duration": 1.2,
+          "gain": 0.8634
         },
         {
           "file": "glass/glass_02.ogg",
-          "root": 60,
-          "lo": 59,
-          "hi": 62,
-          "gain": 1.7741
+          "root": 57,
+          "lo": 0,
+          "hi": 60,
+          "min_duration": 1.2,
+          "max_duration": 1000000.0,
+          "gain": 1.581,
+          "loop_start": 88198,
+          "loop_end": 194020
         },
         {
           "file": "glass/glass_03.ogg",
-          "root": 64,
-          "lo": 63,
-          "hi": 65,
-          "gain": 1.3647
+          "root": 60,
+          "lo": 59,
+          "hi": 62,
+          "min_duration": 0.0,
+          "max_duration": 1.2,
+          "gain": 1.1194
         },
         {
           "file": "glass/glass_04.ogg",
-          "root": 67,
-          "lo": 66,
-          "hi": 69,
-          "gain": 1.286
+          "root": 64,
+          "lo": 63,
+          "hi": 65,
+          "min_duration": 0.0,
+          "max_duration": 1.2,
+          "gain": 0.8611
         },
         {
           "file": "glass/glass_05.ogg",
-          "root": 71,
-          "lo": 70,
-          "hi": 72,
-          "gain": 1.4692
+          "root": 64,
+          "lo": 61,
+          "hi": 65,
+          "min_duration": 1.2,
+          "max_duration": 1000000.0,
+          "gain": 1.413,
+          "loop_start": 88170,
+          "loop_end": 194046
         },
         {
           "file": "glass/glass_06.ogg",
-          "root": 74,
-          "lo": 73,
-          "hi": 75,
-          "gain": 1.378
+          "root": 67,
+          "lo": 66,
+          "hi": 69,
+          "min_duration": 0.0,
+          "max_duration": 1.2,
+          "gain": 0.8114
         },
         {
           "file": "glass/glass_07.ogg",
+          "root": 67,
+          "lo": 66,
+          "hi": 70,
+          "min_duration": 1.2,
+          "max_duration": 1000000.0,
+          "gain": 1.4429,
+          "loop_start": 88204,
+          "loop_end": 194012
+        },
+        {
+          "file": "glass/glass_08.ogg",
+          "root": 71,
+          "lo": 70,
+          "hi": 72,
+          "min_duration": 0.0,
+          "max_duration": 1.2,
+          "gain": 0.927
+        },
+        {
+          "file": "glass/glass_09.ogg",
+          "root": 74,
+          "lo": 73,
+          "hi": 75,
+          "min_duration": 0.0,
+          "max_duration": 1.2,
+          "gain": 0.8695
+        },
+        {
+          "file": "glass/glass_10.ogg",
+          "root": 74,
+          "lo": 71,
+          "hi": 77,
+          "min_duration": 1.2,
+          "max_duration": 1000000.0,
+          "gain": 1.4426,
+          "loop_start": 88216,
+          "loop_end": 194044
+        },
+        {
+          "file": "glass/glass_11.ogg",
           "root": 77,
           "lo": 76,
           "hi": 127,
-          "gain": 1.2175
+          "min_duration": 0.0,
+          "max_duration": 1.2,
+          "gain": 0.7682
+        },
+        {
+          "file": "glass/glass_12.ogg",
+          "root": 81,
+          "lo": 78,
+          "hi": 84,
+          "min_duration": 1.2,
+          "max_duration": 1000000.0,
+          "gain": 1.4317,
+          "loop_start": 88191,
+          "loop_end": 194057
+        },
+        {
+          "file": "glass/glass_13.ogg",
+          "root": 88,
+          "lo": 85,
+          "hi": 127,
+          "min_duration": 1.2,
+          "max_duration": 1000000.0,
+          "gain": 1.2272,
+          "loop_start": 88191,
+          "loop_end": 194038
         }
       ]
     },
@@ -770,95 +875,83 @@
       ]
     },
     "clank": {
-      "level": 0.77,
-      "envelope": "struck",
-      "attack": 0.0,
-      "release": 0.25,
-      "track_pitch": false,
-      "tone": [
-        2500.0,
-        6000.0
-      ],
-      "zones": [
-        {
-          "file": "clank/clank_00.ogg",
-          "root": 72,
-          "vel_lo": 0.0,
-          "vel_hi": 0.6,
-          "gain": 2.8772
-        },
-        {
-          "file": "clank/clank_01.ogg",
-          "root": 72,
-          "vel_lo": 0.0,
-          "vel_hi": 0.6,
-          "gain": 3.4219
-        },
-        {
-          "file": "clank/clank_02.ogg",
-          "root": 72,
-          "vel_lo": 0.0,
-          "vel_hi": 0.6,
-          "gain": 3.0149
-        },
-        {
-          "file": "clank/clank_03.ogg",
-          "root": 72,
-          "vel_lo": 0.6,
-          "vel_hi": 1.0,
-          "gain": 2.8009
-        },
-        {
-          "file": "clank/clank_04.ogg",
-          "root": 72,
-          "vel_lo": 0.6,
-          "vel_hi": 1.0,
-          "gain": 2.8956
-        },
-        {
-          "file": "clank/clank_05.ogg",
-          "root": 72,
-          "vel_lo": 0.6,
-          "vel_hi": 1.0,
-          "gain": 3.1203
-        }
-      ]
-    },
-    "tick": {
-      "level": 0.28,
+      "level": 0.665,
       "envelope": "struck",
       "attack": 0.0,
       "release": 0.25,
       "track_pitch": false,
       "tone": [
         2000.0,
-        9000.0
+        6000.0
+      ],
+      "zones": [
+        {
+          "file": "clank/clank_00.ogg",
+          "root": 72,
+          "gain": 1.4779
+        },
+        {
+          "file": "clank/clank_01.ogg",
+          "root": 72,
+          "gain": 2.496
+        },
+        {
+          "file": "clank/clank_02.ogg",
+          "root": 72,
+          "gain": 6.1859
+        },
+        {
+          "file": "clank/clank_03.ogg",
+          "root": 72,
+          "gain": 1.0135
+        },
+        {
+          "file": "clank/clank_04.ogg",
+          "root": 72,
+          "gain": 1.024
+        },
+        {
+          "file": "clank/clank_05.ogg",
+          "root": 72,
+          "gain": 3.8069
+        }
+      ]
+    },
+    "tick": {
+      "level": 0.27,
+      "envelope": "struck",
+      "attack": 0.0,
+      "release": 0.25,
+      "track_pitch": false,
+      "tone": [
+        2000.0,
+        8000.0
       ],
       "zones": [
         {
           "file": "tick/tick_00.ogg",
           "root": 84,
-          "gain": 3.7513
+          "gain": 2.8144
         },
         {
           "file": "tick/tick_01.ogg",
           "root": 84,
-          "gain": 3.7767
+          "gain": 2.5933
         },
         {
           "file": "tick/tick_02.ogg",
           "root": 84,
-          "gain": 3.9905
+          "gain": 2.6194
         },
         {
           "file": "tick/tick_03.ogg",
           "root": 84,
-          "gain": 3.0644
+          "gain": 2.8073
         }
       ]
     },
     "hiss": {
-      "level": 1.8,
+      "level": 0.986,
       "envelope": "swell",
       "attack": 0.0,
       "release": 0.25,
@@ -871,22 +964,22 @@
         {
           "file": "hiss/hiss_00.ogg",
           "root": 72,
-          "gain": 2.5221
+          "gain": 3.2378
         },
         {
           "file": "hiss/hiss_01.ogg",
           "root": 72,
-          "gain": 3.525
+          "gain": 5.3034
         },
         {
           "file": "hiss/hiss_02.ogg",
           "root": 72,
-          "gain": 2.7906
+          "gain": 3.1614
         }
       ]
     },
     "wind": {
-      "level": 0.4,
+      "level": 0.347,
       "envelope": "swell",
       "attack": 0.0,
       "release": 0.25,
@@ -899,51 +992,64 @@
         {
           "file": "wind/wind_00.ogg",
           "root": 60,
-          "gain": 4.7373,
-          "loop_start": 44098,
-          "loop_end": 286658
+          "gain": 3.1515,
+          "loop_start": 44119,
+          "loop_end": 286626
         },
         {
           "file": "wind/wind_01.ogg",
           "root": 60,
-          "gain": 2.8895,
-          "loop_start": 44118,
-          "loop_end": 286650
+          "gain": 2.0773,
+          "loop_start": 43991,
+          "loop_end": 286429
         }
       ]
     },
     "drip": {
-      "level": 0.61,
+      "level": 0.296,
       "envelope": "struck",
       "attack": 0.0,
       "release": 0.25,
-      "track_pitch": true,
+      "track_pitch": false,
       "zones": [
         {
           "file": "drip/drip_00.ogg",
-          "root": 72,
-          "lo": 0,
-          "hi": 75,
-          "gain": 2.6329
+          "root": 76,
+          "gain": 3.5122
         },
         {
           "file": "drip/drip_01.ogg",
-          "root": 79,
-          "lo": 76,
-          "hi": 81,
-          "gain": 2.8038
+          "root": 76,
+          "gain": 4.5309
+        }
+      ]
+    },
+    "chirp": {
+      "level": 0.207,
+      "envelope": "struck",
+      "attack": 0.0,
+      "release": 0.25,
+      "track_pitch": false,
+      "zones": [
+        {
+          "file": "chirp/chirp_00.ogg",
+          "root": 88,
+          "gain": 2.6515
         },
         {
-          "file": "drip/drip_02.ogg",
-          "root": 84,
-          "lo": 82,
-          "hi": 127,
-          "gain": 2.837
+          "file": "chirp/chirp_01.ogg",
+          "root": 88,
+          "gain": 8.2834
+        },
+        {
+          "file": "chirp/chirp_02.ogg",
+          "root": 88,
+          "gain": 3.0548
         }
       ]
     },
     "rustle": {
-      "level": 0.8,
+      "level": 0.408,
       "envelope": "swell",
       "attack": 0.0,
       "release": 0.25,
@@ -956,16 +1062,17 @@
         {
           "file": "rustle/rustle_00.ogg",
           "root": 72,
-          "gain": 4.5109,
-          "loop_start": 17644,
-          "loop_end": 112697
+          "gain": 4.4074
         },
         {
           "file": "rustle/rustle_01.ogg",
           "root": 72,
-          "gain": 6.0157,
-          "loop_start": 17642,
-          "loop_end": 114662
+          "gain": 5.2342
+        },
+        {
+          "file": "rustle/rustle_02.ogg",
+          "root": 72,
+          "gain": 7.984
         }
       ]
     },
@@ -1005,52 +1112,30 @@
           "root": 60,
           "min_duration": 0.0,
           "max_duration": 0.2,
-          "gain": 7.3087
+          "gain": 8.96
         },
         {
           "file": "crackle/crackle_01.ogg",
           "root": 60,
           "min_duration": 0.0,
           "max_duration": 0.2,
-          "gain": 9.0657
+          "gain": 9.3799
         },
         {
           "file": "crackle/crackle_02.ogg",
           "root": 60,
           "min_duration": 0.0,
           "max_duration": 0.2,
-          "gain": 5.5659
+          "gain": 12.1933
         },
         {
           "file": "crackle/crackle_03.ogg",
           "root": 60,
           "min_duration": 0.2,
           "max_duration": 1000000.0,
-          "gain": 15.2053,
-          "loop_start": 44096,
-          "loop_end": 379260
-        }
-      ]
-    },
-    "chirp": {
-      "envelope": "struck",
-      "level": 0.63,
-      "track_pitch": true,
-      "zones": [
-        {
-          "file": "chirp/chirp_00.ogg",
-          "root": 88,
-          "gain": 2.1002
-        },
-        {
-          "file": "chirp/chirp_01.ogg",
-          "root": 88,
-          "gain": 1.8538
-        },
-        {
-          "file": "chirp/chirp_02.ogg",
-          "root": 88,
-          "gain": 3.0339
+          "gain": 29.2521,
+          "loop_start": 44095,
+          "loop_end": 423358
         }
       ]
     }

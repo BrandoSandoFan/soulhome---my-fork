@@ -869,22 +869,29 @@ before updating, as with any version jump.
   vanished after I died" bug is structurally gone.
 - Typing into the dedicated server console works again under the new build plugin.
 
-The soul's music and ambience sound like instruments, not oscillators
+The soul's music and ambience sound like real things, not oscillators
 
 The soul's music was synthesised note by note from sine waves and filter sweeps, and its ambience was
-synthesised the same way. Both sounded like what they were made of. A bowed vibraphone, a harp, a wine glass rubbed until it sings: a sine wave
+synthesised the same way. Both sounded like what they were made of. A bowed vibraphone, a harp, a clarinet, a fire, a clock: a sine wave
 cannot be made to be any of those, and the soul is the one place in the mod that is meant to sound as
 if it has a voice of its own.
 
 - The music is played from recorded instruments: cello and violin sections for the pad, an upright piano
-  for a hearth, hand chimes, a vibraphone, a harp, a marimba, a flute and an organ pedal, with a frame
-  drum, an anvil, claves and a fire of percussion grains for the foley.
-- The ambience is recordings too: an ocean drum and cymbal rolls under the rank beds, a horn over a
-  frame drum for a hearth, an anvil over a timpani for a forge. The file names and sound events are
-  the same as before, so nothing that plays them had to change.
+  for a hearth, a clarinet for the bell's part, a vibraphone (bowed for held glass notes, struck softly for
+  quick ones), a harp, a marimba, a flute and an organ pedal. The bell's part was hand chimes, and a lead
+  line of chimes dinged at its owner, so there are far fewer of them now.
+- The foley is recorded sound effects, not instruments made to stand in for them: a hammer on an anvil, a
+  clock's own ticks, a wood stove, a valve letting steam out, wind, drips, birds and rustling leaves.
+- The ambience is recordings of places and things too. The rank beds are a still night with a breeze and
+  crickets, and mountain wind at night. Each character layer is one place: a wood stove, arctic wind, a hot
+  spring, a blacksmith's, a pendulum clock, a dawn wood, a dripping cave, frogs at night. The one-shots are
+  sound effects - a flame catching, ice cracking, a hammer on an anvil, a clock being wound - and the only
+  thing still played is a soft harp figure in an arcane room, because nothing records enchantment. The file
+  names and sound events are the same as before, so nothing that plays them had to change.
 - The recordings come from two CC0 libraries, VSCO-2 Community Edition and the Versilian Community
-  Sample Library. They are credited in `soul_music/SOURCES.md` and `ambience/SOURCES.md`, and both are
-  built by scripts in the repository, so where any note or breath came from can be checked.
+  Sample Library, and from Freesound, where each sound is checked as CC0 on its own page when it is fetched.
+  The recordists are credited in `soul_music/SOURCES.md` and `ambience/SOURCES.md`, and both are built by
+  scripts in the repository, so where any note, breath or creak came from can be checked.
 - Neither is a buff nor a nerf. Nothing a room is worth or pays has changed. The music still composes
   itself for each soul, in its own key, from its rooms and its rank, and a soul built two ways at once
   is still played as a third thing. A resource pack that replaces `soulhome:music/soul` or the

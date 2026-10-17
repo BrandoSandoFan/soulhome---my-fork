@@ -48,7 +48,8 @@ UNIT_RMS_DB = -3.0
 
 # Each instrument's `level` below was first set so its stem (MusicPreview, every voice at rank 0.5)
 # measured what the oscillator it replaces measured, which keeps the balance SoulSynthTest was
-# written against; then moved by ear where a recording wanted it - the crackle down and darker,
+# written against; then moved by ear where a recording wanted it - glass 2 dB under, so it recedes
+# rather than dings; the crackle down and darker,
 # because real wood transients are far brighter than the filtered noise they replace, and the
 # anvil a little under the old clank, because a real anvil is piercing and the old one was not.
 STORE_PEAK = 0.89
@@ -72,6 +73,10 @@ class Source:
     vel: tuple[float, float] = (0.0, 1.0)
     dur: tuple[float, float] = (0.0, 1e6)
     gain_db: float = 0.0          # trim relative to the instrument's matched loudness
+    pick: int | None = None       # a long take: start at its nth-loudest transient (0 = loudest)
+    lead: float = 0.02            # seconds kept before that transient
+    at: float | None = None       # a long take: or start this many seconds in
+    loop: tuple[float, float, float] | None = None   # overrides the instrument's loop for this zone
 
 
 @dataclass
@@ -100,6 +105,12 @@ def vs(group: str, names: list[str], octave: int = 12, **kw) -> list[Source]:
 
 def vc(group: str, names: list[str], octave: int = 12, **kw) -> list[Source]:
     return [Source(f'{VCSL}/{group}/{n}', octave=octave, **kw) for n in names]
+
+
+def fsnd(sound_id: int, **kw) -> Source:
+    """A Freesound recording, by id. Every one is CC0, checked on its own page when fetched
+    (fetch_sources.py refuses one that is not), and credited by author in SOURCES.md."""
+    return Source(f'freesound/{sound_id}.ogg', **kw)
 
 
 def piano(key_numbers: list[int], dyn: int) -> list[Source]:
@@ -137,22 +148,32 @@ SPECS: list[Spec] = [
           *(Source(s.path, s.root, vel=(0.5, 1.0)) for s in piano(list(range(12, 32, 2)), 2))],
          level=0.274, tone=(1800.0, 9000.0), max_seconds=2.6, body=(0.0, 0.6), tune=False),
 
-    # Hand chimes: struck aluminium tubes with almost no strike noise. They are tuned bells that do
-    # not clang, which is what both a cold soul and a hollow one want.
+    # Clarinet long tones at its softest dynamic, looped. The bell's part - the lead of a cold soul and
+    # of a hollow one - was hand chimes, and a lead line of chimes is a soul that dings at its owner.
+    # The clarinet's low register is as hollow as a sound gets without striking anything.
     Spec('bell',
-         vc('Idiophones/Struck Idiophones/Hand Chimes',
-            ['sus_C3_r01_main.wav', 'sus_E3_r01_main.wav', 'sus_G#3_r01_main.wav', 'sus_C4_r01_main.wav',
-             'sus_E4_r01_main.wav', 'sus_G#4_r01_main.wav', 'sus_C5_r01_main.wav']),
-         level=0.226, tone=(2500.0, 9000.0), max_seconds=3.6, body=(0.0, 1.0)),
+         vs('Woodwinds/Clarinet/susLong',
+            ['DCClar_susLong_D2_v1_rr1_sum.wav', 'DCClar_susLong_F2_v1_rr1_sum.wav',
+             'DCClar_susLong_A#2_v1_rr1_sum.wav', 'DCClar_susLong_D3_v1_rr1_sum.wav',
+             'DCClar_susLong_F3_v1_rr1_sum.wav', 'DCClar_susLong_A#3_v1_rr1_sum.wav',
+             'DCClar_susLong_D4_v1_rr1_sum.wav', 'DCClar_susLong_F4_v1_rr1_sum.wav']),
+         envelope='sustain', attack=0.08, release=0.9, level=0.284, tone=(1500.0, 7000.0),
+         max_seconds=4.0, loop=(1.2, 3.8, 0.6), body=(0.4, 1.4)),
 
-    # Vibraphone with soft mallets and the motor off: the glassy, sustained metal the old three-sine
-    # "glass" was imitating.
+    # A held glass note is a bowed vibraphone, which swells instead of striking; only a quick one is
+    # still struck, with a soft mallet, 4 dB down. The first bank struck every glass note, and between
+    # that and the chimes the soul dinged far too much.
     Spec('glass',
-         vc('Idiophones/Struck Idiophones/Vibraphone/Soft Mallets',
-            ['Vibes_soft_F2_v2_rr1_Main.wav', 'Vibes_soft_A2_v2_rr1_Main.wav', 'Vibes_soft_C3_v2_rr1_Main.wav',
-             'Vibes_soft_E3_v2_rr1_Main.wav', 'Vibes_soft_G3_v2_rr1_Main.wav', 'Vibes_soft_B3_v2_rr1_Main.wav',
-             'Vibes_soft_D4_v2_rr1_Main.wav', 'Vibes_soft_F4_v2_rr1_Main.wav']),
-         level=0.155, tone=(2200.0, 8000.0), max_seconds=3.6, body=(0.0, 1.0)),
+         [*vc('Idiophones/Struck Idiophones/Vibraphone/Bowed',
+              ['Vibes_bowed_A2_rr1_Main.wav', 'Vibes_bowed_E3_rr1_Main.wav', 'Vibes_bowed_G3_rr1_Main.wav',
+               'Vibes_bowed_D4_rr1_Main.wav', 'Vibes_bowed_A4_rr1_Main.wav', 'Vibes_bowed_E5_rr1_Main.wav'],
+              dur=(1.2, 1e6), loop=(2.0, 4.4, 0.8)),
+          *vc('Idiophones/Struck Idiophones/Vibraphone/Soft Mallets',
+              ['Vibes_soft_F2_v2_rr1_Main.wav', 'Vibes_soft_A2_v2_rr1_Main.wav', 'Vibes_soft_C3_v2_rr1_Main.wav',
+               'Vibes_soft_E3_v2_rr1_Main.wav', 'Vibes_soft_G3_v2_rr1_Main.wav', 'Vibes_soft_B3_v2_rr1_Main.wav',
+               'Vibes_soft_D4_v2_rr1_Main.wav', 'Vibes_soft_F4_v2_rr1_Main.wav'], dur=(0.0, 1.2), gain_db=-4.0)],
+         envelope='sustain', attack=0.0, release=1.0, level=0.267, tone=(1600.0, 5000.0),
+         max_seconds=2.2, body=(0.0, 4.0)),
 
     # Concert harp. VSCO names this one in scientific pitch (C4 = middle C), unlike its neighbours.
     Spec('pluck',
@@ -195,44 +216,37 @@ SPECS: list[Spec] = [
              'HDrumL_HitMuted_v3_rr1_Sum.wav', 'HDrumL_HitMuted_v3_rr2_Sum.wav'], root=48),
          track_pitch=False, rr=True, level=0.4, tone=(500.0, 4000.0), max_seconds=0.9, body=(0.0, 0.15),
          tune=False),
+    # Real sound effects from Freesound from here on, where a recording of the thing itself exists:
+    # an anvil from a percussion library, played with a stick, reads as a bell, and a fire assembled
+    # from clave strikes reads as claves.
     Spec('clank',
-         [*vc('Idiophones/Struck Idiophones/Anvil',
-              ['Anvil_Hit1_v1_rr1_Mid.wav', 'Anvil_Hit2_v1_rr1_Mid.wav', 'Anvil_Hit3_v1_rr1_Mid.wav'],
-              root=72, vel=(0.0, 0.6)),
-          *vc('Idiophones/Struck Idiophones/Anvil',
-              ['Anvil_Hit1_v2_rr1_Mid.wav', 'Anvil_Hit2_v2_rr1_Mid.wav', 'Anvil_Hit3_v2_rr1_Mid.wav'],
-              root=72, vel=(0.6, 1.0))],
-         track_pitch=False, rr=True, level=0.77, tone=(2500.0, 6000.0), max_seconds=1.6, body=(0.0, 0.2),
+         [fsnd(270588, root=72), fsnd(270589, root=72), fsnd(521972, root=72),
+          fsnd(363169, root=72, pick=0), fsnd(363169, root=72, pick=2), fsnd(103071, root=72, pick=0)],
+         track_pitch=False, rr=True, level=0.665, tone=(2000.0, 6000.0), max_seconds=0.9, body=(0.0, 0.2),
          tune=False),
+    # A clock's own ticks, cut from a close-miked minute of one.
     Spec('tick',
-         [*vc('Idiophones/Struck Idiophones/Woodblock',
-              ['wood_click_pp_rr1.wav', 'wood_click_pp_rr2.wav', 'wood_click_pp_rr3.wav'], root=84),
-          *vc('Idiophones/Struck Idiophones/Claves', ['Claves1_Hit_v1_rr1_Mid.wav'], root=84)],
-         track_pitch=False, rr=True, level=0.28, tone=(2000.0, 9000.0), max_seconds=0.35, body=(0.0, 0.05),
+         [fsnd(380782, root=84, pick=n) for n in range(4)],
+         track_pitch=False, rr=True, level=0.27, tone=(2000.0, 8000.0), max_seconds=0.3, body=(0.0, 0.05),
          tune=False),
-    # crackle, chirp and the swells are assembled below from several recordings each.
-    # A cabasa is far brighter than the band of noise it replaces, so it is rolled off until a vent
-    # breathes rather than sizzles - SoulSynthTest#nothingPiercingRecorded caught the first cut.
     Spec('hiss',
-         vc('Idiophones/Struck Idiophones/Cabasa',
-            ['Cabasa1_Rub_v2_rr1_Mid.wav', 'Cabasa1_Rub_v2_rr2_Mid.wav', 'Cabasa1_Rub_v1_rr2_Mid.wav'], root=72),
-         envelope='swell', track_pitch=False, rr=True, level=1.8, tone=(2000.0, 4500.0), max_seconds=0.9,
-         body=(0.0, 0.4), highpass=900.0, lowpass=6000.0, tune=False),
+         [fsnd(365071, root=72, pick=0, lead=0.05), fsnd(234782, root=72), fsnd(398077, root=72, pick=0, lead=0.05)],
+         envelope='swell', track_pitch=False, rr=True, level=0.986, tone=(2000.0, 4500.0), max_seconds=0.9,
+         body=(0.0, 0.4), highpass=300.0, lowpass=6000.0, tune=False),
     Spec('wind',
-         vc('Membranophones/Other Membranophones/Ocean Drum',
-            ['OceanDrum_Sus_1_Mid.wav', 'OceanDrum_Sus_2_Mid.wav'], root=60),
-         envelope='swell', track_pitch=False, rr=True, level=0.4, tone=(700.0, 2600.0), max_seconds=7.0,
+         [fsnd(117136, root=60, at=10.0), fsnd(181252, root=60, at=20.0)],
+         envelope='swell', track_pitch=False, rr=True, level=0.347, tone=(700.0, 2600.0), max_seconds=7.0,
          loop=(1.0, 6.5, 1.5), body=(1.0, 4.0), lowpass=3000.0, tune=False),
-    # Glockenspiel bars damped to their first half-second: a drop landing on something tuned. The
-    # kalimba was tried first and is in a traditional tuning, so no root could be honest about it.
     Spec('drip',
-         vs('Percussion/Glock', ['glock_medium_C5.wav', 'glock_medium_G5.wav', 'glock_medium_C6.wav'], octave=0),
-         level=0.61, max_seconds=0.45, body=(0.0, 0.1), highpass=400.0, tune=False),
+         [fsnd(i, root=76, pick=0, lead=0.005) for i in (174718, 166325)],
+         track_pitch=False, rr=True, level=0.296, max_seconds=0.6, body=(0.0, 0.1), highpass=200.0, tune=False),
+    Spec('chirp',
+         [fsnd(233255, root=88), fsnd(233254, root=88), fsnd(812033, root=88)],
+         track_pitch=False, rr=True, level=0.207, max_seconds=1.0, body=(0.0, 0.3), highpass=800.0, tune=False),
     Spec('rustle',
-         vc('Idiophones/Struck Idiophones/Shaker, Small',
-            ['Mid_Shaker_Roll_Fast_rr1.wav', 'Mid_Shaker_Roll_Fast_rr2.wav'], root=72),
-         envelope='swell', track_pitch=False, rr=True, level=0.8, tone=(1200.0, 6000.0), max_seconds=3.0,
-         loop=(0.4, 2.6, 0.5), body=(0.3, 1.5), tune=False),
+         [fsnd(437356, root=72, pick=0, lead=0.2), fsnd(443065, root=72, at=0.3), fsnd(106114, root=72)],
+         envelope='swell', track_pitch=False, rr=True, level=0.408, tone=(1200.0, 6000.0), max_seconds=3.0,
+         body=(0.3, 1.5), tune=False),
     Spec('swell',
          vc('Idiophones/Struck Idiophones/Suspended Cymbal 1', ['susCymb1_roll_mp1_nloop.wav'], root=60),
          envelope='swell', track_pitch=False, level=0.35, tone=(1500.0, 7000.0), max_seconds=7.0,
@@ -242,141 +256,53 @@ SPECS: list[Spec] = [
 
 # --- assembled foley ------------------------------------------------------------------------------
 
-CRACKLE_GRAINS = (
-    'Idiophones/Struck Idiophones/Claves/Claves1_Hit_v1_rr1_Mid.wav',
-    'Idiophones/Struck Idiophones/Claves/Claves2_Hit_v1_rr1_Mid.wav',
-    'Idiophones/Struck Idiophones/Woodblock/wood_click_pp_rr1.wav',
-    'Idiophones/Struck Idiophones/Woodblock/wood_click_mp.wav',
-    'Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr1_Mid.wav',
-    'Idiophones/Struck Idiophones/Cabasa/Cabasa1_Hit_rr2_Mid.wav',
-    'Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr1.wav',
-    'Idiophones/Struck Idiophones/Shaker, Small/Mid_Shaker_Slap_rr2.wav',
-)
-CRACKLE_BED = 'Membranophones/Other Membranophones/Ocean Drum/OceanDrum_Sus_3_Mid.wav'
-
-
 def assemble_crackle(src: Path) -> list[tuple[np.ndarray, dict]]:
-    """A fire from percussion: the first few milliseconds of claves, woodblock, cabasa and shaker
-    strikes, scattered with power-law sizes the way a fire's pops are, over the hush of an ocean
-    drum barely moving. Each grain is a real strike; only the arrangement is the fire.
+    """A real fire: a wood stove recorded close, with a second fire under it. The bed is a loop cut
+    from the two takes together; the struck pops are the brighter take's own loudest moments.
     """
-    grains = []
-    sources = tuple(f'{VCSL}/{rel}' for rel in (*CRACKLE_GRAINS, CRACKLE_BED))
-    for rel in CRACKLE_GRAINS:
-        x = audio.trim_head(audio.load(src / VCSL / rel))
-        for length in (0.004, 0.008, 0.016):
-            g = x[: int(length * RATE)].copy()
-            g *= np.hanning(len(g) * 2)[len(g):] ** 0.5
-            grains.append(audio.highpass(g / audio.peak(g), 700.0, 2))
-    roar_src = audio.load(src / VCSL / CRACKLE_BED)
-    roar_src = audio.lowpass(audio.highpass(roar_src, 60.0), 380.0, 3)
-    rng = np.random.default_rng(0x0F17E)
-
-    def scatter(seconds: float, rate: float, roar_db: float) -> np.ndarray:
-        n = int(seconds * RATE)
-        y = np.zeros(n + RATE)
-        t = 0.0
-        while t < seconds:
-            t += rng.exponential(1.0 / rate)
-            size = min(0.5, 0.08 * rng.pareto(3.0) + 0.05)
-            g = grains[rng.integers(len(grains))]
-            pitch = rng.uniform(-5.0, 7.0)
-            g = audio.shift(g, pitch)
-            at = int(t * RATE)
-            if at + len(g) < len(y):
-                y[at:at + len(g)] += g * size * (1 if rng.random() > 0.5 else -1)
-        y = y[:n]
-        roar = roar_src[int(1.0 * RATE): int(1.0 * RATE) + n]
-        roar = roar / (np.sqrt(np.mean(roar ** 2)) + 1e-12) * audio.undb(roar_db) * np.sqrt(np.mean(y ** 2))
-        return y + roar[: n]
-
+    stove_rel, fire_rel = 'freesound/532191.ogg', 'freesound/414767.ogg'
+    stove = audio.highpass(audio.load(src / stove_rel), 60.0)
+    fire = audio.highpass(audio.load(src / fire_rel), 60.0)
+    sources = (stove_rel, fire_rel)
     out = []
-    # The bed: eleven pops a second over a low hush, folded into a loop the sampler can hold.
-    bed = scatter(9.0, 11.0, -6.0)
-    bed, a, b = audio.make_loop(bed, 1.0, 8.6, 0.8)
-    out.append((bed, dict(root=60, min_duration=0.2, loop=(a, b), sources=sources)))
-    # Struck: one pop and a short trail of smaller ones, three ways.
-    for _ in range(3):
-        y = np.zeros(int(0.6 * RATE))
-        g = grains[rng.integers(len(grains))]
-        y[: len(g)] += g
-        t = 0.0
-        for _ in range(int(rng.integers(2, 5))):
-            t += rng.uniform(0.03, 0.12)
-            h = audio.shift(grains[rng.integers(len(grains))], rng.uniform(-3.0, 6.0)) * rng.uniform(0.15, 0.45)
-            at = int(t * RATE)
-            y[at:at + len(h)] += h[: len(y) - at]
-        out.append((audio.trim_tail(y, 0.6, fade=0.05), dict(root=60, max_duration=0.2, sources=sources)))
-    return out
-
-
-def assemble_chirp(src: Path) -> list[tuple[np.ndarray, dict]]:
-    """Birdsong from flute staccato: two or three clipped high notes in a falling-then-rising
-    contour, the same shape the old chirp traced, but each note now a flautist's tongued attack.
-    """
-    names = ['LDFlute_stac_E5_v1_rr1.wav', 'LDFlute_stac_E5_v1_rr2.wav', 'LDFlute_stac_A5_v1_rr1.wav',
-             'LDFlute_stac_C6_v1_rr1.wav']
-    sources = tuple(f'{VSCO}/Woodwinds/Flute/stac/{n}' for n in names)
-    notes = []
-    for n in names:
-        x = audio.trim_head(audio.load(src / VSCO / 'Woodwinds/Flute/stac' / n))
-        root = note_of(n) + 12
-        notes.append((x, root))
-    rng = np.random.default_rng(0xB1BD)
-    out = []
-    contours = [[3.9, -5.0, 5.2], [0.0, 4.0], [5.0, 0.0, -2.0]]
-    for contour in contours:
-        y = np.zeros(int(0.9 * RATE))
-        t = 0.0
-        for step in contour:
-            x, root = notes[rng.integers(len(notes))]
-            # Every call is expressed relative to E5 (MIDI 88), the zone's root.
-            k = audio.shift(x, (88 - root) + step)
-            k = k[: int(rng.uniform(0.07, 0.12) * RATE)]
-            k *= np.hanning(len(k) * 2)[len(k):]
-            at = int(t * RATE)
-            y[at:at + len(k)] += k[: len(y) - at]
-            t += rng.uniform(0.09, 0.14)
-        out.append((audio.trim_tail(audio.highpass(y, 1200.0), 0.9, fade=0.05), dict(root=88, sources=sources)))
+    a, n = int(10.0 * RATE), int(9.8 * RATE)
+    bed = stove[a:a + n] + audio.lowpass(fire[a:a + n], 4000.0) * 0.35
+    bed, la, lb = audio.make_loop(bed, 1.0, 9.6, 1.0)
+    out.append((bed, dict(root=60, min_duration=0.2, loop=(la, lb), sources=sources)))
+    for nth in range(3):
+        pop = audio.trim_tail(audio.trim_head(from_transient(fire, nth, 0.01, 0.5)), 0.5, fade=0.2)
+        out.append((audio.fade_in(pop, 0.002), dict(root=60, max_duration=0.2, sources=(fire_rel,))))
     return out
 
 
 ASSEMBLED = {
     'crackle': (assemble_crackle, dict(envelope='sustain', attack=0.0, release=0.3, level=0.17, tone=[1500.0, 5000.0],
                                        track_pitch=False, body=(0.0, 0.6))),
-    'chirp': (assemble_chirp, dict(envelope='struck', level=0.63, track_pitch=True, body=(0.0, 0.3))),
 }
 
 
-# --- what each instrument is for -----------------------------------------------------------------
-
-# One line per instrument, for SOURCES.md. The composer is the authority on what an instrument is
-# asked to play; these say what recording stands in for it, which is what a reader of the bank needs.
 NOTES = {
     'pad': 'Strings: a cello section below middle C and a violin section above it, at their softest '
            'recorded dynamic. Sustained and crossfade-looped; the section\'s own vibrato is the movement '
            'the old pad\'s filter sweep stood in for.',
     'epiano': 'Felt-soft upright piano, two velocity layers, so a soft note is a different strike rather '
               'than a quieter copy of a hard one.',
-    'bell': 'Hand chimes: struck aluminium tubes with almost no strike noise.',
-    'glass': 'Vibraphone with soft mallets and the motor off.',
+    'bell': 'Clarinet long tones at its softest dynamic, looped: the bell\'s part with nothing struck, because a lead line of chimes dinged.',
+    'glass': 'A bowed vibraphone for held notes, and the soft-mallet vibraphone, 4 dB down, only for quick ones.',
     'pluck': 'Concert harp.',
     'mallet': 'Marimba, medium strikes.',
     'drone': 'Quiet organ pedal flue, looped: a note held for as long as a whole piece needs.',
     'flute': 'Flute without vibrato, looped, so a held note holds still.',
     'thump': 'Foley: a frame drum, muted, round-robin.',
-    'clank': 'Foley: an anvil, two velocity layers, round-robin.',
-    'tick': 'Foley: woodblock and claves, round-robin.',
-    'hiss': 'Foley: a cabasa rub, high-passed and swelled.',
-    'wind': 'Foley: an ocean drum swell, low-passed and looped.',
-    'drip': 'Foley: glockenspiel bars damped to their first half-second, a drop landing on something tuned.',
-    'rustle': 'Foley: a small shaker roll, looped.',
+    'clank': 'Foley: a hammer on an anvil, recorded by smiths on Freesound, round-robin.',
+    'tick': 'Foley: a clock\'s own ticks, cut from a close-miked take, round-robin.',
+    'hiss': 'Foley: bursts of steam, rolled off above 6 kHz so a vent breathes rather than sizzles.',
+    'wind': 'Foley: arctic wind and a gentle breeze, low-passed and looped.',
+    'drip': 'Foley: single water drops.',
+    'rustle': 'Foley: rustling leaves.',
     'swell': 'Foley: a suspended cymbal roll, looped.',
-    'crackle': 'A fire assembled from percussion: the first milliseconds of claves, woodblock, cabasa and '
-               'shaker strikes, scattered with power-law sizes over the hush of an ocean drum. One looped '
-               'bed and three struck pops; each grain is a real strike, only the arrangement is the fire.',
-    'chirp': 'Birdsong from flute staccato: two or three clipped high notes in a falling-then-rising '
-             'contour.',
+    'crackle': 'A real fire: a wood stove close by with a second fire under it, one looped bed and three of its own pops.',
+    'chirp': 'Single bird chirps.',
 }
 
 LIBRARY_TITLES = {
@@ -391,6 +317,16 @@ def midi_name(number: int) -> str:
     return f'{names[number % 12]}{number // 12 - 1}'
 
 
+SOURCES_ROOT: Path = Path('.')
+
+
+def freesound_meta(sound_id: int) -> dict:
+    meta = json.loads((SOURCES_ROOT / 'freesound' / f'{sound_id}.json').read_text())
+    meta['title'] = meta['title'].removeprefix('Freesound - ').replace('|', '/')
+    meta['title'] = meta['title'].removesuffix(f" by {meta['user']}")
+    return meta
+
+
 def write_sources(sections: list[tuple[str, dict, list[dict]]]) -> None:
     """
     SOURCES.md: where every file in this directory came from, and how to check it.
@@ -401,11 +337,10 @@ def write_sources(sections: list[tuple[str, dict, list[dict]]]) -> None:
     lines = [
         '# Where these sounds came from',
         '',
-        'Every `.ogg` in this directory is made from recordings of real instruments, cut, tuned, looped '
-        'and levelled by `tools/soul_music/build_bank.py` (#163). The recordings come from two libraries, '
-        'both released under **CC0 1.0** (public domain dedication), so nothing here carries an '
-        'attribution requirement. The credit below is given because it is owed, not because it is '
-        'required:',
+        'Every `.ogg` in this directory is made from real recordings, cut, tuned, looped and levelled by '
+        '`tools/soul_music/build_bank.py` (#163). Every recording is released under **CC0 1.0** (public '
+        'domain dedication), so nothing here carries an attribution requirement. The credit below is '
+        'given because it is owed, not because it is required. The instruments come from two libraries:',
         '',
     ]
 
@@ -413,6 +348,19 @@ def write_sources(sections: list[tuple[str, dict, list[dict]]]) -> None:
         url = library.url.removesuffix('.git')
         lines.append(f'* **{LIBRARY_TITLES[library.name]}** - <{url}>, commit `{library.commit}`')
 
+    used = sorted({int(Path(path).stem) for _, _, rows in sections for row in rows for path in row['sources']
+                   if path.startswith('freesound/')})
+    lines += [
+        '',
+        'and the foley from Freesound recordings, each checked as CC0 on its own page when it was fetched '
+        '(`fetch_sources.py` refuses one that is not):',
+        '',
+        '| Freesound | Author | Recording |',
+        '| --- | --- | --- |',
+    ]
+    for sid in used:
+        meta = freesound_meta(sid)
+        lines.append(f"| [{sid}](https://freesound.org/s/{sid}/) | {meta['user']} | {meta['title']} |")
     lines += [
         '',
         '#209 asks that provenance be recorded because "CC0" and "CC-BY" are different promises. This '
@@ -471,7 +419,10 @@ def write_sources(sections: list[tuple[str, dict, list[dict]]]) -> None:
                 f"-{midi_name(row['hi'])}" if row['lo'] == 0 else
                 f"{midi_name(row['lo'])}-{midi_name(row['hi'])}")
             vel = 'all' if row['vel'] == (0.0, 1.0) else f"{row['vel'][0]:.1f}-{row['vel'][1]:.1f}"
-            source = '; '.join(f'`{path}`' for path in row['sources'])
+            source = '; '.join(
+                f"Freesound [{Path(path).stem}](https://freesound.org/s/{Path(path).stem}/) by "
+                f"{freesound_meta(int(Path(path).stem))['user']}" if path.startswith('freesound/') else f'`{path}`'
+                for path in dict.fromkeys(row['sources']))
             lines.append(
                 f"| `{Path(row['file']).name}` | {midi_name(row['root'])} ({row['root']}) | {keys} | {vel} | "
                 f"{row['gain']:.3f} | `{row['sha'][:16]}…` | {source} |")
@@ -514,11 +465,28 @@ def matched_gain(x: np.ndarray, body: tuple[float, float], trim_db: float) -> fl
     return audio.undb(UNIT_RMS_DB - loudness_db(x, body) + trim_db)
 
 
+def from_transient(x: np.ndarray, nth: int, lead: float, length: float) -> np.ndarray:
+    """A long take from just before its nth-loudest transient: how one strike of a hammer, one tick
+    of a clock or one pop of a fire is found in a recording of many. Found by the take's own
+    envelope, so a rebuild picks the same moment."""
+    env = audio.envelope_db(audio.highpass(x, 300.0), 0.01)
+    env[max(0, len(env) - int(length * RATE)):] = -200.0
+    for _ in range(nth):
+        k = int(np.argmax(env))
+        env[max(0, k - RATE // 2): k + RATE // 2] = -200.0
+    k = int(np.argmax(env))
+    return x[max(0, k - int(lead * RATE)):]
+
+
 def prepare(spec: Spec, s: Source, src: Path) -> Zone:
     x = audio.load(src / s.path)
     x = audio.highpass(x, spec.highpass, 2)
     if spec.lowpass:
         x = audio.lowpass(x, spec.lowpass, 2)
+    if s.at is not None:
+        x = x[int(s.at * RATE):]
+    if s.pick is not None:
+        x = from_transient(x, s.pick, s.lead, spec.max_seconds)
     x = audio.trim_head(x)
     root = s.root if s.root is not None else note_of(Path(s.path).stem) + s.octave
     report = {}
@@ -530,8 +498,9 @@ def prepare(spec: Spec, s: Source, src: Path) -> Zone:
             if 3.0 < abs(cents) < 45.0:
                 x = audio.retune(x, cents)
     loop = None
-    if spec.loop:
-        start, end, xfade = spec.loop
+    zone_loop = s.loop or spec.loop
+    if zone_loop:
+        start, end, xfade = zone_loop
         x = x[: int((end + 0.1) * RATE)]
         x = audio.fade_in(x, 0.002)
         x, a, b = audio.make_loop(x, start, end, xfade)
@@ -549,13 +518,18 @@ def prepare(spec: Spec, s: Source, src: Path) -> Zone:
 
 
 def key_ranges(zones: list[Zone], rr: bool) -> None:
+    """Split the keyboard between zones, separately for each velocity and duration layer - a held
+    glass note and a quick one are played from different recordings with different roots, and one
+    layer's split must not leave gaps in the other's."""
     if rr:
         return
-    roots = sorted({z.root for z in zones})
-    for z in zones:
-        i = roots.index(z.root)
-        z.lo = 0 if i == 0 else (roots[i - 1] + z.root) // 2 + 1
-        z.hi = 127 if i == len(roots) - 1 else (z.root + roots[i + 1]) // 2
+    for layer in {(z.vel, z.dur) for z in zones}:
+        members = [z for z in zones if (z.vel, z.dur) == layer]
+        roots = sorted({z.root for z in members})
+        for z in members:
+            i = roots.index(z.root)
+            z.lo = 0 if i == 0 else (roots[i - 1] + z.root) // 2 + 1
+            z.hi = 127 if i == len(roots) - 1 else (z.root + roots[i + 1]) // 2
 
 
 def pcm_sha256(x: np.ndarray) -> str:
@@ -617,6 +591,8 @@ def check_pins(src: Path) -> None:
 
 
 def build(src: Path) -> None:
+    global SOURCES_ROOT
+    SOURCES_ROOT = src
     check_pins(src)
 
     for old in OUT.glob('*/*.ogg'):
