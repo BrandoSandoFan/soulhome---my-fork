@@ -8,6 +8,16 @@ The initial build for 1.18.1 Minecraft, with basic patchouli, advancements, and 
 
 SoulHome - For 1.20.1 Minecraft
 
+A library now has a voice in the soul's ambience
+
+The library was the one room with no `character`, so a soul built around a fine library looked and sounded as
+if the library were not there: the sky, fog, beds, one-shots and music took nothing from it. It now pulls
+modestly toward arcane and warm - lamplit and quiet, and less arcane than an enchanting room - so a one-shot can
+come from its direction and its box rides along to the client with the other characterised rooms. Neither a buff
+nor a nerf; it changes only what a soul with a library looks and sounds like.
+
+---
+
 The soul's music and ambience sound like real things, not oscillators
 
 The soul's music was synthesised note by note from sine waves and filter sweeps, and its ambience was
