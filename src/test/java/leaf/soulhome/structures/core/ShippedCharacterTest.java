@@ -80,14 +80,19 @@ class ShippedCharacterTest
         }
     }
 
+    /**
+     * The library was the one room that declared nothing (#300), which made the room most players
+     * build first and grow furthest invisible to the ambience. The zero-declaration path is still
+     * covered, by {@code SoulCharacterTest}, which needs no shipped example.
+     */
     @Test
-    void aRoomThatSaysNothingIsARealCaseInTheShippedSet() throws IOException
+    void theLibraryHasAVoiceAndAModestOne() throws IOException
     {
         final ArchetypeDefinition library = ArchetypeJsonReader.byId(shipped(), "soulhome:library");
 
-        assertTrue(library.character().isEmpty(),
-                "a library says nothing about what kind of place a soul is, and the zero-declaration"
-                        + " path is worth having a shipped example of");
+        assertFalse(library.character().isEmpty(), "a library is a lamplit room, and the ambience should say so");
+        assertTrue(library.characterPulls().values().stream().allMatch(pull -> pull < 1.2d),
+                "a library should not out-pull an enchanting room toward the arcane");
     }
 
     /**
