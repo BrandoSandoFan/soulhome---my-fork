@@ -199,14 +199,41 @@ public record ArchetypeDefinition(
      */
     public Map<SoulTrait, Double> characterPulls()
     {
-        if (this.character.isEmpty())
+        return resolvePulls(this.character);
+    }
+
+    /**
+     * What a room of this archetype that took the given aspect pulls, ambience-wise (#301): the
+     * archetype's own pulls plus the aspect's, trait by trait. A null or unknown aspect id, and every
+     * soul with aspects switched off (where no aspect is ever selected), reads exactly {@link
+     * #characterPulls()} - which is the whole of "off means off" for this.
+     */
+    public Map<SoulTrait, Double> characterPulls(String aspectId)
+    {
+        final Aspect aspect = aspectId == null ? null : aspect(aspectId);
+
+        if (aspect == null || aspect.character().isEmpty())
+        {
+            return characterPulls();
+        }
+
+        Map<SoulTrait, Double> pulls = new LinkedHashMap<>(characterPulls());
+
+        aspect.characterPulls().forEach((trait, weight) -> pulls.merge(trait, weight, Double::sum));
+
+        return Map.copyOf(pulls);
+    }
+
+    static Map<SoulTrait, Double> resolvePulls(Map<String, Double> declared)
+    {
+        if (declared.isEmpty())
         {
             return Map.of();
         }
 
         Map<SoulTrait, Double> pulls = new LinkedHashMap<>();
 
-        for (Map.Entry<String, Double> entry : this.character.entrySet())
+        for (Map.Entry<String, Double> entry : declared.entrySet())
         {
             final SoulTrait trait = SoulTrait.byId(entry.getKey());
 

@@ -58,6 +58,7 @@
     {
       "id": "archive",
       "display_name": "aspect.soulhome.library.archive",
+      "character": { "arcane": 0.1 },
       "default": true,
       "leans": [
         { "match": { "tag": "soulhome:bookshelves" }, "weight": 1.0, "cap": 32 },
@@ -67,6 +68,7 @@
     {
       "id": "scriptorium",
       "display_name": "aspect.soulhome.library.scriptorium",
+      "character": { "arcane": 0.5 },
       "leans": [
         { "match": { "block": "minecraft:lectern" },            "weight": 2.5, "cap": 4  },
         { "match": { "block": "minecraft:cartography_table" },   "weight": 2.0, "cap": 2  },

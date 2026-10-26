@@ -93,12 +93,14 @@ public record SoulCharacter(Map<SoulTrait, Double> pulls)
         {
             final ArchetypeDefinition archetype = archetypes.get(room.archetypeId());
 
-            if (archetype == null || archetype.character().isEmpty())
+            if (archetype == null)
             {
                 continue;
             }
 
-            for (Map.Entry<SoulTrait, Double> pull : archetype.characterPulls().entrySet())
+            // the aspect the room took adds to the archetype's pull (#301). aspectId is null with
+            // aspects off, so the archetype's own pull is all there is
+            for (Map.Entry<SoulTrait, Double> pull : archetype.characterPulls(room.aspectId()).entrySet())
             {
                 // weighted by what the room scored, so a fine hearth says more about a soul than a
                 // hearth that only just qualified - the same currency every other judgement uses

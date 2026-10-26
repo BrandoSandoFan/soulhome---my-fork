@@ -59,6 +59,7 @@
     {
       "id": "shaft",
       "display_name": "aspect.soulhome.mine.shaft",
+      "character": { "hollow": 0.4 },
       "default": true,
       "leans": [
         { "match": { "tag": "minecraft:rails" },    "weight": 2.0, "cap": 16 },
@@ -69,6 +70,7 @@
     {
       "id": "vein",
       "display_name": "aspect.soulhome.mine.vein",
+      "character": { "wrought": 0.4 },
       "leans": [
         { "match": { "tag": "forge:storage_blocks" }, "weight": 3.0, "cap": 8  },
         { "match": { "tag": "forge:ores" },           "weight": 1.0, "cap": 24 }

@@ -194,7 +194,8 @@ public final class ArchetypeJsonReader
                     entry.has("default") && entry.get("default").getAsBoolean(),
                     leans,
                     readStructures(entry, registry),
-                    readBuffs(entry)));
+                    readBuffs(entry),
+                    readCharacter(entry)));
         }
 
         return aspects;

@@ -168,7 +168,11 @@ public final class ArchetypeCodecs
                             FORM.listOf().optionalFieldOf("structures", List.of())
                                     .forGetter(Aspect::structures),
                             BUFF_SPEC.listOf().optionalFieldOf("buffs", List.of())
-                                    .forGetter(Aspect::buffs))
+                                    .forGetter(Aspect::buffs),
+                            // added to the archetype's own character for a room that took this
+                            // aspect (#301)
+                            Codec.unboundedMap(Codec.STRING, Codec.DOUBLE).optionalFieldOf("character", Map.of())
+                                    .forGetter(Aspect::character))
                     .apply(instance, Aspect::new));
 
     /**

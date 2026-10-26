@@ -752,7 +752,7 @@ public record SoulAmbience(
 
         for (SoulTrait trait : traits)
         {
-            pull += archetype.characterPulls().getOrDefault(trait, 0d);
+            pull += archetype.characterPulls(room.aspectId()).getOrDefault(trait, 0d);
         }
 
         return pull;
@@ -910,8 +910,12 @@ public record SoulAmbience(
     }
 
     /** One classified room as a candidate for a voice: what it was awarded, and where it stands. */
-    public record VoiceRoom(String archetypeId, RoomBox box)
+    public record VoiceRoom(String archetypeId, String aspectId, RoomBox box)
     {
+        public VoiceRoom(String archetypeId, RoomBox box)
+        {
+            this(archetypeId, null, box);
+        }
     }
 
     /**
