@@ -95,6 +95,33 @@ class ShippedCharacterTest
                 "a library should not out-pull an enchanting room toward the arcane");
     }
 
+    /** #301: the six shipped aspects each say something, and the pairs say different things. */
+    @Test
+    void everyShippedAspectDeclaresACharacterAndThePairsDiffer() throws IOException
+    {
+        for (String id : List.of("soulhome:library", "soulhome:hearth", "soulhome:mine"))
+        {
+            final ArchetypeDefinition archetype = ArchetypeJsonReader.byId(shipped(), id);
+
+            assertEquals(2, archetype.aspects().size(), id);
+
+            for (Aspect aspect : archetype.aspects())
+            {
+                assertFalse(aspect.character().isEmpty(), id + "/" + aspect.id());
+                assertEquals(List.of(), aspect.validationErrors(archetype.signals()), id + "/" + aspect.id());
+            }
+
+            assertFalse(archetype.characterPulls(archetype.aspects().get(0).id())
+                            .equals(archetype.characterPulls(archetype.aspects().get(1).id())),
+                    id + "'s two aspects should not look and sound alike");
+        }
+
+        final ArchetypeDefinition library = ArchetypeJsonReader.byId(shipped(), "soulhome:library");
+
+        assertTrue(library.characterPulls("scriptorium").get(SoulTrait.ARCANE)
+                > library.characterPulls("archive").get(SoulTrait.ARCANE));
+    }
+
     /**
      * The soul a player most plausibly has early on - a hearth, a library, a farm - must not read
      * as strongly anything. The colouring is supposed to arrive over the course of building a

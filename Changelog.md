@@ -8,6 +8,18 @@ The initial build for 1.18.1 Minecraft, with basic patchouli, advancements, and 
 
 SoulHome - For 1.20.1 Minecraft
 
+An aspect can colour the soul too
+
+A hearth that took `kitchen` and one that took `fireplace` looked and sounded identical, as did a library that
+took `archive` and one that took `scriptorium`: the aspect showed in the reports and nowhere else. An aspect may
+now declare its own `character`, which is added to its room's own (never replacing it, so a thin block cannot
+erase what the room is) for as long as the room holds that aspect. All six shipped aspects do: a scriptorium
+is more arcane than an archive, a kitchen warmer and more wrought than a fireplace, a vein more wrought and a
+shaft more hollow. With aspects off, no aspect is selected and the room speaks as it always did. Neither a buff
+nor a nerf; it changes only what a soul looks and sounds like, and no score reads it.
+
+---
+
 A library now has a voice in the soul's ambience
 
 The library was the one room with no `character`, so a soul built around a fine library looked and sounded as

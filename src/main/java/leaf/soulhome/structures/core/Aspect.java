@@ -7,6 +7,7 @@ package leaf.soulhome.structures.core;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -59,6 +60,12 @@ import java.util.Set;
  * @param buffs        what this aspect pays instead of the archetype's top-level {@code buffs}.
  *                     Empty on the default, which pays those; empty on a non-default means it pays
  *                     them too, which is a datapack oddity rather than an error.
+ * @param character    what a room that took this aspect says about the soul it stands in (#301), as
+ *                     trait id to weight. <b>Added to</b> the archetype's own {@code character}, never
+ *                     a replacement for it: replacing would let a thin aspect block erase the room's
+ *                     identity, and a hearth that took {@code kitchen} is still a hearth. Cosmetic -
+ *                     it feeds no score, so the rule that an aspect selects and never scales is
+ *                     untouched.
  */
 public record Aspect(
         String id,
@@ -66,13 +73,33 @@ public record Aspect(
         boolean isDefault,
         List<Lean> leans,
         List<Form> structures,
-        List<ArchetypeDefinition.BuffSpec> buffs)
+        List<ArchetypeDefinition.BuffSpec> buffs,
+        Map<String, Double> character)
 {
+    /** An aspect declaring no character - every aspect before #301. */
+    public Aspect(
+            String id,
+            String displayName,
+            boolean isDefault,
+            List<Lean> leans,
+            List<Form> structures,
+            List<ArchetypeDefinition.BuffSpec> buffs)
+    {
+        this(id, displayName, isDefault, leans, structures, buffs, Map.of());
+    }
+
     public Aspect
     {
         leans = leans == null ? List.of() : List.copyOf(leans);
         structures = structures == null ? List.of() : List.copyOf(structures);
         buffs = buffs == null ? List.of() : List.copyOf(buffs);
+        character = character == null ? Map.of() : Map.copyOf(character);
+    }
+
+    /** This aspect's character pulls; unknown trait ids are dropped, as for an archetype's. */
+    public Map<SoulTrait, Double> characterPulls()
+    {
+        return ArchetypeDefinition.resolvePulls(this.character);
     }
 
     /** Whether this aspect's payout differs from the archetype's own. */
@@ -174,6 +201,14 @@ public record Aspect(
             }
         }
 
+        for (Map.Entry<String, Double> pull : this.character.entrySet())
+        {
+            if (pull.getValue() == null || !Double.isFinite(pull.getValue()) || pull.getValue() <= 0d)
+            {
+                errors.add("character: '" + pull.getKey() + "' must be a positive weight");
+            }
+        }
+
         return errors;
     }
 
@@ -191,6 +226,15 @@ public record Aspect(
         for (Form form : this.structures)
         {
             warnings.addAll(form.validationWarnings());
+        }
+
+        for (String trait : this.character.keySet())
+        {
+            if (SoulTrait.byId(trait) == null)
+            {
+                warnings.add("character: unknown trait \"" + trait
+                        + "\", which contributes nothing to this soul's ambience");
+            }
         }
 
         return warnings;

@@ -126,13 +126,13 @@ public class SyncSoulAmbienceMessage implements SoulPayload
                 final ArchetypeDefinition archetype = archetypes.get(room.archetypeId());
                 final RegionBounds bounds = room.footprint();
 
-                if (archetype == null || archetype.characterPulls().isEmpty() || bounds == null)
+                if (archetype == null || archetype.characterPulls(room.aspectId()).isEmpty() || bounds == null)
                 {
                     continue;
                 }
 
                 rooms.add(new AmbientRoom(
-                        room.archetypeId(),
+                        room.archetypeId(), room.aspectId(),
                         bounds.minX(), bounds.minY(), bounds.minZ(),
                         bounds.maxX(), bounds.maxY(), bounds.maxZ()));
             }
@@ -150,11 +150,13 @@ public class SyncSoulAmbienceMessage implements SoulPayload
      * compass angle the one-shots have always used.
      */
     public record AmbientRoom(
-            String archetypeId, int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
+            String archetypeId, String aspectId, int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
     {
         public static final Codec<AmbientRoom> CODEC = RecordCodecBuilder.create(instance -> instance
                 .group(
                         Codec.STRING.fieldOf("archetype").forGetter(AmbientRoom::archetypeId),
+                        // the aspect the room took (#301), so its extra pull is heard from its direction
+                        Codec.STRING.optionalFieldOf("aspect", "").forGetter(room -> room.aspectId() == null ? "" : room.aspectId()),
                         Codec.INT.fieldOf("min_x").forGetter(AmbientRoom::minX),
                         Codec.INT.fieldOf("min_y").forGetter(AmbientRoom::minY),
                         Codec.INT.fieldOf("min_z").forGetter(AmbientRoom::minZ),
@@ -218,7 +220,7 @@ public class SyncSoulAmbienceMessage implements SoulPayload
 
         for (AmbientRoom room : this.rooms)
         {
-            voiceRooms.add(new SoulAmbience.VoiceRoom(room.archetypeId(), new SoulAmbience.RoomBox(
+            voiceRooms.add(new SoulAmbience.VoiceRoom(room.archetypeId(), room.aspectId(), new SoulAmbience.RoomBox(
                     room.minX(), room.minY(), room.minZ(), room.maxX(), room.maxY(), room.maxZ())));
         }
 

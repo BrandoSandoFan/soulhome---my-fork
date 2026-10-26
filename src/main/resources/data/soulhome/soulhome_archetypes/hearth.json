@@ -62,6 +62,7 @@
     {
       "id": "fireplace",
       "display_name": "aspect.soulhome.hearth.fireplace",
+      "character": { "warm": 0.2 },
       "default": true,
       "leans": [
         { "match": { "block": ["minecraft:furnace", "minecraft:campfire", "minecraft:soul_campfire"] }, "weight": 2.0, "cap": 3 },
@@ -72,6 +73,7 @@
     {
       "id": "kitchen",
       "display_name": "aspect.soulhome.hearth.kitchen",
+      "character": { "warm": 0.3, "wrought": 0.4 },
       "leans": [
         { "match": { "block": ["minecraft:smoker", "minecraft:cauldron"] }, "weight": 4.0, "cap": 2 },
         { "match": { "tag": "soulhome:storage" }, "weight": 2.0, "cap": 4 }

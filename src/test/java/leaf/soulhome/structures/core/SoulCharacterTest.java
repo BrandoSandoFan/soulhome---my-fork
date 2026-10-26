@@ -169,4 +169,61 @@ class SoulCharacterTest
         assertEquals(30d, character.totalPull(), 1e-9);
         assertNotEquals(SoulCharacter.EMPTY, character);
     }
+
+    /** #301: an aspect's pull is added to the archetype's own, trait by trait, and nothing is replaced. */
+    @Test
+    void aTakenAspectAddsToTheArchetypesOwnPull()
+    {
+        final ArchetypeDefinition kitchenHearth = withAspect(
+                archetype("soulhome:hearth", Map.of("warm", 1.5)), Map.of("warm", 0.5, "wrought", 0.4));
+        final Map<String, ArchetypeDefinition> byId = Map.of("soulhome:hearth", kitchenHearth);
+
+        final SoulCharacter kitchen = SoulCharacter.of(
+                List.of(new AwardedRoom("soulhome:hearth", 1, 10d, "kitchen")), byId);
+        final SoulCharacter plain = SoulCharacter.of(
+                List.of(new AwardedRoom("soulhome:hearth", 1, 10d, "fireplace")), byId);
+
+        assertEquals(20d, kitchen.pull(SoulTrait.WARM), 1e-9);
+        assertEquals(4d, kitchen.pull(SoulTrait.WROUGHT), 1e-9);
+        assertEquals(15d, plain.pull(SoulTrait.WARM), 1e-9, "an aspect declaring nothing leaves the room as it was");
+    }
+
+    /** #301: aspects off means no aspect id on the room, which reads the archetype alone. */
+    @Test
+    void withNoAspectSelectedOnlyTheArchetypeSpeaks()
+    {
+        final ArchetypeDefinition kitchenHearth = withAspect(
+                archetype("soulhome:hearth", Map.of("warm", 1.5)), Map.of("wrought", 0.4));
+
+        final SoulCharacter off = SoulCharacter.of(
+                List.of(room("soulhome:hearth", 10d)), Map.of("soulhome:hearth", kitchenHearth));
+
+        assertEquals(15d, off.totalPull(), 1e-9);
+    }
+
+    /** #301: an unknown trait on an aspect is dropped, like the archetype's, and costs the room nothing. */
+    @Test
+    void anUnknownAspectTraitIsDroppedNotFatal()
+    {
+        final ArchetypeDefinition hearth = withAspect(
+                archetype("soulhome:hearth", Map.of("warm", 1.5)), Map.of("not_a_trait", 9d));
+
+        final SoulCharacter character = SoulCharacter.of(
+                List.of(new AwardedRoom("soulhome:hearth", 1, 10d, "kitchen")), Map.of("soulhome:hearth", hearth));
+
+        assertEquals(15d, character.totalPull(), 1e-9);
+        assertTrue(hearth.validationWarnings().stream().anyMatch(w -> w.contains("not_a_trait")));
+    }
+
+    private static ArchetypeDefinition withAspect(ArchetypeDefinition base, Map<String, Double> character)
+    {
+        return new ArchetypeDefinition(
+                base.id(), base.displayName(), base.regionTypes(), 1, List.of(),
+                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofBlocks("minecraft:furnace"), 1d, "core", 4)),
+                List.of(), base.tiers(), List.of(), List.of(), List.of(),
+                List.of(new Aspect("kitchen", "aspect.test.kitchen", true,
+                        List.of(new Aspect.Lean(BlockMatcher.ofBlocks("minecraft:furnace"), 1d, 4)),
+                        List.of(), List.of(), character)),
+                base.character());
+    }
 }
