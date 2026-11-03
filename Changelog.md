@@ -8,6 +8,19 @@ The initial build for 1.18.1 Minecraft, with basic patchouli, advancements, and 
 
 SoulHome - For 1.20.1 Minecraft
 
+Cold Storage and the Training Yard no longer make you immune at rank IX
+
+A top-tier Cold Storage at rank IX earned a fire and lava reduction of 1.06, and a top-tier Training Yard a
+fall reduction of the same, and both clamped to 100%: a player at the top of the climb could not be hurt by
+fire, lava or falling at all, when rank VI already gave 85%. Both now stop at 75%, as speed and mining speed
+stop at theirs (#86), and what rank adds past that is spent on something else rather than lost: with Cold
+Storage you burn out sooner once alight, and with the Training Yard the height you can fall from unharmed
+grows by a few blocks. `/soulhome buffs` names where the excess went. A nerf at high rank, and only there;
+nothing below roughly rank V changes. Healing (0.3) and potion duration (0.45) were checked at rank IX and
+left alone on purpose: neither is a damage reduction, so neither reaches a "cannot be hurt" state.
+
+---
+
 An aspect can colour the soul too
 
 A hearth that took `kitchen` and one that took `fireplace` looked and sounded identical, as did a library that
