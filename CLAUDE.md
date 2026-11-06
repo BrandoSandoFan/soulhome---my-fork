@@ -624,7 +624,8 @@ corpus: every fault in #133 was one the corpus would have caught on the day the 
   restates the code is worse than none.
 - **`Changelog.md`** gets an entry for anything a player would notice, in the same voice: what was
   wrong, what it looked like from the player's side, what it is now, and whether it is a buff or a
-  nerf.
+  nerf. New entries go at the top of the `## Unreleased` section, newest first; entries are
+  grouped under month headings (there are no release tags), and the entries' own text is never reworded to fit.
 - **Generated files are committed.** `src/main/generated/**` is datagen output and is on the
   resource path. If you change a datagen source (e.g. `PatchouliMultiblocks` or `EngLangGen`),
   update the corresponding JSON under `src/main/generated` to match. CI runs `./gradlew runData`

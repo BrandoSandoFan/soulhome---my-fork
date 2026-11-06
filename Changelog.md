@@ -8,6 +8,15 @@ The initial build for 1.18.1 Minecraft, with basic patchouli, advancements, and 
 
 SoulHome - For 1.20.1 Minecraft
 
+## Unreleased
+
+New entries go here, newest first. When a build ships, the next entry starts a heading for the month it lands in
+(there are no release tags to name, so the month is the marker).
+
+---
+
+## November 2026
+
 Cold Storage and the Training Yard no longer make you immune at rank IX
 
 A top-tier Cold Storage at rank IX earned a fire and lava reduction of 1.06, and a top-tier Training Yard a
@@ -20,6 +29,8 @@ nothing below roughly rank V changes. Healing (0.3) and potion duration (0.45) w
 left alone on purpose: neither is a damage reduction, so neither reaches a "cannot be hurt" state.
 
 ---
+
+## October 2026
 
 An aspect can colour the soul too
 
@@ -71,6 +82,8 @@ if it has a voice of its own.
   is still played as a third thing. A resource pack that replaces `soulhome:music/soul` or the
   ambience sounds still does.
 - If the samples fail to load, the soul plays its old oscillators rather than going quiet.
+
+## September 2026
 
 Soul rooms
 
