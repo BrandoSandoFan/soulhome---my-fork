@@ -25,7 +25,7 @@
     },
     {
       "type": "text",
-      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/workshop)Workshop$(/l), with a way through between them, up to 12 blocks long",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/powder_magazine)Powder Magazine$(/l), sharing a wall$(li)$(l:soulhome:multiblocks/workshop)Workshop$(/l), with a way through between them, up to 12 blocks long",
       "title": "Rooms that go together"
     }
   ],

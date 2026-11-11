@@ -52,5 +52,9 @@
         { "shape": "soulhome:loop", "of": "frame", "min_cells": 8, "ideal_cells": 24, "weight": 2.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:shrine", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 12 }
   ]
 }

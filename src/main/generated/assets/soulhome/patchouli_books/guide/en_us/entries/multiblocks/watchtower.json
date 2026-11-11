@@ -25,7 +25,7 @@
     },
     {
       "type": "text",
-      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/bulwark)Bulwark$(/l), sharing a wall",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/bulwark)Bulwark$(/l), sharing a wall$(li)$(l:soulhome:multiblocks/gale_roost)Gale Roost$(/l), built beneath it, with at most 6 blocks between",
       "title": "Rooms that go together"
     }
   ],

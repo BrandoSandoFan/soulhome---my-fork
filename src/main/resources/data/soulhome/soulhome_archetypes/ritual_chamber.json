@@ -52,5 +52,9 @@
         { "relation": "at_range",  "of": "light",     "to": "forge",  "min_distance": 1, "max_distance": 5, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:arcane_sanctum", "relation": "connects", "weight": 3.0, "role": "layout", "max_distance": 12 }
   ]
 }

@@ -15,6 +15,18 @@ New entries go here, newest first. When a build ships, the next entry starts a h
 
 ---
 
+The rooms that had no bonds now have one
+
+Eight rooms could never gain from the company they kept: the gale roost, rift chamber, ritual chamber and shrine
+had no bond at all, and the ossuary, infected grotto, storm spire and powder magazine had only discords. Each now
+has a positive bond: an ossuary beneath a shrine (a crypt under a chapel), a rift chamber near a shrine, a ritual
+chamber connected to an arcane sanctum, a gale roost above a watchtower, a storm spire above an observatory, an
+infected grotto beneath an alchemy lab, and a powder magazine adjoining an armoury. Built apart, nothing changes;
+built together, both rooms earn a little more. A buff, bounded by the same bond cap as every other bond.
+
+---
+
+
 ## November 2026
 
 Cold Storage and the Training Yard no longer make you immune at rank IX

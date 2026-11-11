@@ -47,5 +47,9 @@
         { "shape": "soulhome:enclosure", "of": "walls", "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:shrine", "relation": "beneath", "weight": 3.0, "role": "layout", "max_vertical_gap": 6 }
   ]
 }

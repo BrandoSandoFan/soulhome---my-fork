@@ -45,5 +45,9 @@
         { "shape": "soulhome:line", "of": "mast", "min_run": 5, "ideal_run": 8, "weight": 1.0 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:observatory", "relation": "above", "weight": 3.0, "role": "layout", "max_vertical_gap": 6 }
   ]
 }

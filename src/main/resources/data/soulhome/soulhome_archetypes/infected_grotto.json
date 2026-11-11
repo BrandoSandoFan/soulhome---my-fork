@@ -48,5 +48,9 @@
         { "relation": "within", "of": "growth", "to": "catalyst", "max_distance": 8, "weight": 1.5 }
       ]
     }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:alchemy_lab", "relation": "beneath", "weight": 3.0, "role": "layout", "max_vertical_gap": 6 }
   ]
 }
