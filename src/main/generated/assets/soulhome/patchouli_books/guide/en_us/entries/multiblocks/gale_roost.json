@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Perch: $(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Banner: any banners$(li)Mast: Bamboo",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/watchtower)Watchtower$(/l), built above it, with at most 6 blocks between",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

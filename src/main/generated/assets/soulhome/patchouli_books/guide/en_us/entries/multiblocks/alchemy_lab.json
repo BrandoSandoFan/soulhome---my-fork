@@ -25,7 +25,7 @@
     },
     {
       "type": "text",
-      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/greenhouse)Greenhouse$(/l), with a way through between them, up to 12 blocks long$(li)$(l:soulhome:multiblocks/purifying_font)Purifying Font$(/l), within 10 blocks",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/greenhouse)Greenhouse$(/l), with a way through between them, up to 12 blocks long$(li)$(l:soulhome:multiblocks/infected_grotto)Infected Grotto$(/l), built above it, with at most 6 blocks between$(li)$(l:soulhome:multiblocks/purifying_font)Purifying Font$(/l), within 10 blocks",
       "title": "Rooms that go together"
     }
   ],

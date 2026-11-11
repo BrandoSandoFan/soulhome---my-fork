@@ -22,6 +22,11 @@
       "type": "text",
       "text": "What those parts are:$(li)Light: $(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)Core: Lodestone",
       "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/ossuary)Ossuary$(/l), built above it, with at most 6 blocks between$(li)$(l:soulhome:multiblocks/rift_chamber)Rift Chamber$(/l), within 12 blocks",
+      "title": "Rooms that go together"
     }
   ],
   "priority": false,

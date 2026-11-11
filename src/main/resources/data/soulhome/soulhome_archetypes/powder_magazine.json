@@ -54,6 +54,7 @@
   ],
 
   "bonds": [
-    { "with": "soulhome:storm_spire", "relation": "near", "weight": -4.0, "role": "hazard", "max_distance": 10 }
+    { "with": "soulhome:storm_spire", "relation": "near", "weight": -4.0, "role": "hazard", "max_distance": 10 },
+    { "with": "soulhome:armoury", "relation": "adjoins", "weight": 3.0, "role": "layout" }
   ]
 }
