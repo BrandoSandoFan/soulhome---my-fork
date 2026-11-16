@@ -15,6 +15,21 @@
     },
     {
       "type": "text",
+      "text": "A room of this kind can be one of two things, and which one is decided by what you put in it - not by choosing.$(p)Either way it scores the same and is worth the same. What changes is which gift it gives, never how large.",
+      "title": "What it is for"
+    },
+    {
+      "type": "text",
+      "text": "The usual reading of the room. Grants:$(li)Saturation from food, growing with the tier, up to +45%%.$(p)Leans this way:$(li)any crops$(li)Farmland$(li)Water",
+      "title": "Crops"
+    },
+    {
+      "type": "text",
+      "text": "Grants instead:$(li)Animal drops, growing with the tier, up to +30%%.$(p)Leans this way:$(li)Hay Bale$(li)any fences$(li)any fence gates$(li)Cauldron",
+      "title": "Pasture"
+    },
+    {
+      "type": "text",
       "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Soil forms a contiguous platform, and crops is within 1 of soil, and water is 0-4 from soil.",
       "title": "How you arrange it"
     },

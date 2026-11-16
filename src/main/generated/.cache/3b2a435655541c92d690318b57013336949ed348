@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-11T02:28:33.082330552	PatchouliGeneration
+// 1.21.1	2026-11-16T02:41:32.31407213	PatchouliGeneration
 55b5193e14f138c8e2468487ae9da7bc7326b1cc assets/soulhome/patchouli_books/guide/en_us/categories/basics.json
 af711e3076ad05e4c6bf846b6186baec8c631781 assets/soulhome/patchouli_books/guide/en_us/categories/multiblocks.json
 bd1f7678104dd8229a05ce549a359e945f200e8f assets/soulhome/patchouli_books/guide/en_us/entries/basics/guests.json
@@ -15,7 +15,7 @@ a5d77056df89753b57978c7e39d7a649677304c1 assets/soulhome/patchouli_books/guide/e
 eebf38b23bd69fbde1681010cc387c703639b36b assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/apiary.json
 a4cbd85bda699b39ca64308e1f4c8dfe0eadb1eb assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/aquarium.json
 d2e868999f573ddd0a639c1bd5f4e889ecd4eef7 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/arcane_sanctum.json
-0e5446ca3c6270275875559cbea2fabd1c24064c assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/armoury.json
+5ced5e9947cef7771f2b1e7798f4212a507fdffc assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/armoury.json
 b040dafc62133446028e5620ff3519c7aefe0039 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/aspects.json
 76a665d8851877fbc2147b525cf6ada8a97095a0 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/attunement.json
 c5c41dfce64b9d66f24a0d75877c3cdc3e83c6ce assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/bedchamber.json
@@ -23,7 +23,7 @@ a3b902e33ec60eb04bbb236ed782d791cf3df9eb assets/soulhome/patchouli_books/guide/e
 2c8f000a03c166fa5f25d2646281d9c69c34c9ce assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/bulwark.json
 0091e0622e6e91ffeecb8ef10e9ae672e15d9ad3 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/cold_storage.json
 c05e6180d8e7d5e982b9810d55eeaf288cf7e6c8 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/enchanting_room.json
-a7c5a97480252138a57bdb3e2ae66333f490041c assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/farm.json
+8953b3faf957e5850cd76847337ba61370e371fe assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/farm.json
 6af15e3157c0ca8db9d39fc8f910e185bd90bf96 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/gale_roost.json
 5ffb749565c7a31b82a5cb2212bf0583830ea121 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/greenhouse.json
 59b5fca884c1d7e1072cfe60b0e9ded548f510d0 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/hearth.json

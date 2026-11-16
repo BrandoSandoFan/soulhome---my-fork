@@ -25,6 +25,12 @@ public final class SoulBuffTypes
     /** Armoury: extra sword damage, as a fraction of the hit. */
     public static final String SWORD_DAMAGE = "soulhome:sword_damage";
 
+    /** Armoury, as a quiver: extra damage with arrows, as a fraction of the hit. */
+    public static final String ARROW_DAMAGE = "soulhome:arrow_damage";
+
+    /** Farm, as a pasture: extra drops from animals you kill, as a fraction of each stack. */
+    public static final String ANIMAL_YIELD = "soulhome:animal_yield";
+
     /** Library: extra experience, as a fraction of the amount gained. */
     public static final String XP_GAIN = "soulhome:xp_gain";
 
@@ -147,7 +153,7 @@ public final class SoulBuffTypes
                     CLEANSING_FONT, UPDRAFT, LAST_STAND, CALMING_SMOKE, SOULGAZE);
 
     public static final Set<String> BUILT_IN =
-            Set.of(SATURATION, SWORD_DAMAGE, XP_GAIN, ENCHANTMENT_POWER,
+            Set.of(SATURATION, SWORD_DAMAGE, ARROW_DAMAGE, ANIMAL_YIELD, XP_GAIN, ENCHANTMENT_POWER,
                     POTION_DURATION, HEALING, MINING_SPEED,
                     SPEED, DOUBLE_JUMP, FALL_PROTECTION, FIRE_ASPECT,
                     MAX_MANA, SPELL_POWER, REACH,

@@ -477,6 +477,10 @@ public class EngLangGen extends LanguageProvider
         add("aspect.soulhome.hearth.kitchen", "a Kitchen");
         add("aspect.soulhome.mine.shaft", "a Working Shaft");
         add("aspect.soulhome.mine.vein", "a Lode");
+        add("aspect.soulhome.armoury.blade", "a Bladeworks");
+        add("aspect.soulhome.armoury.quiver", "a Quiver");
+        add("aspect.soulhome.farm.crops", "a Field");
+        add("aspect.soulhome.farm.pasture", "a Pasture");
 
         //The abilities those rooms grant. A room and the thing it grants are not the same noun,
         //so these are their own keys rather than reusing the archetype names
