@@ -60,6 +60,8 @@ public final class BuffDisplayNames
 
         names.put(SoulBuffTypes.SATURATION, "Saturation from food");
         names.put(SoulBuffTypes.SWORD_DAMAGE, "Sword damage");
+        names.put(SoulBuffTypes.ARROW_DAMAGE, "Arrow damage");
+        names.put(SoulBuffTypes.ANIMAL_YIELD, "Animal drops");
         names.put(SoulBuffTypes.XP_GAIN, "Experience gain");
         names.put(SoulBuffTypes.ENCHANTMENT_POWER, "Enchanting levels");
         names.put(SoulBuffTypes.POTION_DURATION, "Potion duration");

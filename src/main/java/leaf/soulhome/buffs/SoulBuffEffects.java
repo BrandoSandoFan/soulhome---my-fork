@@ -34,6 +34,8 @@ import leaf.soulhome.buffs.effects.SpellPowerEffect;
 import leaf.soulhome.buffs.effects.SwimSpeedEffect;
 import leaf.soulhome.buffs.effects.SurveyorsEyeEffect;
 import leaf.soulhome.buffs.effects.SwordDamageEffect;
+import leaf.soulhome.buffs.effects.ArrowDamageEffect;
+import leaf.soulhome.buffs.effects.AnimalYieldEffect;
 import leaf.soulhome.buffs.effects.ThunderclapEffect;
 import leaf.soulhome.buffs.effects.UpdraftEffect;
 import leaf.soulhome.buffs.effects.HealingEffect;
@@ -72,6 +74,8 @@ public final class SoulBuffEffects
 
         register(new SaturationEffect());
         register(new SwordDamageEffect());
+        register(new ArrowDamageEffect());
+        register(new AnimalYieldEffect());
         register(new XpGainEffect());
         register(new EnchantmentPowerEffect());
         register(new PotionDurationEffect());

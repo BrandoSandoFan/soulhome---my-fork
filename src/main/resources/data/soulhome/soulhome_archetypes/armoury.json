@@ -12,6 +12,9 @@
     { "match": { "tag": "soulhome:smithing" },  "weight": 5.0,  "role": "forge",     "cap": 4  },
     { "match": { "tag": "soulhome:armament" },  "weight": 2.0,  "role": "armament",  "cap": 24 },
     { "match": { "tag": "minecraft:anvil" },    "weight": 3.0,  "role": "forge",     "cap": 3  },
+    { "match": { "block": "minecraft:fletching_table" }, "weight": 2.0, "role": "fletching", "cap": 2, "seed": false },
+    { "match": { "block": "minecraft:target" },    "weight": 1.0,  "role": "fletching", "cap": 6, "seed": false },
+    { "match": { "block": "minecraft:dispenser" }, "weight": 1.0,  "role": "fletching", "cap": 4, "seed": false },
     { "match": { "tag": "soulhome:storage" },   "weight": 1.5,  "role": "storage",   "cap": 8  },
     { "match": { "tag": "soulhome:lighting" },  "weight": 0.5,  "role": "light",     "cap": 16 }
   ],
@@ -43,6 +46,30 @@
       "all": [
         { "relation": "at_range", "of": "armament", "to": "forge", "min_distance": 0, "max_distance": 4, "weight": 2.0 },
         { "relation": "within",   "of": "storage",  "to": "forge", "max_distance": 5, "weight": 1.0 }
+      ]
+    }
+  ],
+
+  "aspects": [
+    {
+      "id": "blade",
+      "display_name": "aspect.soulhome.armoury.blade",
+      "default": true,
+      "leans": [
+        { "match": { "tag": "soulhome:smithing" }, "weight": 3.0, "cap": 4 },
+        { "match": { "tag": "minecraft:anvil" },    "weight": 2.0, "cap": 3 }
+      ]
+    },
+    {
+      "id": "quiver",
+      "display_name": "aspect.soulhome.armoury.quiver",
+      "leans": [
+        { "match": { "block": "minecraft:fletching_table" }, "weight": 4.0, "cap": 2 },
+        { "match": { "block": "minecraft:target" },          "weight": 2.0, "cap": 6 },
+        { "match": { "block": "minecraft:dispenser" },       "weight": 2.0, "cap": 4 }
+      ],
+      "buffs": [
+        { "type": "soulhome:arrow_damage", "per_tier": 0.10, "max": 0.30 }
       ]
     }
   ]

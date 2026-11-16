@@ -16,7 +16,10 @@
     { "match": { "block": "minecraft:composter" },  "weight": 4.0,  "role": "tending", "cap": 2  },
     { "match": { "block": ["minecraft:beehive", "minecraft:bee_nest"] }, "weight": 4.0, "role": "tending", "cap": 2 },
     { "match": { "block": "minecraft:hay_block" },  "weight": 1.5,  "role": "harvest", "cap": 8  },
-    { "match": { "tag": "soulhome:storage" },       "weight": 1.5,  "role": "storage", "cap": 4  }
+    { "match": { "tag": "soulhome:storage" },       "weight": 1.5,  "role": "storage", "cap": 4  },
+    { "match": { "tag": "minecraft:fences" },        "weight": 0.5,  "role": "pasture", "cap": 16, "seed": false },
+    { "match": { "tag": "minecraft:fence_gates" },  "weight": 1.0,  "role": "pasture", "cap": 4,  "seed": false },
+    { "match": { "block": "minecraft:cauldron" },   "weight": 0.75, "role": "pasture", "cap": 4,  "seed": false }
   ],
 
   "detractors": [],
@@ -53,5 +56,31 @@
     { "with": "soulhome:stable", "relation": "near", "weight": 4.0, "role": "layout", "max_distance": 12 },
     { "with": "soulhome:greenhouse", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 12 },
     { "with": "soulhome:apiary", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 12 }
+  ],
+
+  "aspects": [
+    {
+      "id": "crops",
+      "display_name": "aspect.soulhome.farm.crops",
+      "default": true,
+      "leans": [
+        { "match": { "tag": "minecraft:crops" },      "weight": 2.0,  "cap": 64 },
+        { "match": { "block": "minecraft:farmland" }, "weight": 0.75, "cap": 64 },
+        { "match": { "block": "minecraft:water" },    "weight": 1.0,  "cap": 4 }
+      ]
+    },
+    {
+      "id": "pasture",
+      "display_name": "aspect.soulhome.farm.pasture",
+      "leans": [
+        { "match": { "block": "minecraft:hay_block" },   "weight": 2.0, "cap": 8  },
+        { "match": { "tag": "minecraft:fences" },        "weight": 1.5, "cap": 16 },
+        { "match": { "tag": "minecraft:fence_gates" },   "weight": 3.0, "cap": 4  },
+        { "match": { "block": "minecraft:cauldron" },    "weight": 2.0, "cap": 4  }
+      ],
+      "buffs": [
+        { "type": "soulhome:animal_yield", "per_tier": 0.10, "max": 0.30 }
+      ]
+    }
   ]
 }
