@@ -17,9 +17,9 @@
     { "match": { "block": ["minecraft:beehive", "minecraft:bee_nest"] }, "weight": 4.0, "role": "tending", "cap": 2 },
     { "match": { "block": "minecraft:hay_block" },  "weight": 1.5,  "role": "harvest", "cap": 8  },
     { "match": { "tag": "soulhome:storage" },       "weight": 1.5,  "role": "storage", "cap": 4  },
-    { "match": { "tag": "minecraft:fences" },        "weight": 0.5,  "role": "pasture", "cap": 16, "seed": false },
-    { "match": { "tag": "minecraft:fence_gates" },  "weight": 1.0,  "role": "pasture", "cap": 4,  "seed": false },
-    { "match": { "block": "minecraft:cauldron" },   "weight": 0.75, "role": "pasture", "cap": 4,  "seed": false }
+    { "match": { "tag": "minecraft:fences" },        "weight": 0.25, "role": "harvest", "cap": 8, "seed": false },
+    { "match": { "tag": "minecraft:fence_gates" },  "weight": 0.5,  "role": "harvest", "cap": 2,  "seed": false },
+    { "match": { "block": "minecraft:cauldron" },   "weight": 0.5,  "role": "harvest", "cap": 2,  "seed": false }
   ],
 
   "detractors": [],

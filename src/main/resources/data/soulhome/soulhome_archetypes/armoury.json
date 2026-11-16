@@ -12,9 +12,9 @@
     { "match": { "tag": "soulhome:smithing" },  "weight": 5.0,  "role": "forge",     "cap": 4  },
     { "match": { "tag": "soulhome:armament" },  "weight": 2.0,  "role": "armament",  "cap": 24 },
     { "match": { "tag": "minecraft:anvil" },    "weight": 3.0,  "role": "forge",     "cap": 3  },
-    { "match": { "block": "minecraft:fletching_table" }, "weight": 2.0, "role": "fletching", "cap": 2, "seed": false },
-    { "match": { "block": "minecraft:target" },    "weight": 1.0,  "role": "fletching", "cap": 6, "seed": false },
-    { "match": { "block": "minecraft:dispenser" }, "weight": 1.0,  "role": "fletching", "cap": 4, "seed": false },
+    { "match": { "block": "minecraft:fletching_table" }, "weight": 1.0, "role": "armament", "cap": 1, "seed": false },
+    { "match": { "block": "minecraft:target" },    "weight": 0.25, "role": "armament", "cap": 4, "seed": false },
+    { "match": { "block": "minecraft:dispenser" }, "weight": 0.25, "role": "armament", "cap": 2, "seed": false },
     { "match": { "tag": "soulhome:storage" },   "weight": 1.5,  "role": "storage",   "cap": 8  },
     { "match": { "tag": "soulhome:lighting" },  "weight": 0.5,  "role": "light",     "cap": 16 }
   ],

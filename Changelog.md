@@ -15,6 +15,21 @@ New entries go here, newest first. When a build ships, the next entry starts a h
 
 ---
 
+The Armoury and the Farm can now be two different rooms
+
+Two more rooms were plainly two things under one name: an armoury of anvils and swords and one of fletching
+tables and targets paid the same sword damage, and a farm of crops and a farm of fenced, hay-strewn pens paid
+the same saturation. Both now have aspects. An armoury leaning on fletching tables, targets and dispensers is a
+Quiver and pays arrow damage (up to +30%, for arrows you loosed yourself) instead of sword damage; a farm leaning
+on hay, fences, fence gates and cauldrons is a Pasture and pays extra drops from animals you kill (up to +30%)
+instead of saturation. The default, a Bladeworks and a Field, is exactly what each room always paid, a room that
+changes nothing notices nothing, and the split costs the room nothing: what it is for changes which buff it
+gives, never how much. To make this possible the armoury now also scores fletching tables, targets and
+dispensers, and the farm scores fences, fence gates and cauldrons, a little each. A small buff to both rooms;
+tier thresholds are unchanged.
+
+---
+
 The rooms that had no bonds now have one
 
 Eight rooms could never gain from the company they kept: the gale roost, rift chamber, ritual chamber and shrine

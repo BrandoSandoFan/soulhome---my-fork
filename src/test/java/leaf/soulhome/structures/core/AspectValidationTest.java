@@ -200,7 +200,8 @@ class AspectValidationTest
             }
         }
 
-        assertEquals(List.of("soulhome:hearth", "soulhome:library", "soulhome:mine"), withAspects,
+        assertEquals(List.of("soulhome:armoury", "soulhome:farm", "soulhome:hearth", "soulhome:library",
+                "soulhome:mine"), withAspects,
                 "the shipped set of aspects is deliberately small (#174) - add a test case here when it grows");
     }
 

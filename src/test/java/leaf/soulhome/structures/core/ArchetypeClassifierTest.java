@@ -99,6 +99,15 @@ class ArchetypeClassifierTest
             {
                 granted.add(buff.type());
             }
+
+            // an aspect's own payout is a grant too: it is what a room of that kind gives
+            for (var aspect : archetype.aspects())
+            {
+                for (ArchetypeDefinition.BuffSpec buff : aspect.buffs())
+                {
+                    granted.add(buff.type());
+                }
+            }
         }
 
         assertEquals(SoulBuffTypes.BUILT_IN, granted,
