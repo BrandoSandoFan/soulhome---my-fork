@@ -454,13 +454,33 @@ public final class StructureScanService
                         ? mountedHeadsFor(result.region(), headMatcher, headOwners)
                         : List.of();
 
+                // a mob head needs no capture - the room's own blocks say which are mounted (#305)
+                final List<String> mobs = TrophyGrudges.TROPHY_ROOM_ARCHETYPE.equals(score.archetypeId())
+                        ? mountedMobsFor(result.region())
+                        : List.of();
+
                 awarded.add(new AwardedRoom(
                         score.archetypeId(), score.tier(), score.score(), score.aspectId(),
-                        0, result.region().bounds(), mounted));
+                        0, result.region().bounds(), mounted, mobs));
             });
         }
 
         return awarded;
+    }
+
+    private static List<String> mountedMobsFor(SoulRegion region)
+    {
+        List<String> groups = new ArrayList<>();
+
+        for (Map.Entry<String, String> head : leaf.soulhome.structures.core.TrophyMobs.GROUP_BY_HEAD.entrySet())
+        {
+            if (!region.geometry().cellsMatching(BlockMatcher.ofBlocks(head.getKey())).isEmpty())
+            {
+                groups.add(head.getValue());
+            }
+        }
+
+        return groups;
     }
 
     private static List<HeadOwner> mountedHeadsFor(
@@ -561,6 +581,7 @@ public final class StructureScanService
 
         SoulBuffs.set(player, buffsFrom(carried, rank), rank);
         SoulBuffs.setGrudges(player, TrophyGrudges.compute(carried));
+        SoulBuffs.setMobTrophies(player, leaf.soulhome.structures.core.TrophyMobs.groupsOf(carried));
 
         // fired for every awarded room, attuned or not: an unattuned room is built, and an
         // advancement for having built it is not a buff a player is being handed twice
@@ -637,6 +658,7 @@ public final class StructureScanService
 
         SoulBuffs.set(player, buffsFrom(carried, rank), rank);
         SoulBuffs.setGrudges(player, TrophyGrudges.compute(carried));
+        SoulBuffs.setMobTrophies(player, leaf.soulhome.structures.core.TrophyMobs.groupsOf(carried));
         SoulBuffs.sync(player);
 
         // a room earned while the owner was offline should still produce its toast when they

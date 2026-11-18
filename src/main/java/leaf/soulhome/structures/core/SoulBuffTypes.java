@@ -94,6 +94,9 @@ public final class SoulBuffTypes
     /** Trophy room: harder to knock back, as a fraction added to the player's own resistance. */
     public static final String KNOCKBACK_RESISTANCE = "soulhome:knockback_resistance";
 
+    /** Trophy room: bonus damage against the mobs whose heads are mounted, as a fraction of the hit (#305). */
+    public static final String TROPHY_DAMAGE = "soulhome:trophy_damage";
+
     /** Aquarium: faster swimming, as a fraction of the player's own swim speed. */
     public static final String SWIM_SPEED = "soulhome:swim_speed";
 
@@ -157,7 +160,7 @@ public final class SoulBuffTypes
                     POTION_DURATION, HEALING, MINING_SPEED,
                     SPEED, DOUBLE_JUMP, FALL_PROTECTION, FIRE_ASPECT,
                     MAX_MANA, SPELL_POWER, REACH,
-                    FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, SWIM_SPEED,
+                    FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, TROPHY_DAMAGE, SWIM_SPEED,
                     SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
                     CLEANSING_FONT, UPDRAFT,
                     CALMING_SMOKE, CLEAR_SIGHT, LAST_STAND, SOULGAZE);

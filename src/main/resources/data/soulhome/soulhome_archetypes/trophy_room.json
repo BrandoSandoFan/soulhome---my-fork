@@ -36,7 +36,8 @@
   ],
 
   "buffs": [
-    { "type": "soulhome:knockback_resistance", "per_tier": 0.05, "max": 0.15 }
+    { "type": "soulhome:knockback_resistance", "per_tier": 0.05, "max": 0.15 },
+    { "type": "soulhome:trophy_damage", "per_tier": 0.10, "max": 0.25 }
   ],
 
   "structures": [

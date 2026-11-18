@@ -67,6 +67,7 @@ public class SoulHomeBuffData extends SavedData
      * never trusted as truth in its own right - see {@link AwardedRoom#mountedHeads}.
      */
     private static final String KEY_MOUNTED_HEADS = "MountedHeads";
+    private static final String KEY_MOUNTED_MOBS = "MountedMobs";
     private static final String KEY_HEAD_ID = "Id";
     private static final String KEY_HEAD_NAME = "Name";
 
@@ -209,7 +210,7 @@ public class SoulHomeBuffData extends SavedData
             rooms.add(new AwardedRoom(
                     archetype, tier, room.getDouble(KEY_SCORE), room.getString(KEY_ASPECT),
                     room.getInt(KEY_ROOM_ID), readBounds(room, KEY_FOOTPRINT),
-                    readMountedHeads(room)));
+                    readMountedHeads(room), readMountedMobs(room)));
         }
 
         data.awardedRooms = List.copyOf(rooms);
@@ -320,6 +321,18 @@ public class SoulHomeBuffData extends SavedData
                 }
 
                 entry.put(KEY_MOUNTED_HEADS, heads);
+            }
+
+            if (!room.mountedMobs().isEmpty())
+            {
+                ListTag mobs = new ListTag();
+
+                for (String group : room.mountedMobs())
+                {
+                    mobs.add(net.minecraft.nbt.StringTag.valueOf(group));
+                }
+
+                entry.put(KEY_MOUNTED_MOBS, mobs);
             }
 
             list.add(entry);
@@ -872,6 +885,25 @@ public class SoulHomeBuffData extends SavedData
             LogHelper.warn("Discarding an invalid saved room footprint: " + e);
             return null;
         }
+    }
+
+    /** The inverse of the {@code MountedMobs} write above (#305) - empty for a room with none saved. */
+    private static List<String> readMountedMobs(CompoundTag room)
+    {
+        if (!room.contains(KEY_MOUNTED_MOBS))
+        {
+            return List.of();
+        }
+
+        ListTag mobs = room.getList(KEY_MOUNTED_MOBS, Tag.TAG_STRING);
+        List<String> groups = new ArrayList<>();
+
+        for (int index = 0; index < mobs.size(); index++)
+        {
+            groups.add(mobs.getString(index));
+        }
+
+        return groups;
     }
 
     /** The inverse of the {@code MountedHeads} write above - empty for a room with none saved. */

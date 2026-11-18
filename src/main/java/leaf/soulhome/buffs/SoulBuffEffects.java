@@ -18,6 +18,7 @@ import leaf.soulhome.buffs.effects.FireAspectEffect;
 import leaf.soulhome.buffs.effects.FireResistanceEffect;
 import leaf.soulhome.buffs.effects.FortuneEffect;
 import leaf.soulhome.buffs.effects.KnockbackResistanceEffect;
+import leaf.soulhome.buffs.effects.TrophyDamageEffect;
 import leaf.soulhome.buffs.effects.LastStandEffect;
 import leaf.soulhome.buffs.effects.SoulgazeEffect;
 import leaf.soulhome.buffs.effects.ManaEffect;
@@ -90,6 +91,7 @@ public final class SoulBuffEffects
         register(new NourishedEffect());
         register(new FortuneEffect());
         register(new KnockbackResistanceEffect());
+        register(new TrophyDamageEffect());
 
         //written against another mod's attributes, and registered whether or not that mod is
         //installed: the room, the report and the saved magnitude are all the same either way, and

@@ -147,6 +147,28 @@ public final class SoulBuffs
         player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held -> held.setGrudges(grudges));
     }
 
+    /** Replace the mob groups this player has a trophy head for (#305). Server-side only, like the grudges. */
+    public static void setMobTrophies(ServerPlayer player, java.util.Set<String> groups)
+    {
+        if (player == null || player instanceof FakePlayer)
+        {
+            return;
+        }
+
+        player.getCapability(SoulBuffsProvider.CAPABILITY).ifPresent(held -> held.setMobTrophies(groups));
+    }
+
+    /** Whether this player carries a trophy head of {@code group}. */
+    public static boolean hasMobTrophy(Player player, String group)
+    {
+        if (!SoulHomeConfig.enabled() || player == null || player instanceof FakePlayer)
+        {
+            return false;
+        }
+
+        return player.getCapability(SoulBuffsProvider.CAPABILITY).map(held -> held.hasMobTrophy(group)).orElse(false);
+    }
+
     /** This player's targeted knockback grudge against {@code attacker} - zero for none. */
     public static double grudgeAgainst(ServerPlayer player, UUID attacker)
     {

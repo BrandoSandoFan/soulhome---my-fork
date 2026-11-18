@@ -62,6 +62,9 @@ public class PlayerSoulBuffs
      */
     private Map<UUID, Double> knockbackGrudges = Map.of();
 
+    /** The mob groups a carried trophy room holds a head for (#305). Derived and never persisted, like the grudges. */
+    private java.util.Set<String> mobTrophies = java.util.Set.of();
+
     // The ascension rank (#84) these buffs were computed at, cached here rather than looked up
     // fresh: SoulBuffs.magnitude() re-clamps every read against the buff type's cap (#85 raises
     // that cap per rank), and it is called on every hit and every block broken - a level and
@@ -117,6 +120,17 @@ public class PlayerSoulBuffs
     public double grudgeAgainst(UUID attacker)
     {
         return this.knockbackGrudges.getOrDefault(attacker, 0d);
+    }
+
+    /** Whether a mob head of this group hangs in a trophy room this player carries. */
+    public boolean hasMobTrophy(String group)
+    {
+        return this.mobTrophies.contains(group);
+    }
+
+    public void setMobTrophies(java.util.Set<String> groups)
+    {
+        this.mobTrophies = groups == null || groups.isEmpty() ? java.util.Set.of() : java.util.Set.copyOf(groups);
     }
 
     public void setGrudges(Map<UUID, Double> grudges)
