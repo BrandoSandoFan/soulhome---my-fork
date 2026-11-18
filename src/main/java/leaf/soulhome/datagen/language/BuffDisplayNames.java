@@ -79,6 +79,7 @@ public final class BuffDisplayNames
         names.put(SoulBuffTypes.NOURISHED, "Slower hunger");
         names.put(SoulBuffTypes.FORTUNE, "Fortune");
         names.put(SoulBuffTypes.KNOCKBACK_RESISTANCE, "Knockback resistance");
+        names.put(SoulBuffTypes.TROPHY_DAMAGE, "Trophy damage");
         names.put(SoulBuffTypes.SWIM_SPEED, "Swim speed");
 
         //the actives (#87), named as what they do rather than as a magnitude, since an active's

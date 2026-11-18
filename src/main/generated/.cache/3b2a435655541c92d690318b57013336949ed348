@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-16T02:41:32.31407213	PatchouliGeneration
+// 1.21.1	2026-11-18T02:30:34.168464807	PatchouliGeneration
 55b5193e14f138c8e2468487ae9da7bc7326b1cc assets/soulhome/patchouli_books/guide/en_us/categories/basics.json
 af711e3076ad05e4c6bf846b6186baec8c631781 assets/soulhome/patchouli_books/guide/en_us/categories/multiblocks.json
 bd1f7678104dd8229a05ce549a359e945f200e8f assets/soulhome/patchouli_books/guide/en_us/entries/basics/guests.json
@@ -45,6 +45,6 @@ e59ef10e79f62d1bdd921152f0c9b1217e6d4808 assets/soulhome/patchouli_books/guide/e
 1104b3c6605341d234f1ad7ae30245d0add61ce6 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/track.json
 15cbaa238a5054e6911a004640bc017630a13e76 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/training_yard.json
 4f7958ff18abf3bf792bbe5da983d29284a0ca30 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/treasury.json
-f7344a7393a73ac3cdf2677f7be2d417b3b60c2c assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/trophy_room.json
+ce64392c9c25df3639cc0102e523a64f3d39323f assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/trophy_room.json
 3fee8f6e1a818692d0cfcc7a3bcbc47e90882e42 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/watchtower.json
 f50ede97e05f7fef0b5f643142321c2ac5b0a130 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/workshop.json

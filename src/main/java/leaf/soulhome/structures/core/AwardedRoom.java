@@ -36,10 +36,13 @@ import java.util.List;
  *                 unchanged wall of heads must agree. Empty for every archetype but the trophy
  *                 room, and empty for the trophy room too while its own tracking knob is off - see
  *                 {@code SoulHomeConfig#trackTrophyHeads}.
+ * @param mountedMobs which mob groups this trophy room holds a head for (#305), as {@link TrophyMobs}
+ *                 group ids, sorted. Read off the room's own blocks at scan time, so unlike
+ *                 {@code mountedHeads} it needs no capture and no config. Empty for everything else.
  */
 public record AwardedRoom(
         String archetypeId, int tier, double score, String aspectId, int roomId, RegionBounds footprint,
-        List<HeadOwner> mountedHeads)
+        List<HeadOwner> mountedHeads, List<String> mountedMobs)
 {
     public AwardedRoom
     {
@@ -62,6 +65,15 @@ public record AwardedRoom(
         mountedHeads = mountedHeads == null || mountedHeads.isEmpty()
                 ? List.of()
                 : mountedHeads.stream().sorted(Comparator.comparing(HeadOwner::id)).toList();
+        mountedMobs = TrophyMobs.normalise(mountedMobs);
+    }
+
+    /** A room with no mounted mob heads - every awarded room before #305. */
+    public AwardedRoom(
+            String archetypeId, int tier, double score, String aspectId, int roomId, RegionBounds footprint,
+            List<HeadOwner> mountedHeads)
+    {
+        this(archetypeId, tier, score, aspectId, roomId, footprint, mountedHeads, List.of());
     }
 
     /** A room that took no aspect - every awarded room before #171, and most fixtures since. */
@@ -73,7 +85,7 @@ public record AwardedRoom(
     /** A room with no identity of its own - what the classifier produces, before #152 reconciles it. */
     public AwardedRoom(String archetypeId, int tier, double score, String aspectId)
     {
-        this(archetypeId, tier, score, aspectId, 0, null, List.of());
+        this(archetypeId, tier, score, aspectId, 0, null, List.of(), List.of());
     }
 
     /** A room with no mounted heads of its own - every awarded room before #196. */
@@ -99,7 +111,7 @@ public record AwardedRoom(
     {
         return new AwardedRoom(
                 this.archetypeId, this.tier, this.score, this.aspectId, roomId, this.footprint,
-                this.mountedHeads);
+                this.mountedHeads, this.mountedMobs);
     }
 
     /**
@@ -111,7 +123,7 @@ public record AwardedRoom(
     public AwardedRoom anonymised()
     {
         return new AwardedRoom(
-                this.archetypeId, this.tier, this.score, this.aspectId, 0, null, this.mountedHeads);
+                this.archetypeId, this.tier, this.score, this.aspectId, 0, null, this.mountedHeads, this.mountedMobs);
     }
 
     /** This room, carrying whose heads it holds - see {@link #mountedHeads}. */
@@ -119,7 +131,15 @@ public record AwardedRoom(
     {
         return new AwardedRoom(
                 this.archetypeId, this.tier, this.score, this.aspectId, this.roomId, this.footprint,
-                mountedHeads);
+                mountedHeads, this.mountedMobs);
+    }
+
+    /** This room, carrying which mob groups it holds a head for - see {@link #mountedMobs}. */
+    public AwardedRoom withMountedMobs(List<String> mountedMobs)
+    {
+        return new AwardedRoom(
+                this.archetypeId, this.tier, this.score, this.aspectId, this.roomId, this.footprint,
+                this.mountedHeads, mountedMobs);
     }
 
     /** Whether this room has one grudge or more - see {@link #mountedHeads}. */
@@ -137,7 +157,7 @@ public record AwardedRoom(
         {
             result.awarded().ifPresent(score -> awarded.add(new AwardedRoom(
                     score.archetypeId(), score.tier(), score.score(), score.aspectId(),
-                    0, result.region().bounds(), List.of())));
+                    0, result.region().bounds(), List.of(), List.of())));
         }
 
         return awarded;

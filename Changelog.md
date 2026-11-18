@@ -908,6 +908,20 @@ New entries go here, newest first. When a build ships, the next entry starts a h
 
 ---
 
+Mob heads on the Trophy Room wall now bite
+
+The Trophy Room had the hardest gate in the mod (a mob or player head) and the smallest payout (up to 15%
+knockback resistance), and a mounted zombie head did nothing a plain fence post would not. Each mob head
+mounted in a carried Trophy Room now makes you hit that mob harder: up to +10% at tier 1, +20% at tier 2 and
++25% at tier 3, on any hit you are responsible for, arrows and tridents included. A zombie head counts against
+zombies, husks, drowned and zombie villagers; a skeleton skull against skeletons and strays; a piglin head
+against piglins and brutes; and the creeper, wither skeleton and dragon heads against their own. Two heads of one
+kind, or two rooms each holding one, are still one bonus, so the cheapest trophy is not the strongest. Which mobs
+a head counts against is the entity tag soulhome:trophy/<mob>, so a datapack can widen it. Player heads are
+unchanged and keep their knockback grudge. A buff to the Trophy Room.
+
+---
+
 ## September 2026
 
 Ported to 1.21.1 on NeoForge
