@@ -251,6 +251,7 @@ public class MainAdvancements implements AdvancementProvider.AdvancementGenerato
         archetypeAdvancement(advancementConsumer, roomAdvancement, "treasury", Items.DIAMOND_BLOCK);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "trophy_room", Items.WITHER_SKELETON_SKULL);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "aquarium", Items.TROPICAL_FISH_BUCKET);
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "fishery", Items.FISHING_ROD);
 
         // The eight rooms that grant an active ability (#88-#92, #94-#96). Nothing about them is a
         // special case here - a room is a room, whether what it pays out is carried or pressed.

@@ -78,6 +78,8 @@ public record BuffSettings(
                     Map.entry(SoulBuffTypes.FIRE_ASPECT, 6.0d),
                     Map.entry(SoulBuffTypes.MAX_MANA, 60.0d),
                     Map.entry(SoulBuffTypes.REACH, 2.0d),
+                    // fishery: levels of Luck of the Sea, so a flat number like the rest of this block
+                    Map.entry(SoulBuffTypes.ANGLING, 3.0d),
 
                     // every active's ceiling is the highest 'max' any shipped archetype declares
                     // for it, so what the book promises is what a player can actually reach. Left

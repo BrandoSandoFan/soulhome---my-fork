@@ -81,6 +81,7 @@ public final class BuffDisplayNames
         names.put(SoulBuffTypes.KNOCKBACK_RESISTANCE, "Knockback resistance");
         names.put(SoulBuffTypes.TROPHY_DAMAGE, "Trophy damage");
         names.put(SoulBuffTypes.SWIM_SPEED, "Swim speed");
+        names.put(SoulBuffTypes.ANGLING, "Angling");
 
         //the actives (#87), named as what they do rather than as a magnitude, since an active's
         //number is charges and reach rather than a percentage of anything

@@ -32,6 +32,7 @@ import leaf.soulhome.buffs.effects.SaturationEffect;
 import leaf.soulhome.buffs.effects.SoulEmberEffect;
 import leaf.soulhome.buffs.effects.SoulStepEffect;
 import leaf.soulhome.buffs.effects.SpellPowerEffect;
+import leaf.soulhome.buffs.effects.AnglingEffect;
 import leaf.soulhome.buffs.effects.SwimSpeedEffect;
 import leaf.soulhome.buffs.effects.SurveyorsEyeEffect;
 import leaf.soulhome.buffs.effects.SwordDamageEffect;
@@ -92,6 +93,7 @@ public final class SoulBuffEffects
         register(new FortuneEffect());
         register(new KnockbackResistanceEffect());
         register(new TrophyDamageEffect());
+        register(new AnglingEffect());
 
         //written against another mod's attributes, and registered whether or not that mod is
         //installed: the room, the report and the saved magnitude are all the same either way, and

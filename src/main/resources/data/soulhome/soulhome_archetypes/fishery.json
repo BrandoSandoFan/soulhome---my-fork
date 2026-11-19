@@ -1,0 +1,43 @@
+{
+  "display_name": "archetype.soulhome.fishery",
+  "character": { "cold": 0.5, "verdant": 0.8 },
+
+  "region_types": ["enclosed", "open"],
+  "min_volume": 18,
+
+  "requirements": [
+    { "match": { "block": "minecraft:barrel" }, "min_count": 2 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:barrel" },  "weight": 2.5, "role": "storage",   "cap": 8 },
+    { "match": { "block": ["minecraft:campfire", "minecraft:soul_campfire", "minecraft:smoker"] },
+                                                  "weight": 2.5, "role": "curing",    "cap": 4 },
+    { "match": { "block": ["minecraft:kelp", "minecraft:kelp_plant", "minecraft:dried_kelp_block", "minecraft:sea_pickle"] },
+                                                  "weight": 1.5, "role": "catch",     "cap": 16, "seed": false },
+    { "match": { "tag": "minecraft:fences" },    "weight": 0.5, "role": "structure", "cap": 24, "seed": false },
+    { "match": { "block": "minecraft:ladder" },  "weight": 0.5, "role": "structure", "cap": 8,  "seed": false },
+    { "match": { "tag": "soulhome:lighting" },   "weight": 0.5, "role": "light",     "cap": 8 },
+    { "match": { "block": "minecraft:water" },   "weight": 0.4, "role": "water",     "cap": 96, "seed": false }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:coral_blocks" }, "weight": -1.5 },
+    { "match": { "block": "minecraft:lava" },        "weight": -3.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 3.5, "tier": 1 },
+    { "min_score": 22, "tier": 2 },
+    { "min_score": 37, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:angling", "per_tier": 1.0, "max": 3.0 }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:aquarium", "relation": "near", "weight": 3.0, "role": "layout", "max_distance": 12 },
+    { "with": "soulhome:farm",     "relation": "near", "weight": 2.0, "role": "layout", "max_distance": 12 }
+  ]
+}

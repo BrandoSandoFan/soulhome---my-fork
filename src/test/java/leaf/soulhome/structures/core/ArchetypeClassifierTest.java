@@ -53,12 +53,12 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(32, shipped.size(),
+        assertEquals(33, shipped.size(),
                 "alchemy lab, arcane sanctum, armoury, aquarium, bedchamber, bulwark, cold storage, "
                         + "enchanting room, farm, gale roost, greenhouse, hearth, infected grotto, library, "
                         + "mead hall, mine, powder magazine, purifying font, rift chamber, ritual chamber, "
                         + "shrine, stable, storm spire, track, training yard, treasury, trophy room, "
-                        + "watchtower, workshop, apiary, observatory, ossuary");
+                        + "watchtower, workshop, apiary, observatory, ossuary, fishery");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -380,6 +380,41 @@ class ArchetypeClassifierTest
     }
 
     @Test
+    @DisplayName("a hut that takes in some pond edge classifies as a fishery - #308")
+    void canonicalFisheryClassifies()
+    {
+        ClassificationResult result = classifyOnly(fishery());
+
+        assertEquals(ClassificationResult.Status.CLASSIFIED, result.status());
+        assertEquals("soulhome:fishery", result.awardedArchetypeId().orElseThrow());
+        assertTrue(result.awardedTier() >= 1, "should reach at least tier 1");
+    }
+
+    @Test
+    @DisplayName("water is no gate: a dry hut still scores as a fishery, a little lower - #308")
+    void fisheryDoesNotNeedWater()
+    {
+        ArchetypeDefinition fishery = ArchetypeJsonReader.byId(shipped, "soulhome:fishery");
+
+        double wet = classifier.score(onlyRegion(fishery()), fishery).score();
+        double dry = classifier.score(onlyRegion(dryFishery()), fishery).score();
+
+        assertTrue(dry > 0d, "a hut with no water at all should still qualify");
+        assertTrue(wet > dry, "the shoreline should be worth something (" + wet + " vs " + dry + ")");
+    }
+
+    @Test
+    @DisplayName("a tank full of water stays an aquarium, and is nowhere near a fishery - #308")
+    void waterFilledRoomStaysAnAquarium()
+    {
+        ClassificationResult result = classifyOnly(aquarium());
+
+        assertEquals("soulhome:aquarium", result.awardedArchetypeId().orElseThrow());
+        assertEquals(0d, scoreFor(result, "soulhome:fishery").score(), 1e-9,
+                "no barrels, so no fishery, however much water");
+    }
+
+    @Test
     @DisplayName("a furnace ringed with netherrack classifies as a hearth")
     void canonicalHearthClassifies()
     {
@@ -491,6 +526,7 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:treasury", TestBlocks.DIAMOND_BLOCK),
                 Map.entry("soulhome:trophy_room", TestBlocks.DRAGON_HEAD),
                 Map.entry("soulhome:aquarium", TestBlocks.WATER),
+                Map.entry("soulhome:fishery", TestBlocks.BARREL),
                 Map.entry("soulhome:watchtower", TestBlocks.GLASS),
                 Map.entry("soulhome:bulwark", TestBlocks.IRON_BARS),
                 Map.entry("soulhome:rift_chamber", TestBlocks.AMETHYST_BLOCK),
@@ -688,6 +724,7 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:treasury", treasury()),
                 Map.entry("soulhome:trophy_room", trophyRoom()),
                 Map.entry("soulhome:aquarium", aquarium()),
+                Map.entry("soulhome:fishery", fishery()),
                 Map.entry("soulhome:watchtower", watchtower()),
                 Map.entry("soulhome:bulwark", bulwark()),
                 Map.entry("soulhome:rift_chamber", riftChamber()),
@@ -1179,6 +1216,54 @@ class ArchetypeClassifierTest
                 "gTgTgTg"};
 
         return GridVolume.of(SLAB, tank, tank, tank, SLAB);
+    }
+
+    /** A sealed hut with two barrels, a campfire and light, and a strip of the pond along one wall. */
+    private static GridVolume fishery()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#~~~.b#",
+                        "#~~~..#",
+                        "#~~~..#",
+                        "#.....#",
+                        "#<..b.#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#~~~..#",
+                        "#~~~..#",
+                        "#~~~..#",
+                        "#t...t#",
+                        "#.....#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** The same hut with the pond filled in. */
+    private static GridVolume dryFishery()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#....b#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#<..b.#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#t...t#",
+                        "#.....#",
+                        "#######"},
+                SLAB);
     }
 
     private static GridVolume emptyRoom()
