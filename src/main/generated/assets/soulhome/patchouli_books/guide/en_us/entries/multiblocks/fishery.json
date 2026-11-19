@@ -1,0 +1,26 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:barrel",
+  "name": "Fishery",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Works as a room or as open ground. At least 18 blocks of space.$(p)Grants:$(li)Angling, growing with the tier, up to +3.$(p)Tiers begin at a score of 3.50."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)2 of Barrel$(p)Rewards, most first:$(li)Barrel$(li)Campfire or Soul Campfire or Smoker$(li)Kelp or Kelp Plant or Dried Kelp Block or Sea Pickle$(li)any fences$(li)Ladder$(p)Counts against it:$(li)any coral blocks$(li)Lava",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/aquarium)Aquarium$(/l), within 12 blocks$(li)$(l:soulhome:multiblocks/farm)Farm$(/l), within 12 blocks",
+      "title": "Rooms that go together"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 10
+}

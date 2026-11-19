@@ -100,6 +100,9 @@ public final class SoulBuffTypes
     /** Aquarium: faster swimming, as a fraction of the player's own swim speed. */
     public static final String SWIM_SPEED = "soulhome:swim_speed";
 
+    /** Fishery: Luck of the Sea and Lure on every cast, as a flat number of levels (#308). */
+    public static final String ANGLING = "soulhome:angling";
+
     /** Watchtower: ores and hostiles outlined through terrain. Active (#88). */
     public static final String SURVEYORS_EYE = "soulhome:surveyors_eye";
 
@@ -160,7 +163,7 @@ public final class SoulBuffTypes
                     POTION_DURATION, HEALING, MINING_SPEED,
                     SPEED, DOUBLE_JUMP, FALL_PROTECTION, FIRE_ASPECT,
                     MAX_MANA, SPELL_POWER, REACH,
-                    FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, TROPHY_DAMAGE, SWIM_SPEED,
+                    FIRE_RESISTANCE, SOUL_EMBER, NOURISHED, FORTUNE, KNOCKBACK_RESISTANCE, TROPHY_DAMAGE, SWIM_SPEED, ANGLING,
                     SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
                     CLEANSING_FONT, UPDRAFT,
                     CALMING_SMOKE, CLEAR_SIGHT, LAST_STAND, SOULGAZE);
@@ -175,7 +178,7 @@ public final class SoulBuffTypes
      * showing it as "+200%" would be inventing a unit it does not have.
      */
     private static final Set<String> NON_FRACTION =
-            Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT, MAX_MANA, REACH,
+            Set.of(ENCHANTMENT_POWER, DOUBLE_JUMP, FIRE_ASPECT, MAX_MANA, REACH, ANGLING,
                     SURVEYORS_EYE, AEGIS, SOUL_STEP, RALLY, CALL_OF_THE_HERD, THUNDERCLAP, BARRAGE, RUPTURE,
                     CLEANSING_FONT, UPDRAFT,
                     CLEAR_SIGHT, LAST_STAND, CALMING_SMOKE, SOULGAZE);

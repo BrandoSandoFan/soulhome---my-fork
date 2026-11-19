@@ -484,6 +484,7 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.treasury", "Treasury");
         add("archetype.soulhome.trophy_room", "Trophy Room");
         add("archetype.soulhome.aquarium", "Aquarium");
+        add("archetype.soulhome.fishery", "Fishery");
         add("archetype.soulhome.watchtower", "Watchtower");
         add("archetype.soulhome.bulwark", "Bulwark");
         add("archetype.soulhome.rift_chamber", "Rift Chamber");
@@ -651,6 +652,8 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.trophy_room.title", "Mounted");
         add("advancements.soulhome.trophy_room.description", "Hang enough of what you've beaten on the wall of your soul to stand your ground.");
 
+        add("advancements.soulhome.fishery.title", "Bite");
+        add("advancements.soulhome.fishery.description", "Build a fishery at the water's edge in your soul, and let the fish come to you.");
         add("advancements.soulhome.aquarium.title", "Deep End");
         add("advancements.soulhome.aquarium.description", "Flood a room in your soul until it is an aquarium, and swim like you belong there.");
 

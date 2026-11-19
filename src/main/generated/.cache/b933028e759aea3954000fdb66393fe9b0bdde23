@@ -1,4 +1,4 @@
-// 1.20.1	2026-09-23T02:06:36.417218746	SoulHome Advancements
+// 1.20.1	2026-11-19T02:25:46.607503803	SoulHome Advancements
 51c331efe01f43cd03d860bd13b1cf73b09210ec data/soulhome/advancements/main/alchemy_lab.json
 e68da1fc17772ce12cb8d130cc9520ee67200259 data/soulhome/advancements/main/apiary.json
 84ebb8af4df4f0e3c6a54530f886b067b05739c4 data/soulhome/advancements/main/aquarium.json
@@ -13,6 +13,7 @@ fe8610166fd6420691623e508c63a71cb5399211 data/soulhome/advancements/main/enchant
 334026870ae5dc55a213e73498addbfda63a8b4d data/soulhome/advancements/main/entered_soul_dimension.json
 c5a625fd680f1d21cdc57df785ad34870e6dfdb9 data/soulhome/advancements/main/farm.json
 bb08c51ff7c025c63731be7e74e80b2f80b381ef data/soulhome/advancements/main/first_room.json
+afebf7e4a14e33f668d51a6de4f74f6f3f8179bb data/soulhome/advancements/main/fishery.json
 23491a314eee3649308db7c1198a06c3ec83c80b data/soulhome/advancements/main/gale_roost.json
 cd69d92139ff3c7a9449fe87c9af4947a83b465b data/soulhome/advancements/main/gazed.json
 a8922ed781991c7a2a9102a89423dcce7898985d data/soulhome/advancements/main/gazed_at.json

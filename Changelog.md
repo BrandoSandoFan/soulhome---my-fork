@@ -15,6 +15,21 @@ New entries go here, newest first. When a build ships, the next entry starts a h
 
 ---
 
+A new room: the Fishery, a hut or jetty at the water's edge
+
+Aquarium covers a room full of water; there was nothing for the building beside it. A Fishery is a sealed hut or
+an open jetty with at least two barrels in it, scored on what is built - barrels, a campfire or smoker for curing,
+kelp, dried kelp or sea pickles, fences and ladders for the pier, and light - with the pond itself worth a
+little: each block of water the room takes in adds a sliver, and having any water at all counts as one more
+kind of thing in the room. Water is never required, and a pond alone does not make a Fishery (it is terrain, so
+it is counted only where the room already takes it in, like a farm's irrigation). Coral blocks and lava count
+against it, and a tank of water with nothing else in it is still an Aquarium. It grants Angling: every cast
+carries extra Luck of the Sea and Lure on top of the rod's own, Luck I and Lure I at tier 1, up to Luck III and
+Lure II at tier 3. It is the bobber that is improved, not your luck, so chests and other loot are untouched.
+It bonds with the Aquarium and the Farm when they are nearby. A new room and a new buff; the guide has a page.
+
+---
+
 Mob heads on the Trophy Room wall now bite
 
 The Trophy Room had the hardest gate in the mod (a mob or player head) and the smallest payout (up to 15%
