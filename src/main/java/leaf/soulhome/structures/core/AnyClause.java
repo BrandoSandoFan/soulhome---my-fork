@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * "Any child holding is enough." Grades as its best-satisfied child. Several arrangements can be
@@ -88,5 +89,50 @@ public record AnyClause(List<WeightedClause> children) implements FormClause
         }
 
         return false;
+    }
+
+    @Override
+    public Set<String> footingElements()
+    {
+        Set<String> names = new TreeSet<>();
+
+        for (WeightedClause child : this.children)
+        {
+            names.addAll(child.clause().footingElements());
+        }
+
+        return names;
+    }
+
+    @Override
+    public Set<String> footingTargets()
+    {
+        Set<String> names = new TreeSet<>();
+
+        for (WeightedClause child : this.children)
+        {
+            names.addAll(child.clause().footingTargets());
+        }
+
+        return names;
+    }
+
+    @Override
+    public boolean readsOnlyFootings()
+    {
+        if (this.children.isEmpty())
+        {
+            return false;
+        }
+
+        for (WeightedClause child : this.children)
+        {
+            if (!child.clause().readsOnlyFootings())
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

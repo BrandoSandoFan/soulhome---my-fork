@@ -452,6 +452,7 @@ public class EngLangGen extends LanguageProvider
         add("archetype.soulhome.trophy_room", "Trophy Room");
         add("archetype.soulhome.aquarium", "Aquarium");
         add("archetype.soulhome.fishery", "Fishery");
+        add("archetype.soulhome.music_room", "Music Room");
         add("archetype.soulhome.watchtower", "Watchtower");
         add("archetype.soulhome.bulwark", "Bulwark");
         add("archetype.soulhome.rift_chamber", "Rift Chamber");
@@ -498,6 +499,7 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_NAME_LAST_STAND, "Last Stand");
         add(Constants.StringKeys.ABILITY_NAME_CALMING_SMOKE, "Calming Smoke");
         add(Constants.StringKeys.ABILITY_NAME_SOULGAZE, "Soulgaze");
+        add(Constants.StringKeys.ABILITY_NAME_CHORUS, "Chorus");
 
         //Guide book
         add("soulhome.landing", "They say the soul is infinite. They didn't say how empty it was. Fortunately, we can fill it.");
@@ -526,6 +528,8 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.ABILITY_CLEANSING_FONT_CLEANSED, "Cleansed %s harmful effect(s).");
         add(Constants.StringKeys.ABILITY_LAST_STAND_UNHURT, "You are not hurt enough for this to do anything yet.");
         add(Constants.StringKeys.ABILITY_CALMING_SMOKE_NOTHING, "Nothing nearby needed calming.");
+        add(Constants.StringKeys.ABILITY_CHORUS_ALONE, "You hum to yourself.");
+        add(Constants.StringKeys.ABILITY_CHORUS_SHARED, "%s others take up the tune.");
         add(Constants.StringKeys.ABILITY_RECHARGING, "Still recharging - %s seconds to go.");
         add(Constants.StringKeys.ABILITY_NO_DAMAGE, "It struck, and nothing took damage from it.");
 
@@ -620,6 +624,8 @@ public class EngLangGen extends LanguageProvider
         add("advancements.soulhome.trophy_room.title", "Mounted");
         add("advancements.soulhome.trophy_room.description", "Hang enough of what you've beaten on the wall of your soul to stand your ground.");
 
+        add("advancements.soulhome.music_room.title", "Encore");
+        add("advancements.soulhome.music_room.description", "Set note blocks on their instruments in your soul until the room becomes a music room.");
         add("advancements.soulhome.fishery.title", "Bite");
         add("advancements.soulhome.fishery.description", "Build a fishery at the water's edge in your soul, and let the fish come to you.");
         add("advancements.soulhome.aquarium.title", "Deep End");

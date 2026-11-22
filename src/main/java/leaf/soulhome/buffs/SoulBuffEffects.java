@@ -9,6 +9,7 @@ import leaf.soulhome.buffs.effects.AttributeBuffEffect;
 import leaf.soulhome.buffs.effects.BarrageEffect;
 import leaf.soulhome.buffs.effects.CallOfTheHerdEffect;
 import leaf.soulhome.buffs.effects.CalmingSmokeEffect;
+import leaf.soulhome.buffs.effects.ChorusEffect;
 import leaf.soulhome.buffs.effects.CleansingFontEffect;
 import leaf.soulhome.buffs.effects.ClearSightEffect;
 import leaf.soulhome.buffs.effects.DoubleJumpEffect;
@@ -124,6 +125,9 @@ public final class SoulBuffEffects
         register(new ClearSightEffect());
         register(new LastStandEffect());
         register(new SoulgazeEffect());
+
+        // the music room's, shared with whoever is listening (#307)
+        register(new ChorusEffect());
 
         LogHelper.info("Registered " + BY_TYPE.size() + " soul buff effect(s): " + BY_TYPE.keySet());
 

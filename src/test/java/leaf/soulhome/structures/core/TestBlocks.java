@@ -224,6 +224,10 @@ public final class TestBlocks
     // ossuary
     public static final TestBlock BONE_BLOCK = block("minecraft:bone_block", Passability.BLOCKING);
 
+    // music room (#307): a note block is a full block, and plays whatever it stands on
+    public static final TestBlock NOTE_BLOCK = block("minecraft:note_block", Passability.BLOCKING);
+    public static final TestBlock OAK_PLANKS = block("minecraft:oak_planks", Passability.BLOCKING, "minecraft:planks");
+
     private TestBlocks()
     {
     }

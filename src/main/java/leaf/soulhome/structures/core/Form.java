@@ -65,6 +65,68 @@ public record Form(
     }
 
     /**
+     * The matchers of the elements whose footing this form's clauses read (#307), see
+     * {@link FormClause#footingElements()}. An undeclared name is skipped here; it is already a
+     * validation error.
+     */
+    public List<BlockMatcher> footingMatchers()
+    {
+        return this.root == null ? List.of() : matchersOf(this.root.footingElements());
+    }
+
+    /** The matchers of the elements this form looks for under them - {@link FormClause#footingTargets()}. */
+    public List<BlockMatcher> footingTargetMatchers()
+    {
+        return this.root == null ? List.of() : matchersOf(this.root.footingTargets());
+    }
+
+    /**
+     * The matchers this form needs indexed wherever they stand in a room - every element, except
+     * that a form made only of footing clauses needs its footing targets only where they are stood
+     * on, and leaves them to {@link FootingFilter#footing()} (#307).
+     */
+    public List<BlockMatcher> roomWideMatchers()
+    {
+        if (this.root == null || !this.root.readsOnlyFootings())
+        {
+            return List.copyOf(this.elements.values());
+        }
+
+        Set<String> targets = this.root.footingTargets();
+        Set<String> standing = this.root.footingElements();
+        List<BlockMatcher> matchers = new ArrayList<>();
+
+        for (Map.Entry<String, BlockMatcher> element : this.elements.entrySet())
+        {
+            // an element both stood on and standing (a note block on a note block) is still read
+            // where it stands, so it stays room-wide
+            if (!targets.contains(element.getKey()) || standing.contains(element.getKey()))
+            {
+                matchers.add(element.getValue());
+            }
+        }
+
+        return matchers;
+    }
+
+    private List<BlockMatcher> matchersOf(Set<String> names)
+    {
+        List<BlockMatcher> matchers = new ArrayList<>();
+
+        for (String name : names)
+        {
+            BlockMatcher matcher = this.elements.get(name);
+
+            if (matcher != null)
+            {
+                matchers.add(matcher);
+            }
+        }
+
+        return matchers;
+    }
+
+    /**
      * Problems that should reject this archetype outright, logged loudly by the loader. Structure
      * is optional evidence, but a form that cannot mean what it says is a datapack bug, not
      * something to silently score as zero.

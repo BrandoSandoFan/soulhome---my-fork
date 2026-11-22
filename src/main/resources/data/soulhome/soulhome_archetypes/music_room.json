@@ -1,0 +1,134 @@
+{
+  "display_name": "archetype.soulhome.music_room",
+  "character": { "warm": 0.8, "arcane": 0.3 },
+  "region_types": ["enclosed"],
+  "min_volume": 27,
+
+  "requirements": [
+    { "match": { "block": "minecraft:note_block" }, "min_count": 4 }
+  ],
+
+  "signals": [
+    { "match": { "block": "minecraft:note_block" }, "weight": 2.0, "role": "instrument", "cap": 16 },
+    { "match": { "block": "minecraft:jukebox" },    "weight": 3.0, "role": "instrument", "cap": 2  },
+    { "match": { "tag": "minecraft:wool" },         "weight": 0.4, "role": "acoustics",  "cap": 24, "seed": false },
+    { "match": { "tag": "soulhome:seating" },       "weight": 1.0, "role": "audience",   "cap": 12 },
+    { "match": { "tag": "soulhome:lighting" },      "weight": 0.5, "role": "light",      "cap": 12 }
+  ],
+
+  "detractors": [
+    { "match": { "tag": "minecraft:anvil" },       "weight": -1.5 },
+    { "match": { "block": "minecraft:grindstone" }, "weight": -1.0 },
+    { "match": { "tag": "soulhome:machinery" },    "weight": -1.0 }
+  ],
+
+  "tiers": [
+    { "min_score": 4,  "tier": 1 },
+    { "min_score": 28, "tier": 2 },
+    { "min_score": 45, "tier": 3 }
+  ],
+
+  "buffs": [
+    { "type": "soulhome:chorus", "per_tier": 2.0, "max": 6.0 }
+  ],
+
+  "structures": [
+    {
+      "name": "percussion",
+      "weight": 2.0,
+      "role": "ensemble",
+      "elements": {
+        "note":  { "block": "minecraft:note_block" },
+        "drum":  { "block": ["minecraft:stone", "minecraft:cobblestone", "minecraft:stone_bricks", "minecraft:bricks", "minecraft:obsidian"],
+                   "tag": ["minecraft:base_stone_overworld", "minecraft:base_stone_nether"] },
+        "snare": { "block": ["minecraft:gravel"], "tag": ["minecraft:sand"] },
+        "hat":   { "block": ["minecraft:glass", "minecraft:tinted_glass", "minecraft:sea_lantern"], "tag": ["c:glass_blocks"] }
+      },
+      "all": [
+        { "relation": "above", "of": "note", "to": "drum",  "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "snare", "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "hat",   "reach": "footing", "coverage": 0, "weight": 1.0 }
+      ]
+    },
+    {
+      "name": "strings_and_reeds",
+      "weight": 2.0,
+      "role": "ensemble",
+      "elements": {
+        "note":   { "block": "minecraft:note_block" },
+        "guitar": { "tag": "minecraft:wool" },
+        "bass":   { "tag": ["minecraft:planks", "minecraft:logs"] },
+        "banjo":  { "block": "minecraft:hay_block" }
+      },
+      "all": [
+        { "relation": "above", "of": "note", "to": "guitar", "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "bass",   "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "banjo",  "reach": "footing", "coverage": 0, "weight": 1.0 }
+      ]
+    },
+    {
+      "name": "bells_and_chimes",
+      "weight": 2.0,
+      "role": "ensemble",
+      "elements": {
+        "note":  { "block": "minecraft:note_block" },
+        "bell":  { "block": "minecraft:gold_block" },
+        "chime": { "block": "minecraft:packed_ice" },
+        "pling": { "block": "minecraft:glowstone" }
+      },
+      "all": [
+        { "relation": "above", "of": "note", "to": "bell",  "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "chime", "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "pling", "reach": "footing", "coverage": 0, "weight": 1.0 }
+      ]
+    },
+    {
+      "name": "mallets",
+      "weight": 2.0,
+      "role": "ensemble",
+      "elements": {
+        "note":       { "block": "minecraft:note_block" },
+        "xylophone":  { "block": "minecraft:bone_block" },
+        "vibraphone": { "block": "minecraft:iron_block" },
+        "cow_bell":   { "block": "minecraft:soul_sand" }
+      },
+      "all": [
+        { "relation": "above", "of": "note", "to": "xylophone",  "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "vibraphone", "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "cow_bell",   "reach": "footing", "coverage": 0, "weight": 1.0 }
+      ]
+    },
+    {
+      "name": "winds",
+      "weight": 2.0,
+      "role": "ensemble",
+      "elements": {
+        "note":       { "block": "minecraft:note_block" },
+        "flute":      { "block": "minecraft:clay" },
+        "didgeridoo": { "block": ["minecraft:pumpkin", "minecraft:carved_pumpkin"] },
+        "bit":        { "block": "minecraft:emerald_block" }
+      },
+      "all": [
+        { "relation": "above", "of": "note", "to": "flute",      "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "didgeridoo", "reach": "footing", "coverage": 0, "weight": 1.0 },
+        { "relation": "above", "of": "note", "to": "bit",        "reach": "footing", "coverage": 0, "weight": 1.0 }
+      ]
+    },
+    {
+      "name": "the_audience",
+      "weight": 3.0,
+      "role": "arrangement",
+      "elements": {
+        "seating": { "tag": "soulhome:seating" },
+        "note":    { "block": "minecraft:note_block" }
+      },
+      "all": [
+        { "relation": "across", "of": "seating", "to": "note", "min_distance": 2, "max_distance": 6, "coverage": 0.5, "weight": 1.0 }
+      ]
+    }
+  ],
+
+  "bonds": [
+    { "with": "soulhome:mead_hall", "relation": "adjoins", "weight": 3.0, "role": "layout" }
+  ]
+}

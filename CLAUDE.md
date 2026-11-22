@@ -294,7 +294,12 @@ Shape of one:
   registered in `BuiltinFormClauses` (`loop`, `platform`, `enclosure`, `line`, `cluster`, `within`,
   `at_range`, `above`, `beneath`, `beside`, `across`, `along`, `surrounds`, `inside`, `lane`,
   `apex`, `soulhome:irregularity`, `verticality`, `facing`). A datapack can register its own onto
-  its own `FormClauseRegistry`.
+  its own `FormClauseRegistry`. `above`/`beneath` take `"reach": "footing"` (#307) to also read
+  the block directly under the upper element when it is outside the room - a note block on the
+  floor plays the floor's underside, which is in no shell. Opt-in, and geometry only, never counts.
+  What is stood on (stone, planks, wool) goes in `FootingFilter`, indexed only under a block that
+  stands on it, and not in the room-wide `geometryFilterFor` - folded in there it would index every
+  wall in every soul, move every room's `identityHash` and push big builds toward the geometry cap.
 - `tiers` and `buffs` - score thresholds and what they pay out
 - `aspects` - optional, and what a room of this kind can be *for* rather than what it is. See below.
 

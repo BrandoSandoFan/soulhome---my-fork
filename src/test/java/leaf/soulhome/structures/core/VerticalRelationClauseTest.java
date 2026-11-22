@@ -7,6 +7,7 @@ package leaf.soulhome.structures.core;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,14 +27,14 @@ class VerticalRelationClauseTest
     private static FormClause above(String of, String to)
     {
         return ABOVE.create(ClauseParams.builder()
-                .put("of", of).put("to", to).put("max_drop", 1).put("alignment", "column").put("coverage", 1.0)
+                .put("of", of).put("to", to).put("max_drop", 1).put("alignment", "column").put("coverage", 1.0).put("reach", "region")
                 .build());
     }
 
     private static FormClause beneath(String of, String to)
     {
         return BENEATH.create(ClauseParams.builder()
-                .put("of", of).put("to", to).put("max_drop", 1).put("alignment", "column").put("coverage", 1.0)
+                .put("of", of).put("to", to).put("max_drop", 1).put("alignment", "column").put("coverage", 1.0).put("reach", "region")
                 .build());
     }
 
@@ -117,5 +118,33 @@ class VerticalRelationClauseTest
 
         assertEquals(0.0, result.confidence(), 1e-9);
         assertTrue(result.diagnostic().contains("'rails'"), result.diagnostic());
+    }
+
+    @Test
+    @DisplayName("'reach: footing' names the upper element on either side, and only when asked - #307")
+    void footingNamesTheUpperElement()
+    {
+        FormClause over = ABOVE.create(ClauseParams.builder()
+                .put("of", "note").put("to", "drum").put("max_drop", 1).put("alignment", "column")
+                .put("coverage", 1.0).put("reach", "footing").build());
+        FormClause under = BENEATH.create(ClauseParams.builder()
+                .put("of", "drum").put("to", "note").put("max_drop", 1).put("alignment", "column")
+                .put("coverage", 1.0).put("reach", "footing").build());
+
+        assertEquals(Set.of("note"), over.footingElements());
+        assertEquals(Set.of("note"), under.footingElements());
+        assertEquals(Set.of(), above("rails", "ice").footingElements(), "the default reads only the room");
+    }
+
+    @Test
+    @DisplayName("an unknown 'reach' is a validation error, not a silent default - #307")
+    void unknownReachIsAnError()
+    {
+        FormClause clause = ABOVE.create(ClauseParams.builder()
+                .put("of", "rails").put("to", "ice").put("max_drop", 1).put("alignment", "column")
+                .put("coverage", 1.0).put("reach", "underneath").build());
+
+        assertEquals(1, clause.validationErrors(Set.of("rails", "ice")).size());
+        assertEquals(List.of(), above("rails", "ice").validationErrors(Set.of("rails", "ice")));
     }
 }

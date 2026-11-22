@@ -331,6 +331,8 @@ public class Constants
         public static final String ABILITY_CLEANSING_FONT_CLEANSED = "message.soulhome.ability.cleansing_font.cleansed";
         public static final String ABILITY_LAST_STAND_UNHURT = "message.soulhome.ability.last_stand.unhurt";
         public static final String ABILITY_CALMING_SMOKE_NOTHING = "message.soulhome.ability.calming_smoke.nothing";
+        public static final String ABILITY_CHORUS_ALONE = "message.soulhome.ability.chorus.alone";
+        public static final String ABILITY_CHORUS_SHARED = "message.soulhome.ability.chorus.shared";
 
         // Two refusals every active shares. A press that does nothing and says nothing is
         // indistinguishable from a mod that is broken, which is how a recharging Thunderclap and
@@ -353,6 +355,7 @@ public class Constants
         public static final String ABILITY_NAME_LAST_STAND = "ability.soulhome.last_stand";
         public static final String ABILITY_NAME_CALMING_SMOKE = "ability.soulhome.calming_smoke";
         public static final String ABILITY_NAME_SOULGAZE = "ability.soulhome.soulgaze";
+        public static final String ABILITY_NAME_CHORUS = "ability.soulhome.chorus";
     }
 
     public static class NBTKeys

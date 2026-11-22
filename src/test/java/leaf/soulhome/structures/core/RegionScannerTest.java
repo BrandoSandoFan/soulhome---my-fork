@@ -1037,8 +1037,48 @@ class RegionScannerTest
                 volume,
                 ArchetypeSignals.openClusterFilterFor(archetypes),
                 ArchetypeSignals.geometryFilterFor(archetypes),
+                ArchetypeSignals.footingFilterFor(archetypes),
                 ArchetypeSignals.needsClearance(archetypes),
                 ScanSettings.DEFAULTS);
+    }
+
+    @Test
+    @DisplayName("a footing-read block's footing is indexed, though it lies under the room's floor - #307")
+    void footingUnderTheFloorIsIndexed()
+    {
+        // two note blocks: one on the stone floor, whose footing is the floor's underside and in
+        // no shell; one on a gold block standing in the room, whose footing is already shell
+        GridVolume volume = GridVolume.of(
+                new String[]{"#####", "#####", "#####", "#####", "#####"},
+                new String[]{"#####", "#[.Y#", "#...#", "#...#", "#####"},
+                new String[]{"#####", "#..[#", "#...#", "#...#", "#####"},
+                new String[]{"#####", "#...#", "#...#", "#...#", "#####"},
+                new String[]{"#####", "#####", "#####", "#####", "#####"});
+
+        // gold is indexed room-wide too, as if some other form named it; stone only underfoot
+        java.util.function.Predicate<BlockSignature> geometry =
+                signature -> signature.equals(TestBlocks.NOTE_BLOCK) || signature.equals(TestBlocks.GOLD_BLOCK);
+        FootingFilter footing = new FootingFilter(
+                signature -> signature.equals(TestBlocks.NOTE_BLOCK),
+                signature -> signature.equals(TestBlocks.STONE) || signature.equals(TestBlocks.GOLD_BLOCK));
+
+        SoulRegion without = RegionScanner.scan(volume, null, geometry, null, false, ScanSettings.DEFAULTS).get(0);
+        SoulRegion with = RegionScanner.scan(volume, null, geometry, footing, false, ScanSettings.DEFAULTS).get(0);
+
+        assertEquals(without.geometry().size() + 1, with.geometry().size(),
+                "exactly one extra cell: the stone under the floor-standing note block - not the rest of the "
+                        + "stone shell, and not the gold block twice");
+        assertEquals(without.allBlocks().asMap(), with.allBlocks().asMap(), "geometry only - nothing is counted");
+
+        java.util.Set<String> positions = new java.util.HashSet<>();
+
+        for (RegionGeometry.Cell cell : with.geometry().cells())
+        {
+            assertTrue(positions.add(cell.x() + "," + cell.y() + "," + cell.z()), "no cell indexed twice: " + cell);
+        }
+
+        assertNotEquals(without.identityHash(), with.identityHash(),
+                "what a room's geometry holds is part of its identity, so this is a rescan, once");
     }
 
     @Test

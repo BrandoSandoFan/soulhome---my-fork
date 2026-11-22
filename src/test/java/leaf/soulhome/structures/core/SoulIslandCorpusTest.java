@@ -47,6 +47,7 @@ class SoulIslandCorpusTest
     private static ArchetypeClassifier classifier;
     private static Predicate<BlockSignature> clusterFilter;
     private static Predicate<BlockSignature> geometryFilter;
+    private static FootingFilter footingFilter;
     private static boolean needsClearance;
 
     @BeforeAll
@@ -56,13 +57,14 @@ class SoulIslandCorpusTest
         classifier = new ArchetypeClassifier(shipped);
         clusterFilter = ArchetypeSignals.openClusterFilterFor(shipped);
         geometryFilter = ArchetypeSignals.geometryFilterFor(shipped);
+        footingFilter = ArchetypeSignals.footingFilterFor(shipped);
         needsClearance = ArchetypeSignals.needsClearance(shipped);
     }
 
     /** Exactly what {@code StructureScanService} does with a snapshot. */
     private static List<SoulRegion> scan(SoulIslandVolume island)
     {
-        return RegionScanner.scan(island, clusterFilter, geometryFilter, needsClearance, ScanSettings.DEFAULTS);
+        return RegionScanner.scan(island, clusterFilter, geometryFilter, footingFilter, needsClearance, ScanSettings.DEFAULTS);
     }
 
     @Test

@@ -55,4 +55,39 @@ public interface FormClause
     {
         return false;
     }
+
+    /**
+     * Names of the elements whose <i>footing</i> - the cell directly beneath each of them - this
+     * clause has to see even when that cell is outside the room (#307). A note block on the floor
+     * plays whatever it stands on, and what it stands on is the floor's underside, which is never
+     * part of the room's shell and so never reaches {@link RegionGeometry} on its own. Empty by
+     * default, so nothing that does not ask pays for it; {@link AllClause} and {@link AnyClause}
+     * union their children, the way {@link #needsClearance()} is walked, so
+     * {@code ArchetypeSignals#footingFilterFor} can ask a whole tree.
+     */
+    default Set<String> footingElements()
+    {
+        return Set.of();
+    }
+
+    /**
+     * The other side of {@link #footingElements()}: names of the elements this clause looks for
+     * <i>under</i> them. Empty by default; walked by {@link AllClause} and {@link AnyClause}.
+     */
+    default Set<String> footingTargets()
+    {
+        return Set.of();
+    }
+
+    /**
+     * Whether every leaf under this node reads footing (#307). A form made only of such clauses
+     * needs its {@link #footingTargets()} indexed only under the blocks that stand on them, never
+     * across the whole room - see {@link FootingFilter}. {@code false} by default, so a form mixing
+     * a footing clause with any other kind indexes all its elements the ordinary way, which is
+     * always correct, merely less frugal.
+     */
+    default boolean readsOnlyFootings()
+    {
+        return false;
+    }
 }

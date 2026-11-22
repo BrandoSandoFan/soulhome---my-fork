@@ -1,0 +1,51 @@
+{
+  "advancement": "soulhome:main/entered_soul_dimension",
+  "category": "soulhome:multiblocks",
+  "icon": "minecraft:note_block",
+  "name": "Music Room",
+  "pages": [
+    {
+      "type": "text",
+      "text": "Wants a room: walls, a floor and a ceiling, with no way out to the sky. At least 27 blocks of space.$(p)Grants:$(li)Chorus, growing with the tier, up to +6.$(p)Tiers begin at a score of 4."
+    },
+    {
+      "type": "text",
+      "text": "Will not count without:$(li)4 of Note Block$(p)Rewards, most first:$(li)Jukebox$(li)Note Block$(li)$(l:soulhome:multiblocks/tags#seating)any seating$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)any wool$(p)Counts against it:$(li)any anvil$(li)Grindstone$(li)$(l:soulhome:multiblocks/tags#machinery)any machinery$(/l)",
+      "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "None of this is required, but building it well earns more than the blocks alone:$(li)Note sits over drum, and note sits over snare, and note sits over hat.$(li)Note sits over guitar, and note sits over bass, and note sits over banjo.$(li)Note sits over bell, and note sits over chime, and note sits over pling.$(li)Note sits over xylophone, and note sits over vibraphone, and note sits over cow bell.$(li)Note sits over flute, and note sits over didgeridoo, and note sits over bit.$(li)Seating is across from note.",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "What those parts are:$(li)Note: Note Block$(li)Drum: Stone or Cobblestone or Stone Bricks or Bricks or Obsidian or any base stone overworld or any base stone nether$(li)Snare: Gravel or any sand$(li)Hat: Glass or Tinted Glass or Sea Lantern or any glass blocks$(li)Guitar: any wool",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "And the rest:$(li)Bass: any planks or any logs$(li)Banjo: Hay Bale$(li)Bell: Block of Gold$(li)Chime: Packed Ice$(li)Pling: Glowstone",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "And the rest:$(li)Xylophone: Bone Block$(li)Vibraphone: Block of Iron$(li)Cow bell: Soul Sand$(li)Flute: Clay$(li)Didgeridoo: Pumpkin or Carved Pumpkin",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "And the rest:$(li)Bit: Block of Emerald$(li)Seating: $(l:soulhome:multiblocks/tags#seating)any seating$(/l)",
+      "title": "How you arrange it"
+    },
+    {
+      "type": "text",
+      "text": "Worth more for standing near the right neighbours - never required, only rewarded:$(li)$(l:soulhome:multiblocks/mead_hall)Mead Hall$(/l), sharing a wall",
+      "title": "Rooms that go together"
+    }
+  ],
+  "priority": false,
+  "read_by_default": false,
+  "secret": false,
+  "sortnum": 18
+}
