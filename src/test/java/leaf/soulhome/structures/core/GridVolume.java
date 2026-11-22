@@ -197,6 +197,10 @@ public final class GridVolume implements BlockVolume
         palette.put('<', TestBlocks.CAMPFIRE);
         palette.put('>', TestBlocks.DAYLIGHT_DETECTOR);
         palette.put(']', TestBlocks.BONE_BLOCK);
+
+        // music room (#307)
+        palette.put('[', TestBlocks.NOTE_BLOCK);
+        palette.put('}', TestBlocks.OAK_PLANKS);
         return palette;
     }
 

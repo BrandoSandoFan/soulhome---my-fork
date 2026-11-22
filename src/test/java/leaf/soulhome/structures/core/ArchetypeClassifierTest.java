@@ -29,6 +29,7 @@ class ArchetypeClassifierTest
     private static ArchetypeClassifier classifier;
     private static Predicate<BlockSignature> signals;
     private static Predicate<BlockSignature> geometry;
+    private static FootingFilter footing;
 
     @BeforeAll
     static void loadShippedArchetypes() throws IOException
@@ -38,11 +39,12 @@ class ArchetypeClassifierTest
         // the filter the game hands the scanner since #134 - open-capable archetypes' palettes only
         signals = ArchetypeSignals.openClusterFilterFor(shipped);
         geometry = ArchetypeSignals.geometryFilterFor(shipped);
+        footing = ArchetypeSignals.footingFilterFor(shipped);
     }
 
     private static ClassificationResult classifyOnly(GridVolume volume)
     {
-        List<SoulRegion> regions = RegionScanner.scan(volume, signals, geometry, ScanSettings.DEFAULTS);
+        List<SoulRegion> regions = RegionScanner.scan(volume, signals, geometry, footing, false, ScanSettings.DEFAULTS);
         assertEquals(1, regions.size(), "expected exactly one region in this layout");
         return classifier.classify(regions.get(0));
     }
@@ -53,12 +55,12 @@ class ArchetypeClassifierTest
     @DisplayName("every shipped archetype is valid and reachable")
     void shippedArchetypesAreValid()
     {
-        assertEquals(33, shipped.size(),
+        assertEquals(34, shipped.size(),
                 "alchemy lab, arcane sanctum, armoury, aquarium, bedchamber, bulwark, cold storage, "
                         + "enchanting room, farm, gale roost, greenhouse, hearth, infected grotto, library, "
                         + "mead hall, mine, powder magazine, purifying font, rift chamber, ritual chamber, "
                         + "shrine, stable, storm spire, track, training yard, treasury, trophy room, "
-                        + "watchtower, workshop, apiary, observatory, ossuary, fishery");
+                        + "watchtower, workshop, apiary, observatory, ossuary, fishery, music room");
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -415,6 +417,48 @@ class ArchetypeClassifierTest
     }
 
     @Test
+    @DisplayName("note blocks set on their instruments, with an audience, classify as a music room - #307")
+    void canonicalMusicRoomClassifies()
+    {
+        ClassificationResult result = classifyOnly(musicRoom());
+
+        assertEquals(ClassificationResult.Status.CLASSIFIED, result.status());
+        assertEquals("soulhome:music_room", result.awardedArchetypeId().orElseThrow());
+        assertTrue(result.awardedTier() >= 1, "should reach at least tier 1");
+    }
+
+    @Test
+    @DisplayName("a music room is paid for each instrument played, not for each note block - #307")
+    void musicRoomRewardsDistinctInstruments()
+    {
+        ArchetypeDefinition musicRoom = ArchetypeJsonReader.byId(shipped, "soulhome:music_room");
+
+        double varied = classifier.score(onlyRegion(quartet(new char[]{'W', 'Y', ']', 'P'})), musicRoom).score();
+        double samey = classifier.score(onlyRegion(quartet(new char[]{'Y', 'Y', 'Y', 'Y'})), musicRoom).score();
+
+        assertTrue(samey > 0d, "four note blocks on gold is still a music room");
+        assertTrue(varied > samey,
+                "four instruments should beat one instrument four times (" + varied + " vs " + samey + ")");
+    }
+
+    @Test
+    @DisplayName("a note block on the floor plays the floor, though the floor's underside is in no room - #307")
+    void noteBlockOnTheFloorPlaysTheFloor()
+    {
+        ArchetypeDefinition musicRoom = ArchetypeJsonReader.byId(shipped, "soulhome:music_room");
+        GridVolume volume = floorQuartet();
+
+        SoulRegion withFooting = onlyRegion(volume);
+        SoulRegion withoutFooting = RegionScanner.scan(volume, signals, geometry, ScanSettings.DEFAULTS).get(0);
+
+        assertEquals(withoutFooting.allBlocks().asMap(), withFooting.allBlocks().asMap(), "footing is geometry only, never counted");
+
+        double played = classifier.score(withFooting, musicRoom).score();
+        double unheard = classifier.score(withoutFooting, musicRoom).score();
+        assertTrue(played > unheard, "the stone under the note blocks is a bass drum (" + played + " vs " + unheard + ")");
+    }
+
+    @Test
     @DisplayName("a furnace ringed with netherrack classifies as a hearth")
     void canonicalHearthClassifies()
     {
@@ -539,7 +583,8 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:gale_roost", TestBlocks.BAMBOO),
                 Map.entry("soulhome:apiary", TestBlocks.BEEHIVE),
                 Map.entry("soulhome:observatory", TestBlocks.DAYLIGHT_DETECTOR),
-                Map.entry("soulhome:ossuary", TestBlocks.BONE_BLOCK));
+                Map.entry("soulhome:ossuary", TestBlocks.BONE_BLOCK),
+                Map.entry("soulhome:music_room", TestBlocks.NOTE_BLOCK));
 
         for (ArchetypeDefinition archetype : shipped)
         {
@@ -737,7 +782,8 @@ class ArchetypeClassifierTest
                 Map.entry("soulhome:gale_roost", galeRoost()),
                 Map.entry("soulhome:apiary", apiary()),
                 Map.entry("soulhome:observatory", observatory()),
-                Map.entry("soulhome:ossuary", ossuary()));
+                Map.entry("soulhome:ossuary", ossuary()),
+                Map.entry("soulhome:music_room", musicRoom()));
 
         assertEquals(shipped.size(), canonicalBuild.size(),
                 "every shipped archetype needs a canonical-build fixture here, or a newly added one goes untested");
@@ -766,7 +812,7 @@ class ArchetypeClassifierTest
 
     private static SoulRegion onlyRegion(GridVolume volume)
     {
-        List<SoulRegion> regions = RegionScanner.scan(volume, signals, geometry, ScanSettings.DEFAULTS);
+        List<SoulRegion> regions = RegionScanner.scan(volume, signals, geometry, footing, false, ScanSettings.DEFAULTS);
         assertEquals(1, regions.size(), "expected exactly one region in this layout");
         return regions.get(0);
     }
@@ -1216,6 +1262,66 @@ class ArchetypeClassifierTest
                 "gTgTgTg"};
 
         return GridVolume.of(SLAB, tank, tank, tank, SLAB);
+    }
+
+    /**
+     * Five note blocks along the back wall, each set on its own instrument - wool, gold, bone, iron
+     * and planks - two more on the stone floor, which plays them as a bass drum, and a row of seats
+     * facing them across the room.
+     */
+    private static GridVolume musicRoom()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{
+                        "#######",
+                        "#WY]i}#",
+                        "#t...t#",
+                        "#.....#",
+                        "#[...[#",
+                        "#SSSSS#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#[[[[[#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                new String[]{
+                        "#######",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#.....#",
+                        "#######"},
+                SLAB);
+    }
+
+    /** Four note blocks on the four given instrument blocks along the back wall, and nothing else. */
+    private static GridVolume quartet(char[] instruments)
+    {
+        String footings = "#" + instruments[0] + instruments[1] + "." + instruments[2] + instruments[3] + "#";
+
+        return GridVolume.of(
+                SLAB,
+                new String[]{"#######", footings, "#.....#", "#.....#", "#.....#", "#.....#", "#######"},
+                new String[]{"#######", "#[[.[[#", "#.....#", "#.....#", "#.....#", "#.....#", "#######"},
+                new String[]{"#######", "#.....#", "#.....#", "#.....#", "#.....#", "#.....#", "#######"},
+                SLAB);
+    }
+
+    /** Four note blocks standing straight on the stone floor. */
+    private static GridVolume floorQuartet()
+    {
+        return GridVolume.of(
+                SLAB,
+                new String[]{"#######", "#[.[..#", "#.....#", "#.[.[.#", "#.....#", "#.....#", "#######"},
+                new String[]{"#######", "#.....#", "#.....#", "#.....#", "#.....#", "#.....#", "#######"},
+                new String[]{"#######", "#.....#", "#.....#", "#.....#", "#.....#", "#.....#", "#######"},
+                SLAB);
     }
 
     /** A sealed hut with two barrels, a campfire and light, and a strip of the pond along one wall. */

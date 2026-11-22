@@ -9,8 +9,10 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -132,6 +134,9 @@ public final class RegionScanner
     private final ScanSettings settings;
     private final Predicate<BlockSignature> signalFilter;
     private final Predicate<BlockSignature> geometryFilter;
+
+    /** What is indexed under a room's own cells, or {@code null} for nothing - see {@link #indexFootings}. */
+    private final FootingFilter footingFilter;
     private final boolean indexClearance;
 
     private final RegionBounds bounds;
@@ -147,6 +152,7 @@ public final class RegionScanner
             BlockVolume volume,
             Predicate<BlockSignature> signalFilter,
             Predicate<BlockSignature> geometryFilter,
+            FootingFilter footingFilter,
             boolean indexClearance,
             ScanSettings settings)
     {
@@ -154,6 +160,7 @@ public final class RegionScanner
         this.settings = settings;
         this.signalFilter = signalFilter;
         this.geometryFilter = geometryFilter == null ? signature -> false : geometryFilter;
+        this.footingFilter = footingFilter;
         this.indexClearance = indexClearance;
 
         this.bounds = volume.bounds();
@@ -231,6 +238,23 @@ public final class RegionScanner
     }
 
     /**
+     * @param footingFilter blocks whose footing is indexed too, see
+     *                      {@link #scanWithAdjacency(BlockVolume, Predicate, Predicate, FootingFilter, boolean, int, ScanSettings)}
+     * @throws IllegalArgumentException if the volume fails {@link #isScannable}
+     */
+    public static List<SoulRegion> scan(
+            BlockVolume volume,
+            Predicate<BlockSignature> signalFilter,
+            Predicate<BlockSignature> geometryFilter,
+            FootingFilter footingFilter,
+            boolean indexClearance,
+            ScanSettings settings)
+    {
+        return scanWithAdjacency(volume, signalFilter, geometryFilter, footingFilter, indexClearance, 0, settings)
+                .regions();
+    }
+
+    /**
      * The regions, and how they relate to each other - see {@link RegionAdjacency} and the Soul
      * Architecture epic (#140). What {@code StructureScanService} calls.
      *
@@ -249,6 +273,26 @@ public final class RegionScanner
             int adjacencyReach,
             ScanSettings settings)
     {
+        return scanWithAdjacency(volume, signalFilter, geometryFilter, null, indexClearance, adjacencyReach, settings);
+    }
+
+    /**
+     * @param footingFilter which blocks have their footing - the cell directly under each - read
+     *                      by some loaded form with {@code "reach": "footing"} (#307), and which
+     *                      blocks are worth indexing there; see {@link FootingFilter} and
+     *                      {@code ArchetypeSignals#footingFilterFor}. May be {@code null}, which
+     *                      indexes no footing at all.
+     * @throws IllegalArgumentException if the volume fails {@link #isScannable}
+     */
+    public static ScanResult scanWithAdjacency(
+            BlockVolume volume,
+            Predicate<BlockSignature> signalFilter,
+            Predicate<BlockSignature> geometryFilter,
+            FootingFilter footingFilter,
+            boolean indexClearance,
+            int adjacencyReach,
+            ScanSettings settings)
+    {
         if (!isScannable(volume.bounds(), settings))
         {
             throw new IllegalArgumentException(
@@ -256,7 +300,8 @@ public final class RegionScanner
                             + " cells, above the limit of " + settings.maxScannedCells());
         }
 
-        return new RegionScanner(volume, signalFilter, geometryFilter, indexClearance, settings).run(adjacencyReach);
+        return new RegionScanner(volume, signalFilter, geometryFilter, footingFilter, indexClearance, settings)
+                .run(adjacencyReach);
     }
 
     /** Everything one scan found: the regions, in their final order, and how they relate. */
@@ -740,6 +785,7 @@ public final class RegionScanner
             }
         }
 
+        indexFootings(geometry, shell);
         geometry.bounds(regionBounds);
 
         SoulRegion region = SoulRegion.create(
@@ -751,6 +797,86 @@ public final class RegionScanner
                 geometry.build());
 
         return new Built(region, interior, shell, interiorBounds);
+    }
+
+    /**
+     * Index what each footing-read block in a room's shell stands on (#307). A note block set on
+     * the floor is a shell cell; the block under it - the one that decides its instrument - touches
+     * no air of the room and so is in nobody's shell. And a note block set on a gold block standing
+     * in the room has its footing in the shell, but gold is indexed only here: what a note block
+     * stands on is stone and planks and wool, which the ordinary geometry filter is kept from
+     * indexing room-wide, see {@link FootingFilter}.
+     *
+     * <p>Geometry only, never counts or credit: the room is worth what lines it, exactly as before,
+     * and a form is what asks where things are. Only solid cells are taken, so an air gap under a
+     * note block reads as nothing; and a cell the shell pass above already indexed is not indexed
+     * twice. Walks the shell in its own order, which is deterministic, so the index - and the
+     * identity hash it feeds - is too.
+     */
+    private void indexFootings(RegionGeometry.Builder geometry, IntStack shell)
+    {
+        if (this.footingFilter == null)
+        {
+            return;
+        }
+
+        Set<Integer> inShell = null;
+
+        for (int i = 0; i < shell.size(); i++)
+        {
+            final int index = shell.get(i);
+            final int x = xOf(index);
+            final int y = yOf(index);
+            final int z = zOf(index);
+
+            if (y - 1 < this.bounds.minY())
+            {
+                continue;
+            }
+
+            BlockSignature signature = this.volume.signatureAt(x, y, z);
+
+            if (signature == null || !this.footingFilter.standing().test(signature)
+                    || !this.volume.passabilityAt(x, y - 1, z).stopsFill())
+            {
+                continue;
+            }
+
+            BlockSignature below = this.volume.signatureAt(x, y - 1, z);
+
+            if (below == null)
+            {
+                continue;
+            }
+
+            final boolean general = this.geometryFilter.test(below);
+
+            if (!general && !this.footingFilter.footing().test(below))
+            {
+                continue;
+            }
+
+            if (general)
+            {
+                // a block the ordinary filter takes was indexed already if it is in this shell
+                if (inShell == null)
+                {
+                    inShell = new HashSet<>(shell.size() * 2);
+
+                    for (int j = 0; j < shell.size(); j++)
+                    {
+                        inShell.add(shell.get(j));
+                    }
+                }
+
+                if (inShell.contains(index(x, y - 1, z)))
+                {
+                    continue;
+                }
+            }
+
+            geometry.add(x, y - 1, z, below, this.volume.facingAt(x, y - 1, z));
+        }
     }
 
     private void indexIfInteresting(RegionGeometry.Builder geometry, int x, int y, int z, BlockSignature signature)

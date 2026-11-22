@@ -194,4 +194,22 @@ class ArchetypeSignalsTest
             return List.of();
         }
     }
+
+    @Test
+    @DisplayName("what a note block stands on is indexed underfoot only, never room-wide - #307")
+    void footingTargetsStayOutOfTheRoomWideIndex() throws java.io.IOException
+    {
+        List<ArchetypeDefinition> shipped = ArchetypeJsonReader.shipped();
+        Predicate<BlockSignature> geometry = ArchetypeSignals.geometryFilterFor(shipped);
+        FootingFilter footing = ArchetypeSignals.footingFilterFor(shipped);
+
+        assertTrue(footing != null, "the music room reads footing");
+        assertTrue(footing.standing().test(TestBlocks.NOTE_BLOCK));
+        assertTrue(footing.footing().test(TestBlocks.STONE), "stone is a bass drum");
+        assertTrue(footing.footing().test(TestBlocks.OAK_PLANKS), "planks are a bass");
+        assertFalse(geometry.test(TestBlocks.STONE), "or every stone wall in every soul is indexed");
+        assertFalse(geometry.test(TestBlocks.OAK_PLANKS));
+        assertTrue(geometry.test(TestBlocks.NOTE_BLOCK), "the audience form reads note blocks where they stand");
+        assertTrue(ArchetypeSignals.footingFilterFor(List.of()) == null, "a pack that never asks pays nothing");
+    }
 }

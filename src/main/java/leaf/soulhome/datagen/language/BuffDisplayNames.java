@@ -97,6 +97,7 @@ public final class BuffDisplayNames
         names.put(SoulBuffTypes.UPDRAFT, "Updraft");
         names.put(SoulBuffTypes.LAST_STAND, "Last Stand");
         names.put(SoulBuffTypes.CALMING_SMOKE, "Calming Smoke");
+        names.put(SoulBuffTypes.CHORUS, "Chorus");
 
         //the one passive that came with the same three rooms
         names.put(SoulBuffTypes.CLEAR_SIGHT, "Clear Sight");

@@ -17,6 +17,7 @@ import leaf.soulhome.structures.core.Aspect;
 import leaf.soulhome.structures.core.BlockSignature;
 import leaf.soulhome.structures.core.BondBook;
 import leaf.soulhome.structures.core.BondRelationRegistry;
+import leaf.soulhome.structures.core.FootingFilter;
 import leaf.soulhome.structures.core.RegionGeometry;
 import leaf.soulhome.utils.LogHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -290,6 +291,8 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
      * @param adjacencyReach how far {@code RegionScanner} should look for paths and routes between
      *                       regions - the furthest any loaded bond could grade, and zero when none
      *                       is distance-based, see {@link ArchetypeSignals#adjacencyReachFor}
+     * @param footingFilter  what is indexed under a room's own cells (#307), or {@code null} when
+     *                       no loaded form reads footing, see {@link ArchetypeSignals#footingFilterFor}
      */
     public record Loaded(
             List<ArchetypeDefinition> archetypes,
@@ -297,6 +300,7 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
             ArchetypeClassifier classifier,
             Predicate<BlockSignature> signalFilter,
             Predicate<BlockSignature> geometryFilter,
+            FootingFilter footingFilter,
             boolean needsClearance,
             int adjacencyReach)
     {
@@ -318,6 +322,7 @@ public class ArchetypeManager extends SimpleJsonResourceReloadListener
                     new ArchetypeClassifier(frozen, SoulHomeConfig.scoringSettings()),
                     ArchetypeSignals.openClusterFilterFor(frozen),
                     ArchetypeSignals.geometryFilterFor(frozen),
+                    ArchetypeSignals.footingFilterFor(frozen),
                     ArchetypeSignals.needsClearance(frozen),
                     ArchetypeSignals.adjacencyReachFor(frozen, BondRelationRegistry.BUILTIN));
         }

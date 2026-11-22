@@ -117,11 +117,35 @@ public final class ArchetypeSignals
         {
             for (Form form : archetype.allForms())
             {
-                matchers.addAll(form.elements().values());
+                matchers.addAll(form.roomWideMatchers());
             }
         }
 
         return matcherFilter(matchers);
+    }
+
+    /**
+     * What {@link RegionScanner} indexes under a room's own cells (#307), or {@code null} when no
+     * loaded form reads with {@code "reach": "footing"}, so the scanner skips the pass outright for
+     * a pack that never asks. A music room's note blocks play what they stand on, and a note block
+     * on the floor stands on a block no room's shell includes. See {@link FootingFilter} for why
+     * the blocks stood on are kept out of {@link #geometryFilterFor} where they can be.
+     */
+    public static FootingFilter footingFilterFor(Collection<ArchetypeDefinition> archetypes)
+    {
+        List<BlockMatcher> standing = new ArrayList<>();
+        List<BlockMatcher> footing = new ArrayList<>();
+
+        for (ArchetypeDefinition archetype : archetypes)
+        {
+            for (Form form : archetype.allForms())
+            {
+                standing.addAll(form.footingMatchers());
+                footing.addAll(form.footingTargetMatchers());
+            }
+        }
+
+        return standing.isEmpty() ? null : new FootingFilter(matcherFilter(standing), matcherFilter(footing));
     }
 
     /**

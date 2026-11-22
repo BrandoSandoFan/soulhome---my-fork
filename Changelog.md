@@ -15,6 +15,23 @@ New entries go here, newest first. When a build ships, the next entry starts a h
 
 ---
 
+A new room: the Music Room, and its Chorus
+
+Note blocks appeared nowhere in the mod, and a jukebox only once. A Music Room is a sealed room of at least 27
+blocks with four or more note blocks in it, scored on the note blocks and jukeboxes, wool to soften the sound,
+seating for an audience and light - and, above all, on what the note blocks are set on. A note block plays the
+block under it, and the room is paid for each different instrument played: a note block on wool (guitar), on
+gold (bell), on bone (xylophone), on planks (bass), on stone (bass drum) and so on, fifteen in all, grouped in the
+guide. A second note block on the same instrument adds a note block's worth and nothing more, so four instruments
+beat one instrument four times. A note block standing straight on the floor plays the floor, and that counts too,
+even though the floor's underside is not part of any room. Seats facing the note blocks across the room are worth
+something more. Anvils, grindstones and machinery count against it, and it bonds with a Mead Hall it shares a wall
+with. It grants Chorus, an active: Regeneration and Speed for you and every player near you, for 12 seconds within
+7 blocks at tier 1, up to 20 seconds within 11 blocks and Speed II at the top, ready again in two minutes (a
+minute and a half at the top). You get it even alone. A new room and a new ability; the guide has a page.
+
+---
+
 A new room: the Fishery, a hut or jetty at the water's edge
 
 Aquarium covers a room full of water; there was nothing for the building beside it. A Fishery is a sealed hut or

@@ -253,6 +253,9 @@ public class MainAdvancements implements Consumer<Consumer<Advancement>>
         archetypeAdvancement(advancementConsumer, roomAdvancement, "apiary", Items.HONEYCOMB);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "observatory", Items.DAYLIGHT_DETECTOR);
         archetypeAdvancement(advancementConsumer, roomAdvancement, "ossuary", Items.BONE_BLOCK);
+
+        // the music room's active is shared with whoever is listening (#307)
+        archetypeAdvancement(advancementConsumer, roomAdvancement, "music_room", Items.NOTE_BLOCK);
     }
 
     /** One of the Meditation epic's firsts - see {@link SoulAdvancements.Moment}. Named after the moment's own id. */

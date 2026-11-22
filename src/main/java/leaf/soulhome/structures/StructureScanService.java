@@ -344,7 +344,7 @@ public final class StructureScanService
             try
             {
                 RegionScanner.ScanResult scan = RegionScanner.scanWithAdjacency(
-                        volume, archetypes.signalFilter(), archetypes.geometryFilter(),
+                        volume, archetypes.signalFilter(), archetypes.geometryFilter(), archetypes.footingFilter(),
                         archetypes.needsClearance(), archetypes.adjacencyReach(), scanSettings);
 
                 List<SoulRegion> regions = scan.regions();
