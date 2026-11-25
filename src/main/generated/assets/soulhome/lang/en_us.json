@@ -433,6 +433,7 @@
   "message.soulhome.region.next_tier": "%s more points to tier %s",
   "message.soulhome.region.not_attuned": "Not attuned - it grants nothing until you bind it at the Soul Anchor.",
   "message.soulhome.region.requirement_failed": "needs %2$s of %1$s, found %3$s",
+  "message.soulhome.region.requirement_standing_failed": "needs %2$s of %1$s, each standing on %4$s, found %3$s",
   "message.soulhome.region.shape": "%s region %s, volume %s",
   "message.soulhome.region.signal": "%s x%s (%s)",
   "message.soulhome.region.signal_capped": "only %s counted",

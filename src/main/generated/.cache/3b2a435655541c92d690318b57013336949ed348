@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-22T02:53:53.434064261	PatchouliGeneration
+// 1.21.1	2026-11-25T02:33:29.968692869	PatchouliGeneration
 55b5193e14f138c8e2468487ae9da7bc7326b1cc assets/soulhome/patchouli_books/guide/en_us/categories/basics.json
 af711e3076ad05e4c6bf846b6186baec8c631781 assets/soulhome/patchouli_books/guide/en_us/categories/multiblocks.json
 bd1f7678104dd8229a05ce549a359e945f200e8f assets/soulhome/patchouli_books/guide/en_us/entries/basics/guests.json
@@ -32,7 +32,7 @@ e05ec6f12a3947db8512c12f95e8885fc79517ab assets/soulhome/patchouli_books/guide/e
 3dc90207977298cd11f2af0efa5bf34e2ee0d968 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/library.json
 3ed46ac52d71ae6d367e15ab32fbe473ef05f158 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/mead_hall.json
 9717d582d18dd40e73268ee1d5e2553eb30f2dc5 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/mine.json
-955e022e069ad53c31dce2c9fd2c171fc286bfaa assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/music_room.json
+e4ed8e66f278f47fab2873c42db01d47e7bd29b1 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/music_room.json
 e957cf9c07a13bf69ac56aa7ed5b4ac555f6a8f5 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/observatory.json
 e75721b27870da202a330cb35e9aa2770fe9e887 assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/ossuary.json
 9da8d2f50c06495ee00f72ecc2a83f4559035f7e assets/soulhome/patchouli_books/guide/en_us/entries/multiblocks/powder_magazine.json
