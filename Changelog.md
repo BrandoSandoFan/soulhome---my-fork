@@ -15,6 +15,17 @@ New entries go here, newest first. When a build ships, the next entry starts a h
 
 ---
 
+A Music Room's four note blocks have to be played
+
+The Music Room asked for four note blocks and did not mind where they were, so four note blocks stacked in a
+corner, or set on dirt, opened the room as readily as a band. Now each of the four has to stand on a block it
+plays - wool, gold, bone, planks, stone, glass, sand and the rest, listed on its own page in the guide - and
+`/soulhome analyse` says how many of yours do and what they need to be set on. A note block standing straight
+on a stone or wooden floor still plays the floor and still counts. Nothing else about the room's score has
+changed. A nerf to a room that was not being built as one.
+
+---
+
 A new room: the Music Room, and its Chorus
 
 Note blocks appeared nowhere in the mod, and a jukebox only once. A Music Room is a sealed room of at least 27

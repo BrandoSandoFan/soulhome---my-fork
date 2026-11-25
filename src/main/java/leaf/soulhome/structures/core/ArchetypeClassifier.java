@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -653,17 +654,55 @@ public final class ArchetypeClassifier
         {
             // whole blocks, deliberately: a gate is a promise about what is there, and fifteen and
             // a half bookshelves do not clear "at least 16" any more than fifteen do
-            final int found = blocks.count(requirement.match());
+            final int found = requirement.standingOn() == null
+                    ? blocks.count(requirement.match())
+                    : countStanding(region.geometry(), requirement.match(), requirement.standingOn());
             final int threshold = effectiveThreshold(requirement, region.volume());
 
             if (found < threshold)
             {
                 failed.add(new ArchetypeScore.FailedRequirement(
-                        requirement.match().describe(), threshold, found));
+                        requirement.describe(), threshold, found,
+                        requirement.standingOn() == null ? null : requirement.standingOn().describe()));
             }
         }
 
         return failed;
+    }
+
+    /**
+     * How many of the room's {@code standing} blocks are set directly on a {@code footing} block
+     * (#307) - the count a {@code standing_on} requirement gates on. A position is counted once
+     * however the geometry came to index it, so a cell the shell pass and the footing pass both
+     * saw is still one note block. A footing cell under the floor is never itself counted as
+     * standing, because nothing indexes the cell under <i>it</i>.
+     */
+    static int countStanding(RegionGeometry geometry, BlockMatcher standing, BlockMatcher footing)
+    {
+        Set<Long> footings = new HashSet<>();
+
+        for (RegionGeometry.Cell cell : geometry.cellsMatching(footing))
+        {
+            footings.add(positionKey(cell.x(), cell.y(), cell.z()));
+        }
+
+        Set<Long> counted = new HashSet<>();
+
+        for (RegionGeometry.Cell cell : geometry.cellsMatching(standing))
+        {
+            if (footings.contains(positionKey(cell.x(), cell.y() - 1, cell.z())))
+            {
+                counted.add(positionKey(cell.x(), cell.y(), cell.z()));
+            }
+        }
+
+        return counted.size();
+    }
+
+    private static long positionKey(int x, int y, int z)
+    {
+        // 26 bits of x and z and 12 of y cover any box a soul could be scanned in, signed
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (y & 0xFFF) << 26) | (z & 0x3FFFFFF);
     }
 
     private static int effectiveThreshold(ArchetypeDefinition.Requirement requirement, int volume)

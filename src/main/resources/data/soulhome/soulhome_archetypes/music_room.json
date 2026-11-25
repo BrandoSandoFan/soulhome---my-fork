@@ -5,7 +5,19 @@
   "min_volume": 27,
 
   "requirements": [
-    { "match": { "block": "minecraft:note_block" }, "min_count": 4 }
+    {
+      "match": { "block": "minecraft:note_block" },
+      "min_count": 4,
+      "standing_on": {
+        "block": ["minecraft:stone", "minecraft:cobblestone", "minecraft:stone_bricks", "minecraft:bricks", "minecraft:obsidian",
+                  "minecraft:gravel", "minecraft:glass", "minecraft:tinted_glass", "minecraft:sea_lantern",
+                  "minecraft:hay_block", "minecraft:gold_block", "minecraft:packed_ice", "minecraft:glowstone",
+                  "minecraft:bone_block", "minecraft:iron_block", "minecraft:soul_sand", "minecraft:clay",
+                  "minecraft:pumpkin", "minecraft:carved_pumpkin", "minecraft:emerald_block"],
+        "tag": ["minecraft:base_stone_overworld", "minecraft:base_stone_nether", "minecraft:sand", "forge:glass",
+                "minecraft:wool", "minecraft:planks", "minecraft:logs"]
+      }
+    }
   ],
 
   "signals": [

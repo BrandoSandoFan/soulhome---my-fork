@@ -210,6 +210,7 @@ public class EngLangGen extends LanguageProvider
         add(Constants.StringKeys.REGION_AMBIGUOUS_ADVICE, "Too close to call. Lean one way: add more of what only one of them wants.");
         add(Constants.StringKeys.REGION_CLOSEST, "Closest was %s, at %s");
         add(Constants.StringKeys.REGION_REQUIREMENT_FAILED, "needs %2$s of %1$s, found %3$s");
+        add(Constants.StringKeys.REGION_REQUIREMENT_STANDING_FAILED, "needs %2$s of %1$s, each standing on %4$s, found %3$s");
         add(Constants.StringKeys.REGION_SIGNAL, "%s x%s (%s)");
         add(Constants.StringKeys.REGION_SIGNAL_CAPPED, "only %s counted");
         add(Constants.StringKeys.REGION_MISSING, "Has none of: %s");

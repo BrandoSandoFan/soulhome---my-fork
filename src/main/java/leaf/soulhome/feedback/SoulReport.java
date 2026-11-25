@@ -573,11 +573,18 @@ public final class SoulReport
 
         for (ArchetypeScore.FailedRequirement requirement : best.failedRequirements())
         {
-            lines.add(indent(translated(
-                    Constants.StringKeys.REGION_REQUIREMENT_FAILED,
-                    BlockNames.of(requirement.description()),
-                    requirement.required(),
-                    requirement.found()))
+            lines.add(indent(requirement.standingOn() == null
+                    ? translated(
+                            Constants.StringKeys.REGION_REQUIREMENT_FAILED,
+                            BlockNames.of(requirement.description()),
+                            requirement.required(),
+                            requirement.found())
+                    : translated(
+                            Constants.StringKeys.REGION_REQUIREMENT_STANDING_FAILED,
+                            BlockNames.of(requirement.description()),
+                            requirement.required(),
+                            requirement.found(),
+                            BlockNames.of(requirement.standingOn())))
                     .withStyle(ChatFormatting.RED));
         }
 
