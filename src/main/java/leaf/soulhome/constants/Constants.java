@@ -69,6 +69,7 @@ public class Constants
         public static final String REGION_AMBIGUOUS_ADVICE = "message.soulhome.region.ambiguous_advice";
         public static final String REGION_CLOSEST = "message.soulhome.region.closest";
         public static final String REGION_REQUIREMENT_FAILED = "message.soulhome.region.requirement_failed";
+        public static final String REGION_REQUIREMENT_STANDING_FAILED = "message.soulhome.region.requirement_standing_failed";
         public static final String REGION_SIGNAL = "message.soulhome.region.signal";
         public static final String REGION_SIGNAL_CAPPED = "message.soulhome.region.signal_capped";
         public static final String REGION_MISSING = "message.soulhome.region.missing";

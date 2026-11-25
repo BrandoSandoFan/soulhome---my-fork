@@ -180,6 +180,7 @@ public class PatchouliMultiblocks
         List<BookStuff.Page> pages = new ArrayList<>();
         pages.add(new BookStuff.TextPage(whereItGoes(archetype) + rewards(archetype)));
         pages.add(new BookStuff.TextPage(mustHave(archetype) + looksFor(archetype)).setTitle("What counts"));
+        pages.addAll(standingPages(archetype));
         pages.addAll(aspectPages(archetype));
         pages.addAll(arrangementPages(archetype));
         pages.addAll(bondPages(archetype, bonds));
@@ -761,9 +762,51 @@ public class PatchouliMultiblocks
                     .append(requirement.minCount())
                     .append(" of ")
                     .append(readable(requirement.match().describe()));
+
+            if (requirement.standingOn() != null)
+            {
+                text.append(", each standing on one of the blocks listed after this page");
+            }
         }
 
         return text.append("$(p)").toString();
+    }
+
+    /**
+     * What a {@code standing_on} requirement's blocks have to be set on (#307), right after the page
+     * that names the requirement. A list rather than a clause on that page because a music room's is
+     * every block a note block plays, which would push everything else off the page - and a player
+     * reading "4 of Note Block" alone would set four of them on dirt and wonder why nothing counted.
+     */
+    static List<BookStuff.Page> standingPages(ArchetypeDefinition archetype)
+    {
+        List<BookStuff.Page> pages = new ArrayList<>();
+
+        for (ArchetypeDefinition.Requirement requirement : archetype.requirements())
+        {
+            if (requirement.standingOn() == null)
+            {
+                continue;
+            }
+
+            List<String> parts = List.of(readable(requirement.standingOn().describe()).split(" or "));
+
+            for (int from = 0; from < parts.size(); from += LEGEND_ENTRIES_PER_PAGE * 2)
+            {
+                StringBuilder text = new StringBuilder(from == 0
+                        ? "Each " + readable(requirement.match().describe()) + " counted has to stand on one of:"
+                        : "And the rest:");
+
+                for (String part : parts.subList(from, Math.min(from + LEGEND_ENTRIES_PER_PAGE * 2, parts.size())))
+                {
+                    text.append("$(li)").append(part);
+                }
+
+                pages.add(new BookStuff.TextPage(text.toString()).setTitle("What it stands on"));
+            }
+        }
+
+        return pages;
     }
 
     private static String looksFor(ArchetypeDefinition archetype)

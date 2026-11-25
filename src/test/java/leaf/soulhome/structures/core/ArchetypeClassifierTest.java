@@ -442,6 +442,75 @@ class ArchetypeClassifierTest
     }
 
     @Test
+    @DisplayName("the music room's gate counts note blocks set on an instrument, not note blocks - #307")
+    void musicRoomGateCountsPlayedNoteBlocks()
+    {
+        ArchetypeDefinition musicRoom = ArchetypeJsonReader.byId(shipped, "soulhome:music_room");
+
+        ArchetypeScore onMoss = classifier.score(onlyRegion(quartet(new char[]{':', ':', ':', ':'})), musicRoom);
+        assertTrue(onMoss.isGated(), "moss plays nothing a music room names, so four note blocks on it are not a band");
+        assertEquals(0, onMoss.failedRequirements().get(0).found());
+        assertTrue(onMoss.failedRequirements().get(0).standingOn() != null, "the report says what they have to stand on");
+
+        ArchetypeScore threeOfFour = classifier.score(onlyRegion(quartet(new char[]{'W', 'Y', ':', 'P'})), musicRoom);
+        assertTrue(threeOfFour.isGated(), "three played note blocks and one on moss is three, not four");
+        assertEquals(3, threeOfFour.failedRequirements().get(0).found());
+
+        assertFalse(classifier.score(onlyRegion(quartet(new char[]{'W', 'Y', ']', 'P'})), musicRoom).isGated());
+    }
+
+    @Test
+    @DisplayName("a note block stacked on another note block is not one more instrument - #307")
+    void stackedNoteBlocksDoNotPassTheGate()
+    {
+        ArchetypeDefinition musicRoom = ArchetypeJsonReader.byId(shipped, "soulhome:music_room");
+
+        // two columns of three: only the bottom of each column is set on anything it plays
+        GridVolume stacked = GridVolume.of(
+                SLAB,
+                new String[]{"#######", "#[...[#", "#.....#", "#.....#", "#.....#", "#.....#", "#######"},
+                new String[]{"#######", "#[...[#", "#.....#", "#.....#", "#.....#", "#.....#", "#######"},
+                new String[]{"#######", "#[...[#", "#.....#", "#.....#", "#.....#", "#.....#", "#######"},
+                new String[]{"#######", "#.....#", "#.....#", "#.....#", "#.....#", "#.....#", "#######"},
+                SLAB);
+
+        SoulRegion region = onlyRegion(stacked);
+        assertEquals(6, region.allBlocks().count(BlockMatcher.ofBlocks("minecraft:note_block")), "six note blocks");
+
+        ArchetypeScore score = classifier.score(region, musicRoom);
+        assertTrue(score.isGated(), "six note blocks, two of them played, is not a music room");
+        assertEquals(2, score.failedRequirements().get(0).found());
+    }
+
+    @Test
+    @DisplayName("every block a music room's forms play is one its gate accepts a note block on - #307")
+    void musicRoomGateAcceptsEveryInstrumentItsFormsRead()
+    {
+        ArchetypeDefinition musicRoom = ArchetypeJsonReader.byId(shipped, "soulhome:music_room");
+        ArchetypeDefinition.Requirement gate = musicRoom.requirements().get(0);
+        assertTrue(gate.standingOn() != null, "the music room gates on what its note blocks stand on");
+
+        Set<String> gateBlocks = new HashSet<>(gate.standingOn().blocks());
+        Set<String> gateTags = new HashSet<>(gate.standingOn().tags());
+
+        for (Form form : musicRoom.structures())
+        {
+            for (BlockMatcher target : form.footingTargetMatchers())
+            {
+                for (String block : target.blocks())
+                {
+                    assertTrue(gateBlocks.contains(block), form.name() + " plays " + block + ", which the gate ignores");
+                }
+
+                for (String tag : target.tags())
+                {
+                    assertTrue(gateTags.contains(tag), form.name() + " plays #" + tag + ", which the gate ignores");
+                }
+            }
+        }
+    }
+
+    @Test
     @DisplayName("a note block on the floor plays the floor, though the floor's underside is in no room - #307")
     void noteBlockOnTheFloorPlaysTheFloor()
     {
@@ -599,12 +668,29 @@ class ArchetypeClassifierTest
             BlockCounts.Builder pile = BlockCounts.builder();
             pile.add(block, requirement.minCount());
 
+            // a gate on what each block stands on (#307) reads positions, so the pile is laid in a
+            // row on gold - which a note block plays - rather than being a bare tally
+            RegionGeometry.Builder laid = RegionGeometry.builder(ScanSettings.DEFAULTS.maxGeometryCells());
+
+            if (requirement.standingOn() != null)
+            {
+                assertTrue(requirement.standingOn().test(TestBlocks.GOLD_BLOCK),
+                        archetype.id() + "'s pile is laid on gold, so its gate has to accept gold");
+
+                for (int i = 0; i < requirement.minCount(); i++)
+                {
+                    laid.add(i, 0, 0, TestBlocks.GOLD_BLOCK);
+                    laid.add(i, 1, 0, block);
+                }
+            }
+
             SoulRegion region = SoulRegion.create(
                     archetype.regionTypes().get(0),
                     new RegionBounds(0, 0, 0, 4, 4, 4),
                     BlockCounts.empty(),
                     pile.build(),
-                    archetype.minVolume());
+                    archetype.minVolume(),
+                    laid.build());
 
             ArchetypeScore score = classifier.score(region, archetype);
 

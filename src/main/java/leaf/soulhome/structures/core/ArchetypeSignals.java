@@ -119,6 +119,15 @@ public final class ArchetypeSignals
             {
                 matchers.addAll(form.roomWideMatchers());
             }
+
+            // a standing_on gate asks where each of its blocks is, which only the geometry knows
+            for (ArchetypeDefinition.Requirement requirement : archetype.requirements())
+            {
+                if (requirement.standingOn() != null)
+                {
+                    matchers.add(requirement.match());
+                }
+            }
         }
 
         return matcherFilter(matchers);
@@ -126,7 +135,8 @@ public final class ArchetypeSignals
 
     /**
      * What {@link RegionScanner} indexes under a room's own cells (#307), or {@code null} when no
-     * loaded form reads with {@code "reach": "footing"}, so the scanner skips the pass outright for
+     * loaded form reads with {@code "reach": "footing"} and no loaded requirement is
+     * {@code standing_on} anything, so the scanner skips the pass outright for
      * a pack that never asks. A music room's note blocks play what they stand on, and a note block
      * on the floor stands on a block no room's shell includes. See {@link FootingFilter} for why
      * the blocks stood on are kept out of {@link #geometryFilterFor} where they can be.
@@ -142,6 +152,16 @@ public final class ArchetypeSignals
             {
                 standing.addAll(form.footingMatchers());
                 footing.addAll(form.footingTargetMatchers());
+            }
+
+            // a standing_on gate reads footing exactly as a "reach": "footing" clause does
+            for (ArchetypeDefinition.Requirement requirement : archetype.requirements())
+            {
+                if (requirement.standingOn() != null)
+                {
+                    standing.add(requirement.match());
+                    footing.add(requirement.standingOn());
+                }
             }
         }
 

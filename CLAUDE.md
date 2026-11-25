@@ -286,7 +286,10 @@ reload.
 Shape of one:
 
 - `region_types` (`enclosed` / `open`) and `min_volume` - what kind of space it can be at all
-- `requirements` - hard gates ("at least 9 crops"); failing one scores 0 but still reports why
+- `requirements` - hard gates ("at least 9 crops"); failing one scores 0 but still reports why.
+  An optional `standing_on` matcher counts only the blocks set directly on one of those (#307: a
+  note block on dirt or on another note block plays nothing). It reads geometry, not counts, so
+  `ArchetypeSignals` indexes both sides exactly as it does for a `"reach": "footing"` clause.
 - `signals` - `match` (block id or tag), `weight`, `role`, `cap`. Counts go through `sqrt` before
   weighting, and distinct `role`s multiply the score, so variety beats volume by construction.
 - `detractors` - negative evidence (an anvil argues a room is not a library)

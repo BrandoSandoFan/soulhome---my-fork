@@ -394,6 +394,14 @@ public record ArchetypeDefinition(
                 errors.add("requirements[" + i + "]: 'min_volume_fraction' must be between 0 and 1, got "
                         + requirement.minVolumeFraction());
             }
+
+            if (requirement.standingOn() != null)
+            {
+                for (String error : requirement.standingOn().validationErrors())
+                {
+                    errors.add("requirements[" + i + "].standing_on: " + error);
+                }
+            }
         }
 
         collectSignalErrors(errors, "signals", this.signals, true);
@@ -592,12 +600,33 @@ public record ArchetypeDefinition(
      *                          already excludes both the shell and anything solid enough to stand
      *                          in the room, since neither one is ever part of an enclosed region's
      *                          interior fill in the first place. See {@link ArchetypeClassifier}.
+     * @param standingOn        {@code null} (the default) to count every {@code match} the room
+     *                          holds. Otherwise only a {@code match} standing directly on one of
+     *                          these counts toward the gate (#307): a note block plays what it is
+     *                          set on, and four note blocks stacked in a corner, or set on dirt,
+     *                          are not four instruments. Read from the room's geometry rather than
+     *                          its counts, since what a block stands on is a position and not a
+     *                          tally, so the standing block has to be one that fills its cell - it
+     *                          is in the room's shell, which is where the scanner reads footing
+     *                          from. {@link ArchetypeSignals} indexes both sides for any loaded
+     *                          requirement that names this.
      */
-    public record Requirement(BlockMatcher match, int minCount, double minVolumeFraction)
+    public record Requirement(BlockMatcher match, int minCount, double minVolumeFraction, BlockMatcher standingOn)
     {
         public Requirement(BlockMatcher match, int minCount)
         {
             this(match, minCount, 0d);
+        }
+
+        public Requirement(BlockMatcher match, int minCount, double minVolumeFraction)
+        {
+            this(match, minCount, minVolumeFraction, null);
+        }
+
+        /** What the gate is about, in the {@link BlockMatcher#describe()} shape, without the count. */
+        public String describe()
+        {
+            return this.match.describe();
         }
     }
 

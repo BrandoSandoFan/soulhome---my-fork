@@ -212,4 +212,29 @@ class ArchetypeSignalsTest
         assertTrue(geometry.test(TestBlocks.NOTE_BLOCK), "the audience form reads note blocks where they stand");
         assertTrue(ArchetypeSignals.footingFilterFor(List.of()) == null, "a pack that never asks pays nothing");
     }
+
+    @Test
+    @DisplayName("a gate on what a block stands on indexes both sides, with no form asking - #307")
+    void aStandingOnRequirementIndexesItsFooting()
+    {
+        ArchetypeDefinition stage = new ArchetypeDefinition(
+                "soulhome:test_stage", "archetype.soulhome.test", List.of(RegionType.ENCLOSED), 1,
+                List.of(new ArchetypeDefinition.Requirement(BlockMatcher.ofBlocks("minecraft:note_block"), 2, 0d,
+                        BlockMatcher.ofBlocks("minecraft:gold_block"))),
+                List.of(new ArchetypeDefinition.Signal(BlockMatcher.ofBlocks("minecraft:note_block"), 1d, "core", 8)),
+                List.of(),
+                List.of(new ArchetypeDefinition.Tier(1d, 1)),
+                List.of(),
+                List.of());
+
+        FootingFilter footing = ArchetypeSignals.footingFilterFor(List.of(stage));
+
+        assertTrue(footing != null, "the gate reads footing, so the scanner has to index it");
+        assertTrue(footing.standing().test(TestBlocks.NOTE_BLOCK));
+        assertTrue(footing.footing().test(TestBlocks.GOLD_BLOCK));
+        assertTrue(ArchetypeSignals.geometryFilterFor(List.of(stage)).test(TestBlocks.NOTE_BLOCK),
+                "the gate asks where each note block is");
+        assertFalse(ArchetypeSignals.geometryFilterFor(List.of(stage)).test(TestBlocks.GOLD_BLOCK),
+                "gold is read only underfoot");
+    }
 }

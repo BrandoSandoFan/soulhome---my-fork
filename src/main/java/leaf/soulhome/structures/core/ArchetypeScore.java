@@ -192,13 +192,24 @@ public record ArchetypeScore(
     /**
      * A hard gate the region failed, phrased so it can be shown verbatim: "needs 16 of
      * #soulhome:bookshelves, found 3".
+     *
+     * @param standingOn what each counted block had to stand on, in the same shape as
+     *                   {@code description}, or {@code null} for a gate on the plain count - see
+     *                   {@link ArchetypeDefinition.Requirement#standingOn()}
      */
-    public record FailedRequirement(String description, int required, int found)
+    public record FailedRequirement(String description, int required, int found, String standingOn)
     {
+        public FailedRequirement(String description, int required, int found)
+        {
+            this(description, required, found, null);
+        }
+
         @Override
         public String toString()
         {
-            return "needs " + this.required + " of " + this.description + ", found " + this.found;
+            return "needs " + this.required + " of " + this.description
+                    + (this.standingOn == null ? "" : " standing on " + this.standingOn)
+                    + ", found " + this.found;
         }
     }
 

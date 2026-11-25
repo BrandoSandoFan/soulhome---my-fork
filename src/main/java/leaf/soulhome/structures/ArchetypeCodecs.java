@@ -19,6 +19,7 @@ import leaf.soulhome.structures.core.RegionType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Deserialisation for {@link ArchetypeDefinition} and friends.
@@ -72,8 +73,11 @@ public final class ArchetypeCodecs
                             Codec.INT.optionalFieldOf("min_count", 1)
                                     .forGetter(ArchetypeDefinition.Requirement::minCount),
                             Codec.DOUBLE.optionalFieldOf("min_volume_fraction", 0d)
-                                    .forGetter(ArchetypeDefinition.Requirement::minVolumeFraction))
-                    .apply(instance, ArchetypeDefinition.Requirement::new));
+                                    .forGetter(ArchetypeDefinition.Requirement::minVolumeFraction),
+                            BLOCK_MATCHER.optionalFieldOf("standing_on")
+                                    .forGetter(requirement -> Optional.ofNullable(requirement.standingOn())))
+                    .apply(instance, (match, minCount, minVolumeFraction, standingOn) ->
+                            new ArchetypeDefinition.Requirement(match, minCount, minVolumeFraction, standingOn.orElse(null))));
 
     public static final Codec<ArchetypeDefinition.Signal> SIGNAL =
             RecordCodecBuilder.create(instance -> instance
