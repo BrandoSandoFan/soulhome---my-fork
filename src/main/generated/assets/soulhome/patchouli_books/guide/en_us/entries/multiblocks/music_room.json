@@ -10,8 +10,23 @@
     },
     {
       "type": "text",
-      "text": "Will not count without:$(li)4 of Note Block$(p)Rewards, most first:$(li)Jukebox$(li)Note Block$(li)$(l:soulhome:multiblocks/tags#seating)any seating$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)any wool$(p)Counts against it:$(li)any anvil$(li)Grindstone$(li)$(l:soulhome:multiblocks/tags#machinery)any machinery$(/l)",
+      "text": "Will not count without:$(li)4 of Note Block, each standing on one of the blocks listed after this page$(p)Rewards, most first:$(li)Jukebox$(li)Note Block$(li)$(l:soulhome:multiblocks/tags#seating)any seating$(/l)$(li)$(l:soulhome:multiblocks/tags#lighting)any lighting$(/l)$(li)any wool$(p)Counts against it:$(li)any anvil$(li)Grindstone$(li)$(l:soulhome:multiblocks/tags#machinery)any machinery$(/l)",
       "title": "What counts"
+    },
+    {
+      "type": "text",
+      "text": "Each Note Block counted has to stand on one of:$(li)Stone$(li)Cobblestone$(li)Stone Bricks$(li)Bricks$(li)Obsidian$(li)Gravel$(li)Glass$(li)Tinted Glass$(li)Sea Lantern$(li)Hay Bale",
+      "title": "What it stands on"
+    },
+    {
+      "type": "text",
+      "text": "And the rest:$(li)Block of Gold$(li)Packed Ice$(li)Glowstone$(li)Bone Block$(li)Block of Iron$(li)Soul Sand$(li)Clay$(li)Pumpkin$(li)Carved Pumpkin$(li)Block of Emerald",
+      "title": "What it stands on"
+    },
+    {
+      "type": "text",
+      "text": "And the rest:$(li)any base stone overworld$(li)any base stone nether$(li)any sand$(li)any glass$(li)any wool$(li)any planks$(li)any logs",
+      "title": "What it stands on"
     },
     {
       "type": "text",
